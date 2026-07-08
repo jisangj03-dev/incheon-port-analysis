@@ -21,6 +21,9 @@ git push -u origin main
 - 2024년 등 다른 연도도 받아서 **연도별 비교** (searchYear만 바꾸면 됨)
 - 막대그래프(외국적/한국적 누적) 등 표현 다양화
 
+## 4. 퍼블리싱 사이트 개선 (보고서 누적 시)
+- 보고서 3개 쌓이면: 보고서·리서치 퍼블리싱 사이트 벤치마킹 후 사이트 구조 개선 (Claude가 사례 조사)
+
 ## 참고: 확인된 API 정보
 - 공컨테이너 API: `https://apis.data.go.kr/B551504/ipaEmpConCargoInfo/getEmpConCargoInfo`
 - 주요 파라미터: `serviceKey`, `searchYear`, `searchStartM`, `searchEndM`, `numOfRows`, `pageNo`
