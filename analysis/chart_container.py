@@ -93,5 +93,6 @@ plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
 # 완성된 그래프를 PNG 파일로 저장한다 (dpi=150: 선명도)
-plt.savefig("container_chart_2025.png", dpi=150)
-print("→ container_chart_2025.png 파일로 저장 완료")
+# 보고서가 참조하는 이미지 폴더(reports/images)에 바로 저장한다 (analysis/에서 실행 기준 상위 경로)
+plt.savefig("../reports/images/container_chart_2025.png", dpi=150)
+print("→ ../reports/images/container_chart_2025.png 파일로 저장 완료")
