@@ -42,7 +42,7 @@ items = root.findall(".//item")
 
 # 표에 넣을 데이터를 한 줄씩 담을 빈 리스트
 rows = []
-# 각 item에서 필요한 값만 꺼낸다 (지금은 월마다 여러 행 = 반입반출·터미널 구분)
+# 각 item에서 필요한 값만 꺼낸다 (지금은 월마다 여러 행 = 수출입구분 GInOut × 외내항구분 ocCt)
 for item in items:
     rows.append({
         "월": item.findtext("mm"),                    # 월
