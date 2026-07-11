@@ -24,6 +24,14 @@ git push -u origin main
 ## 4. 퍼블리싱 사이트 개선 (보고서 누적 시)
 - 보고서 3개 쌓이면: 보고서·리서치 퍼블리싱 사이트 벤치마킹 후 사이트 구조 개선 (Claude가 사례 조사)
 
+## 5. #01 표기·링크 정정 (코드 [확정] 후 일괄 — 수치 무관)
+> `docs/GInOut_코드규명.md`의 코드 상태가 **[잠정] → [확정]** 으로 승격된 뒤 한 번에 반영. 아래는 모두 **수치와 무관한 표기/링크 정정**이라 급하지 않음.
+- **#01 차트 캡션 정정**: `report_01_공컨테이너_물동량.md`의 "월별 반입·반출·**터미널 구분**(64행)" 표현을 실제 축인 **`GInOut`·`ocCt`** 로 정정. (본문 line 21 캡션 + line 85 본문. 원본은 터미널이 아니라 GInOut×ocCt 조합이었음.) `analysis/analyze_container.py` line 45 주석("반입반출·터미널 구분")도 같이 정정.
+- **구 페이지 링크 교체**: 공공데이터포털 데이터 ID **`15130235` → `15157693`** 로 교체. 대상: `analysis/calc_ratio.py`(line 4·55·93 주석/출력)의 "공컨 API 15130235" 표기. 새 페이지: https://www.data.go.kr/data/15157693
+
+## 6. 후속 보고서 재료 메모 (공컨 API 미사용 필드)
+- **`ocCt`**(외/내항 구분 추정) 및 **규격별 필드** `forEmp_10 / _20 / _40 / _99`, `korEmp_10/_20/_40/_99`(10·20·40ft·기타 규격 분해)는 현재 보고서에서 미사용. **규격 구성·외내항 분해** 후속 보고서 재료로 보관.
+
 ## 참고: 확인된 API 정보
 - 공컨테이너 API: `https://apis.data.go.kr/B551504/ipaEmpConCargoInfo/getEmpConCargoInfo`
 - 주요 파라미터: `serviceKey`, `searchYear`, `searchStartM`, `searchEndM`, `numOfRows`, `pageNo`
