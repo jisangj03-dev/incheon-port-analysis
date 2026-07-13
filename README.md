@@ -15,9 +15,17 @@
 
 > #01이 "공컨 비중이 높다"는 관찰을 제시하고, #02가 전체 물동량 대비 28.8%라는 비율로 검증했으며, #03이 그 불균형의 방향(85.1% 수출 방향)을 규명했고, #04가 이 구조가 2022~2025년 48개월 내내 지속됨을 확인했다 — 관찰→검증→규명→지속성.
 
+![월별 수출:수입 배율 (2022–2025)](reports/images/direction_trend_ratio_2022_2025.png)
+
 ## 사용 기술
 
-Python, requests, pandas, matplotlib, 공공데이터 Open API (XML 파싱: `xml.etree.ElementTree`)
+Python(requests·pandas·matplotlib), 공공데이터 Open API·XML 파싱, hwpx 공표자료 파싱(zipfile+XML), git·GitHub·GitHub Pages, 검증 게이트 설계(기발행 수치 회귀 대조·내적 지문 검산), Wayback Machine을 통한 사멸 API 문서 복원
+
+## 검증 방식
+
+- 모든 발행 수치는 저장소에 커밋된 수집 원시 CSV에서 재현 가능하다.
+- 발행 전 검증 게이트를 통과한다: 기존 발행 수치와의 회귀 대조, 스키마·완결성 확인, 내적 검산(방향합=총합, 규격 환산식).
+- 오류는 삭제하지 않고 정정 표기로 남긴다. 판정 기준은 결과 확인 전에 문서로 선커밋한다(docs/ 의 주제검증·정정 기록 참조).
 
 ## 데이터 출처
 
