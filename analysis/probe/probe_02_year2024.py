@@ -34,7 +34,7 @@ url = "https://apis.data.go.kr/B551504/ipaEmpConCargoInfo/getEmpConCargoInfo"
 params = {
     "serviceKey": SERVICE_KEY,
     "searchYear": "2024",
-    "searchStartM": "1",
+    "searchStartM": "01",   # [정정 2026-07-13] 반드시 0패딩. "1"이면 API가 10~12월만 반환(존재월에 '1' 포함되는 달) — 오탐 유발.
     "searchEndM": "12",
     "numOfRows": "200",
     "pageNo": "1",
