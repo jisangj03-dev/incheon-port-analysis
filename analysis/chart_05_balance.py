@@ -94,13 +94,6 @@ for y in YEARS:
     print(f"  {y}: 적컨수입 {r['jeok_imp']:,.0f} / 적컨수출 {r['jeok_exp']:,.0f} / "
           f"공컨수입 {r['emp_imp']:,.0f} / 공컨수출 {r['emp_exp']:,.0f} / "
           f"적컨배율 {r['jeok_ratio']:.2f} / 공컨배율 {r['emp_ratio']:.2f}")
-print("  [초과분 분해]")
-for y in YEARS:
-    r = res.loc[y]
-    p_emp = r["emp_excess"] / r["jeok_excess"] * 100
-    p_net = r["net_imp"] / r["jeok_excess"] * 100
-    print(f"  {y}: {r['jeok_excess']:,.0f} = 공컨수출초과 {r['emp_excess']:,.0f} ({p_emp:.1f}%) "
-          f"+ 전체순수입 {r['net_imp']:,.0f} ({p_net:.1f}%)")
 
 plt.rcParams["font.family"] = "Malgun Gothic"
 plt.rcParams["axes.unicode_minus"] = False
@@ -111,41 +104,48 @@ fig, (axL, axR) = plt.subplots(1, 2, figsize=(12, 6))
 x = range(len(YEARS))
 w = 0.38
 
+# 왼쪽: 적컨 (수입 우위)
 jimp = [res.loc[y, "jeok_imp"] for y in YEARS]
 jexp = [res.loc[y, "jeok_exp"] for y in YEARS]
 axL.bar([i - w / 2 for i in x], jimp, w, color=C_IMP, label="수입")
 axL.bar([i + w / 2 for i in x], jexp, w, color=C_EXP, label="수출")
+offL = max(jimp) * 0.03  # 막대 높이에 비례한 주석 간격(축 스케일 달라도 일관)
 for i, y in zip(x, YEARS):
-    axL.text(i, max(jimp[i], jexp[i]) + 40000, f"수입:수출\n{res.loc[y,'jeok_ratio']:.2f}배",
-             ha="center", fontsize=11, fontweight="bold", color="#111")
+    axL.text(i, max(jimp[i], jexp[i]) + offL, f"수입:수출\n{res.loc[y,'jeok_ratio']:.2f}배",
+             ha="center", va="bottom", fontsize=10.5, fontweight="bold", color="#111")
 axL.set_title("적(積)컨테이너 — 수입 우위", fontsize=13, fontweight="bold")
 axL.set_xticks(list(x))
 axL.set_xticklabels([f"{y}년" for y in YEARS])
 axL.set_ylabel("TEU")
-axL.set_ylim(0, max(jimp) * 1.22)
-axL.legend(loc="upper right")
+axL.set_ylim(0, max(jimp) * 1.30)  # 주석이 놓일 상단 여백 확보
 axL.grid(True, axis="y", alpha=0.3)
 
+# 오른쪽: 공컨 (수출 우위)
 gimp = [res.loc[y, "emp_imp"] for y in YEARS]
 gexp = [res.loc[y, "emp_exp"] for y in YEARS]
 axR.bar([i - w / 2 for i in x], gimp, w, color=C_IMP, label="수입")
 axR.bar([i + w / 2 for i in x], gexp, w, color=C_EXP, label="수출")
+offR = max(gexp) * 0.03
 for i, y in zip(x, YEARS):
-    axR.text(i, max(gimp[i], gexp[i]) + 40000, f"수출:수입\n{res.loc[y,'emp_ratio']:.2f}배",
-             ha="center", fontsize=11, fontweight="bold", color="#111")
+    axR.text(i, max(gimp[i], gexp[i]) + offR, f"수출:수입\n{res.loc[y,'emp_ratio']:.2f}배",
+             ha="center", va="bottom", fontsize=10.5, fontweight="bold", color="#111")
 axR.set_title("공(空)컨테이너 — 수출 우위", fontsize=13, fontweight="bold")
 axR.set_xticks(list(x))
 axR.set_xticklabels([f"{y}년" for y in YEARS])
 axR.set_ylabel("TEU")
-axR.set_ylim(0, max(gexp) * 1.22)
-axR.legend(loc="upper right")
+axR.set_ylim(0, max(gexp) * 1.30)
 axR.grid(True, axis="y", alpha=0.3)
 
+# 범례는 두 subplot 공통 → 그래프 밖(하단 중앙)에 하나만 두어 주석과 겹치지 않게 한다
+handles, labels = axL.get_legend_handles_labels()
+fig.legend(handles, labels, loc="lower center", ncol=2, fontsize=11, frameon=True,
+           bbox_to_anchor=(0.5, 0.01))
+
 fig.suptitle("인천항 적컨·공컨 방향 대비 (2022–2024, 모집단 ocCt=1)", fontsize=15, fontweight="bold")
-fig.tight_layout(rect=[0, 0, 1, 0.96])
+fig.tight_layout(rect=[0, 0.06, 1, 0.95])  # 하단은 범례, 상단은 suptitle 공간
 fig.savefig("../reports/images/balance_direction_2022_2024.png", dpi=150)
 plt.close(fig)
-print("\n(3) 차트 저장: balance_direction_2022_2024.png")
+print("\n(3) 차트 저장(갱신): balance_direction_2022_2024.png")
 
 plt.figure(figsize=(10, 6))
 emp_ex = [res.loc[y, "emp_excess"] for y in YEARS]
