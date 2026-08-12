@@ -4,3 +4,4 @@ config.py
 # 파이썬 캐시 폴더
 __pycache__/
 *.pyc
+_probe_dump.txt
