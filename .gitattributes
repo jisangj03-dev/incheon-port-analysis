@@ -1,0 +1,10 @@
+# 줄끝 정책 - 기록된 SHA-256 앵커의 보존이 최우선이다.
+# CSV: 앵커 3건(2025 정본 포함)은 CRLF 상태의 디스크 바이트로 측정됐다.
+#      LF로 재작성되면 앵커가 전부 깨지므로 CRLF를 고정한다.
+# MD : 저장소 md 규격은 BOM 없음 + LF. checkout 시에도 LF를 유지한다.
+# PY : 앵커 없음. 정책 미적용(core.autocrlf 위임).
+*.md  text eol=lf
+*.csv text eol=crlf
+*.png binary
+# 정책 파일 자신도 정책 안에 둔다.
+.gitattributes text eol=lf
