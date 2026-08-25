@@ -93,7 +93,9 @@ def load_facts():
 
 
 def strip_noise(text: str) -> str:
-    for pat in (r"<!--.*?-->", r"`[^`]*`", r"\[[^\]]*\]\([^)]*\)", r"<sub>.*?</sub>"):
+    # 절 번호(§2.1)·편 번호(#07)는 수치가 아니다. 수치로 세면 오탐이 나온다.
+    for pat in (r"<!--.*?-->", r"`[^`]*`", r"\[[^\]]*\]\([^)]*\)", r"<sub>.*?</sub>",
+                r"§\s*\d+(?:[.\-]\d+)*", r"#\d+"):
         text = re.sub(pat, " ", text, flags=re.S)
     return text
 
