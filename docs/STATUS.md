@@ -19,8 +19,13 @@
   - 발행 중 허브 하단 AI 표기가 지침 §2.2 위반(「AI 도구를 활용했다」)이라 표기 블록으로 교체했다
 - 저작 구조: **B — AI가 생성하고 사람이 운영한다.** 표기 의무가 성립 조건
 - 정지선 도구: `lint_publish.py`(+`--channel`) · `review_pick.py` · `safe_edit.py` · `verify_anchors.py` · `FACTS.md`
-- **브랜드 허브 골격 준비됨** — `역량부서\jisangj03-dev.github.io\` · `git init` 완료 · **remote 없음.**
-  저장소 생성·push는 운영자. `_config.yml`의 `title` 한 줄(브랜드 이름)만 비어 있다.
+- 라인 도구: `pilot_timer.py`(유통 실소요 계측) · `probe_customs.py`(무역 소스 프로브)
+- **브랜드 이름 「대조소」 / `daejoso` 확정 (2026-08-26).** 근거 = `본부\브랜드이름_확정_20260826.md`.
+  되돌리기 비용이 낮다 — URL이 계정명에 묶여 있어 이름을 바꿔도 링크가 안 깨진다.
+- **브랜드 허브** — `역량부서\jisangj03-dev.github.io\` · `git init` + **remote 등록 완료.**
+  **남은 것은 GitHub에서 저장소를 만드는 것 하나뿐이다**(계정 조작). 그다음 `git push -u origin main`.
+- **무역 라인 게이트 ① 미통과** — 관세청 2종 **HTTP 403**, 대조군(공컨 API) 200/`code=00`.
+  대조군이 정상이므로 키·네트워크 문제가 아니다. 활용신청 승인이 선행.
 - 발행본 전수 린트: `python analysis/lint_publish.py` — 기준은 **FAIL 0 · `[구조]` WARN 0**.
   (WARN 잔량은 아래 「미해결」의 FACTS 미등재 건이다. 수치는 실행해서 읽는다)
 - 채널·허브 문안: `python analysis/lint_publish.py --channel <경로>` — 헤드라인도 결론 자리다(§3)
@@ -37,13 +42,21 @@
    git log --oneline origin/main..HEAD    # 무엇이 밀려 있는지 본다
    git push
    ```
-3. **유통 파일럿 1편 측정 (#07 대상)** — 채널별 실소요 시간(요약 작성/이미지/게시·확인).
-   **측정 전에는 어떤 발행 페이스도 숫자로 선언하지 않는다.** 기록 틀 = `docs/유통파일럿.md`
-4. **브랜드 허브 신설** — 골격은 `역량부서\jisangj03-dev.github.io\`에 준비돼 있다.
-   **브랜드 이름 하나로 막혀 있다** — `_config.yml` `title`. 저장소 생성·push는 운영자.
-   절차·확인 순서는 그 폴더의 `README_운영자안내.md`. (이름 없이 push해도 사이트는 뜬다)
+3. **유통 파일럿 1편 측정 (#07 대상)** — **운영자만 할 수 있다.** 게시물 문안이 측정 대상이라
+   AI가 미리 쓰면 측정이 파괴된다. 시각은 기계가 찍는다:
+   ```
+   python analysis/pilot_timer.py start linkedin summary   # 채널: github|site|linkedin
+   python analysis/pilot_timer.py stop                     # 구간: summary|image|post
+   python analysis/pilot_timer.py report --md
+   ```
+   **측정 전에는 어떤 발행 페이스도 숫자로 선언하지 않는다.** 선커밋 = `docs/유통파일럿.md`
+4. **브랜드 허브 발행** — 골격·이름·remote 전부 준비됐다. **GitHub 저장소 생성만 남았다.**
+   이름은 반드시 `jisangj03-dev.github.io` (계정명과 같아야 사용자 사이트가 된다) · Public ·
+   README·.gitignore 추가 안 함. 그다음 `git push -u origin main`.
+   절차·확인 순서는 그 폴더의 `README_운영자안내.md`.
 5. **운영자 계정 조작 필요 (대행 불가)**
-   - 브랜드 이름 (`본부\브랜드구조_설계_v2_20260825.md` §7) — `_config.yml` `title` 한 줄
+   - **공공데이터포털 활용신청 2건** — 승인되면 `python analysis/probe_customs.py`로 게이트 ① 판정.
+     **무역 라인 착수가 이것 하나에 걸려 있다**(`docs/무역라인_개시게이트.md`)
    - 공공데이터포털 활용신청 — `관세청_항구 공항별 수출입실적(GW)`, `관세청_세관장확인대상물품(GW)`
    - KOSIS 공유서비스 인증키 발급 (data.go.kr 키와 별개)
    - GitHub 프로필 README 신설 / 링크드인 헤드라인 최신화 — **문안 준비 완료:** `본부\채널문안_20260826.md`
