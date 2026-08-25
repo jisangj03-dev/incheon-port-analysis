@@ -16,14 +16,16 @@
 사용
 ----
   python analysis/review_pick.py reports/report_07_....md
-  python analysis/review_pick.py reports/report_07_....md --pick=12 --log   # 그 번호로 기록
+  python analysis/review_pick.py reports/report_07_....md --log   # 검수기록에 추가
 
---log 는 --pick=N 을 요구한다. 대조한 값과 기록된 값이 같아야 하기 때문이다.
+추첨은 **결정론**이다. 시드 = 보고서 파일명 + 날짜.
+같은 보고서를 같은 날 몇 번 돌려도 같은 값이 나온다 — 그래서 고를 수 없고,
+대조한 값과 기록되는 값이 반드시 같다.
 
 --log는 docs/검수기록.md에 한 줄을 붙인다. 이 기록이 「검수했다」는 표기의 근거다.
 """
 
-import os
+import hashlib
 import re
 import sys
 from datetime import datetime
@@ -69,28 +71,30 @@ def main():
     if not items:
         sys.exit("주장 수치를 찾지 못했다.")
 
-    # 운영자가 고르면 쉬운 것만 고른다. 기계가 뽑는다.
-    # --pick N 이 있으면 그 번호를 그대로 쓴다. 왜 필요한가:
-    # 검수는 「뽑기 -> 사람이 원본 대조 -> 기록」 순인데, 기록 단계에서 다시 뽑으면
-    # **대조한 값과 기록된 값이 달라진다.** 그러면 검수기록이 일어나지 않은 검수를
-    # 증언하게 되고, 그 기록을 근거로 다는 표기 블록이 거짓이 된다(지침 2.2).
-    # 무작위성은 「운영자가 고르지 못하게」 하려는 것이지 매 실행 재추첨이 목적이 아니다.
-    pick = None
-    for a in sys.argv[1:]:
-        if a.startswith("--pick="):
-            pick = int(a.split("=", 1)[1])
-    if pick is not None:
-        if not (0 <= pick < len(items)):
-            sys.exit(f"[중단] --pick={pick} 범위 밖 (0~{len(items) - 1})")
-        idx = pick
-    else:
-        idx = int.from_bytes(os.urandom(4), "big") % len(items)
+    # 추첨은 결정론이다 — 시드 = 보고서 파일명 + 날짜.
+    #
+    # 무작위성의 목적은 「운영자가 쉬운 값만 고르지 못하게」다.
+    # 그런데 매 실행 재추첨하면 그 목적이 오히려 무너진다:
+    #   - 돌릴 때마다 값이 바뀌므로, 마음에 안 들면 다시 돌리면 그만이다.
+    #   - 그러면 「기계가 뽑는다」는 형식이고 실제 방어는 운영자의 자제심에 걸린다.
+    #   - 이 프로젝트는 정지선을 신뢰가 아니라 구조로 막는다(사고 22·28).
+    # 재추첨은 기록도 깬다. 검수는 「뽑기 -> 사람이 원본 대조 -> 기록」 순인데
+    # 기록 단계에서 다시 뽑으면 대조한 값과 기록된 값이 달라지고,
+    # 검수기록이 일어나지 않은 검수를 증언하게 된다(지침 2.2).
+    #
+    # 같은 보고서 + 같은 날 = 항상 같은 값. 재실행해도 안 바뀌므로 고를 수 없다.
+    # 날짜를 넣는 이유: 시드가 파일명뿐이면 그 보고서는 영원히 같은 한 값만 검사받는다.
+    seed_date = datetime.now().strftime("%Y-%m-%d")
+    seed = f"{path.name}|{seed_date}"
+    idx = int(hashlib.sha256(seed.encode("utf-8")).hexdigest(), 16) % len(items)
     line_no, token, context = items[idx]
     f = facts.get(norm(TOKEN.search(token).group(1)))
 
     print("=" * 62)
     print(f"검수 대상: {path.name}")
-    print(f"후보 수치 {len(items)}건 중 무작위 1건 (추첨 번호 {idx})")
+    print(f"후보 수치 {len(items)}건 중 1건 — 추첨 번호 {idx}")
+    print(f"시드: {seed}")
+    print("      같은 보고서·같은 날이면 항상 같은 값이다. 재실행해도 바뀌지 않는다.")
     print("=" * 62)
     print(f"\n  값      : {token}")
     print(f"  위치    : {path.name}:{line_no}")
@@ -115,26 +119,28 @@ def main():
   4) 어긋나면 발행하지 않는다. 맞으면 --log 로 기록을 남긴다.
 """)
 
-    if "--log" in sys.argv and pick is None:
+    if any(a.startswith("--pick") for a in sys.argv[1:]):
         # stderr는 cp949라 한글이 깨진다. 읽히지 않는 중단 사유는 없는 것과 같다(사고 15).
-        print("\n[중단] --log 는 --pick=N 과 함께 쓴다.")
-        print("       재추첨된 값을 기록하면 대조한 값과 기록된 값이 달라진다.")
-        print(f"       이번 추첨을 기록하려면: --pick={idx} --log")
+        print("\n[중단] --pick 은 폐지됐다. 추첨은 시드(파일명+날짜)로 결정된다.")
+        print("       번호를 지정할 수 있으면 쉬운 값을 고를 수 있고,")
+        print("       그러면 「기계가 뽑는다」가 형식만 남는다(사고 30).")
         sys.exit(2)
 
     if "--log" in sys.argv:
         stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
         if not LOG.exists():
-            LOG.write_text(
+            header = (
                 "# 검수 기록\n\n"
                 "> 저작 구조 B의 「검수·발행: 운영자」 표기를 뒷받침하는 기록이다.\n"
                 "> `python analysis/review_pick.py <보고서> --log` 가 한 줄씩 붙인다.\n"
                 "> 기록이 없는 편은 검수 표기를 달 수 없다.\n\n"
-                "| 일시 | 문서 | 추첨 | 대조한 값 | 위치 |\n|---|---|---|---|---|\n",
-                encoding="utf-8",
+                "| 일시 | 문서 | 추첨 · 시드날짜 | 대조한 값 | 위치 |\n|---|---|---|---|---|\n"
             )
-        with LOG.open("a", encoding="utf-8") as fp:
-            fp.write(f"| {stamp} | {path.name} | {idx}/{len(items)} | {token} | :{line_no} |\n")
+            LOG.write_bytes(header.encode("utf-8"))
+        # newline= 을 주지 않으면 Windows 텍스트 모드가 CRLF 를 쓴다.
+        # 저장소 md 규격은 LF 라 섞이면 워킹트리가 mixed 가 된다(사고 12).
+        with LOG.open("a", encoding="utf-8", newline="\n") as fp:
+            fp.write(f"| {stamp} | {path.name} | {idx}/{len(items)} · {seed_date} | {token} | :{line_no} |\n")
         print(f"기록됨 -> {LOG.relative_to(ROOT)}")
 
 
