@@ -23,6 +23,7 @@
 ----
   python analysis/lint_publish.py                    # reports/*.md 전체
   python analysis/lint_publish.py <경로> [<경로>...]  # 지정
+  python analysis/lint_publish.py <경로> --channel    # 채널 문안(전문을 결론 자리로)
   python analysis/lint_publish.py --selftest         # 내장 인수시험(사고 재현)
 
 종료코드 1 = FAIL 존재 = 발행 금지.
@@ -167,20 +168,32 @@ def conclusion_zones(md: str):
     return zones
 
 
-def lint(path: Path, facts):
+def lint(path: Path, facts, channel: bool = False):
     md = path.read_text(encoding="utf-8")
     fails, warns, exempt = [], [], []
 
-    # 결론 자리를 하나도 못 찾으면 린터는 아무것도 검사하지 않은 채 PASS를 낸다.
-    # 절 번호가 바뀐 보고서(새 라인)에서 조용히 무력화되는 경로다. 침묵시키지 않는다.
-    zones = conclusion_zones(md)
-    found = {z[0] for z in zones}
-    for need in ("H1", "한 줄 결론", "§1 핵심 요약", "§3 해석"):
-        if need not in found:
-            warns.append(
-                f"[구조] 결론 자리 '{need}'를 찾지 못했다 — 이 구역은 **검사되지 않았다.** "
-                f"보고서 골격(지침 §2.5)을 따르거나 conclusion_zones()를 고쳐라"
-            )
+    if channel:
+        # 채널 문안 모드 — 파일 전체를 결론 자리로 본다.
+        #
+        # 지침 §3은 결론 자리에 **채널 게시물 헤드라인**을 포함한다. 그런데
+        # conclusion_zones() 는 보고서 골격(H1 / 한 줄 결론 / ## 1. / ## 3.)을 찾으므로,
+        # 채널 문안에 그대로 겨누면 [구조] WARN 넷만 내고 **값은 하나도 검사하지 않는다.**
+        # 2026-08-26 실측으로 확인했다 — 겨눌 수는 있으나 검사가 되지 않았다.
+        #
+        # 채널 문안에는 절 구조가 없고 짧다. 그래서 「어디가 결론 자리인가」를 찾는 대신
+        # **전부 결론 자리로 취급한다.** 게시물에서 결론이 아닌 수치를 쓸 일이 없기도 하다.
+        zones = [("채널 문안", md, 1)]
+    else:
+        # 결론 자리를 하나도 못 찾으면 린터는 아무것도 검사하지 않은 채 PASS를 낸다.
+        # 절 번호가 바뀐 보고서(새 라인)에서 조용히 무력화되는 경로다. 침묵시키지 않는다.
+        zones = conclusion_zones(md)
+        found = {z[0] for z in zones}
+        for need in ("H1", "한 줄 결론", "§1 핵심 요약", "§3 해석"):
+            if need not in found:
+                warns.append(
+                    f"[구조] 결론 자리 '{need}'를 찾지 못했다 — 이 구역은 **검사되지 않았다.** "
+                    f"보고서 골격(지침 §2.5)을 따르거나 conclusion_zones()를 고쳐라"
+                )
 
     for zone, text, ln in zones:
         for m in TOKEN.finditer(strip_noise(text)):
@@ -250,6 +263,33 @@ MUST_PASS = ["8.642", "34.4", "5.506"]
 MUST_EXEMPT = ["위한 장치", "순환이기 때문", "다른 쪽을 위해"]
 
 
+CHANNEL_FIXTURE = """반기 수출입 배율이 7.754배로 벌어졌습니다. 수입은 -21.4% 줄었습니다.
+6월 단월 배율은 8.642배입니다. 격차는 45개월째 유지됩니다.
+"""
+
+
+def selftest_channel(facts):
+    """채널 문안 모드 — 절 구조가 없는 문안에서도 지위를 강제하는가."""
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "channel.md"
+        p.write_text(CHANNEL_FIXTURE, encoding="utf-8")
+        plain_f, _, _ = lint(p, facts, channel=False)
+        ch_f, _, _ = lint(p, facts, channel=True)
+    blob = "\n".join(ch_f)
+    print("── 인수시험: 채널 문안 모드 ──")
+    for f in ch_f:
+        print(f"    ✗ {f}")
+    caught = [k for k in ("7.754", "-21.4") if k in blob]
+    over = [k for k in ("8.642", "45") if k in blob]
+    ok = len(plain_f) == 0 and len(caught) == 2 and not over
+    print(f"    (일반 모드에서는 FAIL {len(plain_f)}건 — 절 구조가 없어 검사되지 않는다)")
+    if not ok:
+        print(f"채널 모드 실패 — 검출 {caught} / 오탐 {over} / 일반모드 {len(plain_f)}")
+    else:
+        print("채널 모드 통과 — 지위 '참고' 2종 FAIL, [검증] 값은 통과")
+    return ok
+
+
 def selftest(facts):
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "fixture.md"
@@ -272,7 +312,8 @@ def selftest(facts):
         print(f"인수시험 실패 — 미검출 {missed} / 오탐 {overcaught} / 예외 실패 {leaked}")
         return False
     print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
-    return True
+    print()
+    return selftest_channel(facts)
 
 
 def main():
@@ -283,12 +324,16 @@ def main():
         sys.exit(0 if selftest(facts) else 1)
 
     show_exempt = "--show-exempt" in sys.argv
-    args = [a for a in args if a != "--show-exempt"]
+    channel = "--channel" in sys.argv
+    args = [a for a in args if a not in ("--show-exempt", "--channel")]
+    if channel and not args:
+        sys.exit(0)
     targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
     tf = tw = te = 0
-    print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건\n")
+    mode = " · 채널 문안 모드(전문을 결론 자리로 본다)" if channel else ""
+    print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건{mode}\n")
     for p in targets:
-        fails, warns, exempt = lint(p, facts)
+        fails, warns, exempt = lint(p, facts, channel)
         tf += len(fails)
         tw += len(warns)
         te += len(exempt)
