@@ -16,7 +16,9 @@
 사용
 ----
   python analysis/review_pick.py reports/report_07_....md
-  python analysis/review_pick.py reports/report_07_....md --log   # 검수기록에 추가
+  python analysis/review_pick.py reports/report_07_....md --pick=12 --log   # 그 번호로 기록
+
+--log 는 --pick=N 을 요구한다. 대조한 값과 기록된 값이 같아야 하기 때문이다.
 
 --log는 docs/검수기록.md에 한 줄을 붙인다. 이 기록이 「검수했다」는 표기의 근거다.
 """
@@ -68,7 +70,21 @@ def main():
         sys.exit("주장 수치를 찾지 못했다.")
 
     # 운영자가 고르면 쉬운 것만 고른다. 기계가 뽑는다.
-    idx = int.from_bytes(os.urandom(4), "big") % len(items)
+    # --pick N 이 있으면 그 번호를 그대로 쓴다. 왜 필요한가:
+    # 검수는 「뽑기 -> 사람이 원본 대조 -> 기록」 순인데, 기록 단계에서 다시 뽑으면
+    # **대조한 값과 기록된 값이 달라진다.** 그러면 검수기록이 일어나지 않은 검수를
+    # 증언하게 되고, 그 기록을 근거로 다는 표기 블록이 거짓이 된다(지침 2.2).
+    # 무작위성은 「운영자가 고르지 못하게」 하려는 것이지 매 실행 재추첨이 목적이 아니다.
+    pick = None
+    for a in sys.argv[1:]:
+        if a.startswith("--pick="):
+            pick = int(a.split("=", 1)[1])
+    if pick is not None:
+        if not (0 <= pick < len(items)):
+            sys.exit(f"[중단] --pick={pick} 범위 밖 (0~{len(items) - 1})")
+        idx = pick
+    else:
+        idx = int.from_bytes(os.urandom(4), "big") % len(items)
     line_no, token, context = items[idx]
     f = facts.get(norm(TOKEN.search(token).group(1)))
 
@@ -98,6 +114,13 @@ def main():
        (2026-08-25 사고 A가 정확히 이 지점이었다: 값은 맞고 기간이 틀렸다)
   4) 어긋나면 발행하지 않는다. 맞으면 --log 로 기록을 남긴다.
 """)
+
+    if "--log" in sys.argv and pick is None:
+        # stderr는 cp949라 한글이 깨진다. 읽히지 않는 중단 사유는 없는 것과 같다(사고 15).
+        print("\n[중단] --log 는 --pick=N 과 함께 쓴다.")
+        print("       재추첨된 값을 기록하면 대조한 값과 기록된 값이 달라진다.")
+        print(f"       이번 추첨을 기록하려면: --pick={idx} --log")
+        sys.exit(2)
 
     if "--log" in sys.argv:
         stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
