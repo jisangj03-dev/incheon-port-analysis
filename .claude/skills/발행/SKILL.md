@@ -5,7 +5,7 @@ description: 보고서 1편을 발행 가능 상태로 만드는 절차. 수집�
 
 # 발행 SKILL
 
-> 이 파일은 **절차**만 담는다. 규범(왜 그렇게 하는가)은 지침에, 사고 기록은 `docs/사고기록.md`에,
+> 이 파일은 **절차**만 담는다. 규범(왜 그렇게 하는가)은 지침(`본부\프로젝트지침.md`)에, 사고 기록은 `docs/사고기록.md`에,
 > 수치는 `docs/FACTS.md`에 있다. **여기에 복제하지 않는다** — 복제본은 반드시 원본과 어긋난다.
 
 ## 0. 시작
@@ -84,8 +84,9 @@ python analysis/review_pick.py reports/report_NN_*.md --log
 ## 6. 커밋
 
 ```bash
-git add <실제 편집한 파일만>      # git add . 금지
-git diff --cached                 # 의도하지 않은 수치 변경이 있으면 정지
+python analysis/verify_anchors.py  # 정지선 앵커 3건 + 봉인 2건. 불일치면 커밋하지 않는다
+git add <실제 편집한 파일만>       # git add . 금지
+git diff --cached                  # 의도하지 않은 수치 변경이 있으면 정지
 git commit
 ```
 
