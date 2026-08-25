@@ -46,7 +46,32 @@ UNITS = r"%p|%|배|개월|TEU|박스"
 
 TOKEN = re.compile(r"(?<![\w.\-])([+\-−]?\d[\d,]*(?:\.\d+)?)\s*(" + UNITS + r")?")
 
-CAUSAL = [(r"때문에", "인과 서술"), (r"를\s*위해", "목적 서술"), (r"으로\s*인해", "인과 서술")]
+# 인과·목적 표현.
+# 2026-08-25 실측: 직전 판은 어미 3종만 봤고 #01~#07 전편에서 단 한 번도 발화하지 않았다.
+# 즉 그때의 'FAIL 0'은 검사를 통과한 것이 아니라 검사가 닿지 않은 것이었다.
+CAUSAL = [
+    (r"때문(?:에|이다|이라|인)", "인과 서술"),
+    (r"탓(?:에|으로|이다)", "인과 서술"),
+    (r"[으]?로\s*인(?:해|한|하여|해서)", "인과 서술"),
+    (r"영향(?:으로|을\s*받아)", "인과 서술"),
+    (r"[을를]\s*위해", "목적 서술"),
+    (r"하기\s*위[해한]", "목적 서술"),
+]
+
+# 방법론 논리 예외 (지침 v5.0 §3-5).
+#   데이터 인과   "수입이 줄어서 배율이 벌어졌다"            → 금지. 이 데이터로 판별할 수 없는 주장이다.
+#   방법론 논리   "손질을 차단하기 위한 장치다"              → 허용. 저작 행위의 서술이지 데이터 주장이 아니다.
+#   인과 부인문   "…라는 인과는 본 데이터로 증명되지 않는다"  → 허용. 인과를 부인하는 문장이다.
+# 판별 축은 인과 표현이 '무엇을 설명하는가'다. 현상을 설명하면 주장, 절차·장치를 설명하면 서술이다.
+METHOD = re.compile(
+    r"설계|기준|게이트|린터|판정|검증|선커밋|커밋|앵커|해시|blob|재현|코드|대장|표기|검수|"
+    r"스크립트|절차|장치|조치|대조|복원|산출|수집|정의|차단|보존|순환|전제|반올림|모집단|각주|보고서"
+)
+PHENOM = re.compile(
+    r"늘어|늘었|늘고|줄어|줄었|줄고|증가|감소|확대|축소|벌어졌|벌어진|나타났|나타난|"
+    r"발생|쏠렸|쏠린|쏠림|급감|급증|상승|하락|악화|개선"
+)
+NEG = re.compile(r"않는다|않았다|아니다|아니라|없다|못한다|증명되지|단정하지|금지")
 OVERCLAIM = [(r"확정(?:됐|되었|됨)", "2026 잠정치에 '확정'"), (r"확인됐다", "2026 잠정치에 '확인됐다'")]
 
 
@@ -100,6 +125,20 @@ def strip_noise(text: str) -> str:
     return text
 
 
+def classify_causal(text: str, start: int, end: int):
+    """인과 표현 1건을 판정한다. 반환 ("FAIL", "") 또는 ("예외", 사유)."""
+    # 문장 경계에서 자른다. 옆 문장의 부인·현상 어휘가 넘어오면 오판이 된다.
+    before = re.split(r"[.!?]\s", text[max(0, start - 90):start])[-1]
+    after = re.split(r"[.!?]\s", text[end:end + 70])[0]
+    if NEG.search(after) or NEG.search(before[-25:]):
+        return "예외", "인과 부인문"
+    if PHENOM.search(after):
+        return "FAIL", ""          # 현상을 설명하고 있다 = 데이터 인과 주장
+    if METHOD.search(before) or METHOD.search(after):
+        return "예외", "방법론 문맥"
+    return "FAIL", ""              # 판별 불가는 통과시키지 않는다
+
+
 def excerpt(s: str, a: int, b: int) -> str:
     return re.sub(r"\s+", " ", s[max(0, a):b]).strip()
 
@@ -130,9 +169,20 @@ def conclusion_zones(md: str):
 
 def lint(path: Path, facts):
     md = path.read_text(encoding="utf-8")
-    fails, warns = [], []
+    fails, warns, exempt = [], [], []
 
-    for zone, text, ln in conclusion_zones(md):
+    # 결론 자리를 하나도 못 찾으면 린터는 아무것도 검사하지 않은 채 PASS를 낸다.
+    # 절 번호가 바뀐 보고서(새 라인)에서 조용히 무력화되는 경로다. 침묵시키지 않는다.
+    zones = conclusion_zones(md)
+    found = {z[0] for z in zones}
+    for need in ("H1", "한 줄 결론", "§1 핵심 요약", "§3 해석"):
+        if need not in found:
+            warns.append(
+                f"[구조] 결론 자리 '{need}'를 찾지 못했다 — 이 구역은 **검사되지 않았다.** "
+                f"보고서 골격(지침 §2.5)을 따르거나 conclusion_zones()를 고쳐라"
+            )
+
+    for zone, text, ln in zones:
         for m in TOKEN.finditer(strip_noise(text)):
             value, unit = m.group(1), m.group(2) or ""
             if not is_claim(value, unit):
@@ -153,7 +203,12 @@ def lint(path: Path, facts):
     whole = strip_noise(md)
     for pat, why in CAUSAL:
         for m in re.finditer(pat, whole):
-            fails.append(f"[문안] {why}: …{excerpt(whole, m.start() - 35, m.end() + 20)}…")
+            verdict, reason = classify_causal(whole, m.start(), m.end())
+            line = f"…{excerpt(whole, m.start() - 35, m.end() + 20)}…"
+            if verdict == "FAIL":
+                fails.append(f"[문안] {why}: {line}")
+            else:
+                exempt.append(f"[{reason}] {why}: {line}")
     # 잠정치 과대주장은 '2026 데이터를 말하는 문맥'에서만 잡는다.
     # 작성일에 붙은 2026까지 잡으면 오탐이 나고, 오탐이 나오는 린터는 무시당한다.
     for pat, why in OVERCLAIM:
@@ -161,7 +216,7 @@ def lint(path: Path, facts):
             if re.search(r"2026[-년]", whole[max(0, m.start() - 120):m.end() + 60]):
                 warns.append(f"[문안] {why}: …{excerpt(whole, m.start() - 35, m.end() + 15)}…")
 
-    return fails, warns
+    return fails, warns, exempt
 
 
 SELFTEST = """# #99 인수시험 — 수출입 배율은 7.754배로 벌어졌다 (2026년 1~6월)
@@ -175,7 +230,10 @@ SELFTEST = """# #99 인수시험 — 수출입 배율은 7.754배로 벌어졌�
 
 ## 2. 분석 결과
 
-표 생략.
+기준을 데이터보다 먼저 커밋한 것은 결과를 본 뒤의 손질을 차단하기 위한 장치다.
+회귀 앵커를 동일 코드 경로로 다시 수집한 것은, 기존 파일 재합산이 그 파일을 전제로
+그 파일을 검증하는 순환이기 때문이다.
+한쪽이 다른 쪽을 위해 발생했다는 인과는 본 데이터로 증명되지 않는다.
 
 ## 3. 해석
 
@@ -188,26 +246,32 @@ MUST_FAIL = ["7.754", "-21.4", "+10.7", "인과 서술"]
 #   8.642·+34.4%p = [검증]
 #   5.506         = [관측] (2025 확정치 구간. 사고는 이 값이 아니라 짝지어진 7.754 쪽이었다)
 MUST_PASS = ["8.642", "34.4", "5.506"]
+# 방법론 논리·인과 부인문은 FAIL로 잡히면 안 된다. 오탐이 나오는 린터는 무시당한다.
+MUST_EXEMPT = ["위한 장치", "순환이기 때문", "다른 쪽을 위해"]
 
 
 def selftest(facts):
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "fixture.md"
         p.write_text(SELFTEST, encoding="utf-8")
-        fails, warns = lint(p, facts)
+        fails, warns, exempt = lint(p, facts)
     print("── 인수시험: 2026-08-25 사고 재현 픽스처 ──")
     for f in fails:
         print(f"    ✗ {f}")
     for w in warns:
         print(f"    · {w}")
+    for e in exempt:
+        print(f"    ~ {e}")
     blob = "\n".join(fails)
+    exblob = "\n".join(exempt)
     missed = [k for k in MUST_FAIL if k not in blob]
     overcaught = [k for k in MUST_PASS if k in blob]
+    leaked = [k for k in MUST_EXEMPT if k in blob or k not in exblob]
     print()
-    if missed or overcaught:
-        print(f"인수시험 실패 — 미검출 {missed} / 오탐 {overcaught}")
+    if missed or overcaught or leaked:
+        print(f"인수시험 실패 — 미검출 {missed} / 오탐 {overcaught} / 예외 실패 {leaked}")
         return False
-    print(f"인수시험 통과 — 금지 대상 {len(MUST_FAIL)}종 전부 FAIL, [검증] 값 {MUST_PASS}는 통과")
+    print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
     return True
 
 
@@ -218,20 +282,27 @@ def main():
         print(f"대장 등재 수치 {len(facts)}건\n")
         sys.exit(0 if selftest(facts) else 1)
 
+    show_exempt = "--show-exempt" in sys.argv
+    args = [a for a in args if a != "--show-exempt"]
     targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
-    tf = tw = 0
+    tf = tw = te = 0
     print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건\n")
     for p in targets:
-        fails, warns = lint(p, facts)
+        fails, warns, exempt = lint(p, facts)
         tf += len(fails)
         tw += len(warns)
+        te += len(exempt)
         mark = "FAIL" if fails else ("WARN" if warns else "PASS")
-        print(f"[{mark}] {p.name}  (FAIL {len(fails)} / WARN {len(warns)})")
+        print(f"[{mark}] {p.name}  (FAIL {len(fails)} / WARN {len(warns)} / 예외 {len(exempt)})")
         for f in fails:
             print(f"    ✗ {f}")
         for w in warns:
             print(f"    · {w}")
-    print(f"\n합계  FAIL {tf}  WARN {tw}")
+        if show_exempt:
+            for e in exempt:
+                print(f"    ~ {e}")
+    print(f"\n합계  FAIL {tf}  WARN {tw}  인과 예외 {te}건"
+          + ("" if show_exempt else "  (--show-exempt 로 열람)"))
     if tf:
         print("FAIL이 있으므로 발행하지 않는다.")
         sys.exit(1)
