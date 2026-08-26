@@ -49,9 +49,12 @@ TARGETS = [
     ("관세청 항구·공항별 수출입실적",
      "https://apis.data.go.kr/1220000/porttrade/getPorttradeList",
      {"strtYymm": "202601", "endYymm": "202601", "portCd": "020", "numOfRows": "1"}),
+    # imexTpcd(수출입구분)가 필수다. 없으면 code=99 「필수 요청변수가 누락되었습니다」.
+    # 2026-08-26까지 이 프로브는 그 파라미터 없이 호출했고, 403에 가려 결함이 안 보였다(사고 36).
+    # hsSgn·imexTpcd 조합은 **행이 실제로 오는 것**으로 고정한다 — 0행 응답은 개통 증거가 아니다(사고 5).
     ("관세청 세관장확인대상물품",
      "https://apis.data.go.kr/1220000/retrieveCcctLworCd/getRetrieveCcctLworCd",
-     {"hsSgn": "8471300000", "numOfRows": "1"}),
+     {"hsSgn": "8471300000", "imexTpcd": "2"}),
 ]
 CONTROL = ("대조군 · 인천항 공컨(개통 확인됨)",
            "https://apis.data.go.kr/B551504/ipaEmpConCargoInfo/getEmpConCargoInfo",
@@ -75,17 +78,28 @@ def call(url, params):
 
     code = re.search(r"<(?:resultCode|returnReasonCode)>([^<]*)<", body)
     total = re.search(r"<totalCount>([^<]*)<", body)
-    return status, (code.group(1) if code else "-"), (total.group(1) if total else "-")
+    # totalCount 태그가 아예 없는 서비스가 있다(항구·공항별 수출입실적). 그때는 <item> 수를 센다.
+    n = total.group(1) if total else str(len(re.findall(r"<item>", body)))
+    return status, (code.group(1) if code else "-"), n
 
 
 def main():
     print("── 무역 라인 소스 프로브 (값 비노출) ──")
     ok = 0
+    bad_request = 0
     for name, url, params in TARGETS:
         st, code, total = call(url, params)
-        good = st == "HTTP 200" and code in ("00", "0")
+        good = st == "HTTP 200" and code in ("00", "0") and total not in ("0", "-")
+        # 판정을 셋으로 가른다. 「막힘」 하나로 뭉치면 우리 요청의 결함이 서비스 탓으로 숨는다(사고 36).
+        if good:
+            tag = "개통"
+        elif st == "HTTP 200":
+            tag = "요청이상"      # 서비스는 응답했다. 파라미터·조건이 우리 쪽 문제다
+            bad_request += 1
+        else:
+            tag = "막힘"          # 도달 자체가 안 된다. 인증·신청·경로 문제
         ok += good
-        print(f"  [{'개통' if good else '막힘'}] {name:<28} {st:<12} code={code:<4} rows={total}")
+        print(f"  [{tag}] {name:<28} {st:<12} code={code:<4} rows={total}")
 
     name, url, params = CONTROL
     st, code, total = call(url, params)
@@ -100,8 +114,13 @@ def main():
         print("게이트 ① 통과 — 2종 모두 실호출 성공. 무역 라인 착수 조건 하나가 풀렸다.")
         print("다음: docs/무역라인_개시게이트.md 의 게이트 ②~⑤를 채운다.")
         sys.exit(0)
-    print(f"게이트 ① 미통과 — {len(TARGETS) - ok}/{len(TARGETS)}종이 막혀 있다.")
-    print("대조군이 정상이므로 키·네트워크 문제가 아니다. 활용신청 승인이 선행이다.")
+    print(f"게이트 ① 미통과 — {len(TARGETS) - ok}/{len(TARGETS)}종.")
+    if bad_request:
+        print(f"  그중 {bad_request}종은 **[요청이상]**이다 — 서비스는 200으로 응답했다.")
+        print("  **먼저 우리 요청을 의심한다.** 필수 파라미터·조건 조합을 확인하고,")
+        print("  서비스 탓으로 적기 전에 요청을 고쳐 다시 돌린다(사고 36).")
+    else:
+        print("  대조군이 정상이므로 키·네트워크 문제가 아니다. 활용신청 승인이 선행이다.")
     print("**실호출이 성공하기 전에는 주제를 확정하지 않는다**(설계 §5.3).")
     sys.exit(1)
 
