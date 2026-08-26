@@ -84,8 +84,9 @@ python analysis/review_pick.py reports/report_NN_*.md --log
 ## 6. 커밋
 
 ```bash
-python analysis/verify_anchors.py  # 정지선 앵커 3건 + 봉인 2건. 불일치면 커밋하지 않는다
-git add <실제 편집한 파일만>       # git add . 금지
+python analysis/verify_anchors.py       # 정지선 앵커 3건 + 봉인 2건. 불일치면 커밋하지 않는다
+python analysis/check_status_fresh.py   # STATUS 갱신 누락. 경고만 한다 — 차단은 --strict
+git add <실제 편집한 파일만>            # git add . 금지
 git diff --cached                  # 의도하지 않은 수치 변경이 있으면 정지
 git commit
 ```
