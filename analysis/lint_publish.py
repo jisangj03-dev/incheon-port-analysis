@@ -80,6 +80,11 @@ NEG = re.compile(
     r"못한다|못했다|못하며|못하고|"
     r"증명되지|단정하지|확인하지|밝히지|가르지|금지"
 )
+# 작성일·기록일 형태의 완전한 날짜. OVERCLAIM 문맥 판정에서 제거한다.
+# 이걸 안 빼면 「[2026-08-26 갱신 — 이름이 확정됐다]」 같은 문장이 전부 걸린다 —
+# OVERCLAIM 바로 위 주석이 금지한 그 오탐을, 코드가 그대로 내고 있었다(사고 39).
+FULLDATE = re.compile(r"2026[-.]\s?\d{1,2}[-.]\s?\d{1,2}|2026년\s*\d{1,2}월\s*\d{1,2}일")
+
 OVERCLAIM = [(r"확정(?:됐|되었|됨)", "2026 잠정치에 '확정'"), (r"확인됐다", "2026 잠정치에 '확인됐다'")]
 
 
@@ -233,7 +238,9 @@ def lint(path: Path, facts, channel: bool = False):
     # 작성일에 붙은 2026까지 잡으면 오탐이 나고, 오탐이 나오는 린터는 무시당한다.
     for pat, why in OVERCLAIM:
         for m in re.finditer(pat, whole):
-            if re.search(r"2026[-년]", whole[max(0, m.start() - 120):m.end() + 60]):
+            ctx = whole[max(0, m.start() - 120):m.end() + 60]
+            ctx = FULLDATE.sub("", ctx)   # 작성일·기록일은 문맥에서 뺀다. 그것은 데이터의 2026이 아니다
+            if re.search(r"2026[-년]", ctx):
                 warns.append(f"[문안] {why}: …{excerpt(whole, m.start() - 35, m.end() + 15)}…")
 
     return fails, warns, exempt
@@ -298,6 +305,31 @@ def selftest_channel(facts):
     return ok
 
 
+def selftest_overclaim(facts):
+    """잠정치 과대주장 규칙 — 양방향으로 확인한다(사고 39).
+
+    ① 작성일에 붙은 2026은 **안 잡아야** 한다.  ② 데이터 문맥의 2026은 **잡아야** 한다.
+    한쪽만 시험하면 규칙을 껐는지 고쳤는지 구분이 안 된다.
+    """
+    def warns_of(body):
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "f.md"
+            head = ["# t", "- **한 줄 결론**: x", "## 1. 요약"]
+            tail = ["## 3. 해석", ""]
+            p.write_text(chr(10).join(head + [body] + tail), encoding="utf-8")
+            return [w for w in lint(p, facts)[1] if "잠정치" in w]
+
+    date_only = warns_of("[2026-08-26 갱신 — 이름이 확정됐다]")
+    data_ctx = warns_of("2026년 상반기 배율이 확정됐다.")
+    print("── 인수시험: 잠정치 과대주장 (양방향) ──")
+    print(f"  ① 작성일 문맥 2026-08-26 → 경고 {len(date_only)}건 (0이어야 한다)")
+    print(f"  ② 데이터 문맥 2026년   → 경고 {len(data_ctx)}건 (1 이상이어야 한다)")
+    ok = not date_only and bool(data_ctx)
+    print("  통과" if ok else "  실패 — 규칙이 한쪽으로 무너졌다")
+    print()
+    return ok
+
+
 def selftest(facts):
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "fixture.md"
@@ -321,7 +353,7 @@ def selftest(facts):
         return False
     print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
     print()
-    return selftest_channel(facts)
+    return selftest_overclaim(facts) and selftest_channel(facts)
 
 
 def main():
