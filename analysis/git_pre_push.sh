@@ -25,6 +25,10 @@
 # 운영자 우회 (의도된 통로)
 # -------------------------
 #   VIDIMUS_PUSH_OK=1 git push
+# 정지선-집행: §4 — push는 운영자만
+# 정지선-명제: `CLAUDECODE`가 있고 우회 변수가 없으면 **경로와 무관하게** push를 거부한다
+# 정지선-한계: `.git/hooks/`는 **커밋되지 않는다**(새 clone엔 없음) · **`CLAUDECODE`는 지울 수 있다** · 세션 안 `!` 접두도 같이 막혀 `VIDIMUS_PUSH_OK=1`이 필요하다. **내 실수를 막는 난간이지 보안 경계가 아니다**
+
 
 if [ -n "$CLAUDECODE" ] && [ -z "$VIDIMUS_PUSH_OK" ]; then
 	echo "" >&2

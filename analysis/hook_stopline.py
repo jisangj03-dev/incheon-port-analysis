@@ -23,6 +23,10 @@
 사용 / 시험
 -----------
   python analysis/hook_stopline.py --selftest
+
+정지선-집행: §4 — push는 운영자만 / 커밋 전 앵커 검사
+정지선-명제: Claude Code 도구 경로로 들어온 **명령 문자열** 중 push를 거부하고, commit 앞에서 앵커 검사를 돌린다
+정지선-한계: **문자열만 본다** — `subprocess.run(['git','push'])` 같은 간접 호출은 못 막는다(실측). 2층이 그것을 받는다
 """
 
 import json
