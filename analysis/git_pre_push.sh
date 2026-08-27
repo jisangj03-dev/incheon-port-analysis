@@ -42,4 +42,22 @@ if [ -n "$CLAUDECODE" ] && [ -z "$VIDIMUS_PUSH_OK" ]; then
 	exit 1
 fi
 
+# ── 여기부터는 운영자의 push다. 검수 게이트를 한 번 친다 (경고만) ────────────
+#
+# 지침 §1.4 1층은 편마다 `docs/검수기록.md` 기록 1행 이상을 요구하고,
+# §2.3은 `①통독 → ②수치 대조 → ③push` 순서를 정한다. 기록 없이 나가면
+# §2.2 표기 블록이 **일어나지 않은 검수를 증언한다.**
+#
+# 2026-08-27 실측: STATUS 「다음 할 일」의 순서가 `push`를 `#08 검수` 앞에 두고 있었고,
+# `report_08`은 미push 42건 안에 **신규(A)**로 들어 있었다. 문서 순서는 고쳤지만
+# **문서는 또 틀린다**(§0-3). 그래서 같은 판정을 push 순간에 한 번 더 친다.
+#
+# **막지 않는다.** 여기서 막히는 것은 운영자의 손이다 —
+# `check_status_fresh.py`가 같은 이유로 경고를 기본으로 뒀고 차단 승격을 운영자 판단으로 남겼다.
+# 차단이 필요하면 아래 `--hook` 뒤에 `--strict`를 붙인다.
+# 검사기가 죽어도 push는 진행된다(`|| true`). 난간이 push를 인질로 잡지 않는다.
+if command -v python >/dev/null 2>&1; then
+	python "analysis/check_review_log.py" --hook >/dev/null || true
+fi
+
 exit 0
