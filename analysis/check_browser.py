@@ -8,7 +8,7 @@ MCP 연결 실패 메시지는 원인을 하나로 뭉뚱그린다("설치·로�
 사고 36의 처분을 그대로 옮긴 것이다: 실패를 「도달 실패」와 「우리 쪽 이상」으로 가른다.
 뭉친 판정은 원인을 바깥에만 있는 것으로 계속 읽게 만든다.
 
-읽는 것: Local State(프로필 이름·last_used) · Extensions/<id>/ 버전 폴더명.
+읽는 것: Local State(프로필 이름·last_used·active_time) · Extensions/<id>/ 버전 폴더명.
 안 읽는 것: History · Cookies · Login Data · 방문 기록 — 정지선이 아니라 필요가 없어서다.
 """
 
@@ -52,18 +52,21 @@ def chrome_running():
 
 
 def read_local_state(ud):
-    """last_used 프로필과 프로필 표시 이름을 읽는다."""
+    """last_used 프로필 · 표시 이름 · active_time을 읽는다. 실패해도 3-튜플을 지킨다."""
     path = os.path.join(ud, "Local State")
     if not os.path.isfile(path):
-        return None, {}
+        return None, {}, {}
     try:
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
     except Exception:
-        return None, {}
+        return None, {}, {}
     prof = data.get("profile", {})
-    names = {k: (v or {}).get("name", "") for k, v in prof.get("info_cache", {}).items()}
-    return prof.get("last_used"), names
+    cache = prof.get("info_cache", {})
+    names = {k: (v or {}).get("name", "") for k, v in cache.items()}
+    # active_time을 같이 낸다. 프로필 「이름」으로 용도를 추정하다 틀린 적이 있다(사고 43 추가 관측).
+    active = {k: (v or {}).get("active_time") for k, v in cache.items()}
+    return prof.get("last_used"), names, active
 
 
 def ext_versions(ud, profile):
@@ -88,13 +91,13 @@ def inspect():
     if ud is None:
         return {"verdict": VERDICT_MISSING, "reason": "크롬 User Data 폴더를 못 찾았다", "ud": None}
 
-    last_used, names = read_local_state(ud)
+    last_used, names, active = read_local_state(ud)
     found = {p: ext_versions(ud, p) for p in profiles(ud)}
     installed = {p: v for p, v in found.items() if v}
     running = chrome_running()
 
     info = {
-        "ud": ud, "last_used": last_used, "names": names,
+        "ud": ud, "last_used": last_used, "names": names, "active": active,
         "found": found, "installed": installed, "running": running,
     }
 
@@ -121,6 +124,16 @@ def inspect():
     return info
 
 
+def _when(epoch):
+    """프로필이 실제로 언제 쓰였는지. 이름으로 용도를 추정하지 않기 위해 낸다."""
+    if not epoch:
+        return "[미확인]"
+    import datetime
+    try:
+        return datetime.datetime.fromtimestamp(int(epoch)).strftime("%Y-%m-%d")
+    except Exception:
+        return "[미확인]"
+
 EXIT = {VERDICT_OK: 0, VERDICT_ASLEEP: 1, VERDICT_PROFILE: 2, VERDICT_MISSING: 2}
 
 
@@ -132,6 +145,7 @@ def report(info):
             mark = "  <- 마지막 사용" if prof == info.get("last_used") else ""
             state = ("%s %s" % (EXT_LABEL, ", ".join(vers))) if vers else "확장 없음"
             print("  [%s] %s — %s%s" % (prof, label, state, mark))
+            print("      마지막 활동: %s" % _when(info.get("active", {}).get(prof)))
         running = info.get("running")
         print("  크롬 프로세스: %s" % {True: "실행 중", False: "실행 안 됨", None: "확인 못 함"}[running])
     print()
