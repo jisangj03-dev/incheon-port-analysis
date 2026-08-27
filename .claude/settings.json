@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "permissions": {
+    "deny": [
+      "Bash(git push*)",
+      "PowerShell(git push*)"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/hook_stopline.py\" || exit 0",
+            "timeout": 120,
+            "statusMessage": "정지선 검사"
+          }
+        ]
+      }
+    ]
+  }
+}
