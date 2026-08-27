@@ -12,6 +12,7 @@ MCP 연결 실패 메시지는 원인을 하나로 뭉뚱그린다("설치·로�
 안 읽는 것: History · Cookies · Login Data · 방문 기록 — 정지선이 아니라 필요가 없어서다.
 """
 
+import io
 import json
 import os
 import subprocess
@@ -25,7 +26,7 @@ except Exception:
 EXT_ID = "fcoeoabgfenejglbffodgkkbkcdhcgfn"  # Claude in Chrome
 EXT_LABEL = "Claude"
 
-VERDICT_OK = "가용"
+VERDICT_OK = "전제통과"
 VERDICT_ASLEEP = "잠듦"
 VERDICT_PROFILE = "프로필이상"
 VERDICT_MISSING = "미설치"
@@ -152,7 +153,11 @@ def report(info):
     print("판정: %s — %s" % (info["verdict"], info["reason"]))
 
     v = info["verdict"]
-    if v == VERDICT_ASLEEP:
+    if v == VERDICT_OK:
+        print("  -> **아직 「연결됨」이 아니다.** 이 검사는 전제 조건만 본다 —")
+        print("     확장 로그인·claude.ai 계정 일치·핸드셰이크는 **보지 못한다.**")
+        print("     다음 수: `tabs_context_mcp` 를 실제로 쳐서 연결을 확인한다. 둘 다 쳐야 갈린다.")
+    elif v == VERDICT_ASLEEP:
         print("  -> 크롬을 켜면 된다. 브라우저 도구를 쓰기 전에 켜라.")
     elif v == VERDICT_PROFILE:
         print("  -> 확장이 있는 프로필로 바꾸거나, 지금 프로필에 확장을 설치한다.")
@@ -175,7 +180,7 @@ def selftest():
         ("잠듦", {"ud": "x", "last_used": "Default", "names": {},
                   "found": {"Default": ["1.0.85_0"]},
                   "installed": {"Default": ["1.0.85_0"]}, "running": False}, VERDICT_ASLEEP),
-        ("가용", {"ud": "x", "last_used": "Default", "names": {},
+        ("전제통과", {"ud": "x", "last_used": "Default", "names": {},
                   "found": {"Default": ["1.0.85_0"]},
                   "installed": {"Default": ["1.0.85_0"]}, "running": True}, VERDICT_OK),
     ]
@@ -186,6 +191,19 @@ def selftest():
         if got != want:
             ok = False
         print("  %s %-8s -> %s (기대 %s)" % (mark, label, got, want))
+    # 판정이 갈리는 것만으로는 모자란다. **전제통과일 때 「아직 연결 아님」이 실제로 발화하는지** 본다.
+    # 이 규칙을 문장으로만 뒀더니 사람이 나르는 규칙이 됐다(§0-3). 그래서 시험으로 못 지우게 한다.
+    import contextlib
+    buf = io.StringIO()
+    ok_info = {"ud": "x", "last_used": "Default", "names": {}, "active": {},
+               "found": {"Default": ["1.0.85_0"]}, "installed": {"Default": ["1.0.85_0"]},
+               "running": True, "verdict": VERDICT_OK, "reason": "r"}
+    with contextlib.redirect_stdout(buf):
+        report(ok_info)
+    said = "이 검사는 전제 조건만 본다" in buf.getvalue() and "tabs_context_mcp" in buf.getvalue()
+    print("  %s 전제통과 안내 발화 -> %s" % ("OK" if said else "FAIL", said))
+    ok = ok and said
+
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
