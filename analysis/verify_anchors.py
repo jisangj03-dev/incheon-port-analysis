@@ -23,7 +23,9 @@
 종료코드 0 = 전부 일치 / 1 = 불일치(정지선 위반 가능) / 2 = 대상 파일 없음.
 """
 
+import contextlib
 import hashlib
+import io
 import sys
 from pathlib import Path
 
@@ -85,5 +87,73 @@ def main():
     print(f"앵커 {len(ANCHORS)}건 일치 · 봉인 파일 {len(SEALED)}건 제자리.")
 
 
+def selftest():
+    """「봉인 파일의 내용을 안 읽는다」를 **시험이** 확인한다.
+
+    지금까지 그 보장은 주석 한 줄과 「코드가 우연히 안 읽는다」였다.
+    누가 read_bytes 한 줄만 넣어도 아무도 못 잡는다 — 사고 26(장치의 존재는 검사의 수행이 아니다).
+    그래서 실제 읽기 경로를 가로채 확인한다.
+
+    양방향으로 본다(사고 34) — ① 봉인 파일은 **안 열려야** 하고
+    ② 앵커 파일은 **열려야** 한다. ②가 없으면 main()이 아무것도 안 해도 통과한다.
+    """
+    import builtins
+    import pathlib
+
+    opened = []
+    real_open = builtins.open
+    real_rb = pathlib.Path.read_bytes
+    real_rt = pathlib.Path.read_text
+
+    def note(p):
+        try:
+            opened.append(str(pathlib.Path(p).resolve()))
+        except Exception:
+            opened.append(str(p))
+
+    def spy_open(file, *a, **k):
+        note(file)
+        return real_open(file, *a, **k)
+
+    def spy_rb(self, *a, **k):
+        note(self)
+        return real_rb(self, *a, **k)
+
+    def spy_rt(self, *a, **k):
+        note(self)
+        return real_rt(self, *a, **k)
+
+    builtins.open, pathlib.Path.read_bytes, pathlib.Path.read_text = spy_open, spy_rb, spy_rt
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            try:
+                main()
+            except SystemExit:
+                pass
+    finally:
+        builtins.open, pathlib.Path.read_bytes, pathlib.Path.read_text = real_open, real_rb, real_rt
+
+    print("── 인수시험: 봉인 파일 열람 ──")
+    ok = True
+
+    for rel in SEALED:
+        target = str((ROOT / rel).resolve())
+        hit = target in opened
+        print(f"  {'FAIL' if hit else 'OK  '} 안 읽는다: {rel}")
+        ok = ok and not hit
+
+    for rel in ANCHORS:
+        target = str((ROOT / rel).resolve())
+        hit = target in opened
+        print(f"  {'OK  ' if hit else 'FAIL'} 읽는다(대조 대상): {rel}")
+        ok = ok and hit
+
+    print("통과" if ok else "실패")
+    return 0 if ok else 1
+
+
 if __name__ == "__main__":
+    if "--selftest" in sys.argv:
+        sys.exit(selftest())
     main()
