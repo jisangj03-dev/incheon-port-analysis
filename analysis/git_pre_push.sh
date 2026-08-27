@@ -56,7 +56,8 @@ fi
 # `check_status_fresh.py`가 같은 이유로 경고를 기본으로 뒀고 차단 승격을 운영자 판단으로 남겼다.
 # 차단이 필요하면 아래 `--hook` 뒤에 `--strict`를 붙인다.
 # 검사기가 죽어도 push는 진행된다(`|| true`). 난간이 push를 인질로 잡지 않는다.
-if command -v python >/dev/null 2>&1; then
+# 검사기가 없는 저장소(허브 등)에서는 조용히 건너뛴다 — 그쪽엔 `reports/`가 없다.
+if [ -f "analysis/check_review_log.py" ] && command -v python >/dev/null 2>&1; then
 	python "analysis/check_review_log.py" --hook >/dev/null || true
 fi
 

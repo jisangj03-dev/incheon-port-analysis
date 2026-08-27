@@ -27,6 +27,31 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "analysis", "git_pre_push.sh")
 DST = os.path.join(ROOT, ".git", "hooks", "pre-push")
 
+# 관할 저장소 — **이 목록을 도구가 든다. 사람이 매 세션 나르지 않는다**(§0-3).
+#
+# 2026-08-28 실측으로 생겼다. 이 스크립트는 인천 저장소 하나에만 훅을 깔고 있었고,
+# **브랜드 허브(`jisangj03-dev.github.io`)의 `.git/hooks/`는 비어 있었다.**
+# 즉 2층(경로 무관 차단)이 없고 1층(`hook_stopline.py`, 명령 문자열)만 있는 상태였는데,
+# 1층은 간접 호출을 **못 막는다**(사고 46 실측). 웹사이트 작업이 일어날 저장소가 하필 그쪽이다.
+#
+# 형제 경로로 찾는다. 없으면 조용히 건너뛴다 — 다른 기계에는 허브가 없을 수 있다.
+SIBLINGS = ("jisangj03-dev.github.io",)
+
+
+def governed():
+    """훅을 깔아야 하는 저장소 목록. (이름, 경로)."""
+    out = [(os.path.basename(ROOT), ROOT)]
+    parent = os.path.dirname(ROOT)
+    for name in SIBLINGS:
+        path = os.path.join(parent, name)
+        if os.path.isdir(os.path.join(path, ".git")):
+            out.append((name, path))
+    return out
+
+
+def hook_path(repo):
+    return os.path.join(repo, ".git", "hooks", "pre-push")
+
 
 def digest(path):
     if not os.path.isfile(path):
@@ -35,31 +60,52 @@ def digest(path):
         return hashlib.sha256(fh.read()).hexdigest().upper()
 
 
-def install():
-    os.makedirs(os.path.dirname(DST), exist_ok=True)
-    shutil.copyfile(SRC, DST)
+def install_one(name, repo):
+    dst = hook_path(repo)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    shutil.copyfile(SRC, dst)
     try:  # POSIX에서만 의미가 있다. Windows에서는 git이 알아서 sh로 돌린다.
-        os.chmod(DST, 0o755)
+        os.chmod(dst, 0o755)
     except Exception:
         pass
-    print("설치: %s" % DST)
-    print("  정본 %s" % SRC)
-    print("  SHA-256 %s" % digest(DST))
+    print("설치: %-26s %s" % (name, dst))
     return 0
 
 
-def check():
-    a, b = digest(SRC), digest(DST)
-    if b is None:
-        print("[없음] .git/hooks/pre-push 가 설치돼 있지 않다 — push 정지선이 비어 있다.")
-        print("  -> python analysis/install_git_hooks.py")
+def install(only=None):
+    repos = [(n, p) for n, p in governed() if only in (None, n, p)]
+    if not repos:
+        print("대상 저장소가 없다: %s" % only)
         return 2
-    if a != b:
-        print("[불일치] 설치본이 정본과 다르다. 손으로 고쳤거나 낡았다.")
-        print("  -> python analysis/install_git_hooks.py")
-        return 1
-    print("[일치] pre-push 설치됨 · 정본과 동일 (SHA-256 %s)" % a)
+    print("정본 %s" % SRC)
+    print("  SHA-256 %s" % digest(SRC))
+    for name, repo in repos:
+        install_one(name, repo)
     return 0
+
+
+def check(only=None):
+    a = digest(SRC)
+    repos = [(n, p) for n, p in governed() if only in (None, n, p)]
+    if not repos:
+        print("대상 저장소가 없다: %s" % only)
+        return 2
+    worst = 0
+    for name, repo in repos:
+        b = digest(hook_path(repo))
+        if b is None:
+            print("[없음]   %-26s pre-push 미설치 — push 정지선 2층이 비어 있다." % name)
+            worst = max(worst, 2)
+        elif a != b:
+            print("[불일치] %-26s 설치본이 정본과 다르다. 손으로 고쳤거나 낡았다." % name)
+            worst = max(worst, 1)
+        else:
+            print("[일치]   %-26s pre-push 설치됨 · 정본과 동일" % name)
+    if worst:
+        print("  -> python analysis/install_git_hooks.py")
+    else:
+        print("정본 SHA-256 %s · 관할 %d곳 전부 일치" % (a, len(repos)))
+    return worst
 
 
 def find_sh():
@@ -121,9 +167,17 @@ def selftest():
     return 0 if ok else 1
 
 
+def only_arg(argv):
+    if "--repo" in argv:
+        i = argv.index("--repo")
+        if i + 1 < len(argv):
+            return argv[i + 1]
+    return None
+
+
 if __name__ == "__main__":
     if "--selftest" in sys.argv:
         sys.exit(selftest())
     if "--check" in sys.argv:
-        sys.exit(check())
-    sys.exit(install())
+        sys.exit(check(only_arg(sys.argv)))
+    sys.exit(install(only_arg(sys.argv)))
