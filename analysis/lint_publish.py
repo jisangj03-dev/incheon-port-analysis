@@ -136,7 +136,14 @@ def load_facts():
 
 def strip_noise(text: str) -> str:
     # 절 번호(§2.1)·편 번호(#07)는 수치가 아니다. 수치로 세면 오탐이 나온다.
+    #
+    # [2026-08-28 추가] HTML 태그와 맨 URL도 걷어낸다. **오탐이 실제로 났다** —
+    # 허브 `index.md`를 마크다운 링크에서 `<a href="...">`로 바꾸자 WARN 18이 떴고,
+    # 전부 퍼센트 인코딩(`%EA%B4%80%EC%84%B8`)의 16진수를 백분율로 읽은 것이었다.
+    # 마크다운 링크만 걷어내고 있어서, **표기법을 바꾸는 순간 같은 URL이 수치가 됐다.**
+    # 사이트가 HTML을 쓰기 시작하면 이 구멍은 계속 벌어진다.
     for pat in (r"<!--.*?-->", r"`[^`]*`", r"\[[^\]]*\]\([^)]*\)", r"<sub>.*?</sub>",
+                r"</?[a-zA-Z][^>]*>", r"https?://\S+",
                 r"§\s*\d+(?:[.\-]\d+)*", r"#\d+"):
         text = re.sub(pat, " ", text, flags=re.S)
     return text
@@ -287,6 +294,35 @@ CHANNEL_FIXTURE = """반기 수출입 배율이 7.754배로 벌어졌습니다. 
 """
 
 
+# 퍼센트 인코딩된 URL은 수치가 아니다. **2026-08-28에 실제로 오탐이 났다** —
+# 허브 index를 마크다운 링크에서 `<a href>`로 바꾸자 WARN 18이 떴고 전부 이것이었다.
+# 양방향으로 시험한다: URL의 %는 안 잡히고, **본문의 진짜 %는 그대로 잡혀야 한다.**
+HTMLURL_FIXTURE = """<a class="report" href="https://x.io/reports/report_08_%EA%B4%80%EC%84%B8%EC%B2%AD.html">
+<span class="no">#08</span><h3>다른 기관 소스로 다시 봤다</h3></a>
+맨 URL도 본다: https://x.io/a_%ED%91%9C%EB%B3%B8%EC%99%B8.html
+그리고 이 문장의 수입은 -21.4% 줄었습니다.
+"""
+
+
+def selftest_htmlurl(facts):
+    """HTML href·맨 URL의 퍼센트 인코딩을 수치로 읽지 않는가 (오탐 방지·양방향)."""
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "hub.md"
+        p.write_text(HTMLURL_FIXTURE, encoding="utf-8")
+        fails, warns, _ = lint(p, facts, channel=True)
+    blob = "\n".join(list(fails) + list(warns))
+    # 오탐: 인코딩 조각이 수치로 올라오면 안 된다
+    ghosts = [g for g in ("80%", "84%", "95%", "88%", "98%", "85%", "91%", "99%", "96%") if g in blob]
+    # 반대 방향: 본문의 진짜 값은 여전히 잡혀야 한다. 안 잡히면 다 지운 것이다
+    real = "-21.4" in blob
+    print("── 인수시험: URL 퍼센트 인코딩 (양방향) ──")
+    print(f"    ① URL 조각 오탐 {len(ghosts)}건 (0이어야 한다){' -> ' + ', '.join(ghosts) if ghosts else ''}")
+    print(f"    ② 본문의 진짜 '-21.4%' 검출 {'O' if real else 'X'} (O여야 한다 — X면 전부 지운 것이다)")
+    ok = not ghosts and real
+    print("    통과" if ok else "    실패")
+    return ok
+
+
 def selftest_channel(facts):
     """채널 문안 모드 — 절 구조가 없는 문안에서도 지위를 강제하는가."""
     with tempfile.TemporaryDirectory() as d:
@@ -357,7 +393,7 @@ def selftest(facts):
         return False
     print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
     print()
-    return selftest_overclaim(facts) and selftest_channel(facts)
+    return selftest_overclaim(facts) and selftest_channel(facts) and selftest_htmlurl(facts)
 
 
 def main():
