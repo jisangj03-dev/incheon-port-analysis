@@ -245,6 +245,14 @@ def render_tags(tpl: str, ctx: dict, includes_dir: str) -> str:
         elif head == "feed_meta":
             if alive():
                 out.append("<!-- feed_meta (플러그인. 미리보기에서는 비운다) -->")
+        elif head == "comment":
+            # {% comment %}…{% endcomment %} 는 **출력되지 않는다.**
+            # 처리 안 했더니 레이아웃 주석이 지면에 본문으로 찍혔고,
+            # 화면에서 그것이 사이트 결함처럼 보였다(실측). 미리보기의 3번째 같은 실수다.
+            stack.append([False, True])
+        elif head == "endcomment":
+            if stack:
+                stack.pop()
         # 그 밖의 태그는 조용히 버린다
     if alive():
         out.append(tpl[pos:])
