@@ -1,0 +1,55 @@
+cff-version: 1.2.0
+title: "Vidimus — 인천항 물동량을 공공 1차 데이터로 확인한다"
+message: >-
+  이 저장소의 분석·원시 데이터·재현 코드를 인용할 때 아래 정보를 쓴다.
+  수치를 옮길 때는 값만이 아니라 창(기간·모집단·단위)을 같이 옮겨 달라 —
+  "배율 8.642"는 인용이 아니고
+  "8.642 / 2026-06 단월 / 수출÷수입 TEU"가 인용이다.
+type: dataset
+authors:
+  - given-names: 지상
+    family-names: 정
+    alias: jisangj03-dev
+    website: "https://github.com/jisangj03-dev"
+    roles: ["검수", "발행", "책임"]
+  - name: "Claude (Anthropic)"
+    roles: ["본문 생성"]
+repository-code: "https://github.com/jisangj03-dev/incheon-port-analysis"
+url: "https://jisangj03-dev.github.io"
+abstract: >-
+  인천항 물동량을 공공 1차 데이터로 다년 추적해 발행하는 리서치.
+  판정 기준을 데이터 수집보다 먼저 커밋하고 그 시점의 해시를 남기며,
+  FAIL도 기준 그대로 공개한다. 본문은 AI가 생성하고 사람이 검수·발행하며,
+  그 사실을 각 발행물에 표기한다. 원시 데이터와 재현 코드를 함께 공개한다.
+keywords:
+  - 인천항
+  - 물동량
+  - 컨테이너
+  - 공컨테이너
+  - 공공데이터
+  - 재현가능성
+  - 선커밋
+  - incheon-port
+  - port-statistics
+  - reproducible-research
+license-url: "https://jisangj03-dev.github.io/verify/"
+version: "reports 01-08"
+date-released: "2026-08-28"
+references:
+  - type: data
+    title: "인천항 컨테이너 화물 처리실적"
+    authors:
+      - name: "인천항만공사"
+    notes: >-
+      공공데이터포털 제공. 원시 데이터의 권리는 제공 기관에 있고
+      재사용 조건은 해당 기관의 이용 약관을 따른다.
+  - type: data
+    title: "수출입신고 자료"
+    authors:
+      - name: "관세청"
+    notes: "공공데이터포털 제공. 조건은 위와 같다."
+  - type: data
+    title: "인천항 컨테이너 물동량 공표자료"
+    authors:
+      - name: "인천지방해양수산청"
+    notes: "공표자료. 조건은 위와 같다."
