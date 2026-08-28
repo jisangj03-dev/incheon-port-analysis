@@ -160,7 +160,19 @@ def _truthy(v) -> bool:
 
 
 def _eval_cond(cond: str, ctx: dict) -> bool:
+    """**결합 순서에 주의.** `and`/`or` 를 비교 연산자보다 **먼저** 쪼개야 한다.
+
+    처음에 `!=` 를 먼저 봤더니 `page.title and page.url != '/'` 이
+    (`page.title and page.url`) != (`'/'`) 로 갈렸고, 홈에서 참이 나왔다.
+    실제 Liquid 는 `and` 가 더 느슨하게 묶여 거짓이다.
+    → **미리보기가 실물과 다르게 나왔고, 그 차이가 사이트 결함처럼 보였다.**
+    이 도구의 고유 위험이 바로 이것이라 회귀 시험을 붙였다.
+    """
     cond = cond.strip()
+    if " or " in cond:
+        return any(_eval_cond(p, ctx) for p in cond.split(" or "))
+    if " and " in cond:
+        return all(_eval_cond(p, ctx) for p in cond.split(" and "))
     for op, fn in (
         ("!=", lambda a, b: a != b),
         ("==", lambda a, b: a == b),
@@ -168,10 +180,6 @@ def _eval_cond(cond: str, ctx: dict) -> bool:
         if op in cond:
             left, right = cond.split(op, 1)
             return fn(str(_lookup(left, ctx)), str(_lookup(right, ctx)))
-    if " and " in cond:
-        return all(_eval_cond(p, ctx) for p in cond.split(" and "))
-    if " or " in cond:
-        return any(_eval_cond(p, ctx) for p in cond.split(" or "))
     return _truthy(_lookup(cond, ctx))
 
 
@@ -497,6 +505,19 @@ def selftest() -> int:
         "중첩 if 안에서 바깥이 거짓이면 안쪽도 안 낸다",
         render_tags("{% if page.none %}{% if site.title %}X{% endif %}{% endif %}", ctx, ""),
         "",
+    )
+    # 회귀: and/or 가 비교 연산자보다 먼저 묶이면 홈의 og:title 이 뒤집힌다.
+    home = {"site": {"title": "T", "baseurl": "", "url": "https://x"}, "page": {"title": "홈", "url": "/"}}
+    check(
+        "`A and B != C` 에서 and 가 느슨하게 묶인다 (홈)",
+        render_tags("{% if page.title and page.url != '/' %}P{% else %}H{% endif %}", home, ""),
+        "H",
+    )
+    sub = {"site": {"title": "T", "baseurl": "", "url": "https://x"}, "page": {"title": "정정", "url": "/corrections/"}}
+    check(
+        "같은 식이 하위 페이지에서는 참",
+        render_tags("{% if page.title and page.url != '/' %}P{% else %}H{% endif %}", sub, ""),
+        "P",
     )
     check("표 렌더", "<table>" in markdown("| a | b |\n|---|---|\n| 1 | 2 |"), True)
     check("제목 렌더", markdown("## 가"), "<h2>가</h2>")
