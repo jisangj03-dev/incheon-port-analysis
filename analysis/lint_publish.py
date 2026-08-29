@@ -26,11 +26,15 @@
   python analysis/lint_publish.py <경로> --channel    # 채널 문안(전문을 결론 자리로)
   python analysis/lint_publish.py --selftest         # 내장 인수시험(사고 재현)
 
+모드는 셋이고 **채널만 손으로 켠다.** 나머지는 파일이 정한다 —
+front matter 에 `layout:` 이 있으면 **지면**(머리말 + 표 밖 산문), 없으면 **발행본**(보고서 골격).
+매 줄에 어느 모드로 봤는지 찍는다. **모드가 자동이면 그만큼 「무엇이 검사됐나」가 안 보인다.**
+
 종료코드 1 = FAIL 존재 = 발행 금지.
 
 정지선-집행: §4 — 데이터 지위(강등 구간·잠정치·박스 수 기준·`_99`·PASS) / §3 결론 자리
-정지선-명제: 발행본과 채널 문안의 결론 자리에서 지위 위반·인과 서술·FACTS 미등재를 잡는다
-정지선-한계: **결론 자리를 못 찾으면 `[구조]` WARN만 낸다** — 절 번호가 다른 문서는 검사되지 않는다(사고 26)
+정지선-명제: 발행본·지면·채널 문안의 결론 자리에서 지위 위반·인과 서술·FACTS 미등재를 잡는다
+정지선-한계: **발행본은 골격을 못 찾으면 `[구조]` WARN만 낸다**(사고 26) · **지면은 표·그림 안을 안 본다** — 강등 값을 표에만 넣고 산문에서 안 부르면 지나간다
 """
 
 import re
@@ -172,6 +176,20 @@ def lookup(facts, value: str, unit: str):
         "'%s'" % e["표기"] for e in bucket.values())
 
 
+def keep_lines(m) -> str:
+    """걷어낸 자리에 **줄바꿈 개수를 남긴다.**
+
+    종전에는 공백 하나로 바꿨다. 그래서 표 한 덩어리를 지우면 그 안의 줄이 통째로
+    사라지고, **뒤에 나오는 모든 경고의 줄번호가 앞으로 밀렸다.** `/berths/` 의 경고 5건이
+    전부 `L12`(머리말 끝 줄)로 찍혔다 — 본문 240줄 아래에 있는 문장인데.
+
+    **검사기가 잡아 놓고 어디인지 안 알려 주면 그만큼은 안 잡은 것과 같다.**
+    같은 문장을 파일 이름 표기에 대해 이미 한 번 적었고(같은 날 오전), 줄번호에는 안 썼다.
+    """
+    s = m.group(0)
+    return "\n" * s.count("\n") if "\n" in s else " "
+
+
 def strip_noise(text: str) -> str:
     # 절 번호(§2.1)·편 번호(#07)는 수치가 아니다. 수치로 세면 오탐이 나온다.
     #
@@ -180,10 +198,18 @@ def strip_noise(text: str) -> str:
     # 전부 퍼센트 인코딩(`%EA%B4%80%EC%84%B8`)의 16진수를 백분율로 읽은 것이었다.
     # 마크다운 링크만 걷어내고 있어서, **표기법을 바꾸는 순간 같은 URL이 수치가 됐다.**
     # 사이트가 HTML을 쓰기 시작하면 이 구멍은 계속 벌어진다.
+    #
+    # [2026-08-29 추가] **파일 메타는 주장 수치가 아니다.** 크기(B·KB·MB)·행수·열수는
+    # 우리 산출물이나 원본 파일을 묘사하는 값이지 **인천항에 대한 주장이 아니다.**
+    # 지면 모드를 켜자마자 `/datasets/` 에서 15건이 떴는데 전부 그것이었다
+    # (`5.1 KB` · `66행 · 16열` · `696.4 KB`). 대장에 넣으면 **대장이 파일 목록이 된다.**
+    # `§2.1` · `#07` 을 빼는 것과 같은 종류의 제외지, 검사를 약하게 하는 것이 아니다 —
+    # **인천항 물동량은 B·KB·행·열로 세지 않는다.** 셀 일이 생기면 그때 다시 판단한다.
     for pat in (r"<!--.*?-->", r"`[^`]*`", r"\[[^\]]*\]\([^)]*\)", r"<sub>.*?</sub>",
                 r"</?[a-zA-Z][^>]*>", r"https?://\S+",
+                r"\d[\d,]*(?:\.\d+)?\s*(?:B|KB|MB|GB)\b", r"\d[\d,]*\s*[행열]",
                 r"§\s*\d+(?:[.\-]\d+)*", r"#\d+"):
-        text = re.sub(pat, " ", text, flags=re.S)
+        text = re.sub(pat, keep_lines, text, flags=re.S)
     return text
 
 
@@ -229,8 +255,87 @@ def conclusion_zones(md: str):
     return zones
 
 
-def lint(path: Path, facts, channel: bool = False):
+FRONT_CLAIM_KEYS = ("title", "kicker", "standfirst", "description", "subject")
+
+# 지면에서 **관측이 들어 있는 덩어리**. 이것만 걷어내면 남는 것이 산문이다.
+SITE_STRIP = (
+    r"```.*?```",                     # 코드블록
+    r"<table\b.*?</table>",           # HTML 표 — 셀 안 숫자는 관측이다
+    r"<svg\b.*?</svg>",               # 그림 — 좌표와 눈금이 전부 숫자다
+    r"(?m)^[ \t]*\|.*$",              # 마크다운 표 행
+)
+
+FRONT_RE = re.compile(r"---\s*\n(.*?)\n---\s*\n", re.S)
+
+
+def site_zones(md: str):
+    """지면(허브) 결론 자리 — **front matter 문안 + 표 밖 산문.**
+
+    왜 보고서 골격을 못 쓰는가
+    --------------------------
+    `conclusion_zones()` 는 `# ` · `한 줄 결론` · `## 1.` · `## 3.` 을 찾는다.
+    **허브 지면에는 그 넷이 하나도 없다** — 제목은 front matter 에 있고 절은 표 번호로 나간다.
+    그래서 지면을 겨누면 `[구조]` WARN 넷만 뜨고 **수치는 하나도 검사되지 않았다.**
+
+    **이 결함은 이미 한 번 발견돼 있었다.** 2026-08-26에 채널 문안에서 같은 것을 실측해
+    `--channel` 을 만들었고, 그 주석이 「겨눌 수는 있으나 검사가 되지 않았다」로 적는다.
+    **그 판단을 지면에는 안 옮겼다.** 그 사이 지면이 아홉 개로 늘고 표가 열 개 넘게 붙었다.
+    한 도구에서 세운 원칙을 다음 도구에서 안 쓰는 것 — 사고 61과 같은 얼굴이다.
+
+    무엇을 결론 자리로 보는가
+    -------------------------
+    **표 안은 관측이고 표 밖 산문은 주장이다.** 이 경계가 이 함수의 전부다.
+
+      · front matter 의 `title`·`kicker`·`standfirst`·`description`
+        — **지면에서 가장 크게 읽히고, 링크 카드와 검색 결과에 그대로 나간다.**
+          지면을 안 연 사람도 이것은 읽는다. 결론 자리가 아니면 무엇이 결론 자리인가.
+      · 본문에서 표·그림·코드블록을 뺀 나머지
+        — 표는 공표자료를 옮긴 것이라 그 안의 숫자는 관측이다. 거기까지 등재를 걸면
+          **월별 원자료 수백 건을 대장에 넣으라는 말**이 되고, 그러면 대장이 대장이 아니게 된다.
+
+    닿지 않는 곳
+    ------------
+    · **표 안의 지위 위반은 못 잡는다.** 강등 구간 값을 표에 넣고 산문에서 안 부르면 지나간다.
+      그 자리는 생성기와 `check_facts.py` 가 받는다 — **완전하지 않다는 것을 적어 둔다.**
+    · front matter 를 YAML 로 파싱하지 않는다. `키: 값` 한 줄짜리만 읽는다.
+    · **`site_zones` 는 「이 파일이 지면인가」를 판정하지 않는다.** 그 판정은 `is_site()` 다.
+    """
+    zones = []
+    body = md
+    off = 1
+    m = FRONT_RE.match(md)
+    if m:
+        for line in m.group(1).splitlines():
+            k, _, v = line.partition(":")
+            if k.strip() in FRONT_CLAIM_KEYS and v.strip():
+                zones.append(("머리말 " + k.strip(), v.strip(), 1))
+        body = md[m.end():]
+        off = md[:m.end()].count("\n") + 1
+    for pat in SITE_STRIP:
+        body = re.sub(pat, keep_lines, body, flags=re.S)
+    zones.append(("지면 산문", body, off))
+    return zones
+
+
+def is_site(md: str) -> bool:
+    """지면인가. **모드를 사람이 고르게 두지 않는다.**
+
+    `--channel` 은 플래그일 수밖에 없었다 — 채널 문안에는 구별 표지가 없다.
+    **그런데 지면에는 있다.** front matter 의 `layout:` 이 그것이고, 그것이 있다는 것은
+    Jekyll 이 레이아웃으로 감싸 내보내는 지면이라는 뜻이다. 발행본 8편에는 없다.
+
+    **플래그로 뒀으면 잊는 경로가 남는다.** 그리고 이 검사에서 잊는다는 것은
+    「검사했는데 아무것도 안 걸렸다」로 보인다는 뜻이다 — 침묵하는 실패다(사고 26).
+    """
+    m = FRONT_RE.match(md)
+    return bool(m) and re.search(r"(?m)^layout\s*:", m.group(1)) is not None
+
+
+def lint(path: Path, facts, channel: bool = False, site: bool = False):
     md = path.read_text(encoding="utf-8")
+    # **모드는 파일이 정한다.** 채널 모드만 손으로 켠다 — 채널 문안에는 표지가 없다.
+    if not channel and not site:
+        site = is_site(md)
     fails, warns, exempt = [], [], []
 
     if channel:
@@ -244,6 +349,11 @@ def lint(path: Path, facts, channel: bool = False):
         # 채널 문안에는 절 구조가 없고 짧다. 그래서 「어디가 결론 자리인가」를 찾는 대신
         # **전부 결론 자리로 취급한다.** 게시물에서 결론이 아닌 수치를 쓸 일이 없기도 하다.
         zones = [("채널 문안", md, 1)]
+    elif site:
+        # 지면 모드 — 골격 WARN 을 내지 않는다. **낼 이유가 없다.**
+        # 허브 지면이 보고서 골격을 안 따르는 것은 정상이고, 못 찾았다는 경고를
+        # 아홉 지면에 영구히 띄우면 **그 경고가 배경 소음이 된다.**
+        zones = site_zones(md)
     else:
         # 결론 자리를 하나도 못 찾으면 린터는 아무것도 검사하지 않은 채 PASS를 낸다.
         # 절 번호가 바뀐 보고서(새 라인)에서 조용히 무력화되는 경로다. 침묵시키지 않는다.
@@ -257,21 +367,24 @@ def lint(path: Path, facts, channel: bool = False):
                 )
 
     for zone, text, ln in zones:
-        for m in TOKEN.finditer(strip_noise(text)):
+        clean = strip_noise(text)
+        for m in TOKEN.finditer(clean):
             value, unit = m.group(1), m.group(2) or ""
             if not is_claim(value, unit):
                 continue
             token = re.sub(r"\s+", "", m.group(0))
+            # 구역 안 위치를 더한다. `keep_lines()` 가 줄을 보존하므로 이 셈이 맞는다.
+            ln_here = ln + clean[:m.start()].count("\n")
             f, why = lookup(facts, value, unit)
             if f is None and why == "미등재":
-                warns.append(f"L{ln} [{zone}] 미등재 '{token}' — FACTS.md에 창과 함께 등재하라")
+                warns.append(f"L{ln_here} [{zone}] 미등재 '{token}' — FACTS.md에 창과 함께 등재하라")
             elif f is None:
                 warns.append(
-                    f"L{ln} [{zone}] '{token}' {why} — 동음이의 수치 확인 필요"
+                    f"L{ln_here} [{zone}] '{token}' {why} — 동음이의 수치 확인 필요"
                 )
             elif f["지위"] not in CONCLUSION_OK:
                 fails.append(
-                    f"L{ln} [{zone}] '{token}' 지위={f['지위']} — 결론 자리 금지. 창: {f['창']}"
+                    f"L{ln_here} [{zone}] '{token}' 지위={f['지위']} — 결론 자리 금지. 창: {f['창']}"
                 )
 
     whole = strip_noise(md)
@@ -480,6 +593,115 @@ def selftest_listcomma():
     return ok
 
 
+# **대장에 없는 값만 쓴다.** 등재된 값을 쓰면 시험이 대장 내용에 걸리고,
+# 대장이 바뀔 때마다 시험이 먼저 깨진다 — 사고 65가 정확히 그 얼굴이었다.
+# 여기서 보는 것은 「지위 판정」이 아니라 **「어느 구역을 잘라 냈는가」**다.
+SITE_FIXTURE = """---
+layout: page
+title: 인수시험 지면 — 99,991 이 머리말 제목에 있다
+standfirst: 이 문장은 머리말이고 지면에서 가장 크게 읽힌다. 여기 99,992 가 있다.
+permalink: /selftest/
+---
+
+표 밖 산문이다. 여기 있는 99,993 은 결론 자리 수치다.
+
+| 월 | 값 |
+|---|---|
+| 1월 | 99,994 |
+
+<table><tr><td>99,995</td></tr></table>
+
+<svg viewBox="0 0 100 45"><text x="10" y="20">99,996</text></svg>
+
+파일은 696.4 KB · 66행 · 16열이다.
+"""
+
+REPORT_FIXTURE = """# 발행본이다 — layout 이 없다
+
+- **한 줄 결론**: 배율이 7.754배다.
+
+## 1. 핵심 요약
+7.754배.
+
+## 3. 해석
+7.754배.
+"""
+
+
+def selftest_site(facts):
+    """지면 모드 — **표 안은 관측, 표 밖은 주장**이라는 경계가 실제로 그어지는가.
+
+    양방향으로 친다. 한쪽만 치면 규칙을 껐는지 그었는지 구분이 안 된다(사고 39·65).
+      ① 머리말과 표 밖 산문의 수치는 **잡아야** 한다.
+      ② 표·그림 안의 수치는 **안 잡아야** 한다.
+      ③ 파일 메타(KB·행·열)는 **안 잡아야** 한다.
+      ④ `is_site()` 가 발행본을 지면으로 오인하면 **안 된다.**
+      ⑤ 줄번호가 **실제 줄과 맞아야** 한다 — 덩어리를 걷어내며 줄이 밀리면 무용지물이다.
+
+    **저장소나 대장의 현재 상태를 안 박는다**(사고 65). 픽스처만 본다.
+    """
+    ok = True
+
+    def chk(label, got, want):
+        nonlocal ok
+        good = got == want
+        ok = ok and good
+        print("  %s %-54s %s" % ("OK  " if good else "FAIL", label,
+                                 "" if good else "-> %r (기대 %r)" % (got, want)))
+
+    print("── 인수시험: 지면 모드 ──")
+    with tempfile.TemporaryDirectory() as d:
+        sp = Path(d) / "site.md"
+        sp.write_text(SITE_FIXTURE, encoding="utf-8")
+        rp = Path(d) / "report.md"
+        rp.write_text(REPORT_FIXTURE, encoding="utf-8")
+
+        chk("layout 이 있으면 지면", is_site(SITE_FIXTURE), True)
+        chk("layout 이 없으면 지면이 아니다", is_site(REPORT_FIXTURE), False)
+
+        # 골격이 아예 없는 발행본 — **지면 모드가 골격 경고를 삼키지 않았는지** 본다.
+        bp = Path(d) / "broken.md"
+        bp.write_text("골격이 없는 문서다. 99,997 이 있다.", encoding="utf-8")
+
+        _, sw, _ = lint(sp, facts)
+        rf, rw, _ = lint(rp, facts)
+        _, bw, _ = lint(bp, facts)
+
+    def seen(v):
+        return [w for w in sw if v in w]
+
+    chk("머리말 title 의 값을 잡는다",
+        bool([w for w in seen("99,991") if "머리말 title" in w]), True)
+    chk("머리말 standfirst 의 값을 잡는다",
+        bool([w for w in seen("99,992") if "머리말 standfirst" in w]), True)
+    chk("표 밖 산문의 값을 잡는다",
+        bool([w for w in seen("99,993") if "지면 산문" in w]), True)
+    chk("마크다운 표 안은 안 센다", seen("99,994"), [])
+    chk("HTML 표 안은 안 센다", seen("99,995"), [])
+    chk("SVG 안은 안 센다", seen("99,996"), [])
+    chk("파일 메타(KB·행·열)는 주장이 아니다",
+        [w for w in sw if "696.4" in w], [])
+    chk("골격 WARN 을 내지 않는다", [w for w in sw if "[구조]" in w], [])
+
+    # 줄번호 — 픽스처에서 실제 줄을 세어 비교한다. **숫자를 손으로 안 박는다.**
+    lines = SITE_FIXTURE.splitlines()
+    want_ln = next(i for i, l in enumerate(lines, 1) if "99,993" in l)
+    got = [w for w in sw if "99,993" in w]
+    chk("산문 경고의 줄번호가 실제 줄과 맞는다",
+        bool(got) and got[0].startswith("L%d " % want_ln), True)
+
+    chk("발행본은 종전 경로 그대로 — 골격을 찾아 검사한다", len(rf), 3)
+    chk("골격 갖춘 발행본에는 골격 WARN 이 없다",
+        [w for w in rw if "[구조]" in w], [])
+    # **지면 모드를 만들면서 이 경고를 죽이지 않았는지가 핵심이다.**
+    # 골격 없는 발행본이 조용히 통과하면 그것이 사고 26이다.
+    chk("골격 없는 발행본은 여전히 골격 WARN 4건",
+        len([w for w in bw if "[구조]" in w]), 4)
+
+    print("지면 모드 통과" if ok else "지면 모드 실패")
+    return ok
+
+
 def selftest(facts):
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "fixture.md"
@@ -505,7 +727,7 @@ def selftest(facts):
     print()
     return (selftest_overclaim(facts) and selftest_channel(facts)
             and selftest_htmlurl(facts) and selftest_listcomma()
-            and selftest_homonym())
+            and selftest_homonym() and selftest_site(facts))
 
 
 def main():
@@ -526,6 +748,8 @@ def main():
     print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건{mode}\n")
     for p in targets:
         fails, warns, exempt = lint(p, facts, channel)
+        kind = ("채널" if channel else
+                ("지면" if is_site(p.read_text(encoding="utf-8")) else "발행본"))
         tf += len(fails)
         tw += len(warns)
         te += len(exempt)
@@ -535,7 +759,9 @@ def main():
         # 2026-08-29에 실제로 한 번 헷갈렸다. 검사기가 잡아 놓고 어디인지 안 알려 주면
         # 그만큼은 안 잡은 것과 같다.
         label = f"{p.parent.name}/{p.name}" if p.name == "index.md" else p.name
-        print(f"[{mark}] {label}  (FAIL {len(fails)} / WARN {len(warns)} / 예외 {len(exempt)})")
+        # **어느 모드로 검사했는지 매 줄에 찍는다.** 모드가 자동이면 그만큼
+        # 「무엇이 검사됐나」가 안 보이게 되고, 안 보이는 검사는 사고 26이다.
+        print(f"[{mark}] {label}  ({kind} · FAIL {len(fails)} / WARN {len(warns)} / 예외 {len(exempt)})")
         for f in fails:
             print(f"    ✗ {f}")
         for w in warns:
