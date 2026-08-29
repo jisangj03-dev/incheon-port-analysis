@@ -69,6 +69,10 @@ GENERATORS = [
     ("데이터 카탈로그",
      "analysis/build_datasets_page.py",
      "허브 /datasets/ — **CSV 가 늘거나 바뀌면 여기가 먼저 낡는다**"),
+    ("첫 화면 스카이라인",
+     "analysis/build_skyline.py",
+     "허브 _includes/skyline.html — **데이터에서 오지 않는다.** "
+     "낡을 일은 없지만 코드를 고치고 안 돌리면 갈라진다"),
 ]
 
 FRESH, STALE, UNKNOWN = "최신", "**낡았다**", "**모른다**"
@@ -118,7 +122,7 @@ def selftest() -> int:
 
     print("── 인수시험: 실물 생성기 ──")
     vs = verdicts()
-    chk("생성기 3종을 본다", len(vs), 3)
+    chk("생성기 4종을 본다", len(vs), 4)
     for name, script, made, st, why in vs:
         good = st in (FRESH, STALE, UNKNOWN)
         ok = ok and good

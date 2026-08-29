@@ -88,6 +88,17 @@ def audit_html(html):
             bad.append("th %d개에 scope 가 없다 — 열 머리인지 행 머리인지 안 알려 준다"
                        % len(noscope))
     for attrs, inner in SVG.findall(html):
+        # **장식은 이름을 안 붙이는 것이 맞다.** `aria-hidden="true"` 는
+        # 「이건 읽지 마라」는 뜻이고, 거기에 `role="img"` 와 이름을 요구하면
+        # **틀린 것을 시키는 검사**가 된다. [2026-08-30] 첫 화면 스카이라인과
+        # 404 부표를 넣자마자 이 오탐이 났다.
+        # **오탐을 내는 검사는 무시당하고, 무시당하는 검사는 없는 검사다**(§3-5).
+        if re.search(r'aria-hidden\s*=\s*"true"', attrs, re.I):
+            # 다만 장식에 글자가 있으면 그것은 장식이 아니다 —
+            # 읽을 것이 있는데 숨긴 것이다.
+            if "<text" in inner.lower():
+                bad.append("aria-hidden 인 svg 안에 글자가 있다 — 읽을 것을 숨기고 있다")
+            continue
         if not re.search(r"\brole\s*=", attrs, re.I):
             bad.append("svg 에 role 이 없다")
         named = (re.search(r"\baria-label\s*=", attrs, re.I)
@@ -135,11 +146,24 @@ def audit_shell():
 
 
 def pages():
+    """지면과 **조각(`_includes`)** 을 함께 본다.
+
+    [2026-08-30] 처음엔 `_` 로 시작하는 폴더를 통째로 건너뛰었다. 그런데 첫 화면
+    스카이라인은 `_includes/skyline.html` 에 있다 — **지면에 보이는 그림이 검사 밖에
+    있었다.** 조각은 지면의 일부이고, 지면에 나가는 것이면 검사도 나가야 한다.
+
+    `_includes`·`_layouts` 만 본다. `_site` 같은 **산출물은 원본이 아니므로** 안 본다
+    (사고 71 — 검사기가 자기 도구의 출력을 원본으로 읽으면 그 판정은 전부 잡음이다).
+    """
+    WATCH = ("_includes", "_layouts")
     out = []
     for dirpath, dirnames, files in os.walk(HUB):
-        dirnames[:] = [d for d in dirnames if not d.startswith((".", "_"))]
+        dirnames[:] = [d for d in dirnames
+                       if not d.startswith(".")
+                       and (not d.startswith("_") or d in WATCH)]
+        here = os.path.basename(dirpath)
         for f in files:
-            if f.endswith(".md"):
+            if f.endswith(".md") or (f.endswith(".html") and here in WATCH):
                 out.append(os.path.join(dirpath, f))
     return sorted(out)
 
@@ -189,6 +213,13 @@ def selftest() -> int:
     chk("갖춘 지면은 아무것도 안 잡는다", audit_html(good)[0], [])
     chk("aria-labelledby 도 이름으로 센다",
         audit_html('<svg role="img" aria-labelledby="t"><title id="t">가</title></svg>')[0], [])
+    # **장식은 통과시킨다.** 여기서 오탐을 내면 이 검사 전체가 무시당한다.
+    chk("aria-hidden 인 장식은 role·이름을 안 물어본다",
+        audit_html('<svg aria-hidden="true"><rect/></svg>')[0], [])
+    # 그러나 장식 안에 글자가 있으면 그것은 장식이 아니다.
+    chk("장식 안의 글자는 잡는다",
+        any("숨기고" in x for x in
+            audit_html('<svg aria-hidden="true"><text>값</text></svg>')[0]), True)
 
     # 마크다운 표는 **모르는 것**이다 — 잡지도 통과시키지도 않고 따로 센다.
     bad_md, n_md = audit_html("| 가 | 나 |\n|---|---|\n")
