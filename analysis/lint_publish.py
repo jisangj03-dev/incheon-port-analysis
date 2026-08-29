@@ -136,13 +136,40 @@ def load_facts():
         m = TOKEN.search(cols[0])
         if not m:
             continue
-        facts[norm(m.group(1))] = {
+        # **숫자 하나에 여러 양이 붙을 수 있다.** 단위별로 담는다.
+        #
+        # [2026-08-29 실측] 직전 판은 `facts[norm] = {...}` 라 **나중 행이 앞 행을 덮었다.**
+        # `4%p`(#02 비중 폭)를 등재한 뒤 `4배`(#03 배율 하한)를 등재하자 앞이 사라졌고,
+        # #02 가 「'4%p' 단위 불일치 (대장 '4배')」로 경고를 냈다.
+        # **린터는 동음이의를 탐지하면서 저장은 못 하고 있었다** — 탐지만 하고 담지 못하면
+        # 둘 중 하나는 영원히 등재할 수 없다.
+        facts.setdefault(norm(m.group(1)), {})[m.group(2) or ""] = {
             "표기": cols[0],
             "단위": m.group(2) or "",
             "창": cols[1],
             "지위": cols[2].replace("**", "").strip(),
         }
     return facts
+
+
+def lookup(facts, value: str, unit: str):
+    """대장에서 (값, 단위)를 찾는다. 반환: (항목, 사유) — 항목이 None 이면 사유가 이유다.
+
+    **단위가 없는 토큰의 관대한 매칭을 그대로 둔다.** 직전 판은 대장 쪽 단위가 비었거나
+    본문 쪽 단위가 비면 불일치를 안 냈다. 그 동작을 바꾸면 이번 변경이 조용히
+    새 경고를 만들어 낸다 — **고치는 김에 다른 것을 바꾸지 않는다.**
+    """
+    bucket = facts.get(norm(value))
+    if not bucket:
+        return None, "미등재"
+    if unit in bucket:
+        return bucket[unit], ""
+    if "" in bucket:                       # 대장 쪽 단위가 빈 행 — 옛 동작대로 통과
+        return bucket[""], ""
+    if not unit:                           # 본문 쪽 단위가 없다 — 옛 동작대로 통과
+        return next(iter(bucket.values())), ""
+    return None, "단위 불일치 (대장 %s)" % " · ".join(
+        "'%s'" % e["표기"] for e in bucket.values())
 
 
 def strip_noise(text: str) -> str:
@@ -235,12 +262,12 @@ def lint(path: Path, facts, channel: bool = False):
             if not is_claim(value, unit):
                 continue
             token = re.sub(r"\s+", "", m.group(0))
-            f = facts.get(norm(value))
-            if f is None:
+            f, why = lookup(facts, value, unit)
+            if f is None and why == "미등재":
                 warns.append(f"L{ln} [{zone}] 미등재 '{token}' — FACTS.md에 창과 함께 등재하라")
-            elif f["단위"] and unit and f["단위"] != unit:
+            elif f is None:
                 warns.append(
-                    f"L{ln} [{zone}] '{token}' 단위 불일치 (대장 '{f['표기']}') — 동음이의 수치 확인 필요"
+                    f"L{ln} [{zone}] '{token}' {why} — 동음이의 수치 확인 필요"
                 )
             elif f["지위"] not in CONCLUSION_OK:
                 fails.append(
@@ -381,6 +408,45 @@ def selftest_overclaim(facts):
     return ok
 
 
+def selftest_homonym():
+    """대장이 **같은 숫자의 다른 양**을 둘 다 담는가. 그리고 **여전히 불일치를 잡는가.**
+
+    2026-08-29: 직전 판은 숫자만으로 키를 잡아 `4%p` 를 등재한 뒤 `4배` 를 등재하자
+    앞이 사라졌다. **탐지는 하면서 저장은 못 하는 구조**였고, 그래서 둘 중 하나는
+    영원히 등재할 수 없었다.
+
+    **고치면서 탐지를 약하게 하지 않았는지가 이 시험의 절반이다**(사고 26).
+    """
+    print("── 인수시험: 동음이의 (양방향) ──")
+    ok = True
+    F = {
+        "4": {"%p": {"표기": "4%p", "단위": "%p", "창": "비중 폭", "지위": "관측"},
+              "배": {"표기": "4배", "단위": "배", "창": "배율 하한", "지위": "관측"}},
+        "7": {"": {"표기": "7", "단위": "", "창": "단위 없는 행", "지위": "관측"}},
+        "9": {"TEU": {"표기": "9TEU", "단위": "TEU", "창": "물동량", "지위": "관측"}},
+    }
+
+    def chk(label, got, want):
+        nonlocal ok
+        good = got == want
+        ok = ok and good
+        print("    %s %-46s %s" % ("OK  " if good else "FAIL", label,
+                                   "" if good else "-> %r (기대 %r)" % (got, want)))
+
+    chk("`4%p` 를 찾는다", lookup(F, "4", "%p")[0]["창"], "비중 폭")
+    chk("**같은 숫자의 `4배` 도 따로 찾는다** (덮이지 않는다)",
+        lookup(F, "4", "배")[0]["창"], "배율 하한")
+    chk("**등록 안 된 단위는 여전히 불일치로 잡는다**",
+        lookup(F, "4", "TEU")[0], None)
+    chk("불일치 사유에 등재된 표기를 전부 보여 준다",
+        "'4%p'" in lookup(F, "4", "TEU")[1] and "'4배'" in lookup(F, "4", "TEU")[1], True)
+    chk("대장 쪽 단위가 비면 통과 (옛 동작 유지)", lookup(F, "7", "배")[0]["창"], "단위 없는 행")
+    chk("본문 쪽 단위가 없으면 통과 (옛 동작 유지)", lookup(F, "9", "")[0]["창"], "물동량")
+    chk("아예 없으면 미등재", lookup(F, "5", "배"), (None, "미등재"))
+    print("    " + ("통과" if ok else "**실패**"))
+    return ok
+
+
 def selftest_listcomma():
     """목록의 쉼표를 천 단위 구분으로 읽지 않는가. **양방향으로 친다.**
 
@@ -438,7 +504,8 @@ def selftest(facts):
     print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
     print()
     return (selftest_overclaim(facts) and selftest_channel(facts)
-            and selftest_htmlurl(facts) and selftest_listcomma())
+            and selftest_htmlurl(facts) and selftest_listcomma()
+            and selftest_homonym())
 
 
 def main():
