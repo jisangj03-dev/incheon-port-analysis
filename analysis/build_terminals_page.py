@@ -535,6 +535,60 @@ def build_home_block(csv_path=CSV) -> str:
 {HOME_END}"""
 
 
+CARD = os.path.join("..", "jisangj03-dev.github.io", "_og", "card.html")
+CARD_BEGIN = "<!-- 카드표:시작 (생성됨. 손으로 고치지 마라 — analysis/build_terminals_page.py) -->"
+CARD_END = "<!-- 카드표:끝 -->"
+
+
+def build_card_block(csv_path=CSV) -> str:
+    """링크 카드(`_og/card.html`)의 표. **여기도 손으로 적혀 있었다.**
+
+    `_og/README.md` 는 이미 「데이터가 갱신되면 카드도 다시 찍는다 · 카드의 수치는
+    CSV 에서 그대로 온 값이어야 한다 · 손으로 안 고친다」고 적어 놓고 있었는데,
+    **정작 표는 손으로 적혀 있었다.** 규칙을 문서에 적고 기전은 안 만든 자리다(§0-3).
+    이제 CSV 가 원본이고, 사람이 하는 일은 **다시 찍는 것** 하나로 줄었다.
+
+    카드는 좁으므로 계층 전체가 아니라 **부두군 3행 + 공표 합계**만 든다.
+    터미널까지 넣으면 17px 로 9행이 되어 카드에서 읽히지 않는다.
+    """
+    months, cur = load(csv_path)
+    latest = months[-1]
+    d = cur[latest]
+    denom = val(d.get(TOTAL), "당월_천TEU")
+
+    rows = []
+    for key, label, kids in BANDS:
+        r = d.get(key)
+        if r is None:
+            continue
+        v = val(r, "당월_천TEU")
+        dv = val(r, "전년대비_당월_%")
+        cls = "up" if (dv or 0) > 0 else ("dn" if (dv or 0) < 0 else "")
+        sign = "+" if (dv or 0) > 0 else ""
+        sub = " · ".join(kids) if kids else "IPT"
+        rows.append(
+            f'      <tr><th>{label} <span class="sub">{sub}</span></th>'
+            f'<td>{f(v)}</td><td class="{cls}">{sign}{dv:.1f}</td>'
+            f'<td>{share(v, denom):.1f}</td></tr>')
+    rows.append(
+        f'      <tr class="tot"><th>컨테이너 합계</th><td>{f(denom)}</td>'
+        f'<td>{"+" if (val(d.get(TOTAL), "전년대비_당월_%") or 0) > 0 else ""}'
+        f'{val(d.get(TOTAL), "전년대비_당월_%"):.1f}</td><td>100.0</td></tr>')
+
+    return (f"{CARD_BEGIN}\n"
+            f"    <thead><tr><th>부두군별 처리실적 · {latest}</th><th>천TEU</th>"
+            f"<th>전년비 %</th><th>몫 %</th></tr></thead>\n"
+            f"    <tbody>\n" + "\n".join(rows) + f"\n    </tbody>\n{CARD_END}")
+
+
+def splice(text: str, block: str, begin: str, end: str, what: str) -> str:
+    """생성 구획을 갈아 끼운다. 표지가 없으면 **쓰지 않는다.**"""
+    i, j = text.find(begin), text.find(end)
+    if i < 0 or j < 0 or j < i:
+        raise ValueError(f"{what}에 생성 구획 표지가 없다 — 손으로 한 번 넣어야 한다")
+    return text[:i] + block + text[j + len(end):]
+
+
 def splice_home(text: str, block: str) -> str:
     """첫 화면의 생성 구획을 갈아 끼운다. 표지가 없으면 **쓰지 않는다.**"""
     i, j = text.find(HOME_BEGIN), text.find(HOME_END)
@@ -619,20 +673,28 @@ def main() -> int:
     text = build()
     block = build_home_block()
     home_old = io.open(HOME, encoding="utf-8").read() if os.path.exists(HOME) else ""
-    home_new = splice_home(home_old, block) if home_old else ""
+    home_new = splice(home_old, block, HOME_BEGIN, HOME_END, "첫 화면") if home_old else ""
+    card_block = build_card_block()
+    card_old = io.open(CARD, encoding="utf-8").read() if os.path.exists(CARD) else ""
+    card_new = splice(card_old, card_block, CARD_BEGIN, CARD_END, "링크 카드") if card_old else ""
 
     if a.check:
         same = (io.open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else "") == text
-        home_same = home_old == home_new
+        home_same, card_same = home_old == home_new, card_old == card_new
         print("지면 " + ("일치" if same else "**다르다 — 다시 생성해야 한다**"))
         print("첫 화면 구획 " + ("일치" if home_same else "**다르다 — 다시 생성해야 한다**"))
-        return 0 if (same and home_same) else 1
+        print("링크 카드 구획 " + ("일치" if card_same else "**다르다 — 다시 생성해야 한다**"))
+        return 0 if (same and home_same and card_same) else 1
 
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     io.open(OUT, "w", encoding="utf-8", newline="\n").write(text)
     print(f"-> {OUT}  ({len(text):,} B)")
     io.open(HOME, "w", encoding="utf-8", newline="\n").write(home_new)
     print(f"-> {HOME}  (터미널 구획 {len(block):,} B)")
+    if card_new and card_new != card_old:
+        io.open(CARD, "w", encoding="utf-8", newline="\n").write(card_new)
+        print(f"-> {CARD}  (카드 표 {len(card_block):,} B)")
+        print("   **카드 표가 바뀌었다. `assets/og.png` 를 다시 찍어야 한다** — 절차는 `_og/README.md`.")
     return 0
 
 
