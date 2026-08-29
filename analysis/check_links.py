@@ -124,6 +124,22 @@ NON_DOC_REL = ("preconnect", "dns-prefetch", "preload", "prefetch", "moduleprelo
 FENCE = re.compile(r"^\s*(```|~~~)", re.M)
 
 
+INLINE_CODE = re.compile(r"(`+)(?:(?!\1).)*?\1", re.S)
+
+
+def strip_inline_code(text):
+    """인라인 코드(`` `…` ``) 안을 지운다.
+
+    **자기 자신에게 걸렸다**(2026-08-29). `docs/STATUS.md` 가 「발행본은 서로를
+    `` `[보고서 #01](report_01_….md)` `` 처럼 가리킨다」고 **설명**하는데, 이 검사기가
+    그 예시를 진짜 링크로 세서 「죽음 2건」을 냈다.
+
+    **링크를 인용한 글은 링크가 아니다.** 펜스 블록에 대해 이미 같은 판단을 했으면서
+    인라인은 안 벗기고 있었다 — 같은 결함의 절반만 고쳐 뒀던 것이다.
+    """
+    return INLINE_CODE.sub(lambda m: " " * len(m.group(0)), text)
+
+
 def strip_fences(text):
     """마크다운 펜스 코드블록을 지운다.
 
@@ -163,7 +179,7 @@ def drop_non_doc_links(html):
 
 def extract(text, is_html):
     """한 파일에서 링크 원문을 걷는다. 중복은 남긴다 — 어느 파일에 몇 번인지가 정보다."""
-    body = drop_non_doc_links(text) if is_html else strip_fences(text)
+    body = drop_non_doc_links(text) if is_html else strip_inline_code(strip_fences(text))
     raw = ["".join(g for g in t if g) for t in HTML_ATTR.findall(body)]
     if not is_html:
         raw += MD_INLINE.findall(body) + MD_REFDEF.findall(body)
@@ -514,6 +530,16 @@ def selftest():
     check("펜스 안 한글이 안 들어온다", any("무효화" in x for x in links), False)
     check("펜스 밖 링크는 들어온다", "https://example.org/a" in links, True)
     check("참조 정의도 들어온다", "https://example.org/refdef" in links, True)
+
+    print("── 인수시험: 인라인 코드는 링크가 아니다 (자기 자신에게 걸린 자리) ──")
+    quoted = "발행본은 서로를 `[보고서 #01](report_01_x.md)` 처럼 가리킨다."
+    check("인용된 링크를 안 센다", extract(quoted, False), [])
+    check("인용 밖의 링크는 센다",
+          extract("`코드` 와 [진짜](/real/) 링크", False), ["/real/"])
+    check("이중 백틱도 닫는다",
+          extract("``a `b` c`` 와 [진짜](/x/)", False), ["/x/"])
+    check("닫히지 않은 백틱이 뒤를 다 먹지 않는다",
+          extract("` 안 닫힘 그리고 [진짜](/y/)", False), ["/y/"])
 
     print("── 인수시험: 따옴표·Liquid 를 안 끊는다 (실측 30건의 원인) ──")
     hl = extract(HTML_FIXTURE, True)

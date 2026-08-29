@@ -29,6 +29,7 @@
 
 import argparse
 import hashlib
+import io
 import sys
 import tempfile
 from pathlib import Path
@@ -108,6 +109,29 @@ def selftest() -> bool:
         keep = raw.startswith(b"\xef\xbb\xbf") and b"\r\n" in raw
         ok &= keep
         print(f"  {'✓' if keep else '✗'} BOM+CRLF 보존 ({raw!r})")
+
+        # ⑤ **--old-file 이 CRLF 를 뭉개지 않는다.** (2026-08-29 회귀)
+        #    대상은 바이트로 읽어 `\r\n` 을 그대로 드는데 패턴만 보편 개행으로 읽으면
+        #    CRLF 파일에서 **영원히 0건**이 난다. 가드 발동처럼 보이지만 실제로는
+        #    패턴이 애초에 그 파일의 것이 아니었다 — **가장 나쁜 종류의 조용한 실패**다.
+        target = Path(d) / "crlf.yml"
+        target.write_bytes('updated: "2026-08-28"\r\nnext: x\r\n'.encode("utf-8"))
+        pat = Path(d) / "pat.txt"
+        pat.write_bytes('updated: "2026-08-28"\r\n'.encode("utf-8"))
+        with io.open(pat, encoding="utf-8", newline="") as fh:
+            pat_text = fh.read()
+        code, _ = replace_once(target, pat_text, 'updated: "2026-08-29"\r\n')
+        after = target.read_bytes()
+        good = (code == 0 and b'2026-08-29' in after and after.count(b"\r\n") == 2)
+        ok &= good
+        print(f"  {'✓' if good else '✗'} --old-file 이 CRLF 를 보존한다 (code={code})")
+
+        # 그리고 뭉개면 실제로 0건이 난다는 것도 같이 박는다 — 이 시험이 무엇을 막는지 보이게.
+        with io.open(pat, encoding="utf-8") as fh:      # 보편 개행 = 옛 동작
+            mangled = fh.read()
+        code2, _ = replace_once(target, mangled, "X")
+        ok &= (code2 == 2)
+        print(f"  {'✓' if code2 == 2 else '✗'} 줄끝을 뭉개면 0건이 난다 (옛 동작 재현, code={code2})")
     return ok
 
 
@@ -126,8 +150,17 @@ def main():
     ap.add_argument("--encoding", default="utf-8")
     a = ap.parse_args()
 
-    old = Path(a.old_file).read_text(encoding=a.encoding) if a.old_file else a.old
-    new = Path(a.new_file).read_text(encoding=a.encoding) if a.new_file else a.new
+    # **줄끝을 뭉개지 않고 읽는다.** `read_text()` 는 보편 개행이라 파일의 `\r\n` 을
+    # `\n` 으로 바꿔 준다. 그런데 대상 파일은 위에서 **바이트로** 읽어 `\r\n` 을 그대로 든다.
+    # 그래서 CRLF 파일(`_config.yml` 이 그렇다)에 --old-file 을 쓰면 **영원히 0건**이 나온다 —
+    # 가드가 발동한 게 아니라 패턴이 애초에 그 파일의 것이 아니었다(2026-08-29 실측).
+    # 줄끝 정책은 §4 정지선이 걸린 자리라 더더욱 조용히 바꾸면 안 된다.
+    def _read(p):
+        with io.open(p, encoding=a.encoding, newline="") as fh:
+            return fh.read()
+
+    old = _read(a.old_file) if a.old_file else a.old
+    new = _read(a.new_file) if a.new_file else a.new
     if old is None:
         sys.exit("[오류] --old 또는 --old-file 필요")
     if new is None and not a.check:
