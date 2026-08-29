@@ -247,7 +247,14 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
 `check_status_fresh.py` · `check_review_log.py` · `check_browser.py` · `review_pick.py` ·
 **`check_links.py`** · `render_preview.py` · `collect_terminal_monthly.py` ·
 `build_terminals_page.py --check` · **`collect_port_facilities.py`** ·
-**`build_berths_page.py --check`** · **`check_generated.py`** · **`facts_worklist.py`**
+**`build_berths_page.py --check`** · **`check_generated.py`** · **`facts_worklist.py`** ·
+**`check_facts.py`**
+
+- **[2026-08-29 신설] 대장 자체 검사** `check_facts.py` — 중복 · 안읽힘 · 칸수 · 지위 · 창.
+  **린터는 대장을 믿고 본문을 판정하는데 대장 자체는 아무도 안 보고 있었다.**
+  대장을 50여 행 늘리자 **내가 만든 결함 둘**이 드러났다(사고 66) — 같은 값 이중 등재,
+  그리고 **린터가 통째로 건너뛰는 비수치 행**. `pre-push` 세 번째 난간(경고).
+  **닿지 않는 곳:** 창이 **맞는지**는 안 본다. 형식과 일관성만 본다.
 
 - **[2026-08-29 신설] 생성물 신선도** `check_generated.py` — 생성되는 산출물 넷이
   **지금 CSV 와 어긋나는지** 본다. 「CSV 가 바뀌었나」가 아니라 **「지금 CSV 로 만들면
@@ -402,9 +409,9 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
   이미지는 `build_terminals_page.py` 가 「다시 찍어라」를 출력할 뿐이다. **출력을 안 읽으면
   카드가 조용히 낡는다** — 그리고 **이미지는 린터가 못 본다.** 절차 = 허브 `_og/README.md`.
   촬영 뒤에는 **전후 SHA-256을 대조한다**(사고 57 — 크기 확인은 옛 파일을 통과시킨다).
-- **[2026-08-29] 린터 출력이 파일을 basename 으로만 부른다.** 허브에 `index.md` 가 넷이라
-  (홈·터미널·데이터·보고서) FAIL 이 어느 지면인지 출력만으로는 안 갈린다. 이번에 실제로
-  한 번 헷갈렸다. **막힌 것은 아니고 한 파일씩 돌리면 갈린다.** 고칠지는 판단 대상.
+- **~~[2026-08-29] 린터 출력이 파일을 basename 으로만 부른다~~ — 같은 날 고쳤다.**
+  `index.md` 는 부모까지 붙여 찍는다(`terminals/index.md`). **검사기가 잡아 놓고
+  어디인지 안 알려 주면 그만큼은 안 잡은 것과 같다.**
 - **`07_판정결과.md` §4 ⓐ의 "확정 집계" 표기** — 잠정치 고지와 어긋나나 선커밋 문안 승계라 손대지 않았다.
 - **2025년 전체 방향별 승격 보류** — 공식 공개 또는 기관 확인 시에만 해제.
 - **연안항 구간** — 해석 미착수. **[2026-08-28 갱신]** 0이 2026만의 일이 아니다 —
