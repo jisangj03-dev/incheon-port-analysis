@@ -49,7 +49,18 @@ FACTS = ROOT / "docs" / "FACTS.md"
 CONCLUSION_OK = {"검증", "관측"}
 UNITS = r"%p|%|배|개월|TEU|박스"
 
-TOKEN = re.compile(r"(?<![\w.\-])([+\-−]?\d[\d,]*(?:\.\d+)?)\s*(" + UNITS + r")?")
+# 쉼표는 **세 자리 묶음일 때만** 천 단위 구분으로 본다.
+#
+# [2026-08-29 실측] 직전 판은 `\d[\d,]*` 라 목록의 쉼표까지 삼켰다. 그래서
+# **「성립되지 않은 6개월은 2, 3, 5, 7, 8, 9월이다」의 월 번호가 전부 주장 수치로 잡혔다** —
+# `is_claim()` 이 「쉼표가 있으면 천 단위」로 판정하는데 그 쉼표가 목록 쉼표였다.
+# #06 미등재 7건 중 4건이 그것이었다. **대장에 월 번호를 등재할 수는 없다.**
+#
+# 좁히는 것이지 약해지는 것이 아니다 — `62,115`·`3,444,000`·`90,346.25` 는 그대로 잡힌다.
+# 바뀌는 것은 `2,` 가 `2`(맨 정수)로 읽혀 §맨 정수 제외 규칙에 걸린다는 것뿐이다.
+# **오탐이 나오는 린터는 무시당한다**(§3-5가 인과 축에서 적은 그대로다).
+TOKEN = re.compile(
+    r"(?<![\w.\-])([+\-−]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*(" + UNITS + r")?")
 
 # 인과·목적 표현.
 # 2026-08-25 실측: 직전 판은 어미 3종만 봤고 #01~#07 전편에서 단 한 번도 발화하지 않았다.
@@ -370,6 +381,39 @@ def selftest_overclaim(facts):
     return ok
 
 
+def selftest_listcomma():
+    """목록의 쉼표를 천 단위 구분으로 읽지 않는가. **양방향으로 친다.**
+
+    2026-08-29 실측: 「성립되지 않은 6개월은 2, 3, 5, 7, 8, 9월이다」의 월 번호가
+    전부 주장 수치로 잡혀 #06 미등재 7건 중 4건이 오탐이었다.
+    **좁히는 김에 진짜 수치까지 지우지 않았는지도 같이 본다** — 그게 이 시험의 절반이다.
+    """
+    print("── 인수시험: 목록 쉼표 (양방향) ──")
+    ok = True
+
+    def toks(s):
+        return [(m.group(1), m.group(2) or "") for m in TOKEN.finditer(s)
+                if is_claim(m.group(1), m.group(2) or "")]
+
+    # `6개월`은 단위가 붙은 **진짜 주장**이라 잡히는 것이 맞다. 잡히면 안 되는 것은
+    # 그 뒤의 월 번호 목록뿐이다 — 그래서 목록 부분만 떼어 친다.
+    # (처음엔 문장 전체로 「0건」을 기대했다가 `6개월` 때문에 시험이 틀렸다. 시험이 낡았던 것이다.)
+    got = toks("2, 3, 5, 7, 8, 9월이다.")
+    ok &= (got == [])
+    print("    ① 월 번호 목록 오탐 %d건 (0이어야 한다)" % len(got))
+    whole = toks("성립되지 않은 6개월은 모두 2022년으로 2, 3, 5, 7, 8, 9월이다.")
+    ok &= (whole == [("6", "개월")])
+    print("    ①' 같은 문장에서 `6개월`은 남는다 -> %s (단위가 붙은 진짜 주장이다)" % whole)
+
+    keep = ["62,115TEU", "3,444,000", "90,346.25", "-31.2%", "+38.7%p", "1,081", "8.642배"]
+    lost = [s for s in keep if not toks(s)]
+    ok &= (not lost)
+    print("    ② 진짜 수치 %d/%d 유지 (전부 남아야 한다)%s"
+          % (len(keep) - len(lost), len(keep), "" if not lost else " — 잃음: %s" % lost))
+    print("    " + ("통과" if ok else "**실패**"))
+    return ok
+
+
 def selftest(facts):
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "fixture.md"
@@ -393,7 +437,8 @@ def selftest(facts):
         return False
     print(f"인수시험 통과 — 금지 {len(MUST_FAIL)}종 FAIL, [검증] 값 {MUST_PASS} 통과, 방법론·부인문 {len(MUST_EXEMPT)}종 예외")
     print()
-    return selftest_overclaim(facts) and selftest_channel(facts) and selftest_htmlurl(facts)
+    return (selftest_overclaim(facts) and selftest_channel(facts)
+            and selftest_htmlurl(facts) and selftest_listcomma())
 
 
 def main():
