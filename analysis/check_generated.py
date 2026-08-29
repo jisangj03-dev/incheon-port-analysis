@@ -66,6 +66,9 @@ GENERATORS = [
     ("부두 지면",
      "analysis/build_berths_page.py",
      "허브 /berths/"),
+    ("데이터 카탈로그",
+     "analysis/build_datasets_page.py",
+     "허브 /datasets/ — **CSV 가 늘거나 바뀌면 여기가 먼저 낡는다**"),
 ]
 
 FRESH, STALE, UNKNOWN = "최신", "**낡았다**", "**모른다**"
@@ -115,7 +118,7 @@ def selftest() -> int:
 
     print("── 인수시험: 실물 생성기 ──")
     vs = verdicts()
-    chk("생성기 2종을 본다", len(vs), 2)
+    chk("생성기 3종을 본다", len(vs), 3)
     for name, script, made, st, why in vs:
         good = st in (FRESH, STALE, UNKNOWN)
         ok = ok and good
