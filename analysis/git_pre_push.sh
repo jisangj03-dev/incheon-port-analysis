@@ -61,4 +61,21 @@ if [ -f "analysis/check_review_log.py" ] && command -v python >/dev/null 2>&1; t
 	python "analysis/check_review_log.py" --hook >/dev/null || true
 fi
 
+# ── 난간 ② 생성물 신선도 (경고) ────────────────────────────────────────────
+# CSV 는 새 것인데 지면이 옛 것인 상태를 말한다.
+#
+# 이 저장소에는 「손으로 옮겨 적지 않는다」를 걸고 생성되는 산출물이 넷 있다.
+# **그런데 생성기를 부르는 일 자체는 여전히 손이다.** 다음 달 수집을 돌려 CSV 가
+# 바뀌었는데 생성기를 잊으면 지면은 지난달 숫자를 든 채로 남고,
+# **그것은 깨져 보이지 않는다** — 숫자가 있고 표가 그려지고 린터도 통과한다.
+# 사고 31·55·56 이 전부 같은 얼굴이었다: 같은 값이 두 자리에 있고 한쪽만 갱신된다.
+#
+# **막지 않는다.** 위와 같은 이유다 — 여기서 막히는 것은 운영자의 손이다.
+# 차단이 필요하면 `--hook` 뒤에 `--strict` 를 붙인다.
+# **닿지 않는 곳:** 생성기가 인천 저장소에 있어 **허브만 push 하면 건너뛴다.**
+# 다만 갈라짐의 원인인 CSV 는 인천에 있으므로 인천 push 때 걸린다. 완전하지 않다.
+if [ -f "analysis/check_generated.py" ] && command -v python >/dev/null 2>&1; then
+	python "analysis/check_generated.py" --hook >/dev/null || true
+fi
+
 exit 0
