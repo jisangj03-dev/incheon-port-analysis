@@ -247,7 +247,7 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
 `check_status_fresh.py` · `check_review_log.py` · `check_browser.py` · `review_pick.py` ·
 **`check_links.py`** · `render_preview.py` · `collect_terminal_monthly.py` ·
 `build_terminals_page.py --check` · **`collect_port_facilities.py`** ·
-**`build_berths_page.py --check`** · **`check_generated.py`**
+**`build_berths_page.py --check`** · **`check_generated.py`** · **`facts_worklist.py`**
 
 - **[2026-08-29 신설] 생성물 신선도** `check_generated.py` — 생성되는 산출물 넷이
   **지금 CSV 와 어긋나는지** 본다. 「CSV 가 바뀌었나」가 아니라 **「지금 CSV 로 만들면
@@ -365,10 +365,14 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
   (사고 8·20: 확인 안 된 화면에 얹지 않는다). **현재 충족 경로는 편별 표기 블록(§2.2-2) +
   `/about` + README 표기 블록**이고, 전 페이지 푸터는 허브가 진다.
   **해석 여지가 있고 운영자 몫이다.** 푸는 방법은 Ruby+Jekyll 로컬 설치(운영자 조작) 하나다.
-- **FACTS 대장 미등재.** #01~#06 결론 자리 중 창이 기록되지 않은 값들.
-  수량은 `python analysis/lint_publish.py`로 읽는다. **[2026-08-26 실측]** WARN 97건 =
-  서로 다른 값 73종, 2회 이상 등장은 17종. → 중복 정리로 줄어드는 몫은 1/4이고 나머지는
-  값마다 출처에서 창을 확인해야 한다. **창을 추정해 채우면 사고 22의 재발이므로 일괄 등재하지 않는다.**
+- **~~FACTS 대장 미등재~~ — [2026-08-29] 96건 → 0. 발행본 8편 전부 PASS.**
+  종전 판단(「창을 추정해 채우면 사고 22 재발이므로 일괄 등재하지 않는다」)은 옳았다.
+  **그래서 추정하지 않고 재계산했다** — 등재한 값은 전부 원시 CSV 에서 다시 계산해
+  보고서 표기와 맞는 것만 넣었다. 도구 = `analysis/facts_worklist.py`(등재는 안 한다.
+  재료만 낸다). 경위 = `docs/사고기록.md` **63·64·65**.
+  **덤으로 린터 결함 둘이 드러났다** — 목록 쉼표를 천 단위로 읽던 것, 그리고
+  **동음이의를 탐지하면서 저장은 못 하던 것**(`4%p` 와 `4배` 가 서로를 덮었다).
+  둘 다 부채를 갚으려 할 때만 드러나는 종류였다.
 - **[2026-08-29 신규 · 실측] 발행본의 편간 상호 링크 58건이 「날것」이다 — 운영자 판단 대상.**
   발행본 8편은 서로를 `[보고서 #01](report_01_….md)` 처럼 **`.md`로 가리킨다.**
   그 주소는 404가 아니다 — **HTTP 200 · `Content-Type: text/markdown`**이 온다(실측).
