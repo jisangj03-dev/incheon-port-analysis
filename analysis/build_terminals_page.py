@@ -321,6 +321,19 @@ HOME = os.path.join("..", "jisangj03-dev.github.io", "index.md")
 HOME_BEGIN = "<!-- 터미널블록:시작 (생성됨. 손으로 고치지 마라 — analysis/build_terminals_page.py) -->"
 HOME_END = "<!-- 터미널블록:끝 -->"
 
+# 첫 화면의 **두 번째** 생성 구획 — 연도별.
+#
+# [2026-08-29] 첫 화면이 **최신월만** 보여 주고 있었다. 그런데 이 프로젝트의 북극성
+# 문장은 「인천항 물동량을 공공 1차 데이터로 **다년 추적**해 발행하고」로 시작한다(§1.2).
+# **그 절반이 화면에 없었다** — 4개년 자료를 갖고 있으면서 한 달치만 내걸고 있었다.
+#
+# 로스앤젤레스항의 「Facts & Figures」가 같은 자리를 3개년 비교표로 채운다(2026-08-29
+# 직접 확인). 그 형식을 우리 축으로 가져온다 — **다만 순위·시장점유율은 안 쓴다.**
+# 그건 우리가 확인한 것이 아니다.
+ANNUAL_BEGIN = "<!-- 연도블록:시작 (생성됨. 손으로 고치지 마라 — analysis/build_terminals_page.py) -->"
+ANNUAL_END = "<!-- 연도블록:끝 -->"
+ANNUAL_YEARS = (2022, 2023, 2024, 2025)
+
 GH = "https://github.com/jisangj03-dev/incheon-port-analysis/blob/main"
 
 
@@ -582,6 +595,86 @@ def build_card_block(csv_path=CSV) -> str:
             f"    <tbody>\n" + "\n".join(rows) + f"\n    </tbody>\n{CARD_END}")
 
 
+def annual_rows(years=ANNUAL_YEARS):
+    """연도별 공컨 방향 구성과 40ft 격차. **전부 재계산한다 — 옮겨 적지 않는다.**
+
+    모집단은 **외항(`ocCt=1`)** 이고 환적은 `GInOut` **3+4의 합**이다.
+    후자를 하나만 세면 전체와 비중이 전부 어긋난다(사고 60에서 실제로 겪었다).
+    """
+    import collections
+    size = list(csv.DictReader(io.open(
+        os.path.join("analysis", "size_direction_monthly.csv"), encoding="utf-8-sig")))
+    out = []
+    for y in years:
+        p = os.path.join("analysis", "container_%d_direction.csv" % y)
+        if not os.path.exists(p):
+            continue
+        g = collections.Counter()
+        for r in csv.DictReader(io.open(p, encoding="utf-8-sig")):
+            if r.get("ocCt") != "1":
+                continue
+            g[r["GInOut"]] += float(r["forEmpTeu"]) + float(r["korEmpTeu"])
+        tot = sum(g.values())
+        if not tot or not g["1"]:
+            continue
+        sd = [r for r in size if int(r["연도"]) == y]
+        gap = None
+        if sd:
+            imp = (sum(float(r["수입_40ft박스"]) for r in sd)
+                   / sum(float(r["수입_총박스"]) for r in sd) * 100)
+            exp = (sum(float(r["수출_40ft박스"]) for r in sd)
+                   / sum(float(r["수출_총박스"]) for r in sd) * 100)
+            gap = imp - exp
+        out.append({"연도": y, "전체": tot, "수출": g["2"], "수입": g["1"],
+                    "환적": g["3"] + g["4"], "배율": g["2"] / g["1"],
+                    "수출비중": g["2"] / tot * 100, "격차": gap})
+    return out
+
+
+def build_annual_block() -> str:
+    rows = annual_rows()
+    if not rows:
+        raise ValueError("연도별 자료를 하나도 못 읽었다 — 조용히 빈 표를 내지 않는다")
+    def line(r):
+        gap = "–" if r["격차"] is None else "%+.1f" % r["격차"]
+        return ('    <tr><th>%d</th>'
+                '<td class="num">%s</td><td class="num">%s</td><td class="num">%s</td>'
+                '<td class="num">%s</td><td class="num">%.2f</td>'
+                '<td class="num">%.1f</td><td class="num">%s</td></tr>'
+                % (r["연도"], f(r["전체"]), f(r["수출"]), f(r["수입"]),
+                   f(r["환적"]), r["배율"], r["수출비중"], gap))
+
+    body = "\n".join(line(r) for r in rows)
+    first, last = rows[0]["연도"], rows[-1]["연도"]
+    n = len(rows)
+    return f"""{ANNUAL_BEGIN}
+  <h2>연도별 — {n}개년을 같은 방법으로 봤다</h2>
+  <p class="note">
+    같은 소스에서 같은 코드로 {first}~{last}년을 다시 계산한 값이다.
+    단위 TEU · 모집단 <strong>외항 공(빈)컨테이너</strong> · 환적은 원문의 두 항목을 더한 값.
+    <strong>한 해의 값이 아니라 여러 해가 같은 방법으로 서 있는 것</strong>이 이 표의 전부다.
+  </p>
+
+  <div class="tsw">
+    <table>
+      <thead><tr><th>연도</th><th class="num">공컨 전체</th><th class="num">수출 방향</th>
+        <th class="num">수입 방향</th><th class="num">환적</th>
+        <th class="num">수출÷수입</th><th class="num">수출 비중 %</th>
+        <th class="num">40ft 격차 %p</th></tr></thead>
+      <tbody>
+{body}
+      </tbody>
+    </table>
+  </div>
+  <p class="tnote">
+    「40ft 격차」는 <strong>수입 40ft 비중 − 수출 40ft 비중</strong>이고 <strong>박스 수 기준</strong>이다
+    (TEU 기준은 순환 논증이라 쓰지 않는다). {first}년은 수입 방향이 극소여서
+    배율이 다른 해와 자릿수가 다르다 — <strong>그 이유는 이 데이터로 판별할 수 없어 쓰지 않는다.</strong>
+  </p>
+  <p class="more"><a href="{{{{ '/reports/' | relative_url }}}}">각 해를 어떻게 판정했는지 →</a></p>
+{ANNUAL_END}"""
+
+
 def splice(text: str, block: str, begin: str, end: str, what: str) -> str:
     """생성 구획을 갈아 끼운다. 표지가 없으면 **쓰지 않는다.**"""
     i, j = text.find(begin), text.find(end)
@@ -652,6 +745,20 @@ def selftest() -> int:
         any(l.startswith("## 1.") or l.startswith("## 3.") for l in text.splitlines()), False)
     chk("공표 합계를 「합계」로 부르는 열이 있다", "공표 합계" in text, True)
     chk("내려받기 줄이 있다", 'class="dlrow"' in text, True)
+
+    print("── 인수시험: 연도 구획 ──")
+    rows = annual_rows()
+    chk("4개년을 읽는다", [r["연도"] for r in rows], [2022, 2023, 2024, 2025])
+    chk("2022 배율이 27.32", round(rows[0]["배율"], 2), 27.32)
+    chk("2025 배율이 6.05", round(rows[-1]["배율"], 2), 6.05)
+    chk("**환적이 GInOut 3+4 다** (하나만 세면 절반이 된다)",
+        round(rows[-1]["환적"]), 7914)
+    chk("40ft 격차가 붙는다", round(rows[-1]["격차"], 1), 38.7)
+    ab = build_annual_block()
+    chk("연도 구획에 4행이 있다", ab.count("<tr><th>2"), 4)
+    chk("**박스 수 기준을 지면이 든다**(§4)", "박스 수 기준" in ab, True)
+    chk("순위·점유율을 안 쓴다 (확인한 것이 아니다)",
+        any(w in ab for w in ("순위", "점유율", "1위", "최대 항만")), False)
     # **부인 목록이 아니라 허용 목록.** 「이 상호가 없는가」로 쓰면 그 상호를
     # 검사기 자신이 공개 파일에 싣게 된다 — 막으려는 것을 막는 코드가 하는 꼴이다
     # (2026-08-29 실측). 허용 목록이 더 강하기도 하다 — 못 떠올린 이름까지 걸린다.
@@ -679,6 +786,9 @@ def main() -> int:
     block = build_home_block()
     home_old = io.open(HOME, encoding="utf-8").read() if os.path.exists(HOME) else ""
     home_new = splice(home_old, block, HOME_BEGIN, HOME_END, "첫 화면") if home_old else ""
+    if home_new:
+        home_new = splice(home_new, build_annual_block(),
+                          ANNUAL_BEGIN, ANNUAL_END, "첫 화면 연도 구획")
     card_block = build_card_block()
     card_old = io.open(CARD, encoding="utf-8").read() if os.path.exists(CARD) else ""
     card_new = splice(card_old, card_block, CARD_BEGIN, CARD_END, "링크 카드") if card_old else ""
@@ -687,7 +797,7 @@ def main() -> int:
         same = (io.open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else "") == text
         home_same, card_same = home_old == home_new, card_old == card_new
         print("지면 " + ("일치" if same else "**다르다 — 다시 생성해야 한다**"))
-        print("첫 화면 구획 " + ("일치" if home_same else "**다르다 — 다시 생성해야 한다**"))
+        print("첫 화면 구획(터미널+연도) " + ("일치" if home_same else "**다르다 — 다시 생성해야 한다**"))
         print("링크 카드 구획 " + ("일치" if card_same else "**다르다 — 다시 생성해야 한다**"))
         return 0 if (same and home_same and card_same) else 1
 
