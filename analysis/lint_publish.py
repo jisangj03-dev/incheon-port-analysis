@@ -530,7 +530,12 @@ def main():
         tw += len(warns)
         te += len(exempt)
         mark = "FAIL" if fails else ("WARN" if warns else "PASS")
-        print(f"[{mark}] {p.name}  (FAIL {len(fails)} / WARN {len(warns)} / 예외 {len(exempt)})")
+        # **이름이 겹치면 부모까지 붙인다.** 허브에 `index.md` 가 넷이라
+        # (홈·터미널·데이터·보고서) 이름만 찍으면 FAIL 이 어느 지면인지 안 갈린다 —
+        # 2026-08-29에 실제로 한 번 헷갈렸다. 검사기가 잡아 놓고 어디인지 안 알려 주면
+        # 그만큼은 안 잡은 것과 같다.
+        label = f"{p.parent.name}/{p.name}" if p.name == "index.md" else p.name
+        print(f"[{mark}] {label}  (FAIL {len(fails)} / WARN {len(warns)} / 예외 {len(exempt)})")
         for f in fails:
             print(f"    ✗ {f}")
         for w in warns:

@@ -78,4 +78,16 @@ if [ -f "analysis/check_generated.py" ] && command -v python >/dev/null 2>&1; th
 	python "analysis/check_generated.py" --hook >/dev/null || true
 fi
 
+# ── 난간 ③ 정본 대장 자체 (경고) ───────────────────────────────────────────
+# 린터는 대장을 **믿고** 본문을 검사한다. 그런데 대장 자체를 보는 것이 없었다.
+# 2026-08-29에 대장을 50여 행 늘리자 둘이 드러났다 —
+# 같은 (값,단위)를 두 번 등재해 **뒤가 앞을 덮은 것**, 그리고 값 칸에 숫자가 없어
+# **린터가 통째로 건너뛰는 행**을 넣은 것. 표 안에 있으면서 아무것도 강제되지 않는다.
+# **둘 다 대장을 늘릴 때만 생긴다** — 부채를 안 갚는 동안에는 영원히 안 보인다.
+#
+# **막지 않는다.** 위 둘과 같은 이유다. 차단은 `--strict`.
+if [ -f "analysis/check_facts.py" ] && command -v python >/dev/null 2>&1; then
+	python "analysis/check_facts.py" >/dev/null 2>&1 || true
+fi
+
 exit 0
