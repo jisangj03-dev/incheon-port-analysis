@@ -32,6 +32,8 @@ import os
 import re
 import sys
 
+import htmltable
+
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except Exception:
@@ -591,6 +593,22 @@ def selftest() -> int:
 
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
+
+
+
+
+# ── 접근성 후처리 ───────────────────────────────────────────────────────────
+# 표에 `caption`(이름)과 `th scope`(머리 방향)를 채운다. **표마다 손으로 안 붙인다** —
+# 이 파일 하나가 표를 여럿 만들고, 빠뜨린 것은 화면에서 안 보인다(사고 68과 같은 종류).
+# 이름은 앞선 제목에서 가져오고 **못 찾으면 안 붙인다.** 근거 = analysis/htmltable.py
+def _a11y(fn):
+    def wrapped(*a, **k):
+        return htmltable.annotate(fn(*a, **k))[0]
+    wrapped.__name__ = fn.__name__
+    wrapped.__doc__ = fn.__doc__
+    return wrapped
+
+build = _a11y(build)
 
 
 def main() -> int:

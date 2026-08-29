@@ -56,10 +56,22 @@ def replace_once(path: Path, old: str, new: str, check_only: bool = False, enc: 
     head = f"{path}  {len(raw)} B  SHA-256 {digest(raw)[:16]}…"
     if n != 1:
         why = "대상 문자열이 없다" if n == 0 else f"대상 문자열이 {n}곳이다"
+        hint = ""
+        if n == 0:
+            # **줄끝이 다르면 「없다」로 보인다.** 그리고 그 말은 사람을 오타 찾기로 보낸다.
+            # [2026-08-30] 실제로 그랬다 — `--old-file` 은 LF 를 그대로 주는데(사고 54의
+            # 처분이다) 대상 파일이 CRLF 라 0건이 났고, 나는 문자열을 다시 읽고 있었다.
+            # **도구가 아는 것을 말하지 않으면 사람이 그만큼 헤맨다.**
+            flipped = (old.replace("\r\n", "\n") if "\r\n" in old
+                       else old.replace("\n", "\r\n"))
+            if flipped != old and text.count(flipped) == 1:
+                kind = "CRLF" if "\r\n" in flipped else "LF"
+                hint = ("\n  **줄끝만 다르다.** 찾는 쪽을 %s 로 맞추면 1건이다 —\n"
+                        "  오타가 아니라 줄끝이다. `--old-file` 은 줄끝을 바꾸지 않는다." % kind)
         return 2, (
             f"[가드 발동] {head}\n"
             f"  일치 개수 = {n} (요구: 1) — {why}. **쓰지 않았다.**\n"
-            f"  찾은 것: {old[:70]!r}"
+            f"  찾은 것: {old[:70]!r}{hint}"
         )
 
     if check_only:
@@ -129,9 +141,32 @@ def selftest() -> bool:
         # 그리고 뭉개면 실제로 0건이 난다는 것도 같이 박는다 — 이 시험이 무엇을 막는지 보이게.
         with io.open(pat, encoding="utf-8") as fh:      # 보편 개행 = 옛 동작
             mangled = fh.read()
-        code2, _ = replace_once(target, mangled, "X")
+        code2, msg2 = replace_once(target, mangled, "X")
         ok &= (code2 == 2)
         print(f"  {'✓' if code2 == 2 else '✗'} 줄끝을 뭉개면 0건이 난다 (옛 동작 재현, code={code2})")
+
+        # **0건일 때 「줄끝 때문이다」라고 말하는가.** [2026-08-30] 안 말하고 있었다 —
+        # 「대상 문자열이 없다」만 내서 사람을 오타 찾기로 보냈고, 실제로 한 번 헤맸다.
+        #
+        # **픽스처를 새로 만든다.** 위 `target` 은 앞 단계에서 이미 치환돼 원문이 없다 —
+        # 그것을 재사용하면 진단이 옳아도 시험이 실패한다(처음에 그렇게 짜서 한 번 틀렸다).
+        fresh = Path(d) / "fresh.txt"
+        fresh.write_bytes("가나\r\n다라\r\n".encode("utf-8"))
+        code2b, msg2b = replace_once(fresh, "가나\n다라\n", "X")
+        good_hint = code2b == 2 and "줄끝만 다르다" in msg2b and "CRLF" in msg2b
+        ok &= good_hint
+        print(f"  {'✓' if good_hint else '✗'} 0건의 이유가 줄끝이면 그렇게 말한다")
+
+        # **반대쪽도 친다**(사고 39) — 줄끝이 아니라 진짜로 없을 때는 그 말을 하면 안 된다.
+        code3, msg3 = replace_once(fresh, "이 문자열은 어디에도 없다", "X")
+        quiet = (code3 == 2) and ("줄끝만 다르다" not in msg3)
+        ok &= quiet
+        print(f"  {'✓' if quiet else '✗'} 진짜로 없을 때는 줄끝 탓을 하지 않는다")
+
+        # 그리고 **아무것도 안 썼는지** 확인한다. 진단은 진단이지 허가가 아니다.
+        untouched = fresh.read_bytes() == "가나\r\n다라\r\n".encode("utf-8")
+        ok &= untouched
+        print(f"  {'✓' if untouched else '✗'} 진단을 내면서도 파일은 그대로다")
     return ok
 
 

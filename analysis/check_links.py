@@ -257,7 +257,10 @@ def permalink_of(rel_path, text):
 
 # ── 사이트 실측 ─────────────────────────────────────────────────────────────
 
-SKIP_DIRS = {".git", "_site", "node_modules", "_og", "__pycache__"}
+# `_preview` 는 **우리가 방금 만든 빌드 산출물**이다. [2026-08-30] 이것을 안 빼서
+# 「죽은 링크 153건」이 났다 — 전부 미리보기 안 지면이 서로를 가리킨 것이었다.
+# **검사기가 자기 도구의 출력을 원본으로 읽으면 그 판정은 전부 잡음이다.**
+SKIP_DIRS = {".git", "_site", "_preview", "node_modules", "_og", "__pycache__"}
 
 EXCLUDE_BLOCK = re.compile(r"^exclude:\s*$\n((?:^\s*-\s*.+$\n?)+)", re.M)
 

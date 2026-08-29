@@ -47,7 +47,10 @@ import argparse
 import csv
 import io
 import os
+import re
 import sys
+
+import htmltable
 
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -755,7 +758,11 @@ def selftest() -> int:
         round(rows[-1]["환적"]), 7914)
     chk("40ft 격차가 붙는다", round(rows[-1]["격차"], 1), 38.7)
     ab = build_annual_block()
-    chk("연도 구획에 4행이 있다", ab.count("<tr><th>2"), 4)
+    # **markup 모양이 아니라 사실을 친다.** 종전 판은 `"<tr><th>2"` 를 셌는데,
+    # 접근성 후처리가 `<th scope="row">` 로 바꾸자 **0이 나와 시험이 먼저 깨졌다.**
+    # 사고 53·65와 같은 얼굴 — 시험이 바뀔 수 있는 것을 붙잡으면 그 변화를 시험이 막는다.
+    # 확인하려는 사실은 「연도로 시작하는 행이 넷이다」이지 「그 태그가 그 모양이다」가 아니다.
+    chk("연도 구획에 4행이 있다", len(re.findall(r"<th[^>]*>20\d\d</th>", ab)), 4)
     chk("**박스 수 기준을 지면이 든다**(§4)", "박스 수 기준" in ab, True)
     chk("순위·점유율을 안 쓴다 (확인한 것이 아니다)",
         any(w in ab for w in ("순위", "점유율", "1위", "최대 항만")), False)
@@ -768,6 +775,25 @@ def selftest() -> int:
 
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
+
+
+
+
+# ── 접근성 후처리 ───────────────────────────────────────────────────────────
+# 표에 `caption`(이름)과 `th scope`(머리 방향)를 채운다. **표마다 손으로 안 붙인다** —
+# 이 파일 하나가 표를 여럿 만들고, 빠뜨린 것은 화면에서 안 보인다(사고 68과 같은 종류).
+# 이름은 앞선 제목에서 가져오고 **못 찾으면 안 붙인다.** 근거 = analysis/htmltable.py
+def _a11y(fn):
+    def wrapped(*a, **k):
+        return htmltable.annotate(fn(*a, **k))[0]
+    wrapped.__name__ = fn.__name__
+    wrapped.__doc__ = fn.__doc__
+    return wrapped
+
+build = _a11y(build)
+build_home_block = _a11y(build_home_block)
+build_card_block = _a11y(build_card_block)
+build_annual_block = _a11y(build_annual_block)
 
 
 def main() -> int:

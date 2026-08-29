@@ -5,3 +5,8 @@ config.py
 __pycache__/
 *.pyc
 _probe_dump.txt
+
+# 로컬 미리보기 산출물 — `render_preview.py --out _preview` 가 만든다.
+# **원본이 아니라 빌드 결과다.** 반입하면 소스가 둘이 되고, 둘은 반드시 갈라진다(사고 31).
+# [2026-08-30] 실제로 `git add -A` 가 이것을 통째로 담을 뻔했다.
+_preview/

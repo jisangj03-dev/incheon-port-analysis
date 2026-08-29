@@ -459,6 +459,11 @@ def build(site_dir: str, out_dir: str, verbose: bool = True) -> list[str]:
 
         # 미리보기에서 링크가 실제로 눌리도록 permalink -> 파일명 매핑
         slug = "index" if permalink == "/" else permalink.strip("/").replace("/", "_")
+        # [2026-08-30] `404.html` 은 permalink 가 이미 `.html` 로 끝나 `404.html.html`
+        # 이 나오고 있었다. **미리보기에서 404 지면을 직접 열어 본 적이 없어서 안 보였다** —
+        # 눌러 볼 링크가 없는 지면이라 아무도 안 갔다.
+        if slug.lower().endswith(".html"):
+            slug = slug[:-5]
         target = os.path.join(out_dir, slug + ".html")
         doc = (
             "<!doctype html>\n<html lang=\"ko\">\n<head>\n"
