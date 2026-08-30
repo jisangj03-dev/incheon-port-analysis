@@ -410,11 +410,16 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
   **§1.4 1층이 재현 코드 100% 공개를 요구하고, 프로브는 「그 값을 어떻게 찾았나」의 감사추적이다.**
   지우면 되찾을 수 없고 얻는 것은 정돈감뿐이다. **정리 대상은 코드가 아니라 절차 과잉이었다.**
 
-### 검사·생성 장치 — 26종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
+### 검사·생성 장치 — 27종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
 
 > **[2026-08-29] 이 제목이 「9종」인 채로 오래 서 있었다.** 장치를 늘리면서
 > 목록만 늘리고 **세는 수를 안 고쳤다.** 사고 31의 얼굴이다 — 같은 사실이 두 자리에 있고
 > 한쪽만 갱신된다. 그것도 **여기, 그 사고를 기록한 파일 안에서** 일어났다.
+>
+> **[2026-08-30] 고친 다음 라운드에 또 어긋났다** — 「26종」이 24개 목록 위에 서 있었다.
+> **조심으로 안 되는 것은 장치로 막는다**(사고 75와 같은 처분).
+> 이제 `check_counts.py` 가 **이 수와 아래 목록의 이름 개수**를 맞대고, pre-push 에서 친다.
+> **그 장치가 만들어지자마자 이 줄을 잡았다.**
 
 `lint_publish.py`(+`--channel`) · `safe_edit.py` · `verify_anchors.py` · `hook_stopline.py` ·
 `install_git_hooks.py --check` · `stopline_table.py --check` · `check_guideline_size.py` ·
@@ -423,8 +428,19 @@ python -m http.server 8765 --bind 127.0.0.1   # file:// 은 브라우저 도구�
 `build_terminals_page.py --check` · `collect_port_facilities.py` ·
 `build_berths_page.py --check` · `check_generated.py` · `facts_worklist.py` ·
 `check_facts.py` · `build_datasets_page.py --check` ·
-`check_a11y.py` · `htmltable.py` · **`build_skyline.py --check`**
+`check_a11y.py` · `htmltable.py` · `build_skyline.py --check` ·
+**`collect_09_backfill.py`** · **`chart_09_backfill.py`** · **`check_counts.py`**
 
+- **[2026-08-30 신설] 셈 검사** `check_counts.py` — **문장 속의 수가 실제와 맞는가.**
+  이 저장소의 검사기는 값을 잘 보는데 **산문에 적힌 수는 아무도 안 봤다**(사고 80·81).
+  「보고서 8편」·「장치 9종」 같은 것이고, **매번 낡는다** — 늘릴 때 목록만 늘리고
+  세는 수를 안 고치기 때문이다. **8-29에 「9종」을 고쳤는데 다음 라운드에 「26종」이
+  24개 목록 위에 서 있었다.** 짝 넷을 본다 — 장치 수 · 첫 화면 편수 · 허브 목록 행수 ·
+  **사고 번호의 연속과 중복.** `pre-push` **다섯 번째 난간**(경고).
+  **만들어지자마자 실물 어긋남 1건을 잡았다.**
+  **닿지 않는 곳:** 등록한 짝 넷만 본다. 산문의 모든 수를 세면 오탐만 는다 —
+  **새로 「N개」를 적을 때 짝을 같이 넣는 것이 규율이다.** 그리고 **수가 맞다고
+  문장이 맞는 것은 아니다.**
 - **[2026-08-30 신설] 스카이라인 생성** `build_skyline.py` — 첫 화면 장식.
   **데이터에서 오지 않으므로 낡을 일은 없지만** 코드를 고치고 안 돌리면 갈라진다.
   인수시험이 **장식임을 강제한다** — `aria-hidden` · 글자 0 · 색 리터럴 0 · 배를 안 그림.
