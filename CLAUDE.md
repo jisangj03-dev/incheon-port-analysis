@@ -21,6 +21,7 @@
 | 2 | **상태(정본)** | `docs/STATUS.md` — 현재 상태·다음 할 일·미해결 |
 
 보조 — `docs/FACTS.md`(수치 정본) · `docs/사고기록.md`(터진 일. 번호 재사용 안 한다) ·
+`docs/작업기록.md`(**라운드별 경위. 「왜 그렇게 했나」가 여기 있다** — STATUS 는 지금 참인 상태만 든다) ·
 `.claude/skills/발행/SKILL.md`(절차) · `본부\아카이브\`(구판. **여기 규칙을 따르지 마라**)
 
 **작업 폴더 셋** — 이 저장소(발행본·재현 자산) / `..\jisangj03-dev.github.io`(**인천항 사이트**) /
@@ -68,22 +69,24 @@ AI가 생성하고 사람이 운영한다. **H1 부제·한 줄 결론·§1·§2
 ```
 1. git rev-parse HEAD            # 폴더 확인. 그 외 시작 의례 없음
 2. 맥락원 1·2를 읽는다           # 기억으로 대신하지 않는다
-3. 검사 장치가 실제로 발화하는지 확인한다:
-     python analysis/lint_publish.py      --selftest
-     python analysis/safe_edit.py         --selftest
-     python analysis/verify_anchors.py    --selftest
-     python analysis/verify_anchors.py
-     python analysis/hook_stopline.py     --selftest
-     python analysis/install_git_hooks.py --check
-     python analysis/stopline_table.py    --check
-     python analysis/check_guideline_size.py
-     python analysis/check_browser.py     # 브라우저 도구를 쓸 일이 있으면
+3. 검사 장치가 실제로 발화하는지 확인한다 — **한 줄이다**:
+     python analysis/boot_check.py
+   (`--selftest` 를 가진 스크립트를 **찾아서** 전부 돌리고 상태 검사까지 한 판정으로 낸다.
+    브라우저를 쓸 일이 있으면  python analysis/check_browser.py  를 따로.)
 4. docs/STATUS.md 전문을 그대로 덤프한다   # 요약 금지. 상태의 유일한 반입 경로다
-5. STATUS 「다음 할 일」 1번부터 착수. 막히면 막힌 지점을 보고한다
+5. STATUS 「착수점」 절부터 읽고 「다음 할 일 · A」 첫 항목에 착수. 막히면 막힌 지점을 보고한다
 ```
 
 **3번의 이유:** 2026-08-25에 린터 인과 탐지가 #01~#07 전편에서 **한 번도 발화한 적이 없음**이 드러났다.
 그때의 "FAIL 0"은 통과가 아니라 **부재**였다. **장치의 존재는 검사의 수행이 아니다**(사고 26).
+
+**3번이 한 줄인 이유:** 여기 명령 여덟 줄이 적혀 있었는데 그동안 장치는 **27개**가 됐다.
+**목록을 손으로 들면 낡고, 낡은 목록으로 「전부 쳤다」고 말하면 그것이 다시 사고 26이다.**
+그래서 목록을 안 들고 **찾는다**. 새 장치를 만들 때 여기 고칠 것은 없다.
+
+**맥락원이 하나 늘었다** — `docs/작업기록.md`(라운드별 경위).
+STATUS 는 **지금 참인 상태**만 들고, 끝난 라운드의 「왜 그렇게 했나」는 거기 있다.
+`boot_check.py` 가 STATUS 크기를 재고 상한을 넘으면 **멈춘다.**
 
 ## X-CHECK 2계층
 

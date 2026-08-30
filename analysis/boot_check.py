@@ -1,0 +1,255 @@
+# -*- coding: utf-8 -*-
+"""세션 개시 검사 — **목록을 손으로 들고 있지 않는다.**
+
+왜 있는가
+---------
+`CLAUDE.md` 3번이 「검사 장치가 실제로 발화하는지 확인한다」면서 명령 **여덟 줄**을
+들고 있었다. 그런데 2026-08-31 기준 `--selftest` 를 가진 스크립트는 **26개**다.
+
+**그 목록은 장치를 만들 때마다 낡는다.** 그리고 낡은 목록으로 「전부 쳤다」고 말하면
+그것이 사고 26 이다 — **장치의 존재는 검사의 수행이 아니고, 목록의 존재는 목록의
+완전함이 아니다.** 사고 81 에서 배운 것과 같다: **조심으로 안 되는 것은 장치로 막는다.**
+
+그래서 이 파일은 **목록을 안 가진다. 찾는다.**
+
+무엇을 하는가
+-------------
+1. `analysis/` 와 `analysis/probe/` 에서 `--selftest` 를 받는 스크립트를 **전부 찾아** 돌린다.
+2. 상태 검사(앵커·훅·생성물·대장·접근성·셈·링크·린터)를 돌린다.
+3. **한 줄로 판정**한다. 하나라도 실패하면 종료코드 1.
+
+  python analysis/boot_check.py            # 전부
+  python analysis/boot_check.py --quick    # 인수시험만 (상태 검사 생략)
+  python analysis/boot_check.py --selftest # 이 파일 자신
+
+닿지 않는 곳
+------------
+· **못 돌린 것을 통과로 세지 않는다**(사고 26). 시간 초과·예외는 「모름」이고,
+  모름이 하나라도 있으면 판정은 「통과」가 아니다.
+· **인수시험이 통과했다는 것이 그 장치가 옳다는 뜻은 아니다.** 그 시험이 무엇을
+  치는지는 각 파일이 든다.
+· **여기서 안 도는 것들이 있다** — 브라우저 연결(`check_browser.py` 는 전제만 본다),
+  운영자 검수, push. 그건 사람의 자리다.
+"""
+
+import argparse
+import io
+import os
+import re
+import subprocess
+import sys
+import time
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+
+OK, BAD, UNK = "통과", "**실패**", "**모름**"
+
+# 상태 검사 — 인수시험이 아니라 「지금 저장소가 성립하는가」를 본다.
+# (스크립트, 인수, 이것이 깨지면 멈출 일인가)
+STATE = (
+    ("verify_anchors.py", (), True),
+    ("install_git_hooks.py", ("--check",), True),
+    ("stopline_table.py", ("--check",), True),
+    ("check_guideline_size.py", (), False),
+    ("check_generated.py", (), False),
+    ("check_facts.py", (), False),
+    ("check_a11y.py", (), False),
+    ("check_counts.py", (), False),
+    ("check_status_fresh.py", (), False),
+    ("check_links.py", (), False),
+    ("lint_publish.py", (), True),
+)
+
+# STATUS 는 매 세션 전문이 읽힌다. 커지면 그만큼 착수가 느려진다.
+# 자기 머리말이 「41 KB였다」고 적어 둔 파일이라 그 선을 상한으로 쓴다.
+STATUS_LIMIT = 42000
+
+
+def scripts_with_selftest():
+    """`--selftest` 를 받는 스크립트를 **찾는다.** 목록을 들고 있지 않는다."""
+    out = []
+    for d in (HERE, os.path.join(HERE, "probe")):
+        if not os.path.isdir(d):
+            continue
+        for f in sorted(os.listdir(d)):
+            if not f.endswith(".py") or f.startswith("_"):
+                continue
+            p = os.path.join(d, f)
+            try:
+                src = io.open(p, encoding="utf-8", errors="replace").read()
+            except Exception:
+                continue
+            # argparse 로 받든 sys.argv 로 받든 잡는다.
+            if '"--selftest"' in src or "'--selftest'" in src:
+                out.append(p)
+    return out
+
+
+def run(path, args=(), timeout=180):
+    """반환 (지위, 마지막 줄, 초). **못 돌린 것을 통과로 세지 않는다.**"""
+    t0 = time.time()
+    # 자식의 출력 인코딩을 **우리가 정한다.** 대부분의 스크립트가 스스로
+    # `sys.stdout.reconfigure(utf-8)` 을 하지만, 안 하는 것이 하나만 있어도
+    # 그 줄이 깨져 읽힌다 — 그러면 「무엇이 통과했는지」가 안 보인다.
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    try:
+        p = subprocess.run([sys.executable, path] + list(args), cwd=ROOT,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True, encoding="utf-8", errors="replace",
+                           timeout=timeout, env=env)
+    except subprocess.TimeoutExpired:
+        return UNK, "시간 초과 %ds" % timeout, time.time() - t0
+    except Exception as e:
+        return UNK, "%s: %s" % (type(e).__name__, e), time.time() - t0
+    lines = [l for l in (p.stdout or "").splitlines() if l.strip()]
+    last = lines[-1][:70] if lines else ""
+    if p.returncode == 0:
+        return OK, last, time.time() - t0
+    if p.returncode == 1:
+        return BAD, last, time.time() - t0
+    # 2 이상은 「돌리지 못했다」에 가깝다 — 실패와 가른다.
+    return UNK, "종료코드 %d · %s" % (p.returncode, last), time.time() - t0
+
+
+def status_size():
+    p = os.path.join(ROOT, "docs", "STATUS.md")
+    if not os.path.exists(p):
+        return UNK, "docs/STATUS.md 가 없다", 0
+    n = os.path.getsize(p)
+    if n <= STATUS_LIMIT:
+        return OK, "%d B (상한 %d)" % (n, STATUS_LIMIT), n
+    return BAD, ("%d B — 상한 %d 을 넘었다. **매 세션 전문이 읽히는 파일이다** — "
+                 "끝난 라운드의 경위는 `docs/작업기록.md` 로 옮긴다."
+                 % (n, STATUS_LIMIT)), n
+
+
+# ── 인수시험 ────────────────────────────────────────────────────────────────
+
+def selftest():
+    ok = True
+
+    def chk(label, got, want):
+        nonlocal ok
+        good = got == want
+        ok = ok and good
+        print("  %s %-52s %s" % ("OK  " if good else "FAIL", label,
+                                 "" if good else "-> %r (기대 %r)" % (got, want)))
+
+    print("── 인수시험: 목록을 안 들고 찾는가 ──")
+    found = scripts_with_selftest()
+    names = {os.path.basename(p) for p in found}
+    chk("여러 개를 찾는다", len(found) >= 15, True)
+    # 대표 몇 개가 들어 있는지 — **개수를 박지 않는다**(사고 53·65).
+    for n in ("lint_publish.py", "safe_edit.py", "check_counts.py", "boot_check.py"):
+        chk("%s 를 찾는다" % n, n in names, True)
+    chk("자기 자신도 찾는다", "boot_check.py" in names, True)
+    chk("probe 도 훑는다",
+        any(os.sep + "probe" + os.sep in p for p in found), True)
+
+    print("── 인수시험: 못 돌린 것을 통과로 세지 않는가 (사고 26) ──")
+    st, why, _ = run(os.path.join(HERE, "없는파일.py"))
+    chk("없는 스크립트는 모름", st, UNK)
+    chk("모름은 통과가 아니다", st == OK, False)
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        bad = os.path.join(d, "b.py")
+        io.open(bad, "w", encoding="utf-8").write("import sys\nsys.exit(1)\n")
+        st, _, _ = run(bad)
+        chk("종료코드 1 은 실패", st, BAD)
+        two = os.path.join(d, "t.py")
+        io.open(two, "w", encoding="utf-8").write("import sys\nsys.exit(2)\n")
+        st, _, _ = run(two)
+        chk("종료코드 2 는 실패가 아니라 모름", st, UNK)
+        good = os.path.join(d, "g.py")
+        io.open(good, "w", encoding="utf-8").write("print('통과')\n")
+        st, last, _ = run(good)
+        chk("종료코드 0 은 통과", st, OK)
+        chk("마지막 줄을 남긴다", last, "통과")
+        slow = os.path.join(d, "s.py")
+        io.open(slow, "w", encoding="utf-8").write("import time\ntime.sleep(5)\n")
+        st, why, _ = run(slow, timeout=1)
+        chk("시간 초과는 모름", st, UNK)
+        chk("초과라고 말한다", "시간 초과" in why, True)
+
+    print("── 인수시험: STATUS 크기 ──")
+    st, why, n = status_size()
+    chk("크기를 잰다", n > 0, True)
+    chk("판정이 셋 중 하나", st in (OK, BAD, UNK), True)
+    print("     지금: %s — %s" % (st, why[:60]))
+
+    print("\n통과" if ok else "\n실패")
+    return 0 if ok else 1
+
+
+# ── 본체 ────────────────────────────────────────────────────────────────────
+
+def main():
+    ap = argparse.ArgumentParser(description="세션 개시 검사. 목록을 찾아서 전부 돌린다.")
+    ap.add_argument("--quick", action="store_true", help="인수시험만")
+    ap.add_argument("--selftest", action="store_true")
+    a = ap.parse_args()
+    if a.selftest:
+        return selftest()
+
+    t0 = time.time()
+    fails, unks = [], []
+
+    print("=" * 74)
+    print(" 세션 개시 검사 — 목록을 손으로 들지 않는다. 찾아서 전부 돌린다.")
+    print("=" * 74)
+
+    found = scripts_with_selftest()
+    print("\n[인수시험] `--selftest` 를 가진 스크립트 %d개" % len(found))
+    for p in found:
+        if os.path.abspath(p) == os.path.abspath(__file__):
+            continue          # 자기 자신은 여기서 안 돈다 — 돌면 무한이다
+        st, last, sec = run(p, ("--selftest",))
+        name = os.path.relpath(p, ROOT).replace("\\", "/")
+        if st != OK:
+            (fails if st == BAD else unks).append((name, last))
+            print("  %-9s %-44s %s" % (st, name, last))
+    print("  -> 실패 %d · 모름 %d · 나머지 통과" % (len(fails), len(unks)))
+
+    if not a.quick:
+        print("\n[상태 검사]")
+        for f, args, hard in STATE:
+            p = os.path.join(HERE, f)
+            st, last, sec = run(p, args)
+            name = f + ((" " + " ".join(args)) if args else "")
+            if st != OK:
+                (fails if st == BAD else unks).append((name, last))
+            print("  %-9s %-34s %s" % (st, name, last))
+
+        st, why, _ = status_size()
+        if st != OK:
+            (fails if st == BAD else unks).append(("STATUS 크기", why))
+        print("  %-9s %-34s %s" % (st, "STATUS 크기", why[:60]))
+
+    print("\n" + "-" * 74)
+    if fails:
+        print(" **실패 %d건 — 여기서 멈춘다.**" % len(fails))
+        for n, w in fails:
+            print("   · %-34s %s" % (n, w))
+    if unks:
+        print(" **모름 %d건 — 통과로 세지 않는다**(사고 26)." % len(unks))
+        for n, w in unks:
+            print("   · %-34s %s" % (n, w))
+    if not fails and not unks:
+        print(" 전부 통과 · %.1f초" % (time.time() - t0))
+        print(" **다음: `docs/STATUS.md` 전문을 읽는다.**")
+        print("   맨 앞 「착수점」 절만 읽어도 시작할 수 있고,")
+        print("   바로 손댈 것은 **「다음 할 일 · A」의 첫 항목**이다.")
+        print("   (A = 이쪽이 지금 할 수 있는 것 · B = 운영자 손 · C = 아직 안 본 축)")
+    return 1 if fails else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
