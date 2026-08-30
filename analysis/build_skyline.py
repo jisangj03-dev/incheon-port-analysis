@@ -49,7 +49,15 @@ except Exception:
     pass
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "..", "jisangj03-dev.github.io", "_includes", "skyline.html")
+HUB = os.path.join(ROOT, "..", "jisangj03-dev.github.io")
+OUT = os.path.join(HUB, "_includes", "skyline.html")
+
+# 링크 카드에도 **같은 그림**을 쓴다. 손으로 복제하면 같은 그림이 두 자리에 있고
+# 한쪽만 갱신된다(사고 31). 카드는 헤드리스 크롬이 단독 렌더라 `include` 를 못 쓰므로
+# 표지 사이를 갈아 끼운다 — 카드 표가 쓰는 것과 같은 수법이다.
+CARD = os.path.join(HUB, "_og", "card.html")
+CARD_BEGIN = "<!-- 카드하늘:시작 (생성됨. 손으로 고치지 마라 — analysis/build_skyline.py) -->"
+CARD_END = "<!-- 카드하늘:끝 -->"
 
 # **액자에 맞춰 그린다.** [2026-08-30] 첫 판은 1600×92(가로:세로 17.4)로 그려 놓고
 # 660×118 자리(5.6)에 `slice` 로 넣었다 — 결과는 **그림의 32%만 보이는 것**이었다.
@@ -100,6 +108,36 @@ def stack(x, rows, cols):
             out.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f"/>'
                        % (x + c * (BOX_W + BOX_G), y, BOX_W, BOX_H))
     return "".join(out)
+
+
+def build_card_block():
+    """카드용 — 판형을 같이 넣는다. 카드에는 CSS 토큰이 없다(단독 문서다).
+
+    **밝은 판 하나만 쓴다.** 링크 카드는 남의 화면에서 우리 테마와 무관하게 뜨고,
+    카드 배경이 `#FCFCFA` 로 고정돼 있다. 여기서 `prefers-color-scheme` 을 따라가면
+    **밝은 카드 위에 어두운 테마 색이 얹힌다.**
+    """
+    return "\n".join([
+        CARD_BEGIN,
+        "<style>",
+        "  .card-sky{position:absolute;top:176px;right:60px;width:470px;height:auto}",
+        # 색은 사이트의 밝은 판 토큰값과 같다. 카드가 늘 밝은 배경이라 그쪽으로 고정한다.
+        "  .card-sky .sky-crane line{stroke:#5D666D;opacity:.42;stroke-width:2;",
+        "    stroke-linecap:round;fill:none}",
+        "  .card-sky .sky-box rect{fill:#C3C9CC}",
+        "  .card-sky .sky-horizon{stroke:#C3C9CC;stroke-width:1}",
+        "</style>",
+        build().replace('class="mast-sky"', 'class="card-sky"').strip(),
+        CARD_END,
+    ]) + "\n"
+
+
+def splice_card(text, block):
+    """표지 사이를 갈아 끼운다. **표지가 없으면 쓰지 않는다.**"""
+    i, j = text.find(CARD_BEGIN), text.find(CARD_END)
+    if i < 0 or j < 0:
+        return None
+    return text[:i] + block.rstrip("\n") + text[j + len(CARD_END):]
 
 
 def build():
@@ -158,8 +196,24 @@ def selftest() -> int:
     chk("x 가 액자를 안 넘는다", max(xs) <= W and min(xs) >= 0, True)
     chk("y 가 액자를 안 넘는다", max(ys) <= H and min(ys) >= 0, True)
 
+    print("── 인수시험: 링크 카드용 ──")
+    c = build_card_block()
+    chk("카드 블록도 aria-hidden 이다", 'aria-hidden="true"' in c, True)
+    chk("카드 블록에도 글자가 없다", "<text" in c, False)
+    # 카드는 **늘 밝은 배경**이다. 어두운 테마를 따라가면 밝은 카드에 어두운 색이 얹힌다.
+    chk("카드는 테마를 따라가지 않는다", "prefers-color-scheme" in c, False)
+    chk("카드 판형이 같이 들어간다", "card-sky" in c and "<style>" in c, True)
+    chk("사이트용 class 가 안 남는다", "mast-sky" in c, False)
+    # 표지가 없으면 **쓰지 않는다** — 조용히 덧붙이면 문서가 깨진다.
+    chk("표지가 없으면 갈아 끼우지 않는다", splice_card("<p>표지 없음</p>", c), None)
+    demo = "<a>" + CARD_BEGIN + "옛것" + CARD_END + "</a>"
+    chk("표지가 있으면 그 사이만 바뀐다",
+        splice_card(demo, "새것").startswith("<a>새것") and
+        splice_card(demo, "새것").endswith("</a>"), True)
+
     print("── 인수시험: 두 번 만들면 같다 ──")
     chk("멱등", build(), s)
+    chk("카드도 멱등", build_card_block(), c)
 
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
@@ -174,12 +228,28 @@ def main() -> int:
         return selftest()
     text = build()
     old = io.open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+
+    card_old = io.open(CARD, encoding="utf-8").read() if os.path.exists(CARD) else ""
+    card_new = splice_card(card_old, build_card_block()) if card_old else ""
+    # **표지가 없으면 「모른다」다.** 조용히 통과시키면 카드가 낡은 채로 남는다(사고 26).
+    card_state = ("표지 없음" if (card_old and card_new is None)
+                  else "일치" if card_new == card_old else "다르다")
+
     if a.check:
-        same = old == text
-        print("일치" if same else "**다르다 — 다시 생성해야 한다**")
+        same = old == text and card_state == "일치"
+        print("조각 " + ("일치" if old == text else "**다르다 — 다시 생성해야 한다**"))
+        print("링크 카드 " + ("일치" if card_state == "일치"
+                          else "**%s — 다시 생성해야 한다**" % card_state))
         return 0 if same else 1
+
     io.open(OUT, "w", encoding="utf-8", newline="\n").write(text)
     print("-> %s  (%d B)" % (OUT, len(text)))
+    if card_new and card_new != card_old:
+        io.open(CARD, "w", encoding="utf-8", newline="\n").write(card_new)
+        print("-> %s  (스카이라인 구획)" % CARD)
+        print("   **카드가 바뀌었다. `assets/og.png` 를 다시 찍어야 한다** — 절차는 `_og/README.md`.")
+    elif card_new is None and card_old:
+        print("   **카드에 표지가 없다** — `%s` 를 카드에 넣어야 갈아 끼운다." % CARD_BEGIN)
     return 0
 
 
