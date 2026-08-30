@@ -92,8 +92,18 @@ def scripts_with_selftest():
     return out
 
 
-def run(path, args=(), timeout=180):
-    """반환 (지위, 마지막 줄, 초). **못 돌린 것을 통과로 세지 않는다.**"""
+def run(path, args=(), timeout=60, retry=1):
+    """반환 (지위, 마지막 줄, 초). **못 돌린 것을 통과로 세지 않는다.**
+
+    **시간 초과는 한 번 다시 친다.** [2026-08-31] 한 실행에서 평소 0.2초짜리 셋이
+    각각 180초를 넘겼는데, 같은 셋이 그 전후 실행에서는 정상이었다.
+    **원인은 [미확인]이다** — 저장소가 OneDrive 위에 있어 동기화·검사 프로그램이
+    파일을 잡는 순간일 수 있으나 확인하지 못했다.
+
+    원인을 몰라도 처분은 된다. **이 파일은 세션의 첫 명령이고, 여기서 멈추면
+    그날 일이 시작을 못 한다.** 재시도가 평소 비용의 두 배라면 싸다.
+    **두 번 다 넘으면 그때가 진짜 「모름」이다** — 통과로 세지 않는다.
+    """
     t0 = time.time()
     # 자식의 출력 인코딩을 **우리가 정한다.** 대부분의 스크립트가 스스로
     # `sys.stdout.reconfigure(utf-8)` 을 하지만, 안 하는 것이 하나만 있어도
@@ -105,7 +115,13 @@ def run(path, args=(), timeout=180):
                            text=True, encoding="utf-8", errors="replace",
                            timeout=timeout, env=env)
     except subprocess.TimeoutExpired:
-        return UNK, "시간 초과 %ds" % timeout, time.time() - t0
+        if retry > 0:
+            st, why, sec = run(path, args, timeout, retry - 1)
+            # 재시도로 살았어도 **그 사실을 감추지 않는다.**
+            if st == OK:
+                return OK, "(첫 시도 %ds 초과 — 재시도 통과) %s" % (timeout, why), sec
+            return st, why, sec
+        return UNK, "시간 초과 %ds — 재시도도 넘었다" % timeout, time.time() - t0
     except Exception as e:
         return UNK, "%s: %s" % (type(e).__name__, e), time.time() - t0
     lines = [l for l in (p.stdout or "").splitlines() if l.strip()]
@@ -175,9 +191,26 @@ def selftest():
         chk("마지막 줄을 남긴다", last, "통과")
         slow = os.path.join(d, "s.py")
         io.open(slow, "w", encoding="utf-8").write("import time\ntime.sleep(5)\n")
-        st, why, _ = run(slow, timeout=1)
+        st, why, _ = run(slow, timeout=1, retry=0)
         chk("시간 초과는 모름", st, UNK)
         chk("초과라고 말한다", "시간 초과" in why, True)
+        # **재시도해도 계속 넘으면 모름이다** — 재시도가 통과를 만들어 내지 않는다.
+        st, why, _ = run(slow, timeout=1, retry=1)
+        chk("재시도해도 넘으면 여전히 모름", st, UNK)
+        chk("재시도했다고 말한다", "재시도도 넘었다" in why, True)
+        # **한 번만 느린 것은 살린다.** 표식 파일로 「두 번째에는 빠르게」를 흉내 낸다.
+        flaky = os.path.join(d, "f.py")
+        mark = os.path.join(d, "mark").replace("\\", "/")
+        io.open(flaky, "w", encoding="utf-8").write(
+            "import os,time\n"
+            "p = r'%s'\n"
+            "if not os.path.exists(p):\n"
+            "    open(p,'w').write('x')\n"
+            "    time.sleep(5)\n"
+            "print('통과')\n" % mark)
+        st, why, _ = run(flaky, timeout=1, retry=1)
+        chk("첫 시도만 느리면 재시도로 통과", st, OK)
+        chk("재시도로 살았다는 것을 감추지 않는다", "재시도 통과" in why, True)
 
     print("── 인수시험: STATUS 크기 ──")
     st, why, n = status_size()
@@ -208,21 +241,28 @@ def main():
 
     found = scripts_with_selftest()
     print("\n[인수시험] `--selftest` 를 가진 스크립트 %d개" % len(found))
+    times = []
     for p in found:
         if os.path.abspath(p) == os.path.abspath(__file__):
             continue          # 자기 자신은 여기서 안 돈다 — 돌면 무한이다
         st, last, sec = run(p, ("--selftest",))
         name = os.path.relpath(p, ROOT).replace("\\", "/")
-        if st != OK:
-            (fails if st == BAD else unks).append((name, last))
+        times.append((sec, name))
+        if st != OK or "재시도" in last:
+            (fails if st == BAD else unks if st == UNK else []).append((name, last))
             print("  %-9s %-44s %s" % (st, name, last))
     print("  -> 실패 %d · 모름 %d · 나머지 통과" % (len(fails), len(unks)))
+    # **가장 느렸던 셋을 찍는다.** 멈춤은 갑자기 오지 않고 느려지다 온다.
+    slow = sorted(times, reverse=True)[:3]
+    if slow:
+        print("     느린 순: " + " · ".join("%s %.1fs" % (n.split("/")[-1], t)
+                                          for t, n in slow))
 
     if not a.quick:
         print("\n[상태 검사]")
         for f, args, hard in STATE:
             p = os.path.join(HERE, f)
-            st, last, sec = run(p, args)
+            st, last, sec = run(p, args, timeout=120)
             name = f + ((" " + " ".join(args)) if args else "")
             if st != OK:
                 (fails if st == BAD else unks).append((name, last))
