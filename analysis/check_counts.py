@@ -76,6 +76,56 @@ def c_devices():
     return int(m.group(1)), len(names), "STATUS 목록의 고유 이름"
 
 
+def c_devices_real():
+    """STATUS 장치 목록 ↔ **실물.**
+
+    `c_devices` 는 **STATUS 의 수**와 **STATUS 의 목록**을 맞댄다 — 양쪽이 같은 파일이라
+    **순환이다.** 새 장치를 만들고 STATUS 에 안 적으면 수와 목록이 **사이좋게 함께 틀리고**
+    그 검사는 통과를 낸다. 실제로 그렇게 통과했다 — 장치가 27 → 29 가 된 라운드에.
+
+    **사고 83 의 처분(「목록을 안 들고 찾는다」)이 부트블록에는 적용됐는데
+    여기에는 안 돼 있었다.** 같은 함정이 한 층 위에 남아 있었다는 뜻이다(사고 87).
+
+    그래서 이 짝은 **디스크를 본다.** 방향은 하나다 —
+    **「있는데 안 적힌 것」**을 찾는다. 반대 방향(적혔는데 없는 것)은
+    `--selftest` 가 없는 도구도 STATUS 가 정당하게 들 수 있어 오탐이 된다.
+    """
+    s = read(ROOT, "docs", "STATUS.md")
+    if s is None:
+        return None, None, "docs/STATUS.md 가 없다"
+    m = re.search(r"장치 — (\d+)종", s)
+    if not m:
+        return None, None, "「장치 — N종」 문구를 못 찾았다"
+    i = s.index(m.group(0))
+    tail = s[i:]
+    seg = tail[:tail.index("\n- **")] if "\n- **" in tail else tail[:2000]
+    listed = set(re.findall(r"`([a-z_0-9]+\.py)", seg))
+
+    # **`analysis/` 직하만 본다. `analysis/probe/` 는 안 본다.**
+    #   STATUS 목록은 「`--selftest` 를 가진 스크립트」가 아니라 **「상시 장치」**다 —
+    #   `review_pick.py`·`stopline_table.py` 는 `--selftest` 가 없어도 정당하게 실려 있다.
+    #   프로브는 **한 편을 위해 한 번 도는 증거 스크립트**라 상시 장치가 아니다.
+    #   (실측 2026-08-31: `probe/` 의 `--selftest` 보유는 `probe_14_year_floor.py` 하나.
+    #    `boot_check` 는 그것도 돌린다 — **안 도는 것이 아니라 이 목록의 대상이 아니다.**)
+    d = os.path.join(ROOT, "analysis")
+    found = set()
+    for fn in os.listdir(d) if os.path.isdir(d) else []:
+        if not fn.endswith(".py"):
+            continue
+        try:
+            src = io.open(os.path.join(d, fn), encoding="utf-8").read()
+        except Exception:
+            continue
+        if '"--selftest"' in src or "'--selftest'" in src:
+            found.add(fn)
+    # 세는 쪽 둘은 목록에 없어도 된다.
+    found -= {"check_counts.py", "boot_check.py"}
+    missing = sorted(found - listed)
+    how = "실물 %d개 중 STATUS 미기재 %d개%s" % (
+        len(found), len(missing), (" — " + ", ".join(missing)) if missing else "")
+    return len(found), len(found) - len(missing), how
+
+
 def c_reports_home():
     """첫 화면 「보고서 N편」 ↔ `reports/report_*.md` 개수."""
     s = read(HUB, "index.md")
@@ -120,6 +170,7 @@ def c_incident_numbers():
 
 PAIRS = (
     ("STATUS 장치 수", c_devices),
+    ("STATUS 장치 목록 ↔ 실물", c_devices_real),
     ("첫 화면 보고서 편수", c_reports_home),
     ("허브 목록 행수", c_reports_index),
     ("사고 번호 연속", c_incident_numbers),
@@ -215,7 +266,13 @@ def selftest():
 
     print("── 인수시험: 실물 ──")
     rows = run()
-    chk("짝 넷을 본다", len(rows), 4)
+    # **수를 손으로 들지 않는다** — 짝이 늘 때마다 이 줄이 낡는다(사고 83·87).
+    # 대신 **무엇을 보는지**를 묻는다. 그것은 짝이 늘어도 뜻이 안 변하고,
+    # 짝이 **사라지면** 잡힌다 — 그쪽이 이 시험이 막아야 할 방향이다.
+    chk("장치 목록을 실물과도 댄다", "STATUS 장치 목록 ↔ 실물" in [r[0] for r in rows], True)
+    chk("첫 화면·허브·사고 번호를 본다",
+        all(any(k in r[0] for r in rows)
+            for k in ("첫 화면", "허브 목록", "사고 번호")), True)
     for label, said, real, how, okk in rows:
         mark = "일치" if okk else ("**모름**" if okk is None else "**어긋남**")
         print("  ·  %-22s %s" % (label, mark))

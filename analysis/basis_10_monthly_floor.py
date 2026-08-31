@@ -49,13 +49,26 @@ def teu(row):
 JUDGED = "container_2005_2021_direction"  # #10 의 판정 구간. 이 스크립트는 안 연다.
 
 
+def path_for(year):
+    """경로를 만드는 자리는 **하나다.**"""
+    return os.path.join(HERE, "container_%d_direction.csv" % year)
+
+
 def basis_paths():
-    """이 스크립트가 여는 파일 전부. 판정 구간이 여기 끼면 인수시험이 잡는다."""
-    return [os.path.join(HERE, "container_%d_direction.csv" % y) for y in BASIS_YEARS]
+    """열어야 하는 파일 — **선언**이다."""
+    return [path_for(y) for y in BASIS_YEARS]
+
+
+# **실제로 연 파일**을 여기 남긴다. 선언과 실물을 갈라 놓아야 대조가 성립한다.
+#   종전에는 `basis_paths()` 가 경로를 조립하고 `read_year()` 가 **또 조립**했다.
+#   그러면 가드는 선언과 선언을 맞대는 것이라, `read_year` 만 바뀌면 아무 말도 안 한다.
+#   **선언을 검사하는 장치는 실물이 어긋나는 바로 그 경우에 침묵한다**(사고 87).
+_OPENED = []
 
 
 def read_year(year):
-    path = os.path.join(HERE, "container_%d_direction.csv" % year)
+    path = path_for(year)
+    _OPENED.append(path)
     with open(path, encoding="utf-8-sig", newline="") as f:
         return list(csv.DictReader(f))
 
@@ -103,6 +116,18 @@ def collect():
     return per_month
 
 
+def w1_count(per_month):
+    """근거 구간에서 **수출 > 수입**인 달의 수. #10 W1 과 **같은 정의·같은 모집단**이다.
+
+    왜 여기서 세는가. #10 이 「204/204」를 내고 #04 가 「48개월 전부」를 발행했으므로
+    「252개월 연속」이라고 이어 붙이고 싶어진다. **그런데 그 이음은 두 구간이 같은
+    정의로 판정됐을 때만 성립하고**, 지금까지 그것은 **문서 대조로 추론**됐지
+    한 번도 같은 코드로 세어진 적이 없다. **추론과 측정은 다르다** — 여기서 센다.
+    """
+    ok = sum(1 for v in per_month.values() if v["수출"] > v["수입"])
+    return ok, len(per_month)
+
+
 def main():
     per_month = collect()
     (rmin, rk, rn), (smin, sk, sn) = floors(per_month)
@@ -113,6 +138,15 @@ def main():
           % (rmin, rk[0], rk[1], rn))
     print("  월별 수출비중 최소 : %.4f%% (%d-%02d)   [검사 %d개월]"
           % (smin, sk[0], sk[1], sn))
+    w1ok, w1n = w1_count(per_month)
+    print("  수출 > 수입 인 달   : %d / %d   ← #10 W1 과 같은 정의·같은 모집단"
+          % (w1ok, w1n))
+    if w1ok == w1n:
+        print("                        #10 의 204/204 와 이으면 **%d개월 연속**."
+              " 이음이 성립하는 근거가 이 줄이다." % (w1ok + 204))
+    else:
+        print("                        **전부가 아니다 —"
+              " 「%d개월 연속」으로 이어 쓰면 안 된다.**" % (w1n + 204))
     print()
     print("  대조 — 발행분 #04 의 48개월 월별 최소 배율 = 3.9 (2023-12).")
     print("  위 값이 그것과 어긋나면 기준을 세우기 전에 파이프라인을 의심한다.")
@@ -130,10 +164,15 @@ def selftest():
         print("  %-46s %s" % (label, "OK" if got == want else "FAIL"))
 
     # ── 판정 구간을 안 연다는 것을 두 겹으로 강제한다 ──
-    # ① 행동: 이 스크립트가 여는 파일 목록에 판정 구간이 없다.
-    paths = basis_paths()
-    chk("여는 파일은 근거 구간 4개뿐", len(paths), 4)
-    chk("그중 판정 구간이 없다", any(JUDGED in p for p in paths), False)
+    # ① **행동**: 실제로 돌려 보고, **정말로 연 파일**을 본다.
+    #    선언(`basis_paths()`)을 보는 것으로는 부족하다 —
+    #    선언과 실물이 갈라지는 그 경우에 선언 검사는 침묵한다(사고 87).
+    del _OPENED[:]
+    collect()                                  # 진짜로 돈다
+    opened = list(_OPENED)
+    chk("실제로 연 파일이 4개", len(opened), 4)
+    chk("실제로 연 파일 = 선언한 근거 구간", sorted(opened), sorted(basis_paths()))
+    chk("연 파일 중 판정 구간이 없다", [p for p in opened if JUDGED in p], [])
 
     # ② 소스: 코드가 판정 구간 이름을 **문자열로도** 안 쓴다.
     #    설명하는 문장(독스트링)은 그 이름을 불러야 하므로 제외한다 —
