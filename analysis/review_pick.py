@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LOG = ROOT / "docs" / "검수기록.md"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from lint_publish import TOKEN, is_claim, load_facts, norm, strip_noise  # noqa: E402
+from lint_publish import TOKEN, is_claim, load_facts, lookup, norm, strip_noise  # noqa: E402
 
 
 def collect(md: str):
@@ -88,7 +88,13 @@ def main():
     seed = f"{path.name}|{seed_date}"
     idx = int(hashlib.sha256(seed.encode("utf-8")).hexdigest(), 16) % len(items)
     line_no, token, context = items[idx]
-    f = facts.get(norm(TOKEN.search(token).group(1)))
+    # **대장은 2단이다 — `facts[값][단위]`.** 2026-08-29 에 `load_facts()` 가 단위별로
+    # 담도록 바뀌었는데(`4%p` 와 `4배` 가 서로를 덮던 문제) **이 파일이 안 따라갔다.**
+    # 그래서 `f["표기"]` 가 `KeyError` 로 죽었고, **`--log` 가 그 뒤에 있어
+    # 검수 기록이 아예 안 남았다** — 표기가 근거로 삼는 그 기록이다(사고 88).
+    # 이제 린터와 **같은 `lookup()`** 을 쓴다. 조회 규칙이 두 벌이면 또 갈라진다.
+    _m = TOKEN.search(token)
+    f, _why = lookup(facts, _m.group(1), _m.group(2) or "")
 
     print("=" * 62)
     print(f"검수 대상: {path.name}")
@@ -144,5 +150,57 @@ def main():
         print(f"기록됨 -> {LOG.relative_to(ROOT)}")
 
 
+def selftest():
+    """**이 파일에 인수시험이 없어서 이틀 동안 깨진 채로 있었다**(사고 88).
+
+    2026-08-29 에 `load_facts()` 가 **단위별 2단**으로 바뀌었는데 이 파일이 안 따라가
+    `f["표기"]` 가 `KeyError` 로 죽었다. 그리고 **`--log` 가 그 뒤에 있어
+    검수 기록이 아예 안 남았다** — 「검수했다」는 표기가 근거로 삼는 그 기록이다.
+    **발행 임계 경로의 장치인데 아무도 안 치고 있었다.**
+    """
+    fails = []
+
+    def chk(label, got, want):
+        if got != want:
+            fails.append("%s: %r != %r" % (label, got, want))
+        print("  %-46s %s" % (label, "OK" if got == want else "FAIL"))
+
+    # ① 깨졌던 그 자리 — 대장 조회가 **표기·창·지위를 가진 항목**을 내는가.
+    facts = load_facts()
+    hit = None
+    for value, bucket in facts.items():
+        for unit in bucket:
+            got, why = lookup(facts, value, unit)
+            if got:
+                hit = got
+                break
+        if hit:
+            break
+    chk("대장에서 항목을 찾는다", hit is not None, True)
+    chk("항목이 표기·창·지위를 든다",
+        all(k in (hit or {}) for k in ("표기", "창", "지위")), True)
+    chk("항목은 2단 딕셔너리가 아니다 — 그게 깨진 지점이었다",
+        isinstance((hit or {}).get("지위"), str), True)
+
+    # ② 미등재는 죽지 않고 None 을 낸다.
+    none_hit, why = lookup(facts, "999999999", "옹스트롬")
+    chk("미등재는 None 과 사유를 낸다", (none_hit, bool(why)), (None, True))
+
+    # ③ 추첨이 결정론인가 — 같은 시드면 같은 번호.
+    import hashlib as _h
+    seed = "report_x.md|2026-08-31"
+    a = int(_h.sha256(seed.encode("utf-8")).hexdigest(), 16) % 137
+    b = int(_h.sha256(seed.encode("utf-8")).hexdigest(), 16) % 137
+    chk("같은 시드는 같은 번호", a, b)
+
+    # ④ 수집이 표 구분선·이미지·헤딩을 안 센다.
+    md = "\n".join(["|---|---|", "![x](y.png)", "### 2.1 제목", "| 값 | 1,234 TEU |"])
+    got = collect(md)
+    chk("구분선·이미지·헤딩을 안 센다", all(g[0] == 4 for g in got), True)
+
+    print("\n  실패 %d" % len(fails))
+    return 1 if fails else 0
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(selftest() if "--selftest" in sys.argv else (main() or 0))
