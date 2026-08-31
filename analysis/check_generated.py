@@ -73,6 +73,10 @@ GENERATORS = [
      "analysis/build_skyline.py",
      "허브 _includes/skyline.html — **데이터에서 오지 않는다.** "
      "낡을 일은 없지만 코드를 고치고 안 돌리면 갈라진다"),
+    ("첫 화면 252개월 시계열",
+     "analysis/build_series_chart.py",
+     "허브 _includes/series252.html — **데이터에서 온다.** 원시 CSV 가 바뀌면 "
+     "여기가 낡고, **장식과 달리 값을 지므로 낡으면 지면이 틀린 값을 말한다**"),
 ]
 
 FRESH, STALE, UNKNOWN = "최신", "**낡았다**", "**모른다**"
@@ -122,7 +126,11 @@ def selftest() -> int:
 
     print("── 인수시험: 실물 생성기 ──")
     vs = verdicts()
-    chk("생성기 4종을 본다", len(vs), 4)
+    # **수를 손에 들지 않는다** — 생성기가 늘 때마다 이 줄이 낡는다(사고 83·87).
+    # 묻는 것은 「몇 개인가」가 아니라 **「등록된 것을 빠짐없이 보는가」**다.
+    chk("등록된 생성기를 빠짐없이 본다", len(vs), len(GENERATORS))
+    chk("시계열도 등록돼 있다",
+        any("build_series_chart" in g[1] for g in GENERATORS), True)
     for name, script, made, st, why in vs:
         good = st in (FRESH, STALE, UNKNOWN)
         ok = ok and good

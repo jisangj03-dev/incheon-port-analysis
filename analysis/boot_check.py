@@ -65,6 +65,10 @@ STATE = (
     ("check_status_fresh.py", (), False),
     ("check_links.py", (), False),
     ("lint_publish.py", (), True),
+    # **허브 지면도 친다.** 종전에는 인수 없이 불러 `reports/*.md` 만 봤다 —
+    # 사고 69 가 지면 모드를 만들어 놓고 **개시 검사가 그것을 한 번도 안 돌렸다.**
+    # 지면은 인수로 줘야 검사되므로 **여기서 목록을 안 들고 찾는다**(사고 83).
+    ("lint_publish.py", ("--hub",), True),
 )
 
 # STATUS 는 매 세션 전문이 읽힌다. 커지면 그만큼 착수가 느려진다.

@@ -742,7 +742,14 @@ def main():
     args = [a for a in args if a not in ("--show-exempt", "--channel")]
     if channel and not args:
         sys.exit(0)
-    targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
+    # `--hub` = 허브 지면 전부. **목록을 손으로 들지 않는다** — 지면이 늘면 낡는다(사고 83).
+    # 이것이 없으면 지면 모드는 **사람이 경로를 기억해 줄 때만** 돈다(사고 69 의 재발 경로).
+    if "--hub" in sys.argv:
+        hub = ROOT.parent / "jisangj03-dev.github.io"
+        targets = sorted(p for p in hub.rglob("*.md")
+                         if "_site" not in p.parts and not p.name.startswith("README"))
+    else:
+        targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
     tf = tw = te = 0
     mode = " · 채널 문안 모드(전문을 결론 자리로 본다)" if channel else ""
     print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건{mode}\n")
