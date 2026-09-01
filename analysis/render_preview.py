@@ -26,16 +26,29 @@ GitHub Pages가 실제로 빌드에 성공하는지는 **push해 봐야만 안�
 사용
 ----
     python analysis/render_preview.py                 # 기본 경로(허브)를 렌더
+    python analysis/render_preview.py --serve          # 렌더하고 띄운다(기본 8800)
+    python analysis/render_preview.py --serve --lan    # 같은 공유기의 휴대폰에서도 열린다
     python analysis/render_preview.py --site <경로> --out <경로>
     python analysis/render_preview.py --selftest      # 인수시험
+
+**`file://` 로는 못 열다.** 지면이 자산을 `/assets/...` 로 가리켜 스타일이 하나도 안 붙는다.
 """
 from __future__ import annotations
 import argparse
 import html as htmllib
+import io
 import os
 import re
 import shutil
 import sys
+
+# **콘솔이 cp949 면 줄표(—) 하나에 죽는다.** 2026-09-02 에 --serve 가 첫 실행에서
+# 그렇게 죽었다 — 다른 스크립트는 전부 이 세 줄을 갖고 있는데 이 파일만 없었다.
+for _s in (sys.stdout, sys.stderr):
+    try:
+        _s.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_SITE = os.path.abspath(os.path.join(HERE, "..", "..", "jisangj03-dev.github.io"))
@@ -544,8 +557,94 @@ def selftest() -> int:
     fm, body = split_front_matter("---\nlayout: page\ntitle: 가\n---\n\n본문\n")
     check("front matter", (fm.get("layout"), fm.get("title"), body.strip()), ("page", "가", "본문"))
 
+
+    # 미리보기 서버의 주소 잇기. **이 매핑이 없으면 내비게이션이 전부 404 이고**
+    # 보는 사람은 사이트가 고장난 줄 안다(2026-09-02 실측 8개 지면).
+    import tempfile
+    d = tempfile.mkdtemp()
+    for f in ("index.html", "reports.html"):
+        io.open(os.path.join(d, f), "w", encoding="utf-8").write("x")
+    os.makedirs(os.path.join(d, "assets"), exist_ok=True)
+    io.open(os.path.join(d, "assets", "a.css"), "w", encoding="utf-8").write("x")
+    check("/reports/ 를 잇는다", pretty_path(d, "/reports/"),
+          os.path.join(d, "reports.html"))
+    check("질의문자열이 붙어도 잇는다", pretty_path(d, "/reports/?x=1#y"),
+          os.path.join(d, "reports.html"))
+    check("끝 빗금이 없어도 잇는다", pretty_path(d, "/reports"),
+          os.path.join(d, "reports.html"))
+    # 안 이어야 하는 것 — 오탐이 나면 실제 파일을 가로챈다.
+    check("자산은 안 가로챈다", pretty_path(d, "/assets/a.css"), None)
+    check("없는 지면은 안 잇는다", pretty_path(d, "/nope/"), None)
+    check("뿌리는 기본 처리로 넘긴다", pretty_path(d, "/"), None)
+
     print("통과" if ok else "실패")
     return 0 if ok else 1
+
+
+def pretty_path(out: str, path: str):
+    """`/reports/` -> `<out>/reports.html`. 못 이으면 None.
+
+    **왜 밖으로 뺐나** — 이 매핑이 없으면 미리보기의 내비게이션이 전부 404 이고
+    (2026-09-02 실측 8개 지면), 보는 사람은 **사이트가 고장난 줄 안다.**
+    그런 자리는 인수시험이 닿아야 해서 함수로 뺐다.
+    """
+    clean = path.split("?", 1)[0].split("#", 1)[0]
+    name = clean.strip("/")
+    if not name:
+        return None
+    cand = os.path.join(out, name.replace("/", os.sep) + ".html")
+    return cand if os.path.isfile(cand) else None
+
+
+def serve(out: str, port: int, lan: bool) -> int:
+    """렌더한 것을 띄운다. **파일로 못 연다** — 지면이 자산을 `/assets/...` 로
+    절대경로로 가리키므로 `file://` 로 열면 스타일이 하나도 안 붙는다(실측).
+
+    `--lan` 은 같은 공유기의 다른 기기(휴대폰)에서 열기 위한 것이다.
+    **켜면 같은 망의 누구나 볼 수 있다** — 그래서 기본은 꺼 둔다.
+    """
+    import http.server
+    import socket
+    import socketserver
+
+    host = "0.0.0.0" if lan else "127.0.0.1"
+
+    class H(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *a, **kw):
+            super().__init__(*a, directory=out, **kw)
+
+        def translate_path(self, path):
+            return pretty_path(out, path) or super().translate_path(path)
+
+        def log_message(self, *a):  # 조용히
+            pass
+
+    ip = "127.0.0.1"
+    if lan:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip, _ = s.getsockname()[0], s.close()
+        except Exception:
+            ip = "(이 기계의 LAN 주소를 못 찾았다)"
+
+    socketserver.TCPServer.allow_reuse_address = True
+    with socketserver.TCPServer((host, port), H) as httpd:
+        print("=" * 66)
+        print(f"  이 컴퓨터에서:  http://127.0.0.1:{port}/")
+        if lan:
+            print(f"  같은 공유기의 휴대폰에서:  http://{ip}:{port}/")
+            print("  **--lan 은 같은 망의 누구에게나 열려 있다.** 끝나면 Ctrl+C.")
+        print("=" * 66)
+        print("  볼 것: 첫 화면 · /reports/ · /terminals/ · /verify/ · /data/")
+        print("  **어두운 모드도 본다** — 브라우저/OS 테마를 바꿔 한 번 더.")
+        print("  **이것은 Jekyll 빌드가 아니다**(사고 20). 빌드 성패는 push해야 안다.")
+        print("\n  멈추려면 Ctrl+C.")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\n  멈췄다.")
+    return 0
 
 
 def main() -> int:
@@ -553,6 +652,9 @@ def main() -> int:
     ap.add_argument("--site", default=DEFAULT_SITE)
     ap.add_argument("--out", default=DEFAULT_OUT)
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--serve", action="store_true", help="렌더한 뒤 띄운다")
+    ap.add_argument("--port", type=int, default=8800)
+    ap.add_argument("--lan", action="store_true", help="같은 공유기의 다른 기기에도 연다")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
@@ -563,6 +665,8 @@ def main() -> int:
     written = build(a.site, a.out)
     print(f"\n{len(written)}쪽. 첫 화면: {os.path.join(a.out, 'index.html')}")
     print("**이것은 Jekyll 빌드가 아니다.** 빌드 성패는 push해야 안다(사고 20).")
+    if a.serve:
+        return serve(a.out, a.port, a.lan)
     return 0
 
 
