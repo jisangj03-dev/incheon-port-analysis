@@ -46,7 +46,10 @@ import sys
 # 그렇게 죽었다 — 다른 스크립트는 전부 이 세 줄을 갖고 있는데 이 파일만 없었다.
 for _s in (sys.stdout, sys.stderr):
     try:
-        _s.reconfigure(encoding="utf-8", errors="replace")
+        # **줄 단위로 흘려보낸다.** 파이프로 받으면 파이썬이 통째로 버퍼에 가두는데,
+        # 이 파일은 **서버를 띄우고 멈춰 서는** 스크립트다 — 버퍼에 갇히면
+        # 「어디로 접속하라」가 한 글자도 안 나오고 사람은 멈춘 줄 안다(2026-09-02 실측).
+        _s.reconfigure(encoding="utf-8", errors="replace", line_buffering=True)
     except Exception:
         pass
 
@@ -628,8 +631,18 @@ def serve(out: str, port: int, lan: bool) -> int:
         except Exception:
             ip = "(이 기계의 LAN 주소를 못 찾았다)"
 
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer((host, port), H) as httpd:
+    # **재사용을 끈다.** 윈도우에서 켜 두면 이미 쓰이는 번호에 두 번째가 그냥 붙고,
+    # 접속하면 **낡은 서버가 옛 화면을 내준다** — 보는 사람은 고친 게 안 됐다고 읽는다.
+    # 조용히 틀린 화면을 주느니 **못 띄웠다고 말하는 편이 낫다**(2026-09-02 실측).
+    socketserver.TCPServer.allow_reuse_address = False
+    try:
+        httpd = socketserver.TCPServer((host, port), H)
+    except OSError as e:
+        print("")
+        print(f"[못 띄웠다] {port} 번을 쓸 수 없다 — {e}")
+        print(f"  이미 뭔가 쓰고 있으면 다른 번호로: --port {port + 1}")
+        return 2
+    with httpd:
         print("=" * 66)
         print(f"  이 컴퓨터에서:  http://127.0.0.1:{port}/")
         if lan:
