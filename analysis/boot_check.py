@@ -52,25 +52,30 @@ ROOT = os.path.dirname(HERE)
 OK, BAD, UNK = "통과", "**실패**", "**모름**"
 
 # 상태 검사 — 인수시험이 아니라 「지금 저장소가 성립하는가」를 본다.
-# (스크립트, 인수, 이것이 깨지면 멈출 일인가)
+# (스크립트, 인수)
+#
+# **[2026-09-01] 셋째 칸이 있었는데 아무 데도 안 쓰였다.** 「이것이 깨지면 멈출 일인가」를
+# 선언해 뒀지만 아래 루프는 그 값을 안 읽고 **실패면 전부 멈췄다.** 선언과 기전이
+# 갈린 자리다(사고 46). **선언을 살리는 대신 지웠다** — 기전이 하나뿐이면 선언도 하나다.
 STATE = (
-    ("verify_anchors.py", (), True),
-    ("install_git_hooks.py", ("--check",), True),
-    ("stopline_table.py", ("--check",), True),
-    ("check_guideline_size.py", (), False),
-    ("check_generated.py", (), False),
-    ("check_facts.py", (), False),
-    ("check_a11y.py", (), False),
-    ("check_counts.py", (), False),
-    ("check_status_fresh.py", (), False),
-    ("check_links.py", (), False),
-    ("lint_publish.py", (), True),
+    ("verify_anchors.py", ()),
+    ("install_git_hooks.py", ("--check",)),
+    ("stopline_table.py", ("--check",)),
+    ("check_guideline_size.py", ()),
+    ("check_generated.py", ()),
+    ("check_facts.py", ()),
+    ("check_a11y.py", ()),
+    ("check_counts.py", ()),
+    ("check_status_fresh.py", ()),
+    ("check_links.py", ()),
+    # **허브가 빌드된 적이 없다.** 첫 push 가 첫 빌드이고 Pages 는 조용히 죽는다.
+    ("check_jekyll.py", ()),
+    ("lint_publish.py", ()),
     # **허브 지면도 친다.** 종전에는 인수 없이 불러 `reports/*.md` 만 봤다 —
     # 사고 69 가 지면 모드를 만들어 놓고 **개시 검사가 그것을 한 번도 안 돌렸다.**
     # 지면은 인수로 줘야 검사되므로 **여기서 목록을 안 들고 찾는다**(사고 83).
-    ("lint_publish.py", ("--hub",), True),
+    ("lint_publish.py", ("--hub",)),
 )
-
 # STATUS 는 매 세션 전문이 읽힌다. 커지면 그만큼 착수가 느려진다.
 # 자기 머리말이 「41 KB였다」고 적어 둔 파일이라 그 선을 상한으로 쓴다.
 STATUS_LIMIT = 42000
@@ -264,7 +269,7 @@ def main():
 
     if not a.quick:
         print("\n[상태 검사]")
-        for f, args, hard in STATE:
+        for f, args in STATE:
             p = os.path.join(HERE, f)
             st, last, sec = run(p, args, timeout=120)
             name = f + ((" " + " ".join(args)) if args else "")
