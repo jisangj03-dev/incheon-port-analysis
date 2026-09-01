@@ -7,8 +7,7 @@ message: >-
   "8.642 / 2026-06 단월 / 수출÷수입 TEU"가 인용이다.
 type: dataset
 authors:
-  - given-names: 지상
-    family-names: 정
+  - name: "Vidimus (운영자)"
     alias: jisangj03-dev
     website: "https://github.com/jisangj03-dev"
     roles: ["검수", "발행", "책임"]

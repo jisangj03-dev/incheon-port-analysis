@@ -127,8 +127,16 @@ def build():
 
     a('<!-- 생성됨. 손으로 고치지 마라 — analysis/build_series_chart.py -->')
     a('<figure class="series252">')
-    a('<svg class="s252" viewBox="0 0 %g %g" role="img" aria-labelledby="s252t s252d" '
-      'preserveAspectRatio="none">' % (W, H))
+    # **스크롤 상자에 넣는다.** 좁은 화면에서 이 그림을 폭에 맞춰 눌러 담으면
+    # 가로 배율만 줄고 세로는 안 줄어 **글자가 납작해진다**(2026-09-01 실측:
+    # 390px 에서 가로 0.37배 · 세로 0.69배 — 글자가 제 너비의 54%). 표를
+    # 다루는 방식과 같게, 줄이지 말고 **밀어서 보게 한다.**
+    a('<div class="s252wrap">')
+    # `preserveAspectRatio` 를 쓰지 않는다(기본 `xMidYMid meet`). CSS 가
+    # `aspect-ratio` 로 가로·세로 배율을 같게 잡으므로 늘일 일이 없고,
+    # 혹시 어긋나도 **글자를 찌그러뜨리는 대신** 여백으로 물러난다.
+    a('<svg class="s252" viewBox="0 0 %g %g" role="img" aria-labelledby="s252t s252d">'
+      % (W, H))
     a('<title id="s252t">%s</title>' % name)
     a('<desc id="s252d">%s</desc>' % desc)
 
@@ -176,6 +184,7 @@ def build():
             a('<text class="s252-tick" x="%.1f" y="%g">%d</text>' % (X(i), H - 8, y))
     a('</g>')
     a('</svg>')
+    a('</div>')
     a('<figcaption>')
     # **#10 을 링크하지 않는다 — 그 편은 판정만 끝났고 발행본이 없다.**
     # 없는 지면으로 보내는 링크는 「있다」고 말하는 것과 같다.
