@@ -2,7 +2,7 @@
 
 공공데이터를 기반으로 인천항의 컨테이너 물동량 흐름을 분석하는 정기 리서치 보고서 모음이다. 각 보고서는 **핵심 요약 → 분석 결과(차트·표) → 해석 → 한계·후속** 구조로, 데이터 출처와 정밀도 한계를 함께 밝힌다.
 
-**사이트: [jisangj03-dev.github.io](https://jisangj03-dev.github.io/)** — 전체 목록 · [데이터 지도](https://jisangj03-dev.github.io/data/)(무엇을 봤고 무엇을 안 봤는가) · [검증 방식](https://jisangj03-dev.github.io/verify/).
+**사이트: [측심 · sounding.higgsfield.app](https://sounding.higgsfield.app/)** — 한 줄 흐름과 전체 목록 · [데이터와 재현](https://sounding.higgsfield.app/#data)(원시 CSV 와 코드) · [기준과 판정](https://sounding.higgsfield.app/#verdicts)(선커밋 기준과 FAIL).
 이 저장소는 그 시리즈의 **원문 · 원시 데이터 · 재현 코드**를 든다.
 
 ## 보고서 목록

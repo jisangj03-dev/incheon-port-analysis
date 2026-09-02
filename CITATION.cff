@@ -12,7 +12,7 @@ authors:
     website: "https://github.com/jisangj03-dev"
     roles: ["검수", "발행", "책임"]
 repository-code: "https://github.com/jisangj03-dev/incheon-port-analysis"
-url: "https://jisangj03-dev.github.io"
+url: "https://sounding.higgsfield.app"
 abstract: >-
   인천항 물동량을 공공 1차 데이터로 다년 추적해 발행하는 리서치.
   판정 기준을 데이터 수집보다 먼저 커밋하고 그 시점의 해시를 남기며,

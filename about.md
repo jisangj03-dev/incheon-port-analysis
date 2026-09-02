@@ -1,7 +1,7 @@
 # 이 저장소에 대하여
 
 **Vidimus · 비디무스**의 인천항 공컨테이너 시리즈가 여기 있다.
-브랜드 허브는 [jisangj03-dev.github.io](https://jisangj03-dev.github.io/)이고,
+사이트는 [측심 · sounding.higgsfield.app](https://sounding.higgsfield.app/)이고,
 이 저장소는 시리즈의 **원문·원시 데이터·재현 코드**를 든다.
 
 ## 무엇을 하는 곳인가
