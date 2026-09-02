@@ -293,7 +293,7 @@ STATUS 크기도 여기서 잰다. 상한을 넘으면 **끝난 라운드 경위
 
 **B-1. #08·#09 검수 → 인천 push. 이것이 지금 유일한 병목이다.** [2026-09-03] 옛 허브 push 는
 **안 한다** — 사이트는 측심(B-9)이 대체했고, 인천 공개 파일 넷(README·about·404·CITATION)이 이제 측심을 든다.
-**측심이 밖으로 거는 링크 7개가 이 push 하나로 산다**(#08·#09 발행본 · CSV 2 · 코드 2 · FACTS).
+**측심의 죽은 링크 7개가 이 push 하나로 산다.**
 **막는 것은 검수 하나뿐이다** — `report_08`·`report_09` 의 표기 블록이 「기계가 무작위로
 뽑은 수치 1건의 출처 대조 / 기록은 `docs/검수기록.md`」를 **명시**하는데 그 기록이 없다.
 지금 push 하면 **표기가 일어나지 않은 검수를 증언한다**(§2.2-3).
@@ -382,7 +382,7 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 ```
 cd ..\sounding && git -c "http.extraheader=Authorization: Basic $(python -c "import base64;print(base64.b64encode(('x-access-token:'+open('%USERPROFILE%/.higgsfield-repo-token-sounding').read().strip()).encode()).decode())")" push -u origin main
 ```
-저장소 `역량부서\sounding`(커밋은 로컬에만) · 주소 `https://sounding.higgsfield.app` · 경위 = `docs/작업기록.md`.
+경위 = `docs/작업기록.md`.
 
 ### C. 아직 안 본 축 — 편을 열 때 여기서 고른다
 
