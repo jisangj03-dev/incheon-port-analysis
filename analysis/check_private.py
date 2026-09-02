@@ -38,6 +38,8 @@
 · **git 이력은 안 본다.** 과거 커밋에 남은 것은 이 검사가 못 지운다 —
   지우려면 이력을 다시 쓰는 일이고 그것은 운영자 판단이다.
 · 인증키 검사는 **이름이 키처럼 생긴 변수**만 본다. 이름 없이 흘린 문자열은 못 잡는다.
+· **보는 저장소는 이 파일이 든 셋뿐이다**(인천 · 허브 · 측심). 넷째가 생기면 여기 적히기
+  전까지 안 본다 — 2026-09-03 까지 측심이 정확히 그 상태였다.
 
   python analysis/check_private.py
   python analysis/check_private.py --selftest
@@ -58,6 +60,9 @@ except Exception:
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 HUB = os.path.normpath(os.path.join(ROOT, "..", "jisangj03-dev.github.io"))
+# [2026-09-03] 측심(`sounding`) — 9/6 에 나가는 새 공개 사이트. 이 검사는 인천·허브만 보고
+# 있었고 **정작 나갈 저장소를 안 보고 있었다** — 「못 한다」가 아니라 「안 봤다」였다.
+SOUNDING = os.path.normpath(os.path.join(ROOT, "..", "sounding"))
 
 # 실명 — 코드포인트로 조립한다(위 「이 파일 자신에 대하여」).
 _NAME = "".join(chr(c) for c in (0xC815, 0xC9C0, 0xC0C1))
@@ -81,6 +86,9 @@ LOCALPATH = re.compile(r"[A-Za-z]:[\\/]Users[\\/][^\s\"'<>|:*?\r\n]{1,40}")
 TEXT_EXT = {
     ".md", ".markdown", ".html", ".htm", ".txt", ".yml", ".yaml", ".json",
     ".py", ".css", ".js", ".cff", ".csv", ".xml", ".toml", ".ini", ".sh",
+    # [2026-09-03] 측심은 TS/TSX 앱이다 — 이것들이 없으면 그 저장소는 「검사했다」가 아니라
+    # 「파일 0개를 검사했다」다. SVG 는 글자를 담는 텍스트다(로고를 손으로 그렸다).
+    ".ts", ".tsx", ".jsx", ".mjs", ".cjs", ".sql", ".svg", ".webmanifest",
 }
 
 
@@ -122,7 +130,9 @@ def scan_repo(root, name):
         return None, None
     found, n = [], 0
     for rel in files:
-        if os.path.splitext(rel)[1].lower() not in TEXT_EXT:
+        # `.env*` 는 확장자가 없어 빠진다 — 그런데 그것이 바로 키가 사는 파일이다.
+        if (os.path.splitext(rel)[1].lower() not in TEXT_EXT
+                and not os.path.basename(rel).startswith(".env")):
             continue
         p = os.path.join(root, rel)
         if not os.path.isfile(p):
@@ -165,7 +175,7 @@ def report(hook=False, strict=False):
     lines = []
     hard_n = 0
     unknown = 0
-    for root, name in ((ROOT, "인천"), (HUB, "허브")):
+    for root, name in ((ROOT, "인천"), (HUB, "허브"), (SOUNDING, "측심")):
         found, n = scan_repo(root, name)
         if found is None:
             why = "저장소가 없다" if not os.path.isdir(root) else "git 이 안 돈다"
@@ -235,6 +245,8 @@ def selftest():
     chk("보통 문장은 안 잡는다",
         scan_text("a", "인천항 컨테이너 부두는 신항·남항으로 나뉜다."), [])
     chk("상대경로는 안 잡는다", scan_text("a", "analysis/build_series_chart.py"), [])
+    # 측심이 TS/TSX 라 확장자 집합이 곧 검사 범위다 — 빠지면 그 저장소는 0개 검사가 된다.
+    chk("TSX·SVG 도 텍스트로 본다", {".tsx", ".svg"} <= TEXT_EXT, True)
 
     # **이 파일 자신이 통과해야 한다** — 금칙어를 소스에 안 적었다는 확인이다.
     with open(os.path.abspath(__file__), encoding="utf-8") as f:
