@@ -40,6 +40,18 @@
 
 import re
 
+import sys
+
+# 운영자 콘솔(cp949)에서 출력이 터지지 않게 한다. **없으면 통과 문장의
+# `—` 하나에 죽고, 죽은 종료코드를 다른 검사기가 판정으로 읽는다**
+# (2026-09-02 실측 · `check_generated` 가 그것을 「낡았다」로 읽었다).
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
+
 TABLE = re.compile(r"<table\b[^>]*>", re.I)
 TH = re.compile(r"<th\b([^>]*)>", re.I)
 # 제목과 밴드 이름표 — 표 앞에서 이름을 찾을 때 본다.

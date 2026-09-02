@@ -158,6 +158,54 @@ def status_size():
                  % (n, STATUS_LIMIT)), n
 
 
+def console_safe():
+    """**이 파일이 만드는 세계가 운영자의 세계와 같은가.**
+
+    위 `run()` 은 자식에게 `PYTHONIOENCODING=utf-8` 을 심는다. 이유는 정당하다 —
+    안 심으면 한 스크립트가 깨져 찍혀 「무엇이 통과했는지」가 안 보인다.
+    **그런데 그 친절이 통과의 근거를 바꾼다.** 운영자 터미널(cp949)과
+    `pre-push` 에는 그 변수가 없으므로, 스스로 전문을 안 둔 스크립트는
+    **여기서만 통과하고 거기서는 터진다.**
+
+    2026-09-02 실측으로 났다. `build_series_chart.py --check` 가 통과 문장의
+    `\u2014` 하나에 터졌고, 종료코드 1 을 `check_generated.py` 가
+    **「낡았다」로 읽어** 멀쩡한 지면에 「다시 만들어라」를 냈다.
+    훑어 보니 같은 처지가 **열 개 더** 있었다.
+
+    그래서 환경을 원래대로 되돌리는 대신 **불변조건을 여기서 본다** —
+    「한글을 찍는 스크립트는 스스로 UTF-8 전문을 둔다」.
+    출력 가독성은 유지하면서 그 친절에 기대는 것을 막는다.
+
+    **닿지 않는 곳:** 전문이 **있는지**만 본다. 그 전문이 실제로 도는지,
+    한글 아닌 비ASCII 만 찍는 스크립트는 안 본다.
+    """
+    import re as _re
+    hangul = _re.compile(r"[\uac00-\ud7a3]")
+    miss = []
+    for base in (HERE, os.path.join(HERE, "probe")):
+        if not os.path.isdir(base):
+            continue
+        for name in sorted(os.listdir(base)):
+            if not name.endswith(".py"):
+                continue
+            path = os.path.join(base, name)
+            try:
+                src = io.open(path, encoding="utf-8", errors="replace").read()
+            except Exception:
+                continue
+            if "reconfigure" in src:
+                continue
+            for line in src.split("\n"):
+                if ("print(" in line or "file=sys.std" in line) and hangul.search(line):
+                    miss.append(os.path.relpath(path, ROOT).replace("\\", "/"))
+                    break
+    n = len(miss)
+    if not n:
+        return OK, "한글을 찍는 스크립트가 전부 전문을 갖고 있다", 0
+    return BAD, ("전문 없는 스크립트 %d개 — 운영자 콘솔에서 터진다: %s"
+                 % (n, " · ".join(miss[:4]) + (" …" if n > 4 else ""))), n
+
+
 # ── 인수시험 ────────────────────────────────────────────────────────────────
 
 def selftest():
@@ -279,6 +327,11 @@ def main():
             if st != OK:
                 (fails if st == BAD else unks).append((name, last))
             print("  %-9s %-34s %s" % (st, name, last))
+
+        st, why, _ = console_safe()
+        if st != OK:
+            (fails if st == BAD else unks).append(("운영자 콘솔 안전", why))
+        print("  %-9s %-34s %s" % (st, "운영자 콘솔 안전", why[:60]))
 
         st, why, _ = status_size()
         if st != OK:
