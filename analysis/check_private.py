@@ -147,30 +147,67 @@ def scan_repo(root, name):
 HARD = ("실명", "이메일", "인증키")
 
 
-def report():
-    rc = 0
+def report(hook=False, strict=False):
+    """훑고 판정한다.
+
+    `hook` 은 pre-push 용이다 — **깨끗하면 아무것도 안 찍는다.**
+    걸리면 stderr 로 찍는다.
+
+    **왜 여기만 기본 차단이 아닌가.** 다른 난간 다섯이 경고인 이유는
+    「여기서 막히는 것은 운영자의 손이다」이고, 그 이유의 실체는
+    **걸리는 것이 push 뒤에도 고쳐진다**는 것이다. 유출은 그렇지 않다 —
+    한 번 나가면 이력에 남고, 지우려면 이력을 다시 써야 하며 그건
+    운영자 판단이다. **그러므로 이 난간만은 차단이 맞다고 본다.**
+    다만 **차단 승격은 이 저장소가 운영자 판단으로 정해 둔 자리**라
+    (`check_review_log` · `check_status_fresh` 가 같은 문장을 든다)
+    기본값을 이쪽에서 바꾸지 않았다. 승격 = `--strict`.
+    """
+    lines = []
+    hard_n = 0
+    unknown = 0
     for root, name in ((ROOT, "인천"), (HUB, "허브")):
         found, n = scan_repo(root, name)
         if found is None:
             why = "저장소가 없다" if not os.path.isdir(root) else "git 이 안 돈다"
-            print(f"  **모름**  {name} — {why}. **통과로 세지 않는다.**")
-            rc = 1
+            lines.append(f"  **모름**  {name} — {why}. **통과로 세지 않는다.**")
+            unknown += 1
             continue
         hard = [f for f in found if f[1] in HARD]
         soft = [f for f in found if f[1] not in HARD]
         head = "**유출**" if hard else ("경고" if soft else "통과")
-        print(f"  {head:8} {name} — 유출 {len(hard)}건 · 경고 {len(soft)}건"
-              f" / 추적 텍스트 파일 {n}개 검사")
+        lines.append(f"  {head:8} {name} — 유출 {len(hard)}건 · 경고 {len(soft)}건"
+                     f" / 추적 텍스트 파일 {n}개 검사")
         for where, kind, snip in hard[:20]:
-            print(f"           FAIL [{kind}] {where}  {snip}")
+            lines.append(f"           FAIL [{kind}] {where}  {snip}")
         for where, kind, snip in soft[:8]:
-            print(f"           WARN [{kind}] {where}  {snip}")
-        if hard:
-            rc = 1
+            lines.append(f"           WARN [{kind}] {where}  {snip}")
+        hard_n += len(hard)
+
+    rc = 1 if (hard_n or unknown) else 0
+
+    if not hook:
+        for ln in lines:
+            print(ln)
+        if rc == 0:
+            print("\n실명 · 개인 이메일 · 인증키 — 셋 다 0건.")
+            print("**이미지 안의 글자는 이 검사가 못 본다.** 그건 사람이 눈으로 본다.")
+        return rc
+
+    # ── pre-push 모드 ─────────────────────────────────────────────────────
     if rc == 0:
-        print("\n실명 · 개인 이메일 · 인증키 — 셋 다 0건.")
-        print("**이미지 안의 글자는 이 검사가 못 본다.** 그건 사람이 눈으로 본다.")
-    return rc
+        return 0
+    out = sys.stderr
+    print("", file=out)
+    print("공개 저장소에 나가면 안 되는 것 — 유출 %d건 · 모름 %d곳."
+          % (hard_n, unknown), file=out)
+    print("  **push 하면 이력에 남는다.** 지우려면 이력을 다시 쓰는 일이고"
+          " 그건 운영자 판단이다.", file=out)
+    for ln in lines:
+        print(ln, file=out)
+    if strict:
+        return 1
+    print("  경고만 하고 통과시킨다. 막으려면 --strict.", file=out)
+    return 0
 
 
 # ----------------------------------------------------------------- 인수시험
@@ -220,8 +257,14 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser(description="공개 저장소에 나가면 안 되는 것을 본다.")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--hook", action="store_true",
+                    help="pre-push 용 — 깨끗하면 조용하다")
+    ap.add_argument("--strict", action="store_true",
+                    help="유출이면 종료코드 1 (pre-push 를 막는다)")
     a = ap.parse_args()
-    return selftest() if a.selftest else report()
+    if a.selftest:
+        return selftest()
+    return report(hook=a.hook, strict=a.strict)
 
 
 if __name__ == "__main__":

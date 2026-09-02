@@ -207,30 +207,57 @@ def scan(root, name):
     return fails, warns, d
 
 
-def report():
-    rc = 0
-    unknown = []
+def report(hook=False, strict=False):
+    """훑고 판정한다.
+
+    `hook` 은 pre-push 용이다 — **깨끗하면 아무것도 안 찍는다.**
+    걸리면 stderr 로 찍되 **막지 않는다**(난간 다섯과 같은 이유: 여기서
+    막히는 것은 운영자의 손이다). 차단은 `--strict`.
+    """
+    lines = []
+    bad = []       # 빌드가 깨질 자리
+    unknown = []   # 모름 — **통과가 아니다**(사고 26)
     for root, name in ((ROOT, "인천"), (HUB, "허브")):
         fails, warns, d = scan(root, name)
         if fails is None:
             why = "저장소가 이 기계에 없다" if not os.path.isdir(root) else "PyYAML 이 없다"
-            print(f"  **모름**  {name} — {why}. **통과로 세지 않는다.**")
+            lines.append(f"  **모름**  {name} — {why}. **통과로 세지 않는다.**")
             unknown.append(name)
             continue
         denom = " · ".join(f"{k} {v}" for k, v in d.items())
         head = "실패" if fails else ("경고" if warns else "통과")
-        print(f"  {head:4} {name} — 발견 {len(fails)}건 / 검사 {denom}")
+        lines.append(f"  {head:4} {name} — 발견 {len(fails)}건 / 검사 {denom}")
         for f in fails:
-            print(f"        FAIL  {f}")
+            lines.append(f"        FAIL  {f}")
         for w in warns:
-            print(f"        WARN  {w}")
+            lines.append(f"        WARN  {w}")
         if fails:
-            rc = 1
-    if unknown:
-        rc = 1
+            bad.append(name)
+
+    rc = 1 if (bad or unknown) else 0
+
+    if not hook:
+        for ln in lines:
+            print(ln)
+        if rc == 0:
+            print("\n빌드를 깨는 여섯 가지로는 안 깨진다. **「빌드가 된다」는 뜻이 아니다** — 이것은 빌드가 아니다.")
+        return rc
+
+    # ── pre-push 모드 ─────────────────────────────────────────────────────
     if rc == 0:
-        print("\n빌드를 깨는 여섯 가지로는 안 깨진다. **「빌드가 된다」는 뜻이 아니다** — 이것은 빌드가 아니다.")
-    return rc
+        return 0
+    out = sys.stderr
+    print("", file=out)
+    print("Jekyll 빌드가 깨질 자리 — 실패 %d곳 · 모름 %d곳."
+          % (len(bad), len(unknown)), file=out)
+    print("  **허브는 첫 push 가 곧 첫 빌드다.** 빌드가 죽으면 되돌아갈 옛 판이 없어"
+          " 사이트 전체가 404 로 남는다.", file=out)
+    for ln in lines:
+        print(ln, file=out)
+    if strict:
+        return 1
+    print("  경고만 하고 통과시킨다. 막으려면 --strict.", file=out)
+    return 0
 
 
 # ----------------------------------------------------------------- 인수시험
@@ -332,10 +359,14 @@ def selftest():
 def main():
     ap = argparse.ArgumentParser(description="Jekyll 빌드가 깨질 자리를 정적으로 훑는다.")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--hook", action="store_true",
+                    help="pre-push 용 — 깨끗하면 조용하다")
+    ap.add_argument("--strict", action="store_true",
+                    help="걸리면 종료코드 1 (pre-push 를 막는다)")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
-    return report()
+    return report(hook=a.hook, strict=a.strict)
 
 
 if __name__ == "__main__":
