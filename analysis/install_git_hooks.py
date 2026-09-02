@@ -35,7 +35,10 @@ DST = os.path.join(ROOT, ".git", "hooks", "pre-push")
 # 1층은 간접 호출을 **못 막는다**(사고 46 실측). 웹사이트 작업이 일어날 저장소가 하필 그쪽이다.
 #
 # 형제 경로로 찾는다. 없으면 조용히 건너뛴다 — 다른 기계에는 허브가 없을 수 있다.
-SIBLINGS = ("jisangj03-dev.github.io",)
+# [2026-09-03] 측심(`sounding`)을 넣었다 — 9/6 에 실제로 push 되는 저장소인데 2층이 비어 있었다.
+# 지난 세션에 push 를 막은 것은 1층(`hook_stopline.py` · 명령 문자열)이고, 간접 호출은 그 층이
+# 못 막는다(사고 46). 웹사이트 작업이 일어나는 저장소가 하필 또 관할 밖이었다.
+SIBLINGS = ("jisangj03-dev.github.io", "sounding")
 
 
 def governed():
@@ -163,6 +166,24 @@ def selftest():
         ok = ok and hit
         print("  %s %-34s -> 종료코드 %d (기대 %d)"
               % ("OK  " if hit else "FAIL", label, r.returncode, want))
+    # 사고 92 — 난간이 stderr 로 한 말이 **훅 밖으로 나오는가.** ③④⑤ 가 `2>&1` 로 두 줄기를
+    # 다 버려, 설치된 날부터 push 때 한 번도 말할 수 없었다. 위 세 갈래는 판정(종료코드)만
+    # 보므로 그것을 못 잡는다 — 통과 픽스처만 있으면 사고 26 이다. 가짜 난간을 두고 직접 듣는다.
+    import tempfile
+    # 한 겹 아래에 둔다 — 훅의 `find_guard()` 는 `../*/` 를 훑는데, %TEMP% 직하에서 돌리면
+    # 그 폴더 전체(수천 개)를 다섯 번 훑는다. 형제가 하나뿐인 자리에서 돌린다.
+    d = os.path.join(tempfile.mkdtemp(), "repo")
+    os.makedirs(os.path.join(d, "analysis"))
+    with open(os.path.join(d, "analysis", "check_facts.py"), "w", encoding="utf-8") as fh:
+        fh.write('import sys\nprint("STUB-92 난간이 말한다", file=sys.stderr)\n')
+    env = {k: v for k, v in os.environ.items() if k not in ("CLAUDECODE", "VIDIMUS_PUSH_OK")}
+    r = subprocess.run([sh, SRC], env=env, cwd=d, capture_output=True, timeout=60)
+    said = "STUB-92" in r.stderr.decode("utf-8", "replace")
+    hit = said and r.returncode == 0
+    ok = ok and hit
+    print("  %s %-34s -> %s · 종료코드 %d (기대 0)"
+          % ("OK  " if hit else "FAIL", "난간의 stderr 가 밖으로 나온다(사고 92)",
+             "나왔다" if said else "**삼켜졌다**", r.returncode))
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
