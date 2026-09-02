@@ -261,7 +261,7 @@ Seedance 영화 1편 · 챕터 6 · 지면 8 · 문의 폼). 로컬 커밋만 �
 > A 이고 재고를 안 늘린다 — 이번 라운드의 난간 ⑥⑦ 이 그것이었고, **그 일을 하다가
 > 사고 89·90 이 나왔다.** A-1 이 그 계열의 다음 항목이다.
 
-**A-0. [다음 세션] 측심 배포 뒤 실물 검사** — 운영자 ⑤가 끝나면 이쪽 몫: `python analysis/check_links.py --live-url https://sounding.higgsfield.app/` · `--net` · `..\sounding\tools\probe.mjs` · 문의 폼 1건 실전송. 런북 §Code.
+**A-0. [다음 세션] 측심 배포 뒤 실물 검사** — 운영자 ⑤ 뒤 이쪽 몫. 명령은 런북 §Code(`check_links --live-url` · `--net` · `probe.mjs` · 폼 실전송).
 
 **A-0′. [끝남] #10 — 204개월 전부 판정.** `docs/10_판정결과.md`.
 W1 PASS(204/204) · W2 FAIL(187/204) · W3 FAIL(191/204) · W4 FAIL(조합 2종 끊김).
