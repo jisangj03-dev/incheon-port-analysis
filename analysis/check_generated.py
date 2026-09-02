@@ -97,6 +97,20 @@ def run_check(script):
     if p.returncode == 0:
         return FRESH, out[-90:]
     if p.returncode == 1:
+        # **터진 것을 판정으로 읽지 않는다.**
+        #
+        # 2026-09-02 실측: `build_series_chart.py --check` 가 cp949 콘솔에서
+        # 통과 문장의 `—` 하나에 터졌다. 종료코드는 1 이고, 그것을 여기서
+        # **「낡았다」**로 읽어 「다시 만들어라」를 냈다 — 지면은 멀쥰했다.
+        #
+        # 사고 26 은 「못 돌린 것을 통과로 세지 마라」였고 이 함수는 그쪽은
+        # 지키고 있었다. **거꾸로가 비어 있었다** — 못 돌린 것을 **판정으로**
+        # 세는 것. 통과가 아닌 것이 곰 판정인 것은 아니다.
+        #
+        # **닿지 않는 곳:** 파이썬 역추적이 없는 실패(생성기가 스스로
+        # `sys.exit(1)` 을 부르며 조용히 죽는 경우)는 여전히 「낡았다」와 못 가른다.
+        if "Traceback (most recent call last)" in (p.stdout or ""):
+            return UNKNOWN, "생성기가 터졌다 — 낡음이 아니다 · %s" % out[-60:]
         return STALE, out[-90:]
     return UNKNOWN, "종료코드 %d · %s" % (p.returncode, out[-70:])
 
@@ -123,6 +137,29 @@ def selftest() -> int:
     chk("없으면 모른다", st, UNKNOWN)
     chk("이유를 적는다", why, "스크립트가 없다")
     chk("모른다는 최신이 아니다", st == FRESH, False)
+
+    print("── 인수시험: 터진 것을 「낡았다」로 읽지 않는다 ──")
+    # 2026-09-02 실측으로 생겼다. `build_series_chart.py --check` 가 cp949
+    # 콘솔에서 터졌고, 종료코드 1 을 이 함수가 **「낡았다」로** 읽었다.
+    # 지면은 멀쥰했다. **원인을 고치는 것으로는 다음 생성기에서 또 난다.**
+    tmp_dir = os.path.join(ROOT, "analysis")
+    boom = os.path.join(tmp_dir, "_selftest_boom.py")
+    quiet = os.path.join(tmp_dir, "_selftest_quiet.py")
+    try:
+        with open(boom, "w", encoding="utf-8") as fh:
+            fh.write("raise RuntimeError('boom')\n")
+        with open(quiet, "w", encoding="utf-8") as fh:
+            fh.write("import sys\nsys.exit(1)\n")
+        st, why = run_check("analysis/_selftest_boom.py")
+        chk("역추적을 남기고 터지면 모른다", st, UNKNOWN)
+        chk("모른다는 낡은 것이 아니다", st == STALE, False)
+        # **한계를 같이 박는다** — 조용히 죽는 것은 여전히 못 가른다.
+        st2, _ = run_check("analysis/_selftest_quiet.py")
+        chk("역추적 없이 죽으면 여전히 낡음으로 읽는다(한계)", st2, STALE)
+    finally:
+        for f in (boom, quiet):
+            if os.path.exists(f):
+                os.remove(f)
 
     print("── 인수시험: 실물 생성기 ──")
     vs = verdicts()

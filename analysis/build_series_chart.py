@@ -50,6 +50,17 @@ import math
 import os
 import sys
 
+# **형제 생성기 넷이 다 가진 줄이 이것만 없었다**(2026-09-02 실측).
+# cp949 콘솔에서는 통과 문장의 `—` 하나에 터지고, 터진 종료코드 1 을
+# `check_generated.py` 가 **「낡았다」로 읽는다.** 즉 지면이 멀쩡해도
+# 「다시 만들어라」가 나온다. `boot_check` 는 자식에게 `PYTHONIOENCODING=utf-8` 을
+# 심어서 **개시 검사에서만 통과했다** — 운영자 터미널과 pre-push 에는 그것이 없다.
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 HUB = os.path.join(os.path.dirname(ROOT), "jisangj03-dev.github.io")
