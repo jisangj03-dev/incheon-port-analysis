@@ -377,7 +377,7 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 `python analysis/install_git_hooks.py` 를 다시 돌린다(정본 SHA 가 바뀐다).
 
 **B-9. 새 사이트 「측심」 push → deploy** [2026-09-02 운영자 지시로 힉스필드에 처음부터 만들었다].
-저장소 `역량부서\sounding`(로컬 커밋 2개) · 주소 `https://sounding.higgsfield.app`. **push 는 이쪽이 못 한다**(§4).
+저장소 `역량부서\sounding`(커밋은 로컬에만 있다 · 수는 `git -C ..\sounding log --oneline | wc -l`) · 주소 `https://sounding.higgsfield.app`. **push 는 이쪽이 못 한다**(§4). **push 가 들어오면 배포하는 감시 루프가 세션에 떠 있다**(세션이 끝나면 같이 죽는다 — 그때는 아래 둘째 줄을 직접).
 ```
 cd ..\sounding && git -c "http.extraheader=Authorization: Basic $(python -c "import base64;print(base64.b64encode(('x-access-token:'+open('%USERPROFILE%/.higgsfield-repo-token-sounding').read().strip()).encode()).decode())")" push -u origin main
 higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1
