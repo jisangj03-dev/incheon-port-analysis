@@ -27,7 +27,8 @@ A 는 이쪽이 지금 할 수 있는 것, C 는 아직 안 본 축이다.
 **측심 `sounding.higgsfield.app` 는 아직 밖에 없다** — 실측 401 · `higgsfield website status` 가 `production: {}` ·
 인천·측심 모두 미push · `docs/검수기록.md` 에 #08·#09 행 없음. 즉 **운영자 ①~⑤(B-9)가 아직 하나도 안 일어났다.**
 기한 2026-09-06. 이쪽 몫(A-0 · 배포 뒤 실물 검사)은 그 뒤다. 그 사이에 한 것 — 측심을 유출 검사와 훅 관할에
-넣었고(**둘 다 빠져 있었다**), 난간 ③④⑤ 가 push 때 말할 수 없던 결함을 고쳤다(사고 92). 경위 = `docs/작업기록.md`.
+넣었고(**둘 다 빠져 있었다**), 난간 ③④⑤ 가 push 때 말할 수 없던 결함을 고쳤다(사고 92). **측심 배포 전 검사도 쳤다** —
+lint 실패 둘 고침 · push 인증 확인(`tools/push.py --check`) · 폼 헤드리스 도구(사고 93). 경위 = `docs/작업기록.md`.
 **막는 것은 그대로 하나다 — #08·#09 검수(B-1). 측심의 죽은 링크 7개도 그 push 로 산다.**
 
 **4) push 전에 실물을 보려면 한 줄이다.**
@@ -265,7 +266,7 @@ A 는 이쪽이 지금 할 수 있는 것, C 는 아직 안 본 축이다.
 > A 이고 재고를 안 늘린다 — 이번 라운드의 난간 ⑥⑦ 이 그것이었고, **그 일을 하다가
 > 사고 89·90 이 나왔다.** 그 계열의 다음이던 A-1 은 2026-09-03 에 닫혔다(사고 92 가 같이 나왔다).
 
-**A-0. [다음 세션] 측심 배포 뒤 실물 검사** — 운영자 ⑤ 뒤 이쪽 몫. 명령은 런북 §Code(`check_links --live-url` · `--net` · `probe.mjs` · 폼 실전송).
+**A-0. [다음 세션] 측심 배포 뒤 실물 검사** — 운영자 ⑤ 뒤 이쪽 몫. 명령은 런북 §Code(`check_links --live-url` · `--net` · `probe.mjs` · `form.mjs --expect-id`).
 
 **A-0′. [끝남] #10 — 204개월 전부 판정.** `docs/10_판정결과.md`.
 W1 PASS(204/204) · W2 FAIL(187/204) · W3 FAIL(191/204) · W4 FAIL(조합 2종 끊김).
@@ -371,9 +372,9 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 **⑤ 앞에 `higgsfield account status` 한 번** — 2026-09-03 세션에서 한 번 403 이 났다가 곧 정상이었다(원인 [미확인]).
 안 되면 `higgsfield auth login`. 측심에도 `pre-push` 가 깔렸다 — 운영자 터미널에서는 아무것도 안 막는다.
 ① B-1(검수 2편 → 인천 push) ② 측심 push(아래 한 줄) → 배포는 세션의 감시 루프가 하거나 `higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1`
-③ 배포 뒤 `python analysis/check_links.py --live` 와 측심 실물 클릭(폼 1건 보내 보기) ④ 게시 — 문안 `본부\채널문안_측심_20260902.md`(린터 PASS).
+③ 배포 뒤 `python analysis/check_links.py --live` 와 측심 실물 클릭(폼은 `node tools/form.mjs <주소> --expect-id`) ④ 게시 — 문안 `본부\채널문안_측심_20260902.md`(린터 PASS).
 ```
-cd ..\sounding && git -c "http.extraheader=Authorization: Basic $(python -c "import base64;print(base64.b64encode(('x-access-token:'+open('%USERPROFILE%/.higgsfield-repo-token-sounding').read().strip()).encode()).decode())")" push -u origin main
+cd ../sounding && python tools/push.py        # 먼저 --check 로 인증만 볼 수 있다(2026-09-03 성공). 한 줄짜리 옛 명령은 사고 93
 ```
 경위 = `docs/작업기록.md`.
 
