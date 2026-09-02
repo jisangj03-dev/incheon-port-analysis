@@ -261,7 +261,9 @@ Seedance 영화 1편 · 챕터 6 · 지면 8 · 문의 폼). 로컬 커밋만 �
 > A 이고 재고를 안 늘린다 — 이번 라운드의 난간 ⑥⑦ 이 그것이었고, **그 일을 하다가
 > 사고 89·90 이 나왔다.** A-1 이 그 계열의 다음 항목이다.
 
-**A-0. [끝남] #10 — 204개월 전부 판정.** `docs/10_판정결과.md`.
+**A-0. [다음 세션] 측심 배포 뒤 실물 검사** — 운영자 ⑤가 끝나면 이쪽 몫: `python analysis/check_links.py --live-url https://sounding.higgsfield.app/` · `--net` · `..\sounding\tools\probe.mjs` · 문의 폼 1건 실전송. 런북 §Code.
+
+**A-0′. [끝남] #10 — 204개월 전부 판정.** `docs/10_판정결과.md`.
 W1 PASS(204/204) · W2 FAIL(187/204) · W3 FAIL(191/204) · W4 FAIL(조합 2종 끊김).
 **발행본은 안 썼다.** B-1 이 풀린 뒤에 쓴다 — 그때 재고가 비기 때문이다.
 
@@ -374,6 +376,7 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 `python analysis/install_git_hooks.py` 를 다시 돌린다(정본 SHA 가 바뀐다).
 
 **B-9. 측심 출시 — 운영자 기한 2026-09-06, 그 뒤 여러 채널에 홍보.** 순서가 곧 체크리스트다.
+**런북 = `..\sounding\tools\RUNBOOK.md`**(어디에 무엇이 있는지 · 명령 전부).
 ① B-1(검수 2편 → 인천 push) ② 측심 push(아래 한 줄) → 배포는 세션의 감시 루프가 하거나 `higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1`
 ③ 배포 뒤 `python analysis/check_links.py --live` 와 측심 실물 클릭(폼 1건 보내 보기) ④ 게시 — 문안 `본부\채널문안_측심_20260902.md`(린터 PASS).
 ```
