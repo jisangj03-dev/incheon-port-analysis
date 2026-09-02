@@ -55,12 +55,17 @@
   python analysis/check_links.py                 # 내부·날것만. 외부는 「미확인」
   python analysis/check_links.py --net           # 외부까지 실제로 친다
   python analysis/check_links.py --net --strict  # 「죽음」이 있으면 종료코드 1
+  python analysis/check_links.py --live          # **발행된 실물**을 눌러 본다
   python analysis/check_links.py --site 허브
   python analysis/check_links.py --selftest
 
 **기본이 경고인 이유.** `check_status_fresh.py`·`check_review_log.py` 가 같은 자리에서
 같은 선택을 했다. 이 검사가 막는 대상은 운영자의 손이고, **차단으로 올릴지는 운영자 판단**이다.
-**`날것`은 `--strict` 로도 안 막는다** — 발행본 수정은 §10-8·§2.6이 걸린 운영자 판단이다.
+**`날것`은 `--strict` 로도 안 막는다.** [2026-09-02 정정] 종전에는 이유를
+「발행본 수정이 §10-8·§2.6 이 걸린 운영자 판단이라서」로 적었는데, **그 판단 자체가
+필요 없다**는 것이 실물에서 드러났다 — GitHub Pages 가 `.md` 상대 링크를 **`.html` 로
+바꿔서 내보내므로 실물 지면에는 `.md` 링크가 하나도 없다**(`--live` 로 25지면 실측).
+`날것` 은 **그 주소를 직접 열었을 때** 무엇이 오는가이지 **눌러서 가는 자리**가 아니다.
 
 **§4 정지선표에 안 넣는다.** 이 검사가 집행하는 것은 §4가 아니라 **§1.4 1층**이다.
 `stopline_table.py` 의 표는 「§4 조항 문면 ↔ 기전」 짝이므로 여기 끼우면 그 표가 거짓이 된다.
@@ -650,6 +655,115 @@ def selftest():
 
 # ── 본체 ────────────────────────────────────────────────────────────────────
 
+
+# ── 실물 크롤 ───────────────────────────────────────────────────────────────
+
+COMMENT = re.compile(r"<!--.*?-->", re.S)
+HREF = re.compile(r"""(?:href|src)\s*=\s*["']([^"'#]+)""", re.I)
+
+
+def crawl_live(entry, timeout, cap=400):
+    """발행된 실물에서 **누를 수 있는 것만** 따라간다.
+
+    왜 따로 있는가
+    --------------
+    이 파일의 나머지는 **로컬 파일**을 읽는다. 그런데 운영자가 누르는 것은
+    **발행된 실물**이고, 둘은 갈릴 수 있다 — 인천은 지금 122 커밋 갈려 있다.
+    **「로컬이 깨끗하다」는 「실물이 깨끗하다」가 아니다**(사고 8·20).
+
+    그리고 실물에서만 알 수 있는 것이 있다. GitHub Pages 는 `.md` 상대 링크를
+    **`.html` 로 바꿔서 내보낸다**(기본 플러그인). 그래서 소스에서 `.md` 로 보이는
+    링크가 **실물에는 존재하지 않는다** — 로컬 판정만으로는 이 사실에 닿지 못한다
+    (2026-09-02 실측: 그것을 모르고 「날것 58건」을 미해결로 들고 있었다).
+
+    **주석 안의 `href` 는 안 센다.** 누를 수 없기 때문이다 —
+    안 걷으면 primer 테마의 favicon 주석이 404 오탐으로 나온다(실측).
+
+    닿지 않는 곳
+    ------------
+    · **링크된 것만 본다.** 아무 데서도 안 걸린 지면은 안 눌리므로 범위 밖이지만,
+      그것은 「없다」가 아니라 **「이 방법으로는 못 본다」**다.
+    · 200 은 「지면이 왔다」이지 「내용이 맞다」가 아니다.
+    · 자바스크립트로 만들어지는 링크는 못 본다. 이 사이트는 안 쓰지만 그것도 실측이 아니라 관례다.
+    · **발행 전 사이트는 통째로 「아직 없다」**다 — 실패가 아니다.
+    """
+    seen, where, pages, queue = {}, {}, set(), [entry]
+    while queue and len(pages) < cap:
+        url = queue.pop(0)
+        if url in pages:
+            continue
+        pages.add(url)
+        code, why = http_status(url, timeout)
+        seen[url] = (code, why, "")
+        if code != 200:
+            continue
+        try:
+            req = urllib.request.Request(encode_url(url),
+                                         headers={"User-Agent": UA, "Accept": "*/*"})
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                ctype = r.headers.get("Content-Type", "")
+                body = r.read() if "html" in ctype else b""
+        except Exception as e:
+            seen[url] = (None, type(e).__name__, "")
+            continue
+        seen[url] = (code, why, ctype)
+        if "html" not in ctype:
+            continue
+        html = COMMENT.sub(" ", body.decode("utf-8", "replace"))
+        for raw in HREF.findall(html):
+            if raw.startswith(("mailto:", "javascript:", "data:", "tel:")):
+                continue
+            nxt = urllib.parse.urljoin(url, raw)
+            where.setdefault(nxt, set()).add(url)
+            if nxt.startswith(entry):
+                if nxt not in pages:
+                    queue.append(nxt)
+            elif nxt not in seen:
+                seen[nxt] = ("밖", "", "")
+
+    for u, v in list(seen.items()):
+        if v[0] == "밖":
+            code, why = http_status(u, timeout)
+            seen[u] = (code, why, "")
+    return seen, where, pages
+
+
+def live_report(timeout, only=None):
+    """발행된 실물을 눌러 보고 판정한다. 종료코드로 답한다."""
+    rc = 0
+    for name, sdir, surl, base in SITES:
+        if only and name != only:
+            continue
+        entry = surl + base + "/"
+        head, _ = http_status(entry, timeout)
+        if head != 200:
+            print("  **아직 없다**  %s — %s (%s). **실패가 아니다** — 발행 전이다."
+                  % (name, entry, head))
+            continue
+        seen, where, pages = crawl_live(entry, timeout)
+        bad = [(u, v) for u, v in seen.items()
+               if isinstance(v[0], int) and v[0] >= 400]
+        unk = [(u, v) for u, v in seen.items() if v[0] is None]
+        raw = [(u, v) for u, v in seen.items() if "markdown" in (v[2] or "")]
+        print("  %-9s %s — 지면 %d 눌러 %d 주소 · **오류 %d** · 날것 %d · 모름 %d"
+              % ("**실패**" if bad else ("**모름**" if unk else "통과"),
+                 name, len(pages), len(seen), len(bad), len(raw), len(unk)))
+        for u, v in sorted(bad):
+            print("        [%s] %s" % (v[0], urllib.parse.unquote(u)))
+            for w in sorted(where.get(u, ()))[:2]:
+                print("              누른 자리: %s" % urllib.parse.unquote(w))
+        for u, v in sorted(unk):
+            print("        [모름] %s — %s" % (urllib.parse.unquote(u), v[1]))
+        for u, v in sorted(raw):
+            print("        [날것] %s" % urllib.parse.unquote(u))
+        if bad or unk:
+            rc = 1
+    if rc == 0:
+        print("\n**눌러서 오류가 나는 자리 0건.** 「링크된 것만 봤다」는 뜻이다 — "
+              "아무 데서도 안 걸린 지면은 이 방법으로 못 본다.")
+    return rc
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="허브·인천의 링크를 걷어 살아있음/날것/push대기/죽음/미확인으로 판정한다 (§1.4 1층).")
@@ -658,10 +772,16 @@ def main():
     ap.add_argument("--site", default=None, help="허브 | 인천")
     ap.add_argument("--timeout", type=float, default=20.0)
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--live", action="store_true",
+                    help="발행된 실물을 실제로 눌러 본다 (로컬 파일이 아니다)")
     a = ap.parse_args()
 
     if a.selftest:
         return selftest()
+
+    if a.live:
+        print("== 발행된 실물을 눌러 본다 — 로컬 파일이 아니다 ==")
+        return live_report(a.timeout, a.site)
 
     sites = [s for s in SITES if a.site is None or s[0] == a.site]
     if not sites:
@@ -744,11 +864,13 @@ def main():
             print("  %s  %s  %s" % (s, rel, raw))
 
     if raw_by_file:
-        print("\n== 날것 — 200 이지만 렌더된 지면 대신 마크다운 원본을 배달한다 ==")
-        print("  독자가 받는 것: 소스 덤프. 차트는 글자로, 표는 파이프 줄로, 표기 블록도 안 그려진다.")
+        print("\n== 날것 — **그 주소를 직접 열면** 마크다운이 온다 ==")
+        print("  **누르는 자리가 아니다** — GitHub Pages 가 `.md` 상대 링크를 `.html` 로")
+        print("  바꿔 내보내므로 실물 지면에는 이 주소가 없다(`--live` 로 실측).")
+        print("  남는 경우는 **밖에서 이 주소를 직접 받은 독자**뿐이고, 그때 오는 것은 소스다.")
         for (s, rel), n in sorted(raw_by_file.items()):
             print("  %2d건  %s  %s" % (n, s, rel))
-        print("  **발행본 수정은 §10-8·§2.6 이 걸린 운영자 판단이라 --strict 로도 안 막는다.**")
+        print("  **그래서 발행본을 고칠 이유가 아니다**(§10-8·§2.6). 실물 확인 = --live.")
 
     if problems:
         print("\n== 손봐야 하는 것 ==")
