@@ -291,7 +291,9 @@ STATUS 크기도 여기서 잰다. 상한을 넘으면 **끝난 라운드 경위
 
 ### B. 운영자 손이 있어야 하는 것
 
-**B-1. #08·#09 검수 → 인천 push → 허브 push. 이것이 지금 유일한 병목이다.**
+**B-1. #08·#09 검수 → 인천 push. 이것이 지금 유일한 병목이다.** [2026-09-03] 옛 허브 push 는
+**안 한다** — 사이트는 측심(B-9)이 대체했고, 인천 공개 파일 넷(README·about·404·CITATION)이 이제 측심을 든다.
+**측심이 밖으로 거는 링크 7개가 이 push 하나로 산다**(#08·#09 발행본 · CSV 2 · 코드 2 · FACTS).
 **막는 것은 검수 하나뿐이다** — `report_08`·`report_09` 의 표기 블록이 「기계가 무작위로
 뽑은 수치 1건의 출처 대조 / 기록은 `docs/검수기록.md`」를 **명시**하는데 그 기록이 없다.
 지금 push 하면 **표기가 일어나지 않은 검수를 증언한다**(§2.2-3).
@@ -304,15 +306,13 @@ STATUS 크기도 여기서 잰다. 상한을 넘으면 **끝난 라운드 경위
 `git rev-parse --abbrev-ref --symbolic-full-name "@{u}"` · `git rev-list --count "@{u}..HEAD"`.
 **인천은 upstream 이 있고 허브는 없다** — 「한 번도 push 안 됨」은 **허브에만** 참이다.
 
-아래 다섯은 한 동작이다.
+아래 넷은 한 동작이다(표본은 **날짜가 시드**라 그날 것을 대조한다).
 ```
 python analysis/review_pick.py reports/report_08_관세청_인천항_수출입신고.md --log
 python analysis/review_pick.py reports/report_09_공컨테이너_시계열연장.md --log
-git push                                                  # 인천 먼저
-git -C ..\jisangj03-dev.github.io push -u origin main      # 그다음 허브
+git push                                                  # 인천
 python analysis/check_links.py --net                       # push대기 → 살아있음
 ```
-**인천이 먼저다** — 허브 지면이 인천 자산을 가리키고, 그것들이 아직 안 올라가 지금 404다.
 **이 세션 안에서 `!` 로 push 하면 훅이 막는다**(`CLAUDECODE`). 운영자 터미널에서 친다.
 
 **#09 검수에서 특히 볼 것 셋** — ① **V3·V4 가 FAIL 인 채로 실렸다**(기준 무수정)
@@ -376,13 +376,13 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 올리려면 `analysis/git_pre_push.sh` 의 난간 ⑦ 줄 `--hook` 뒤에 `--strict` 를 붙이고
 `python analysis/install_git_hooks.py` 를 다시 돌린다(정본 SHA 가 바뀐다).
 
-**B-9. 새 사이트 「측심」 push → deploy** [2026-09-02 운영자 지시로 힉스필드에 처음부터 만들었다].
-저장소 `역량부서\sounding`(커밋은 로컬에만 있다) · 주소 `https://sounding.higgsfield.app`. **push 는 이쪽이 못 한다**(§4). push 가 들어오면 배포하는 감시 루프가 이 세션에 떠 있다(세션이 끝나면 아래 둘째 줄을 직접).
+**B-9. 측심 출시 — 운영자 기한 2026-09-06, 그 뒤 여러 채널에 홍보.** 순서가 곧 체크리스트다.
+① B-1(검수 2편 → 인천 push) ② 측심 push(아래 한 줄) → 배포는 세션의 감시 루프가 하거나 `higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1`
+③ 배포 뒤 `python analysis/check_links.py --live` 와 측심 실물 클릭(폼 1건 보내 보기) ④ 게시 — 문안 `본부\채널문안_측심_20260902.md`(린터 PASS).
 ```
 cd ..\sounding && git -c "http.extraheader=Authorization: Basic $(python -c "import base64;print(base64.b64encode(('x-access-token:'+open('%USERPROFILE%/.higgsfield-repo-token-sounding').read().strip()).encode()).decode())")" push -u origin main
-higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1
 ```
-경위·확인한 것·못 한 것 = `docs/작업기록.md`. 크레딧 잔액 21.5.
+저장소 `역량부서\sounding`(커밋은 로컬에만) · 주소 `https://sounding.higgsfield.app` · 경위 = `docs/작업기록.md`.
 
 ### C. 아직 안 본 축 — 편을 열 때 여기서 고른다
 
