@@ -376,6 +376,14 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 올리려면 `analysis/git_pre_push.sh` 의 난간 ⑦ 줄 `--hook` 뒤에 `--strict` 를 붙이고
 `python analysis/install_git_hooks.py` 를 다시 돌린다(정본 SHA 가 바뀐다).
 
+**B-9. 새 사이트 「측심」 push → deploy** [2026-09-02 운영자 지시로 힉스필드에 처음부터 만들었다].
+저장소 `역량부서\sounding`(로컬 커밋 2개) · 주소 `https://sounding.higgsfield.app`. **push 는 이쪽이 못 한다**(§4).
+```
+cd ..\sounding && git -c "http.extraheader=Authorization: Basic $(python -c "import base64;print(base64.b64encode(('x-access-token:'+open('%USERPROFILE%/.higgsfield-repo-token-sounding').read().strip()).encode()).decode())")" push -u origin main
+higgsfield website deploy 56527534-163d-43d6-a160-b30862c6e5a1
+```
+경위·확인한 것·못 한 것 = `docs/작업기록.md`. 크레딧 잔액 21.5.
+
 ### C. 아직 안 본 축 — 편을 열 때 여기서 고른다
 
 **편을 열기 전에 답할 질문 3개를 커밋한다(§5). 질문 3개가 안 서면 그 편은 열지 않는다.**
