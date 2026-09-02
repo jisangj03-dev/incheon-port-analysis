@@ -56,6 +56,7 @@
   python analysis/check_links.py --net           # 외부까지 실제로 친다
   python analysis/check_links.py --net --strict  # 「죽음」이 있으면 종료코드 1
   python analysis/check_links.py --live          # **발행된 실물**을 눌러 본다
+  python analysis/check_links.py --live-url https://sounding.higgsfield.app/   # 측심 실물
   python analysis/check_links.py --site 허브
   python analysis/check_links.py --selftest
 
@@ -774,10 +775,34 @@ def main():
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--live", action="store_true",
                     help="발행된 실물을 실제로 눌러 본다 (로컬 파일이 아니다)")
+    ap.add_argument("--live-url", default=None,
+                    help="SITES 밖의 실물 주소를 눌러 본다 (예: 측심 https://sounding.higgsfield.app/)")
     a = ap.parse_args()
 
     if a.selftest:
         return selftest()
+
+    if a.live_url:
+        # 2026-09-03: 사이트가 힉스필드 스택(측심)으로 옮겨 SITES 의 로컬 폴더·baseurl 짝이 없다.
+        # 실물만 있는 곳은 주소로 직접 누른다. 판정 규칙은 live_report 와 같다.
+        entry = a.live_url if a.live_url.endswith("/") else a.live_url + "/"
+        print("== 실물을 눌러 본다 — %s ==" % entry)
+        head, _ = http_status(entry, a.timeout)
+        if head != 200:
+            print("  **아직 없다**  %s (%s). 통과가 아니다." % (entry, head))
+            return 1
+        seen, where, pages = crawl_live(entry, a.timeout)
+        bad = [(u, v) for u, v in seen.items() if isinstance(v[0], int) and v[0] >= 400]
+        unk = [(u, v) for u, v in seen.items() if v[0] is None]
+        print("  %-9s 지면 %d 눌러 %d 주소 · **오류 %d** · 모름 %d"
+              % ("**실패**" if bad else ("**모름**" if unk else "통과"), len(pages), len(seen), len(bad), len(unk)))
+        for u, v in sorted(bad):
+            print("        [%s] %s" % (v[0], urllib.parse.unquote(u)))
+            for w in sorted(where.get(u, ()))[:2]:
+                print("              누른 자리: %s" % urllib.parse.unquote(w))
+        for u, v in sorted(unk):
+            print("        [모름] %s — %s" % (urllib.parse.unquote(u), v[1]))
+        return 1 if (bad or unk) else 0
 
     if a.live:
         print("== 발행된 실물을 눌러 본다 — 로컬 파일이 아니다 ==")
