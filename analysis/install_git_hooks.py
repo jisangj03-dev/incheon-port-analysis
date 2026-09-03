@@ -161,6 +161,8 @@ def selftest():
         env = {k: v for k, v in os.environ.items()
                if k not in ("CLAUDECODE", "VIDIMUS_PUSH_OK")}
         env.update(extra)
+        # 판정만 시험한다 — 난간들은 제 인수시험이 있고, 여기서 다 돌리면 개시 검사가 선다(작업기록 2026-09-03).
+        env["VIDIMUS_HOOK_SELFTEST"] = "1"
         r = subprocess.run([sh, SRC], env=env, capture_output=True, timeout=30)
         hit = r.returncode == want
         ok = ok and hit
