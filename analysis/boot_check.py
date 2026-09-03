@@ -51,6 +51,22 @@ ROOT = os.path.dirname(HERE)
 
 OK, BAD, UNK = "통과", "**실패**", "**모름**"
 
+# 소요 로그 — **일화 대신 계열**(사고 84). 추적하지 않는 로컬 파일이다.
+# 스크립트마다 「시작」 줄과 「끝」 줄을 따로 적으므로, 멈춘 실행은 **시작만 있고 끝이 없는
+# 마지막 줄**로 자기가 선 자리를 남긴다. 2026-09-03 한 세션에 600초 초과가 세 번 났는데
+# 죽고 나면 어느 스크립트였는지 흔적이 없었다 — 그래서 붙였다.
+LOG = os.path.join(HERE, "_boot_log.tsv")
+
+
+def log_line(kind, name, st="", sec=0.0, note=""):
+    try:
+        with io.open(LOG, "a", encoding="utf-8") as fh:
+            fh.write("%s\t%s\t%s\t%s\t%.1f\t%s\n" % (
+                time.strftime("%Y-%m-%dT%H:%M:%S"), kind, name, st, sec,
+                note[:80].replace("\t", " ")))
+    except Exception:
+        pass  # 로그가 검사를 인질로 잡지 않는다
+
 # 상태 검사 — 인수시험이 아니라 「지금 저장소가 성립하는가」를 본다.
 # (스크립트, 인수)
 #
@@ -278,6 +294,18 @@ def selftest():
     chk("판정이 셋 중 하나", st in (OK, BAD, UNK), True)
     print("     지금: %s — %s" % (st, why[:60]))
 
+    print("── 인수시험: 소요 로그 ──")
+    global LOG
+    keep = LOG
+    with tempfile.TemporaryDirectory() as d:
+        LOG = os.path.join(d, "log.tsv")
+        log_line("시작", "x.py")
+        log_line("끝", "x.py", OK, 0.2, "통과")
+        rows = io.open(LOG, encoding="utf-8").read().splitlines()
+    LOG = keep
+    chk("시작과 끝을 따로 적는다", len(rows), 2)
+    chk("끝 줄에 지위와 초가 있다", "\t끝\tx.py\t통과\t0.2\t" in rows[1], True)
+
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
 
@@ -294,6 +322,7 @@ def main():
 
     t0 = time.time()
     fails, unks = [], []
+    log_line("세션", "boot_check", "", 0.0, "시작")
 
     print("=" * 74)
     print(" 세션 개시 검사 — 목록을 손으로 들지 않는다. 찾아서 전부 돌린다.")
@@ -305,7 +334,9 @@ def main():
     for p in found:
         if os.path.abspath(p) == os.path.abspath(__file__):
             continue          # 자기 자신은 여기서 안 돈다 — 돌면 무한이다
+        log_line("시작", os.path.basename(p) + " --selftest")
         st, last, sec = run(p, ("--selftest",))
+        log_line("끝", os.path.basename(p) + " --selftest", st, sec, last)
         name = os.path.relpath(p, ROOT).replace("\\", "/")
         times.append((sec, name))
         if st != OK or "재시도" in last:
@@ -322,8 +353,10 @@ def main():
         print("\n[상태 검사]")
         for f, args in STATE:
             p = os.path.join(HERE, f)
-            st, last, sec = run(p, args, timeout=120)
             name = f + ((" " + " ".join(args)) if args else "")
+            log_line("시작", name)
+            st, last, sec = run(p, args, timeout=120)
+            log_line("끝", name, st, sec, last)
             if st != OK:
                 (fails if st == BAD else unks).append((name, last))
             print("  %-9s %-34s %s" % (st, name, last))
@@ -349,10 +382,13 @@ def main():
             print("   · %-34s %s" % (n, w))
     if not fails and not unks:
         print(" 전부 통과 · %.1f초" % (time.time() - t0))
+        print(" 소요 로그: analysis/_boot_log.tsv — 다음 초과 때 마지막 「시작」 줄이 선 자리다")
         print(" **다음: `docs/STATUS.md` 전문을 읽는다.**")
         print("   맨 앞 「착수점」 절만 읽어도 시작할 수 있고,")
         print("   바로 손댈 것은 **「다음 할 일 · A」의 첫 항목**이다.")
         print("   (A = 이쪽이 지금 할 수 있는 것 · B = 운영자 손 · C = 아직 안 본 축)")
+    log_line("합계", "boot_check", BAD if fails else (UNK if unks else OK), time.time() - t0,
+             "실패 %d · 모름 %d" % (len(fails), len(unks)))
     return 1 if fails else 0
 
 

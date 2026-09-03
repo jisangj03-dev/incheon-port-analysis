@@ -17,3 +17,6 @@ _preview/
 .agents/
 .claude/skills/higgsfield-*
 skills-lock.json
+
+# 개시 검사 소요 로그 — 이 기계의 계열이다. 사고 84 를 일화가 아니라 계열로 남긴다. 반입하지 않는다.
+analysis/_boot_log.tsv
