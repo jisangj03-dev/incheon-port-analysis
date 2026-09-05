@@ -449,6 +449,11 @@ def build(site_dir: str, out_dir: str, verbose: bool = True) -> list[str]:
         with open(path, encoding="utf-8") as f:
             fm, body = split_front_matter(f.read())
         rel = os.path.relpath(path, site_dir).replace("\\", "/")
+        # [2026-09-06] index.md 가 없으면 README.md 가 첫 화면이다 — GitHub Pages 기본 플러그인
+        # jekyll-readme-index 가 그렇게 하고, 인천 저장소가 그 경우다. 그 전에는 /README/ 로
+        # 렌더돼 미리보기에서 첫 화면을 열 수 없었다.
+        if rel == "README.md" and not os.path.isfile(os.path.join(site_dir, "index.md")):
+            rel = "index.md"
         permalink = fm.get("permalink") or (
             "/" if rel == "index.md" else "/" + rel[:-3].rstrip("/") + "/"
         )
