@@ -58,7 +58,8 @@ Python(requests·pandas·matplotlib), 공공데이터 Open API·XML 파싱, hwpx
 │   ├── report_05_컨테이너_수지.md
 │   ├── report_06_공컨테이너_규격방향.md
 │   ├── report_07_공컨테이너_표본외검증.md
-│   └── report_08_관세청_인천항_수출입신고.md
+│   ├── report_08_관세청_인천항_수출입신고.md
+│   └── report_09_공컨테이너_시계열연장.md
 ├── analysis/          # 재현용 코드·데이터 (config.py는 .gitignore로 제외)
 └── docs/              # API 탐색·벤치마킹·TODO 기록
 ```
