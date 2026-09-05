@@ -8,8 +8,15 @@
 #   jekyll-theme-primer의 지문이다. 명시하지 않으면 테마가 바뀔 여지가 남고,
 #   **발행본의 표현이 거기 걸려 있다.** 기준선 = docs/렌더_기준선.md.
 #
+# [2026-09-06] 자체 레이아웃을 얹었다 — `_layouts/default.html` · `_includes/` · `assets/css/vidimus.css`.
+#   theme 는 그대로 둔다(플러그인 묶음이 거기 걸려 있다). 저장소의 `_layouts/` 가 테마의 것보다
+#   먼저 잡히므로 래퍼가 바뀐다 — 그것이 **의도**이고 새 기준선은 docs/렌더_기준선.md 가 든다.
+#   front matter 가 없는 발행본에도 레이아웃이 입혀진다(jekyll-default-layout · 실측 근거 같은 문서).
+#
 # 안 건드리는 것: 저장소 이름과 Pages URL. 지침 §6 정지선 — rename 시 project site URL은
 #   리디렉트되지 않는다. 이 파일은 **표시 제목만** 바꾸고 URL에는 닿지 않는다.
+#   url · baseurl 은 GitHub Pages 가 프로젝트 사이트에 스스로 넣는 값과 **같은 값**을 명시한 것이다 —
+#   `absolute_url`(링크 카드 · canonical)이 빌드 환경에 기대지 않게.
 #
 # 편수를 적지 않는다. 낡는다(사고 31). 편수는 README가 든다.
 #
@@ -21,3 +28,6 @@
 title: "Vidimus · 비디무스"
 description: "인천항을 공공 1차 데이터로 확인한다 — 인천항 물동량 리서치"
 theme: jekyll-theme-primer
+lang: ko
+url: "https://jisangj03-dev.github.io"
+baseurl: "/incheon-port-analysis"

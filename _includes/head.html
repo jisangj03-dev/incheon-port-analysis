@@ -1,0 +1,34 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- 제목. page.title 은 front matter 가 없어도 첫 H1 에서 온다(jekyll-titles-from-headings ·
+     라이브 실측: 종전 제목이 「#07 … | incheon-port-analysis」였다). -->
+<title>{% if page.title %}{{ page.title | escape }} · {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+<meta name="description" content="{{ site.description | escape }}">
+<link rel="canonical" href="{{ page.url | absolute_url }}">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1a26">
+<!-- 파비콘 — 옛 허브가 쓰던 Vidimus 기호(안벽 크레인 문틀)를 그대로 가져왔다. 같은 브랜드다. -->
+<link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
+
+<!-- 링크 카드. 채널은 링크만 든다(지침 §6) — 채널에 남는 것이 이 카드다.
+     og:image 는 수치를 들지 않는다(적으면 자료가 갱신될 때마다 낡는다 · 사고 31). -->
+<meta property="og:type" content="{% if page.url == '/' %}website{% else %}article{% endif %}">
+<meta property="og:site_name" content="{{ site.title }}">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:title" content="{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title }}{% endif %}">
+<meta property="og:description" content="{{ site.description | escape }}">
+<meta property="og:url" content="{{ page.url | absolute_url }}">
+<meta property="og:image" content="{{ '/assets/og.png' | absolute_url }}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Vidimus · 비디무스 — 인천항을 공공 1차 데이터로 확인한다">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ '/assets/og.png' | absolute_url }}">
+
+<!-- 서체. Pretendard(OFL) 동적 부분집합 — 측심과 같은 얼굴. 이 저장소는 발행본·원시 데이터·
+     재현 코드의 자리라 글꼴 파일 수 MB 를 여기 들이지 않고 CDN 에서 받는다. 못 받으면
+     시스템 한글 서체로 떨어진다(CSS 의 대체 목록). -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="stylesheet" href="{{ '/assets/css/vidimus.css' | relative_url }}">

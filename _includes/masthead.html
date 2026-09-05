@@ -1,0 +1,16 @@
+<!-- 상단 바. 유리 바 56px, 헤어라인 하나 — 측심의 바와 같은 문법.
+     제호는 방법의 이름(Vidimus · 비디무스 · 지침 §6.1), 대상은 지면과 푸터가 진다. -->
+<header class="mast">
+  <div class="mast__in">
+    <a class="brand" href="{{ '/' | relative_url }}">
+      <span class="brand__lat">Vidimus</span>
+      <span class="brand__kor">비디무스</span>
+    </a>
+    <nav class="mast__nav" aria-label="사이트">
+      <a href="{{ '/' | relative_url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>보고서</a>
+      <a href="{{ '/about.html' | relative_url }}" data-optional{% if page.url == '/about.html' %} aria-current="page"{% endif %}>소개</a>
+      <a href="https://sounding.higgsfield.app/">측심<span class="ext" aria-hidden="true">↗</span></a>
+      <a href="https://github.com/jisangj03-dev/incheon-port-analysis">저장소<span class="ext" aria-hidden="true">↗</span></a>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,559 @@
+/* Vidimus · 비디무스 — 인천항 발행 저장소 지면(GitHub Pages)의 스타일. 2026-09-06.
+ *
+ * 무엇인가. 발행본 아홉 편이 놓이는 그릇이다. 측심(sounding.higgsfield.app)과 같은 결 —
+ * 종이 위 잉크, 강조색 하나(측심 청록), 실선 대신 헤어라인, 둥근 모서리, 넉넉한 여백,
+ * 비례 숫자(tabular). 발행본 마크다운은 건드리지 않는다. kramdown 이 내는 요소
+ * (h1~h4 · p · ul/ol · table · blockquote · img · code · hr)만 입힌다.
+ *
+ * 밝은 종이가 기본이다. 긴 글을 읽는 자리이고 차트 PNG 가 흰 바탕이라 어두운 지면에서는
+ * 그림이 상자로 뜬다. 시스템이 어두운 테마면 같은 가족의 어두운 값으로 바뀌고 그림은
+ * 흰 카드 위에 남는다. 인쇄는 종이 색으로 간다.
+ *
+ * 대비(실측 기준): 밝음 — 흐린 글자 #5B6B78/흰 5.3:1 · 강조 #1A6E7F/흰 5.5:1.
+ * 어둠 — 흐린 글자 #9DB0BC/#0B1A26 8.0:1 · 강조 #3FA3B6/#0B1A26 6.4:1. 전부 AA.
+ */
+
+:root {
+  --bg: #ffffff;
+  --ground: #f4f6f7;
+  --panel: #eef3f5;
+  --ink: #0f2a3d;
+  --text: #24404f;
+  --muted: #5b6b78;
+  --hair: rgba(15, 42, 61, 0.1);
+  --hair-strong: rgba(15, 42, 61, 0.18);
+  --accent: #1a6e7f;
+  --accent-soft: rgba(26, 110, 127, 0.1);
+  --glass: rgba(255, 255, 255, 0.72);
+  --image-bg: #ffffff;
+  --sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --measure: 46rem;
+  --wide: 72rem;
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+  --nav-h: 56px;
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 22px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1a26;
+    --ground: #0e2030;
+    --panel: #122636;
+    --ink: #eaf0f3;
+    --text: #c9d3d9;
+    --muted: #9db0bc;
+    --hair: rgba(234, 240, 243, 0.12);
+    --hair-strong: rgba(234, 240, 243, 0.22);
+    --accent: #3fa3b6;
+    --accent-soft: rgba(63, 163, 182, 0.14);
+    --glass: rgba(11, 26, 38, 0.7);
+  }
+}
+
+/* 투명도를 줄여 달라는 독자에게는 바를 불투명하게. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass: var(--bg);
+  }
+
+  .mast {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--nav-h) + 1.25rem);
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .mast__nav a,
+  .mast__nav a::after,
+  a {
+    transition: none;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* ── 건너뛰기 ─────────────────────────────────────────────────────────── */
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 30;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* ── 상단 바: 유리 ────────────────────────────────────────────────────── */
+.mast {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--nav-h);
+  background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--hair);
+}
+
+.mast__in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 100%;
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) 0 max(var(--gutter), env(safe-area-inset-left));
+}
+
+.brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  color: var(--ink);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+}
+
+.brand__kor {
+  font-weight: 500;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.mast__nav {
+  display: flex;
+  gap: 1.35rem;
+}
+
+.mast__nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 180ms var(--ease);
+}
+
+/* 움직이는 헤어라인 — 측심 바와 같은 가먼트. */
+.mast__nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: 0.55rem;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  transition: right 260ms var(--ease);
+}
+
+.mast__nav a:hover,
+.mast__nav a:focus-visible,
+.mast__nav a[aria-current="page"] {
+  color: var(--ink);
+}
+
+.mast__nav a:hover::after,
+.mast__nav a:focus-visible::after,
+.mast__nav a[aria-current="page"]::after {
+  right: 0;
+}
+
+.ext {
+  margin-left: 0.2em;
+  font-size: 0.8em;
+  color: var(--muted);
+}
+
+@media (max-width: 560px) {
+  .brand__kor {
+    display: none;
+  }
+
+  .mast__nav {
+    gap: 1rem;
+  }
+
+  .mast__nav a {
+    font-size: 0.84rem;
+  }
+
+  .mast__nav a[data-optional] {
+    display: none;
+  }
+}
+
+/* ── 본문 열 ──────────────────────────────────────────────────────────── */
+main {
+  display: block;
+}
+
+.doc {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) max(var(--gutter), env(safe-area-inset-right)) clamp(4rem, 8vw, 6rem)
+    max(var(--gutter), env(safe-area-inset-left));
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+/* 제목. 발행본의 H1 은 길다(편 번호 · 제목 · 부제 · 창). 큰 글자, 조인 자간, 숨 쉴 행간. */
+h1 {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.9rem, 1.25rem + 2.6vw, 2.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  margin: 3.5rem 0 1rem;
+  padding-top: 2.25rem;
+  border-top: 1px solid var(--hair);
+  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 1.8rem);
+}
+
+/* 발행본은 머리말 뒤에 `---` 를 두고 §1 이 온다 — 줄이 둘 겹치지 않게 h2 의 선을 뺀다. */
+hr + h2 {
+  padding-top: 0;
+  border-top: 0;
+}
+
+h3 {
+  margin: 2.25rem 0 0.75rem;
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.3rem);
+}
+
+h4 {
+  margin: 1.75rem 0 0.5rem;
+  font-size: 1.02rem;
+}
+
+p {
+  margin: 1.05em 0;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 160ms var(--ease);
+}
+
+a:hover {
+  text-decoration-color: var(--accent);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* 한글 기울임은 읽기 나쁘다 — 강세는 굵기로. */
+em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+ul,
+ol {
+  margin: 1.05em 0;
+  padding-left: 1.4rem;
+}
+
+li {
+  margin: 0.35em 0;
+}
+
+li::marker {
+  color: var(--muted);
+}
+
+hr {
+  height: 1px;
+  margin: 3rem 0;
+  border: 0;
+  background: var(--hair);
+}
+
+/* 인용 — 발행본 첫머리의 계보 블록이 여기 든다. 판 위의 조용한 패널. */
+blockquote {
+  margin: 1.75rem 0;
+  padding: 1.15rem 1.4rem;
+  border-radius: var(--r-md);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.96rem;
+  line-height: 1.65;
+}
+
+blockquote p {
+  margin: 0.5em 0;
+}
+
+blockquote p:first-child {
+  margin-top: 0;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+blockquote strong {
+  color: var(--ink);
+}
+
+code {
+  padding: 0.12em 0.4em;
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.86em;
+}
+
+pre {
+  margin: 1.5rem 0;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--r-md);
+  background: var(--panel);
+  overflow-x: auto;
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+
+/* 그림 — 차트 PNG 는 흰 바탕이다. 어두운 테마에서도 흰 카드 위에 그대로 둔다. */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 1.75rem auto;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--image-bg);
+}
+
+/* 표 — 열보다 넓으면 표만 옆으로 흐른다(지면은 흐르지 않는다). 숫자는 비례 폭. */
+table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.75rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 칸 안에서는 낱말 중간을 끊지 않는다 — 본문의 `overflow-wrap: anywhere` 가 좁은 표에서
+ * 「01」을 한 글자씩 세워 놓았다(미리보기 실측). 좁으면 표가 옆으로 흐르는 쪽이 맞다. */
+th,
+td {
+  padding: 0.7rem 0.95rem;
+  border-top: 1px solid var(--hair);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+th:first-child,
+td:first-child {
+  padding-left: 1.1rem;
+}
+
+th:last-child,
+td:last-child {
+  padding-right: 1.1rem;
+}
+
+thead th {
+  border-top: 0;
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+tbody tr:hover td {
+  background: color-mix(in srgb, var(--ink) 3%, transparent);
+}
+
+sup {
+  font-size: 0.72em;
+  line-height: 0;
+  color: var(--accent);
+}
+
+/* ── 푸터 ─────────────────────────────────────────────────────────────── */
+.foot {
+  margin-top: 2rem;
+  border-top: 1px solid var(--hair);
+  background: var(--ground);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.foot__in {
+  display: grid;
+  gap: 0.5rem;
+  max-width: var(--wide);
+  margin: 0 auto;
+  padding: 2.5rem max(var(--gutter), env(safe-area-inset-right)) calc(2.5rem + env(safe-area-inset-bottom))
+    max(var(--gutter), env(safe-area-inset-left));
+}
+
+.foot p {
+  margin: 0;
+}
+
+.foot__brand strong {
+  margin-right: 0.5rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.foot__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.5rem;
+}
+
+/* 글자 링크지만 손가락 표적이다 — 44px. */
+.foot__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: var(--ink);
+  text-decoration-color: var(--accent);
+}
+
+/* ── 손끝과 키보드 ────────────────────────────────────────────────────── */
+.mast a,
+.foot a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── 인쇄 ─────────────────────────────────────────────────────────────── */
+@media print {
+  :root {
+    --bg: #ffffff;
+    --ground: #ffffff;
+    --panel: #f2f4f5;
+    --ink: #111111;
+    --text: #222222;
+    --muted: #444444;
+    --hair: #dddddd;
+    --hair-strong: #bbbbbb;
+    --accent: #0f5f6d;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  .mast,
+  .skip,
+  .foot {
+    display: none !important;
+  }
+
+  .doc {
+    max-width: none;
+    padding: 0;
+  }
+
+  table {
+    display: table;
+    width: 100%;
+    overflow: visible;
+  }
+
+  a {
+    color: inherit;
+  }
+}
