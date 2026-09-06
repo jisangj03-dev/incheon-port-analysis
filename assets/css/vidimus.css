@@ -462,6 +462,12 @@ tbody tr:hover td {
   background: color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
+/* 흐르는 표는 레이아웃 스크립트가 tabindex 를 주어 키보드로 닿는다 — 닿았을 때 보이게. */
+table:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 sup {
   font-size: 0.72em;
   line-height: 0;

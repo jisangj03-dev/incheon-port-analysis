@@ -16,5 +16,16 @@
     </article>
   </main>
   {%- include footer.html -%}
+  <!-- 옆으로 흐르는 표는 키보드로도 흘러야 한다 — axe `scrollable-region-focusable`
+       (2026-09-06 모바일 실측 · 발행본 표가 열보다 넓을 때). 흐르는 표에만 tabindex 를 준다.
+       JS 가 없으면 표는 그대로 보이고 마우스·손가락으로는 여전히 흐른다. -->
+  <script>
+    (function () {
+      var t = document.querySelectorAll(".doc table");
+      for (var i = 0; i < t.length; i++) {
+        if (t[i].scrollWidth > t[i].clientWidth + 1) t[i].setAttribute("tabindex", "0");
+      }
+    })();
+  </script>
 </body>
 </html>
