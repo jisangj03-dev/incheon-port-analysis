@@ -312,6 +312,18 @@ def markdown(text: str) -> str:
             i += 1
             continue
 
+        # 펜스 코드 블록(```) — 통째로 <pre><code>. [2026-09-07] 없으면 README 의 저장소
+        # 구조 트리가 한 문단으로 뭉개져 미리보기가 사이트 결함처럼 보였다(실측).
+        if stripped.startswith("```"):
+            i += 1
+            code = []
+            while i < n and not lines[i].strip().startswith("```"):
+                code.append(lines[i])
+                i += 1
+            i += 1  # 닫는 펜스
+            out.append("<pre><code>" + htmllib.escape("\n".join(code)) + "</code></pre>")
+            continue
+
         # 원시 HTML 블록 — 여는 태그부터 짝이 맞을 때까지 통째로 통과시킨다.
         #
         # **한 줄씩 통과시키면 안 된다.** 처음에 그렇게 짰다가 `<p class="hero-lede">` 안의
@@ -432,17 +444,21 @@ def build(site_dir: str, out_dir: str, verbose: bool = True) -> list[str]:
     os.makedirs(out_dir, exist_ok=True)
     # 자산은 파일 단위로 덮어쓴다. rmtree 로 지우면 미리보기 서버가 CSS를 물고 있을 때
     # WinError 5 로 죽는다(실측). 렌더가 서버 실행 여부에 의존하면 도구가 안 쓰인다.
-    assets_src = os.path.join(site_dir, "assets")
-    if os.path.isdir(assets_src):
+    # [2026-09-07] 발행본의 차트(`reports/images/`)도 같이 — 없으면 미리보기의 그림이 전부
+    # 깨진 상자로 보이고, 그것이 사이트 결함인지 도구 한계인지 화면만 봐서는 못 가른다.
+    for sub in ("assets", os.path.join("reports", "images")):
+        assets_src = os.path.join(site_dir, sub)
+        if not os.path.isdir(assets_src):
+            continue
         for root, _dirs, files in os.walk(assets_src):
             rel = os.path.relpath(root, assets_src)
-            dst_dir = os.path.join(out_dir, "assets", rel) if rel != "." else os.path.join(out_dir, "assets")
+            dst_dir = os.path.join(out_dir, sub, rel) if rel != "." else os.path.join(out_dir, sub)
             os.makedirs(dst_dir, exist_ok=True)
             for fn in files:
                 try:
                     shutil.copyfile(os.path.join(root, fn), os.path.join(dst_dir, fn))
                 except PermissionError:
-                    print(f"  [건너뜀] 잠긴 파일: assets/{fn}")
+                    print(f"  [건너뜀] 잠긴 파일: {sub}/{fn}")
 
     written = []
     for path in pages:
@@ -555,6 +571,8 @@ def selftest() -> int:
     )
     check("표 렌더", "<table>" in markdown("| a | b |\n|---|---|\n| 1 | 2 |"), True)
     check("제목 렌더", markdown("## 가"), "<h2>가</h2>")
+    check("펜스 코드 블록", markdown("```\n.\n├── a  # <b>\n```\n\n밖"),
+          "<pre><code>.\n├── a  # &lt;b&gt;</code></pre>\n<p>밖</p>")
     check("강조 렌더", markdown("**가**"), "<p><strong>가</strong></p>")
     check("원시 HTML 통과", markdown('<div class="band">x</div>'), '<div class="band">x</div>')
     # 회귀: 여러 줄 HTML 블록을 한 줄씩 통과시키면 안쪽 줄바꿈이 문단으로 갈라진다.
@@ -582,6 +600,12 @@ def selftest() -> int:
           os.path.join(d, "reports.html"))
     # 안 이어야 하는 것 — 오탐이 나면 실제 파일을 가로챈다.
     check("자산은 안 가로챈다", pretty_path(d, "/assets/a.css"), None)
+    io.open(os.path.join(d, "reports_report_07_x.html"), "w", encoding="utf-8").write("x")
+    check("`.md` 상대 링크를 평면 파일명으로 잇는다", pretty_path(d, "/reports/report_07_x.md"),
+          os.path.join(d, "reports_report_07_x.html"))
+    check("없는 `.md` 는 안 잇는다", pretty_path(d, "/reports/report_99_x.md"), None)
+    check("퍼센트 인코딩된 `.md` 링크도 잇는다", pretty_path(d, "/reports/report_07_%78.md"),
+          os.path.join(d, "reports_report_07_x.html"))
     check("없는 지면은 안 잇는다", pretty_path(d, "/nope/"), None)
     check("뿌리는 기본 처리로 넘긴다", pretty_path(d, "/"), None)
 
@@ -597,9 +621,17 @@ def pretty_path(out: str, path: str):
     그런 자리는 인수시험이 닿아야 해서 함수로 뺐다.
     """
     clean = path.split("?", 1)[0].split("#", 1)[0]
+    # 한글 파일명은 퍼센트 인코딩으로 온다 — 풀지 않으면 발행본 링크가 전부 404 다(실측).
+    from urllib.parse import unquote
+    clean = unquote(clean)
     name = clean.strip("/")
     if not name:
         return None
+    # [2026-09-07] 발행본 사이의 `.md` 상대 링크(README 의 목록 · 보고서의 계보 인용)는
+    # 렌더된 평면 파일명으로 잇는다 — 그 전에는 미리보기에서 보고서 링크가 전부 404 였고
+    # 첫 화면에서 한 편도 눌러 들어갈 수 없었다(실측). 실제 Pages 는 jekyll-relative-links 가 잇는다.
+    if name.lower().endswith(".md"):
+        name = name[:-3].replace("/", "_")
     cand = os.path.join(out, name.replace("/", os.sep) + ".html")
     return cand if os.path.isfile(cand) else None
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ site.lang | default: 'ko' }}">
 <head>{%- include head.html -%}</head>
-<body>
+<body{% if page.url == '/' %} class="home"{% endif %}>
   <!-- 이 레이아웃이 왜 있나 [2026-09-06]. 발행본 아홉 편이 GitHub Pages 기본 테마(primer)로
        나가고 있었다 — 헤더가 저장소 이름, 본문은 GitHub README 결. 측심(sounding.higgsfield.app)에서
        보고서를 누르면 마감이 그 자리에서 떨어진다(실물 스크린샷). 발행본 마크다운은 한 글자도
@@ -16,12 +16,12 @@
     </article>
   </main>
   {%- include footer.html -%}
-  <!-- 옆으로 흐르는 표는 키보드로도 흘러야 한다 — axe `scrollable-region-focusable`
-       (2026-09-06 모바일 실측 · 발행본 표가 열보다 넓을 때). 흐르는 표에만 tabindex 를 준다.
-       JS 가 없으면 표는 그대로 보이고 마우스·손가락으로는 여전히 흐른다. -->
+  <!-- 옆으로 흐르는 표·코드 블록은 키보드로도 흘러야 한다 — axe `scrollable-region-focusable`
+       (2026-09-06 모바일 실측 · 발행본 표가 열보다 넓을 때 · 2026-09-07 README 의 저장소 트리 `pre` 도 같은 결함).
+       실제로 흐르는 것에만 tabindex 를 준다. JS 가 없으면 그대로 보이고 마우스·손가락으로는 여전히 흐른다. -->
   <script>
     (function () {
-      var t = document.querySelectorAll(".doc table");
+      var t = document.querySelectorAll(".doc table, .doc pre");
       for (var i = 0; i < t.length; i++) {
         if (t[i].scrollWidth > t[i].clientWidth + 1) t[i].setAttribute("tabindex", "0");
       }

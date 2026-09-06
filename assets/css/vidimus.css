@@ -462,8 +462,9 @@ tbody tr:hover td {
   background: color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
-/* 흐르는 표는 레이아웃 스크립트가 tabindex 를 주어 키보드로 닿는다 — 닿았을 때 보이게. */
-table:focus-visible {
+/* 흐르는 표·코드 블록은 레이아웃 스크립트가 tabindex 를 주어 키보드로 닿는다 — 닿았을 때 보이게. */
+table:focus-visible,
+pre:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
@@ -472,6 +473,74 @@ sup {
   font-size: 0.72em;
   line-height: 0;
   color: var(--accent);
+}
+
+/* ── 첫 화면 ──────────────────────────────────────────────────────────── */
+/* 레이아웃이 첫 화면(page.url == '/')의 body 에 .home 을 준다. README 가 첫 화면이라
+ * 마크다운에 클래스를 못 넣는다 — 구조로 고른다. 제목은 간판, 첫 문단은 리드. */
+.home h1 {
+  font-size: clamp(2.1rem, 1.3rem + 3.2vw, 3.3rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.home h1 + p {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
+  line-height: 1.6;
+}
+
+.home h1 + p strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* 보고서 목록 — 번호가 앞에 서고 제목이 한 줄, 요약이 흐린 한 줄. 행 하나가 곧 편 하나다.
+ * 목록은 마크다운의 `- [**#NN** 제목](reports/…)` 이고, `:has()` 로 그 목록만 고른다
+ * (다른 `ul` 은 그대로). `:has()` 를 모르는 옛 브라우저에서는 보통 목록으로 보인다. */
+.doc ul:has(> li > a[href*="reports/report_"]) {
+  margin: 1.5rem 0 2.5rem;
+  padding: 0;
+  border-top: 1px solid var(--hair-strong);
+}
+
+.doc li:has(> a[href*="reports/report_"]) {
+  margin: 0;
+  padding: 1.15rem 0 1.2rem;
+  border-bottom: 1px solid var(--hair);
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.doc li > a[href*="reports/report_"] {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--ink);
+  font-size: 1.12rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  text-wrap: balance;
+  transition: color 160ms var(--ease);
+}
+
+.doc li > a[href*="reports/report_"] strong {
+  margin-right: 0.45rem;
+  color: var(--accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.doc li > a[href*="reports/report_"]:hover {
+  color: var(--accent);
+}
+
+.doc li > a[href*="reports/report_"]:focus-visible {
+  outline-offset: 6px;
 }
 
 /* ── 푸터 ─────────────────────────────────────────────────────────────── */
