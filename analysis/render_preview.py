@@ -120,8 +120,13 @@ def _lookup(expr: str, ctx: dict):
         expr.startswith('"') and expr.endswith('"')
     ):
         return expr[1:-1]
+    # 숫자 리터럴 — `{% if parts.size == 2 %}` 의 2. 없으면 사전에서 찾다 "" 가 되어 비교가 늘 거짓이다.
+    if re.fullmatch(r"-?\d+", expr):
+        return int(expr)
     cur = ctx
     for part in expr.split("."):
+        if part == "size" and isinstance(cur, (list, str)):
+            return len(cur)
         if isinstance(cur, dict):
             cur = cur.get(part, "")
         else:
@@ -132,7 +137,24 @@ def _lookup(expr: str, ctx: dict):
 def _apply_filter(val, name: str, arg: str, ctx: dict):
     baseurl = str(_lookup("site.baseurl", ctx) or "")
     url = str(_lookup("site.url", ctx) or "")
+    # [2026-09-07] 배열 필터 — head 가 본문에서 「한 줄 결론」을 뽑아 지면별 description 을 만든다.
+    # 값을 문자열로 굳히기 전에 처리한다(굳히면 `split | last` 가 안 된다).
+    if name == "split":
+        return ("" if val is None else str(val)).split(_lookup(arg, ctx))
+    if name in ("first", "last"):
+        if isinstance(val, list):
+            return (val[0] if name == "first" else val[-1]) if val else ""
+        return val
+    if name == "size":
+        return len(val) if isinstance(val, (list, str)) else 0
     s = "" if val is None else str(val)
+    if name == "strip":
+        return s.strip()
+    if name == "strip_html":
+        return re.sub(r"<[^>]*>", "", s)
+    if name == "replace":
+        a, _, b = arg.partition(",")
+        return s.replace(str(_lookup(a, ctx)), str(_lookup(b, ctx)))
     if name == "relative_url":
         return (baseurl + s) if s.startswith("/") else s
     if name == "absolute_url":
@@ -155,17 +177,23 @@ def _apply_filter(val, name: str, arg: str, ctx: dict):
 _OUT_RE = re.compile(r"\{\{-?\s*(.+?)\s*-?\}\}", re.S)
 
 
+def eval_expr(body: str, ctx: dict):
+    """`a | f: x | g` 를 평가해 **날값**을 돌려준다(배열이면 배열). `assign` 이 이것을 써야
+    `split` 결과가 배열로 남고 다음 줄의 `.size`·`last` 가 산다."""
+    parts = [p.strip() for p in body.split("|")]
+    val = _lookup(parts[0], ctx)
+    for f in parts[1:]:
+        if ":" in f:
+            fname, farg = f.split(":", 1)
+        else:
+            fname, farg = f, ""
+        val = _apply_filter(val, fname.strip(), farg.strip(), ctx)
+    return val
+
+
 def render_outputs(tpl: str, ctx: dict) -> str:
     def one(m):
-        body = m.group(1)
-        parts = [p.strip() for p in body.split("|")]
-        val = _lookup(parts[0], ctx)
-        for f in parts[1:]:
-            if ":" in f:
-                fname, farg = f.split(":", 1)
-            else:
-                fname, farg = f, ""
-            val = _apply_filter(val, fname.strip(), farg.strip(), ctx)
+        val = eval_expr(m.group(1), ctx)
         return "" if val is None else str(val)
 
     return _OUT_RE.sub(one, tpl)
@@ -257,7 +285,7 @@ def render_tags(tpl: str, ctx: dict, includes_dir: str) -> str:
         elif head == "assign":
             if alive() and "=" in rest:
                 k, v = rest.split("=", 1)
-                ctx[k.strip()] = render_outputs("{{" + v.strip() + "}}", ctx)
+                ctx[k.strip()] = eval_expr(v.strip(), ctx)
         elif head == "feed_meta":
             if alive():
                 out.append("<!-- feed_meta (플러그인. 미리보기에서는 비운다) -->")
@@ -570,6 +598,15 @@ def selftest() -> int:
         "P",
     )
     check("표 렌더", "<table>" in markdown("| a | b |\n|---|---|\n| 1 | 2 |"), True)
+    # [2026-09-07] 배열 필터 · 숫자 리터럴 · .size — 지면별 description 이 여기에 걸려 있다.
+    dctx = {"site": {"title": "T", "description": "D", "baseurl": "", "url": "https://x"}, "page": {"url": "/r/"},
+            "content": "<li><strong>한 줄 결론</strong>: 값은 <strong>7</strong>이다.</li><p>뒤</p>"}
+    tpl = ("{% assign zz = content | split: '한 줄 결론</strong>: ' %}"
+           "{% if zz.size == 2 %}{% assign d = zz | last | split: '</li>' | first | strip_html | strip %}"
+           "{% else %}{% assign d = site.description %}{% endif %}{{ d }}")
+    check("본문에서 한 줄 결론을 뽑는다", render_outputs(render_tags(tpl, dctx, ""), dctx), "값은 7이다.")
+    nctx = dict(dctx, content="<p>결론 없음</p>")
+    check("없으면 사이트 설명으로", render_outputs(render_tags(tpl, nctx, ""), nctx), "D")
     check("제목 렌더", markdown("## 가"), "<h2>가</h2>")
     check("펜스 코드 블록", markdown("```\n.\n├── a  # <b>\n```\n\n밖"),
           "<pre><code>.\n├── a  # &lt;b&gt;</code></pre>\n<p>밖</p>")

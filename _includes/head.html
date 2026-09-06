@@ -3,7 +3,14 @@
 <!-- 제목. page.title 은 front matter 가 없어도 첫 H1 에서 온다(jekyll-titles-from-headings ·
      라이브 실측: 종전 제목이 「#07 … | incheon-port-analysis」였다). -->
 <title>{% if page.title %}{{ page.title | escape }} · {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
-<meta name="description" content="{{ site.description | escape }}">
+<!-- 지면별 설명. 발행본은 머리에 「한 줄 결론」이 있다(아홉 편 전부 · 2026-09-07 실측) — 그것을 카드 설명으로.
+     채널 카드(og:description)가 편마다 다른 말을 하게 된다. 없는 지면(첫 화면·소개·404)은 사이트 설명. -->
+{%- assign vd_parts = content | split: '한 줄 결론</strong>: ' -%}
+{%- assign vd_desc = site.description -%}
+{%- if vd_parts.size == 2 -%}
+{%- assign vd_desc = vd_parts | last | split: '</li>' | first | strip_html | strip | truncate: 155 -%}
+{%- endif -%}
+<meta name="description" content="{{ vd_desc | escape }}">
 <link rel="canonical" href="{{ page.url | absolute_url }}">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
@@ -19,7 +26,7 @@
 <meta property="og:site_name" content="{{ site.title }}">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:title" content="{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title }}{% endif %}">
-<meta property="og:description" content="{{ site.description | escape }}">
+<meta property="og:description" content="{{ vd_desc | escape }}">
 <meta property="og:url" content="{{ page.url | absolute_url }}">
 <meta property="og:image" content="{{ '/assets/og.png' | absolute_url }}">
 <meta property="og:image:width" content="1200">
