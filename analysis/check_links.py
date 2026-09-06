@@ -175,6 +175,10 @@ MD_REFDEF = re.compile(r"^\s{0,3}\[(?!\^)[^\]]+\]:\s*<?(\{\{.*?\}\}|[^\s>]+)", r
 # 아무 따옴표나 받으면 값이 `{{ ` 에서 끊긴다(실측: 이것이 위 30건의 나머지 원인이다).
 HTML_ATTR = re.compile(r"""(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')""", re.I)
 LINK_TAG = re.compile(r"<link\b[^>]*>", re.I)
+# [2026-09-07] 스크립트와 주석은 누를 수 없다. 레이아웃의 JS 가 선택자 문자열로 든 `href=` 와
+# 그것을 설명한 주석이 「죽음 1건」으로 찍혔다(같은 날 두 번). --live 가 주석을 안 세는 것과 같은 규칙.
+SCRIPT_BLOCK = re.compile(r"<script\b.*?</script>", re.I | re.S)
+HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
 REL_ATTR = re.compile(r"""\brel\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 
 
@@ -189,7 +193,8 @@ def drop_non_doc_links(html):
 
 def extract(text, is_html):
     """한 파일에서 링크 원문을 걷는다. 중복은 남긴다 — 어느 파일에 몇 번인지가 정보다."""
-    body = drop_non_doc_links(text) if is_html else strip_inline_code(strip_fences(text))
+    body = (drop_non_doc_links(HTML_COMMENT.sub(" ", SCRIPT_BLOCK.sub(" ", text)))
+            if is_html else strip_inline_code(strip_fences(text)))
     raw = ["".join(g for g in t if g) for t in HTML_ATTR.findall(body)]
     if not is_html:
         raw += MD_INLINE.findall(body) + MD_REFDEF.findall(body)
@@ -564,6 +569,12 @@ def selftest():
     check("작은따옴표 낀 Liquid 가 안 끊긴다",
           "{{ '/terminals/' | relative_url }}" in hl, True)
     check("img src 도 들어온다", "/assets/og.png" in hl, True)
+    js = r"""<script>var q = '.nav a[href="' + root + '"]';</script>"""
+    js += "<!-- 주석 속 <a href=\"/gone/\"> 는 누를 수 없다 -->"
+    js += '<a href="/real/">진짜</a>'
+    check("스크립트 문자열 속 href 는 링크가 아니다", any("root" in x for x in extract(js, True)), False)
+    check("주석 속 href 는 링크가 아니다", "/gone/" in extract(js, True), False)
+    check("스크립트·주석 밖 링크는 그대로", "/real/" in extract(js, True), True)
     check("마크다운의 Liquid 도 안 끊긴다",
           "{{ '/verify/' | relative_url }}" in links, True)
 
