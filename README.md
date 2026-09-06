@@ -30,14 +30,10 @@
 
 ![월별 수출:수입 배율 (2022–2025)](reports/images/direction_trend_ratio_2022_2025.png)
 
-## 사용 기술
-
-Python(requests·pandas·matplotlib), 공공데이터 Open API·XML 파싱, hwpx 공표자료 파싱(zipfile+XML), git·GitHub·GitHub Pages, 검증 게이트 설계(기발행 수치 회귀 대조·내적 지문 검산), Wayback Machine을 통한 사멸 API 문서 복원, 이중 실행 환경 교차검증(X-CHECK 대조 게이트), 헤더명 기준 CSV 파싱(연도별 스키마 차이 대응)
-
 ## 검증 방식
 
-- 모든 발행 수치는 저장소에 커밋된 수집 원시 CSV에서 재현 가능하다.
-- 발행 전 검증 게이트를 통과한다: 기존 발행 수치와의 회귀 대조, 스키마·완결성 확인, 내적 검산(방향합=총합, 규격 환산식).
+- 모든 발행 수치는 저장소에 커밋된 수집 원시 CSV에서 재현 가능하다. 재현 환경은 Python(requests·pandas·matplotlib)이고, 수집은 공공데이터 Open API(XML)와 hwpx 공표자료(zipfile+XML)를 **헤더명 기준**으로 파싱한다(연도별 스키마 차이 대응). 사멸한 API 문서는 Wayback Machine 에서 복원했다.
+- 발행 전 검증 게이트를 통과한다: 기존 발행 수치와의 회귀 대조, 스키마·완결성 확인, 내적 검산(방향합=총합, 규격 환산식). 이중 실행 환경 교차검증(X-CHECK)은 가용할 때 쓰고, 못 쓰면 못 썼다고 적는다.
 - 오류는 삭제하지 않고 정정 표기로 남긴다. 판정 기준은 결과 확인 전에 문서로 선커밋한다(`docs/` 의 주제검증·판정결과 문서 참조).
 
 ## 데이터 출처

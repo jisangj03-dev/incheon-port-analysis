@@ -152,8 +152,8 @@ body {
 
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.55rem;
   min-height: 2.75rem;
   color: var(--ink);
   text-decoration: none;
@@ -162,7 +162,17 @@ body {
   letter-spacing: -0.015em;
 }
 
+/* 안벽 크레인 문틀 — 파비콘과 같은 기호. 장식이고 아무 수치도 주장하지 않는다. */
+.brand__mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--accent);
+}
+
 .brand__kor {
+  position: relative;
+  top: 0.06em;
   font-weight: 500;
   font-size: 0.78rem;
   letter-spacing: 0.06em;
@@ -541,6 +551,66 @@ sup {
 
 .doc li > a[href*="reports/report_"]:focus-visible {
   outline-offset: 6px;
+}
+
+/* ── 보고서 머리 — 작성일 · 분석 대상 · 한 줄 결론 ──────────────────────── */
+/* 아홉 편 전부 H1 뒤에 이 세 항목의 목록이 오고 바로 `---` 가 따른다(2026-09-07 실측).
+ * 「`---` 바로 앞의 목록」이라는 구조로 고른다 — 발행본에는 클래스를 못 넣는다.
+ * 마지막 행이 한 줄 결론이라 그 행만 크게. */
+.doc > ul:has(+ hr) {
+  margin: 2rem 0 0;
+  padding: 0;
+  border-top: 1px solid var(--hair-strong);
+}
+
+.doc > ul:has(+ hr) > li {
+  margin: 0;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--hair);
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* 라벨 뒤 콜론은 마크다운 원문(`**작성일**: …`)의 것이라 라벨에 붙어 흐르게 둔다 —
+ * 열로 정렬하면 콜론이 값 앞에 떠서 보인다(미리보기 실측). */
+.doc > ul:has(+ hr) > li > strong:first-child {
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.doc > ul:has(+ hr) > li:last-child {
+  padding: 1.05rem 0 1.15rem;
+  color: var(--text);
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.doc > ul:has(+ hr) + hr {
+  display: none;
+}
+
+.doc > ul:has(+ hr) + hr + h2 {
+  margin-top: 3.5rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+/* ── 리빌 — 스크롤에 맞춰 떠오른다 (JS 가 있고 감속 모션이 아닐 때만) ──────── */
+@media (prefers-reduced-motion: no-preference) {
+  html.js .rv {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 620ms var(--ease), transform 620ms var(--ease);
+  }
+
+  html.js .rv.is-in {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ── 푸터 ─────────────────────────────────────────────────────────────── */

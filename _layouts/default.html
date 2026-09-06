@@ -27,5 +27,25 @@
       }
     })();
   </script>
+  <!-- 리빌. 보고서 행·그림·표·인용이 스크롤에 맞춰 떠오른다(애플 지면의 문법).
+       JS 가 없거나 IntersectionObserver 가 없거나 감속 모션이면 그냥 보인다 — CSS 가 html.js 에만 건다. -->
+  <script>
+    (function () {
+      if (!("IntersectionObserver" in window)) return;
+      var sel = ".doc img, .doc table, .doc blockquote";
+      var rows = [];
+      try { rows = document.querySelectorAll(".home .doc li:has(> a[href*='reports/report_'])"); } catch (e) {}
+      var els = Array.prototype.slice.call(document.querySelectorAll(sel)).concat(Array.prototype.slice.call(rows));
+      if (!els.length) return;
+      document.documentElement.classList.add("js");
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+      Array.prototype.forEach.call(rows, function (r, i) { r.style.transitionDelay = Math.min(i * 45, 360) + "ms"; });
+      els.forEach(function (el) { el.classList.add("rv"); io.observe(el); });
+    })();
+  </script>
 </body>
 </html>
