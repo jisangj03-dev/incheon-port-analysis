@@ -10,10 +10,12 @@
        jekyll-default-layout · 실측 근거 = docs/렌더_기준선.md). -->
   <a class="skip" href="#main">본문으로 건너뛰기</a>
   {%- include masthead.html -%}
-  <main id="main" tabindex="-1">
+  <main id="main" tabindex="-1" data-root="{{ '/' | relative_url }}">
     <article class="doc">
       {{ content }}
     </article>
+    <!-- 차례. 스크립트가 본문의 h2 로 채운다(절이 셋 이상일 때만) · 넓은 화면(≥1280px)에서만 보인다. -->
+    <aside class="toc" aria-label="이 지면의 차례" hidden></aside>
   </main>
   {%- include footer.html -%}
   <!-- 옆으로 흐르는 표·코드 블록은 키보드로도 흘러야 한다 — axe `scrollable-region-focusable`
@@ -64,6 +66,107 @@
             }
           }
         }
+      }
+    })();
+  </script>
+  <!-- 보고서 지면의 길 — 차례(오른쪽 · 현재 절 강조) · 이전/다음 편 · 상단 바의 「보고서」 현재 표시.
+       이전/다음 편은 목록을 여기 들지 않고 **첫 화면을 읽어서** 만든다 — 손으로 든 목록은 편이 늘 때마다 낡는다(사고 31).
+       실물은 kramdown 이 h2 에 id 를 주고, 미리보기는 안 주므로 없으면 스크립트가 만든다. -->
+  <script>
+    (function () {
+      var isReport = /\/reports\/report_\d+/.test(location.pathname);
+      var main = document.getElementById("main");
+      var root = (main && main.getAttribute("data-root")) || "/";
+      var doc = document.querySelector(".doc");
+      if (!doc) return;
+
+      if (isReport) {
+        // 선택자를 문자열 결합으로 만들지 않는다 — `href="` 리터럴이 있으면 링크 검사기가 링크로 읽는다(실측).
+        var links0 = document.querySelectorAll(".mast__nav a"), cur = null;
+        for (var j = 0; j < links0.length; j++) if (links0[j].getAttribute("href") === root) cur = links0[j];
+        if (cur) cur.setAttribute("aria-current", "page");
+      }
+
+      // 차례
+      var toc = document.querySelector(".toc");
+      var h2s = Array.prototype.slice.call(doc.querySelectorAll("h2"));
+      if (toc && isReport && h2s.length >= 3) {
+        var used = {};
+        h2s.forEach(function (h, i) {
+          if (!h.id) {
+            var id = h.textContent.trim().toLowerCase().replace(/[^\w\uac00-\ud7a3]+/g, "-").replace(/^-+|-+$/g, "") || "s" + i;
+            while (used[id] || document.getElementById(id)) id += "-1";
+            h.id = id;
+          }
+          used[h.id] = true;
+        });
+        var ol = document.createElement("ol");
+        h2s.forEach(function (h) {
+          var li = document.createElement("li"), a = document.createElement("a");
+          a.href = "#" + h.id;
+          a.textContent = h.textContent.trim();
+          li.appendChild(a);
+          ol.appendChild(li);
+        });
+        var cap = document.createElement("p");
+        cap.className = "toc__cap";
+        cap.textContent = "차례";
+        toc.appendChild(cap);
+        toc.appendChild(ol);
+        toc.hidden = false;
+        var links = ol.querySelectorAll("a");
+        var setCur = function (id) {
+          for (var i = 0; i < links.length; i++) {
+            var on = links[i].getAttribute("href") === "#" + id;
+            links[i].classList.toggle("is-cur", on);
+            if (on) links[i].setAttribute("aria-current", "true"); else links[i].removeAttribute("aria-current");
+          }
+        };
+        var pick = function () {
+          var best = null;
+          h2s.forEach(function (h) { if (h.getBoundingClientRect().top <= 120) best = h; });
+          setCur(best ? best.id : "");
+        };
+        window.addEventListener("scroll", pick, { passive: true });
+        pick();
+      }
+
+      // 이전 · 다음 편 — 첫 화면의 목록을 읽는다
+      if (isReport && window.fetch) {
+        fetch(root, { credentials: "same-origin" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
+          if (!html) return;
+          var d = new DOMParser().parseFromString(html, "text/html");
+          var as = Array.prototype.slice.call(d.querySelectorAll('a[href*="reports/report_"]'));
+          if (as.length < 2) return;
+          var me = (location.pathname.match(/report_(\d+)_/) || [])[1];
+          var idx = -1;
+          var items = as.map(function (a, i) {
+            var n = (a.getAttribute("href").match(/report_(\d+)_/) || [])[1];
+            if (n === me) idx = i;
+            var num = a.querySelector("strong");
+            return { href: a.getAttribute("href"), num: num ? num.textContent.trim() : "#" + n,
+                     title: a.textContent.replace(num ? num.textContent : "", "").trim() };
+          });
+          if (idx < 0) return;
+          var abs = function (href) { return /^(https?:)?\//.test(href) ? href : root + href; };
+          var nav = document.createElement("nav");
+          nav.className = "pager";
+          nav.setAttribute("aria-label", "이전 · 다음 편");
+          var mk = function (it, kind, label) {
+            var a = document.createElement("a");
+            a.className = "pager__" + kind;
+            a.href = abs(it.href);
+            var l = document.createElement("span"); l.className = "pager__label"; l.textContent = label;
+            var t = document.createElement("span"); t.className = "pager__title";
+            var s = document.createElement("strong"); s.textContent = it.num;
+            t.appendChild(s); t.appendChild(document.createTextNode(" " + it.title));
+            a.appendChild(l); a.appendChild(t);
+            return a;
+          };
+          if (idx > 0) nav.appendChild(mk(items[idx - 1], "prev", "이전 편"));
+          if (idx < items.length - 1) nav.appendChild(mk(items[idx + 1], "next", "다음 편"));
+          if (nav.childNodes.length) doc.appendChild(nav);
+        }).catch(function () {});
       }
     })();
   </script>

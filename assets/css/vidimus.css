@@ -662,6 +662,141 @@ td.num {
   }
 }
 
+/* ── 차례 (넓은 화면) ──────────────────────────────────────────────────── */
+/* 본문 열(46rem) 오른쪽 여백에 붙는다. 1280px 아래에서는 여백이 없어 안 보인다 — 스크립트가 채워도 CSS 가 숨긴다. */
+.toc {
+  display: none;
+}
+
+@media (min-width: 1280px) {
+  main:has(> .toc:not([hidden])) {
+    display: grid;
+    grid-template-columns: 1fr var(--measure) 1fr;
+    column-gap: 2.5rem;
+  }
+
+  main:has(> .toc:not([hidden])) > .doc {
+    grid-column: 2;
+    max-width: none;
+    margin: 0;
+  }
+
+  .toc:not([hidden]) {
+    display: block;
+    grid-column: 3;
+    position: sticky;
+    top: calc(var(--nav-h) + 3rem);
+    align-self: start;
+    max-width: 15rem;
+    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+    padding-left: 1.25rem;
+    border-left: 1px solid var(--hair);
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+}
+
+.toc__cap {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.toc ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.toc li {
+  margin: 0;
+}
+
+.toc a {
+  display: block;
+  padding: 0.28rem 0;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 160ms var(--ease);
+}
+
+.toc a:hover,
+.toc a:focus-visible {
+  color: var(--ink);
+}
+
+.toc a.is-cur {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── 이전 · 다음 편 ────────────────────────────────────────────────────── */
+.pager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 4rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--hair-strong);
+}
+
+.pager a {
+  display: block;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  color: var(--ink);
+  text-decoration: none;
+  transition: border-color 180ms var(--ease), background-color 180ms var(--ease), transform 180ms var(--ease);
+}
+
+.pager a:hover {
+  border-color: var(--hair-strong);
+  background: var(--ground);
+  transform: translateY(-1px);
+}
+
+.pager__next {
+  grid-column: 2;
+  text-align: right;
+}
+
+.pager__label {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.pager__title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.pager__title strong {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 560px) {
+  .pager {
+    grid-template-columns: 1fr;
+  }
+
+  .pager__next {
+    grid-column: 1;
+    text-align: left;
+  }
+}
+
 /* ── 푸터 ─────────────────────────────────────────────────────────────── */
 .foot {
   margin-top: 2rem;
@@ -739,7 +874,9 @@ td.num {
 
   .mast,
   .skip,
-  .foot {
+  .foot,
+  .toc,
+  .pager {
     display: none !important;
   }
 
