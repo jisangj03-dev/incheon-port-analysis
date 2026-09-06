@@ -81,7 +81,7 @@
       if (!doc) return;
 
       if (isReport) {
-        // 선택자를 문자열 결합으로 만들지 않는다 — `href="` 리터럴이 있으면 링크 검사기가 링크로 읽는다(실측).
+        // 선택자를 문자열 결합으로 만들지 않는다 — 속성 이름 뒤에 등호와 따옴표가 붙은 리터럴은 링크 검사기가 링크로 읽는다(실측 · 이 주석도 그래서 풀어 썼다).
         var links0 = document.querySelectorAll(".mast__nav a"), cur = null;
         for (var j = 0; j < links0.length; j++) if (links0[j].getAttribute("href") === root) cur = links0[j];
         if (cur) cur.setAttribute("aria-current", "page");
