@@ -354,7 +354,7 @@ curl -sS "https://archive.org/wayback/available?url=https%3A%2F%2Fjisangj03-dev.
 
 **B-9. 측심 출시 — 운영자 기한 2026-09-06, 그 뒤 여러 채널에 홍보.** 순서가 곧 체크리스트다.
 **런북 = `..\sounding\tools\RUNBOOK.md`**(어디에 무엇이 있는지 · 명령 전부).
-**⑤ 앞에 `higgsfield account status` 한 번** — 2026-09-03 세션에서 한 번 403 이 났다가 곧 정상이었다(원인 [미확인]).
+**⑤ 앞에 `higgsfield account status` 한 번**(09-03 에 403 한 번 · 원인 [미확인]). **[09-06 최종점검]** `push.py --check` 두 번 무응답 — 원격은 1초에 401 을 내므로 토큰 만료 의심([미확인] · 갱신 = `repo-access`) · 크레딧 0(09-03 은 21.5).
 안 되면 `higgsfield auth login`. 측심에도 `pre-push` 가 깔렸다 — 운영자 터미널에서는 아무것도 안 막는다.
 ① B-1 ② ~~측심 push~~ · ~~배포~~ **[2026-09-03 끝 · 세션이 운영자 결정으로 실행]** ②′ ~~게시~~ **[끝 · 대시보드 「게시」로 공개됨]** ③ ~~실물 검사~~ **[끝]**
 ③ 배포 뒤 `python analysis/check_links.py --live` 와 측심 실물 클릭(폼은 `node tools/form.mjs <주소> --expect-id`) ④ 게시 — 문안 `본부\채널문안_측심_20260902.md`(린터 PASS).
