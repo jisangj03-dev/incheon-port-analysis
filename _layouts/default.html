@@ -22,8 +22,48 @@
   <script>
     (function () {
       var t = document.querySelectorAll(".doc table, .doc pre");
+      function mark(el) {
+        var scrolls = el.scrollWidth > el.clientWidth + 1;
+        if (scrolls) el.setAttribute("tabindex", "0"); else el.removeAttribute("tabindex");
+        el.classList.toggle("is-scroll", scrolls);
+        el.classList.toggle("at-end", !scrolls || el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+      }
       for (var i = 0; i < t.length; i++) {
-        if (t[i].scrollWidth > t[i].clientWidth + 1) t[i].setAttribute("tabindex", "0");
+        mark(t[i]);
+        t[i].addEventListener("scroll", (function (el) { return function () { mark(el); }; })(t[i]), { passive: true });
+      }
+      // 창이 돌아가면(휴대폰 가로·세로) 흐름 여부가 바뀐다.
+      window.addEventListener("resize", function () { for (var i = 0; i < t.length; i++) mark(t[i]); });
+    })();
+  </script>
+  <!-- 숫자 열은 오른쪽 정렬. 발행본 표의 정렬은 마크다운 기본(왼쪽)이라 자릿수가 안 맞는다.
+       열의 몸통 칸 6할 이상이 수(쉼표·소수점·%·±·배·TEU·p 허용)이면 그 열 전체(머리 포함)에 .num 을 준다. -->
+  <script>
+    (function () {
+      var NUM = /^[+\-−–]?\s*[\d,]+(\.\d+)?\s*(%|%p|배|TEU|천TEU|p|건|개월|개)?\s*$/;
+      var tables = document.querySelectorAll(".doc table");
+      for (var t = 0; t < tables.length; t++) {
+        var rows = tables[t].querySelectorAll("tbody tr");
+        if (!rows.length) continue;
+        var ncol = rows[0].children.length;
+        for (var c = 0; c < ncol; c++) {
+          var n = 0, tot = 0;
+          for (var r = 0; r < rows.length; r++) {
+            var cell = rows[r].children[c];
+            if (!cell) continue;
+            var s = cell.textContent.replace(/\s+/g, " ").trim();
+            if (!s || s === "—" || s === "-") continue;
+            tot++;
+            if (NUM.test(s)) n++;
+          }
+          if (tot && n / tot >= 0.6) {
+            var all = tables[t].querySelectorAll("tr");
+            for (var k = 0; k < all.length; k++) {
+              var cc = all[k].children[c];
+              if (cc) cc.classList.add("num");
+            }
+          }
+        }
       }
     })();
   </script>

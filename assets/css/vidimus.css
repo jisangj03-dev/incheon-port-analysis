@@ -472,6 +472,24 @@ tbody tr:hover td {
   background: color-mix(in srgb, var(--ink) 3%, transparent);
 }
 
+/* 첫 열은 행의 이름이다 — 좁은 화면에서 「V1-/2025/(연도)」처럼 세 줄로 꺾이지 않게. 넘치면 표가 흐른다. */
+th:first-child,
+td:first-child {
+  white-space: nowrap;
+}
+
+/* 옆으로 흐르는 표의 오른쪽 그늘 — 「더 있다」는 신호. 끝까지 밀면 사라진다(스크립트가 at-end 를 준다).
+ * 안쪽 그림자라 스크롤 상자에 고정된다. */
+table.is-scroll:not(.at-end) {
+  box-shadow: inset -28px 0 18px -18px rgba(15, 42, 61, 0.22);
+}
+
+@media (prefers-color-scheme: dark) {
+  table.is-scroll:not(.at-end) {
+    box-shadow: inset -28px 0 18px -18px rgba(0, 0, 0, 0.55);
+  }
+}
+
 /* 흐르는 표·코드 블록은 레이아웃 스크립트가 tabindex 를 주어 키보드로 닿는다 — 닿았을 때 보이게. */
 table:focus-visible,
 pre:focus-visible {
@@ -483,6 +501,37 @@ sup {
   font-size: 0.72em;
   line-height: 0;
   color: var(--accent);
+}
+
+/* 그림 캡션. #01~#06 은 그림 바로 밑에 `<sub>출처: …</sub>` 한 줄을, #09 는 `**그림 1.** …` 문단을 둔다
+ * (2026-09-07 실측). 둘 다 그림에 붙은 작은 회색 글로 — 본문과 갈라 보이게. */
+.doc p:has(> sub:first-child) {
+  margin: -1rem 0 1.75rem;
+  padding: 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.doc p:has(> sub:first-child) sub {
+  vertical-align: baseline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.doc p:has(> img) + p:has(> strong:first-child) {
+  margin: -1rem 0 1.75rem;
+  padding: 0 0.25rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+/* 숫자 칸은 오른쪽 정렬 — 레이아웃 스크립트가 열 단위로 판단해 .num 을 준다(자릿수가 맞아야 표가 읽힌다). */
+th.num,
+td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 첫 화면 ──────────────────────────────────────────────────────────── */
@@ -679,6 +728,13 @@ sup {
 
   html {
     color-scheme: light;
+  }
+
+  /* 리빌 요소는 종이에서 전부 보인다 — 스크롤이 없으니 관측자가 안 깨운다. */
+  html.js .rv {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   .mast,
