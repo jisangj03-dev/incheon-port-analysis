@@ -1,13 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-
   "permissions": {
     "deny": [
       "Bash(git push*)",
       "PowerShell(git push*)"
     ]
   },
-
   "hooks": {
     "PreToolUse": [
       {
@@ -18,6 +16,54 @@
             "command": "python \"$CLAUDE_PROJECT_DIR/analysis/hook_stopline.py\" || exit 0",
             "timeout": 120,
             "statusMessage": "정지선 검사"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --show || exit 0",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --prompt || exit 0",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --stop || exit 0",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --end || exit 0",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
           }
         ]
       }

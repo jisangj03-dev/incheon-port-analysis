@@ -20,3 +20,7 @@ skills-lock.json
 
 # 개시 검사 소요 로그 — 이 기계의 계열이다. 사고 84 를 일화가 아니라 계열로 남긴다. 반입하지 않는다.
 analysis/_boot_log.tsv
+
+# 세션 스냅샷 — 훅이 턴마다 쓴다(analysis/session_snapshot.py). 이 기계의 관측이지 저장소의 상태가 아니다. 반입하지 않는다.
+analysis/_session_snapshot.json
+analysis/_session_snapshot.md

@@ -105,7 +105,7 @@ push 없이 되는 후보로 남은 것은 「미해결」의 STATUS 자동 이�
 - 보고서 **#01~#07 발행 완료. #08·#09 는 본문·린터 완료, 검수·push 대기.**
 - 저작 구조 **B — AI가 생성하고 사람이 운영한다.** 표기 의무(§2.2)가 성립 조건.
 
-### 검사·생성 장치 — 33종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
+### 검사·생성 장치 — 34종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
 > **이 수는 아래 목록의 이름 개수**이고, `boot_check` 의 「`--selftest` N개」와 **다른 수다**
 > (그쪽은 세는 쪽 둘을 포함하고 `--check` 만 가진 장치는 뺀다). **같게 만들려 하지 마라.**
 
@@ -122,7 +122,7 @@ push 없이 되는 후보로 남은 것은 「미해결」의 STATUS 자동 이�
 `check_a11y.py` · `htmltable.py` · `build_skyline.py --check` ·
 **`collect_09_backfill.py`** · **`chart_09_backfill.py`** · **`check_counts.py`** ·
 **`basis_10_monthly_floor.py`** · **`judge_10_monthly.py`** · **`build_series_chart.py`** ·
-**`check_jekyll.py`** · **`check_private.py`** · **`check_site_facts.py`**
+**`check_jekyll.py`** · **`check_private.py`** · **`check_site_facts.py`** · **`session_snapshot.py`**
 
 - **셈 검사** `check_counts.py` — **산문에 적힌 수가 실제와 맞는가**(사고 80·81).
   짝 **다섯** — 장치 수 · **장치 목록 ↔ 실물** · 첫 화면 편수 · 허브 목록 행수 ·
