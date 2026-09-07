@@ -38,6 +38,27 @@
       window.addEventListener("resize", function () { for (var i = 0; i < t.length; i++) mark(t[i]); });
     })();
   </script>
+  <!-- 보고서 제목의 편 번호를 눈썹줄로. 발행본 H1 은 「보고서 #01 — 제목」(#01~#03) 과 「#04 제목」(#04~) 두 꼴이다(실측).
+       마크다운은 안 건드리고, 스크립트가 앞의 번호를 <span> 으로 감싸 CSS 가 작은 강조색 줄로 올린다.
+       <title>·og:title 은 서버가 내는 원문 그대로다. JS 가 없으면 원문 H1 이 그대로 보인다. -->
+  <script>
+    (function () {
+      if (!/\/reports\/report_\d+/.test(location.pathname)) return;
+      var h1 = document.querySelector(".doc h1");
+      if (!h1 || h1.children.length) return;
+      var m = h1.textContent.match(/^\s*(?:보고서\s*)?(#\d+)\s*(?:[—–-]\s*)?(.+)$/);
+      if (!m) return;
+      h1.textContent = "";
+      var eb = document.createElement("span");
+      eb.className = "h1__eyebrow";
+      eb.textContent = "보고서 " + m[1];
+      var tt = document.createElement("span");
+      tt.className = "h1__title";
+      tt.textContent = m[2].trim();
+      h1.appendChild(eb);
+      h1.appendChild(tt);
+    })();
+  </script>
   <!-- 표의 이름과 머리 방향 — 발행본 표는 kramdown 이 caption·scope 없이 낸다(STATUS 미해결 「마크다운 표에 이름도 scope 도 없다」).
        바로 앞 문단이 「표 N.」 으로 시작하면 그것을 표의 이름으로 잇고, 머리 행의 칸에 scope="col" 을 준다.
        속성을 붙였다는 것이 낭독을 확인했다는 뜻은 아니다 — 낭독기로 들어 본 사람은 아직 없다. -->

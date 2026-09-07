@@ -641,6 +641,7 @@ def selftest() -> int:
     check("`.md` 상대 링크를 평면 파일명으로 잇는다", pretty_path(d, "/reports/report_07_x.md"),
           os.path.join(d, "reports_report_07_x.html"))
     check("없는 `.md` 는 안 잇는다", pretty_path(d, "/reports/report_99_x.md"), None)
+    check("`README.md` 는 첫 화면으로 잇는다", pretty_path(d, "/README.md"), os.path.join(d, "index.html"))
     check("퍼센트 인코딩된 `.md` 링크도 잇는다", pretty_path(d, "/reports/report_07_%78.md"),
           os.path.join(d, "reports_report_07_x.html"))
     check("없는 지면은 안 잇는다", pretty_path(d, "/nope/"), None)
@@ -669,6 +670,9 @@ def pretty_path(out: str, path: str):
     # 첫 화면에서 한 편도 눌러 들어갈 수 없었다(실측). 실제 Pages 는 jekyll-relative-links 가 잇는다.
     if name.lower().endswith(".md"):
         name = name[:-3].replace("/", "_")
+        # README 는 첫 화면으로 렌더된다(jekyll-readme-index) — 그리로 잇는다. 실물도 상대 링크 플러그인이 같은 곳으로 보낸다.
+        if name == "README":
+            name = "index"
     cand = os.path.join(out, name.replace("/", os.sep) + ".html")
     return cand if os.path.isfile(cand) else None
 

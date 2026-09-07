@@ -278,6 +278,21 @@ h1 {
   letter-spacing: -0.035em;
 }
 
+/* 보고서 제목의 눈썹줄 — 레이아웃 스크립트가 편 번호를 떼어 올린다. */
+.h1__eyebrow {
+  display: block;
+  margin-bottom: 0.9rem;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.h1__title {
+  display: block;
+}
+
 h2 {
   margin: 3.5rem 0 1rem;
   padding-top: 2.25rem;
@@ -418,6 +433,13 @@ img {
   border: 1px solid var(--hair);
   border-radius: var(--r-md);
   background: var(--image-bg);
+}
+
+/* 어두운 지면에서 흰 차트는 눈부시다 — 밝기만 살짝 누른다(색은 그대로 · 인쇄에는 안 건다). */
+@media (prefers-color-scheme: dark) {
+  .doc img {
+    filter: brightness(0.9);
+  }
 }
 
 /* 표 — 열보다 넓으면 표만 옆으로 흐른다(지면은 흐르지 않는다). 숫자는 비례 폭. */
@@ -922,6 +944,10 @@ td.num {
 
   html {
     color-scheme: light;
+  }
+
+  .doc img {
+    filter: none;
   }
 
   /* 리빌 요소는 종이에서 전부 보인다 — 스크롤이 없으니 관측자가 안 깨운다. */
