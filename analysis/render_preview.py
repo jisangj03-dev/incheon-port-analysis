@@ -440,6 +440,18 @@ def markdown(text: str) -> str:
             out.append(f"<{tag}>" + "".join(items) + f"</{tag}>")
             continue
 
+        # 들여쓴 코드 블록(4칸 또는 탭) — kramdown 은 <pre><code> 로 낸다. [2026-09-07] 없으면 #05·#06 의
+        # 「재현 방법」이 한 줄 문단으로 보였다(전수검사 실측). 목록 항목의 이어지는 줄은 위 목록 분기가 먼저 먹는다.
+        if line.startswith("    ") or line.startswith("\t"):
+            code = []
+            while i < n and (lines[i].startswith("    ") or lines[i].startswith("\t") or not lines[i].strip()):
+                if not lines[i].strip() and not (i + 1 < n and (lines[i + 1].startswith("    ") or lines[i + 1].startswith("\t"))):
+                    break
+                code.append(lines[i][4:] if lines[i].startswith("    ") else lines[i][1:] if lines[i].startswith("\t") else "")
+                i += 1
+            out.append("<pre><code>" + htmllib.escape("\n".join(code).rstrip()) + "</code></pre>")
+            continue
+
         # 문단
         buf = [stripped]
         i += 1
@@ -608,6 +620,9 @@ def selftest() -> int:
     nctx = dict(dctx, content="<p>결론 없음</p>")
     check("없으면 사이트 설명으로", render_outputs(render_tags(tpl, nctx, ""), nctx), "D")
     check("제목 렌더", markdown("## 가"), "<h2>가</h2>")
+    check("들여쓴 코드 블록", markdown("앞\n\n    cd analysis\n    python x.py\n\n뒤"),
+          "<p>앞</p>\n<pre><code>cd analysis\npython x.py</code></pre>\n<p>뒤</p>")
+    check("목록의 들여쓴 이어짐은 코드가 아니다", markdown("- 가\n    나"), "<ul><li>가 나</li></ul>")
     check("펜스 코드 블록", markdown("```\n.\n├── a  # <b>\n```\n\n밖"),
           "<pre><code>.\n├── a  # &lt;b&gt;</code></pre>\n<p>밖</p>")
     check("강조 렌더", markdown("**가**"), "<p><strong>가</strong></p>")

@@ -521,12 +521,14 @@ td:first-child {
 
 /* 옆으로 흐르는 표의 오른쪽 그늘 — 「더 있다」는 신호. 끝까지 밀면 사라진다(스크립트가 at-end 를 준다).
  * 안쪽 그림자라 스크롤 상자에 고정된다. */
-table.is-scroll:not(.at-end) {
+table.is-scroll:not(.at-end),
+pre.is-scroll:not(.at-end) {
   box-shadow: inset -28px 0 18px -18px rgba(15, 42, 61, 0.22);
 }
 
 @media (prefers-color-scheme: dark) {
-  table.is-scroll:not(.at-end) {
+  table.is-scroll:not(.at-end),
+  pre.is-scroll:not(.at-end) {
     box-shadow: inset -28px 0 18px -18px rgba(0, 0, 0, 0.55);
   }
 }
@@ -773,23 +775,25 @@ td.num {
 }
 
 /* ── 핵심 요약 — 첫 절의 문장은 결론 자리다(지침 §3). 한 단계 크게, 숨 쉬게. ── */
-.doc > h2:first-of-type + ul > li {
+.doc > h2:first-of-type + ul > li,
+.doc > h2:first-of-type + ol > li {
   margin: 0.7em 0;
   font-size: 1.04rem;
   line-height: 1.7;
 }
 
 /* ── 보고서 머리 — 작성일 · 분석 대상 · 한 줄 결론 ──────────────────────── */
-/* 아홉 편 전부 H1 뒤에 이 세 항목의 목록이 오고 바로 `---` 가 따른다(2026-09-07 실측).
- * 「`---` 바로 앞의 목록」이라는 구조로 고른다 — 발행본에는 클래스를 못 넣는다.
+/* 아홉 편 전부 H1 뒤에 이 세 항목의 목록이 오고 바로 `---` 와 첫 h2(§1) 가 따른다(2026-09-07 실측).
+ * 「`---` 와 첫 h2 바로 앞의 목록」이라는 구조로 고른다 — 발행본에는 클래스를 못 넣는다.
+ * 「`---` 앞의 목록」만으로 골랐더니 #02 §5 의 한계 목록(뒤에 `---` 와 부록)까지 머리 패널이 됐다(전수검사 실측).
  * 마지막 행이 한 줄 결론이라 그 행만 크게. */
-.doc > ul:has(+ hr) {
+.doc > ul:has(+ hr + h2:first-of-type) {
   margin: 2rem 0 0;
   padding: 0;
   border-top: 1px solid var(--hair-strong);
 }
 
-.doc > ul:has(+ hr) > li {
+.doc > ul:has(+ hr + h2:first-of-type) > li {
   margin: 0;
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--hair);
@@ -801,25 +805,25 @@ td.num {
 
 /* 라벨 뒤 콜론은 마크다운 원문(`**작성일**: …`)의 것이라 라벨에 붙어 흐르게 둔다 —
  * 열로 정렬하면 콜론이 값 앞에 떠서 보인다(미리보기 실측). */
-.doc > ul:has(+ hr) > li > strong:first-child {
+.doc > ul:has(+ hr + h2:first-of-type) > li > strong:first-child {
   color: var(--accent);
   font-size: 0.8rem;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 
-.doc > ul:has(+ hr) > li:last-child {
+.doc > ul:has(+ hr + h2:first-of-type) > li:last-child {
   padding: 1.05rem 0 1.15rem;
   color: var(--text);
   font-size: 1.08rem;
   line-height: 1.6;
 }
 
-.doc > ul:has(+ hr) + hr {
+.doc > ul:has(+ hr + h2:first-of-type) + hr {
   display: none;
 }
 
-.doc > ul:has(+ hr) + hr + h2 {
+.doc > ul:has(+ hr + h2:first-of-type) + hr + h2 {
   margin-top: 3.5rem;
   padding-top: 0;
   border-top: 0;
