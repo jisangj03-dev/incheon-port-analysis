@@ -129,19 +129,20 @@
         if (cur) cur.setAttribute("aria-current", "page");
       }
 
+      // h2 에 id — 실물은 kramdown 이 주고 미리보기는 안 준다. 첫 화면의 「보고서 목록」 링크가 #보고서 를 가리킨다.
+      var h2s = Array.prototype.slice.call(doc.querySelectorAll("h2"));
+      var used = {};
+      h2s.forEach(function (h, i) {
+        if (!h.id) {
+          var id = h.textContent.trim().toLowerCase().replace(/[^\w\uac00-\ud7a3]+/g, "-").replace(/^-+|-+$/g, "") || "s" + i;
+          while (used[id] || document.getElementById(id)) id += "-1";
+          h.id = id;
+        }
+        used[h.id] = true;
+      });
       // 차례
       var toc = document.querySelector(".toc");
-      var h2s = Array.prototype.slice.call(doc.querySelectorAll("h2"));
       if (toc && isReport && h2s.length >= 3) {
-        var used = {};
-        h2s.forEach(function (h, i) {
-          if (!h.id) {
-            var id = h.textContent.trim().toLowerCase().replace(/[^\w\uac00-\ud7a3]+/g, "-").replace(/^-+|-+$/g, "") || "s" + i;
-            while (used[id] || document.getElementById(id)) id += "-1";
-            h.id = id;
-          }
-          used[h.id] = true;
-        });
         var ol = document.createElement("ol");
         h2s.forEach(function (h) {
           var li = document.createElement("li"), a = document.createElement("a");
@@ -210,6 +211,52 @@
           if (nav.childNodes.length) doc.appendChild(nav);
         }).catch(function () {});
       }
+    })();
+  </script>
+  <!-- 긴 표의 머리 행을 바 아래에 띄운다(몸통 8행 이상). 머리가 화면 위로 나가고 표 끝이 아직 아래에 있을 때만 보인다.
+       복제본은 낭독기에서 숨기고(aria-hidden), 열 너비는 원본 칸에서 베끼며, 원본의 가로 스크롤을 따라간다. -->
+  <script>
+    (function () {
+      var NAV = 56;
+      var tables = Array.prototype.filter.call(document.querySelectorAll(".doc table"), function (t) {
+        return t.tHead && t.tBodies[0] && t.tBodies[0].rows.length >= 8;
+      });
+      if (!tables.length) return;
+      var floats = tables.map(function (t) {
+        var box = document.createElement("div");
+        box.className = "thead-float";
+        box.setAttribute("aria-hidden", "true");
+        box.hidden = true;
+        var clone = document.createElement("table");
+        clone.className = t.className.replace(/\bis-scroll\b|\bat-end\b|\brv\b|\bis-in\b/g, "");
+        clone.appendChild(t.tHead.cloneNode(true));
+        box.appendChild(clone);
+        document.body.appendChild(box);
+        return { t: t, box: box, clone: clone };
+      });
+      function place(f) {
+        var r = f.t.getBoundingClientRect();
+        var head = f.t.tHead.getBoundingClientRect();
+        var show = head.top < NAV && r.bottom > NAV + head.height + 8;
+        if (!show) { f.box.hidden = true; return; }
+        var src = f.t.tHead.rows[0].cells, dst = f.clone.tHead.rows[0].cells;
+        var total = 0;
+        for (var i = 0; i < src.length && i < dst.length; i++) {
+          var w = src[i].getBoundingClientRect().width;
+          dst[i].style.width = w + "px"; dst[i].style.minWidth = w + "px"; dst[i].style.maxWidth = w + "px";
+          total += w;
+        }
+        f.clone.style.width = total + "px";
+        f.clone.style.marginLeft = (-f.t.scrollLeft) + "px";
+        f.box.style.left = r.left + "px";
+        f.box.style.width = r.width + "px";
+        f.box.hidden = false;
+      }
+      function all() { floats.forEach(place); }
+      window.addEventListener("scroll", all, { passive: true });
+      window.addEventListener("resize", all);
+      tables.forEach(function (t, i) { t.addEventListener("scroll", function () { place(floats[i]); }, { passive: true }); });
+      all();
     })();
   </script>
   <!-- 리빌. 보고서 행·그림·표·인용이 스크롤에 맞춰 떠오른다(애플 지면의 문법).

@@ -1,9 +1,10 @@
 # 인천항을 공공 1차 데이터로 확인한다
 
-인천항 물동량에 대해 말해진 명제 하나를 고르고, 공공 API·정부 통계·공식 공표자료의 **원시 데이터**로 성립하는지 판정한다. 판정 기준은 데이터를 받기 **전에** 커밋하고, 기준에 못 미친 것도 **FAIL 그대로** 발행한다. 각 편은 **핵심 요약 → 분석 결과(차트·표) → 해석 → 한계·후속** 순서이고, 결론 자리의 모든 수치는 이 저장소의 원시 CSV 와 코드에서 다시 계산된다.
+말해진 명제 하나를 고르고, 공공 API·정부 통계·공표자료의 원시 데이터로 성립하는지 판정한다. 기준은 데이터를 받기 전에 커밋하고, 못 미친 것도 FAIL 그대로 발행한다.
 
-**사이트: [측심 · sounding.higgsfield.app](https://sounding.higgsfield.app/)** — 한 줄 흐름과 전체 목록 · [데이터와 재현](https://sounding.higgsfield.app/#data)(원시 CSV 와 코드) · [기준과 판정](https://sounding.higgsfield.app/#verdicts)(선커밋 기준과 FAIL).
-이 저장소는 그 시리즈의 **원문 · 원시 데이터 · 재현 코드**를 든다.
+[측심 사이트 보기](https://sounding.higgsfield.app/) [보고서 목록](#보고서)
+
+각 편은 **핵심 요약 → 분석 결과(차트·표) → 해석 → 한계·후속** 순서이고, 결론 자리의 모든 수치는 이 저장소의 원시 CSV 와 코드에서 다시 계산된다. 이 저장소는 [측심](https://sounding.higgsfield.app/) 시리즈의 **원문 · 원시 데이터 · 재현 코드**를 든다 — [데이터와 재현](https://sounding.higgsfield.app/#data) · [기준과 판정](https://sounding.higgsfield.app/#verdicts).
 
 ## 보고서
 

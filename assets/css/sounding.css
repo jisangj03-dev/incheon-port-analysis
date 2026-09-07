@@ -304,11 +304,12 @@ h1 {
   display: block;
 }
 
+/* 절 사이 여백 — 애플 지면의 체감은 여백에서 온다. 위 여백을 화면에 비례해 키운다(2026-09-07 점검 격차 3). */
 h2 {
-  margin: 3.5rem 0 1rem;
-  padding-top: 2.25rem;
+  margin: clamp(4rem, 3rem + 3vw, 6rem) 0 1.25rem;
+  padding-top: clamp(2.25rem, 1.75rem + 1.2vw, 3rem);
   border-top: 1px solid var(--hair);
-  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 1.8rem);
+  font-size: clamp(1.5rem, 1.1rem + 1.3vw, 1.9rem);
 }
 
 /* 발행본은 머리말 뒤에 `---` 를 두고 §1 이 온다 — 줄이 둘 겹치지 않게 h2 의 선을 뺀다. */
@@ -318,7 +319,7 @@ hr + h2 {
 }
 
 h3 {
-  margin: 2.25rem 0 0.75rem;
+  margin: 2.75rem 0 0.85rem;
   font-size: clamp(1.15rem, 1rem + 0.6vw, 1.3rem);
 }
 
@@ -523,6 +524,39 @@ table.is-scroll:not(.at-end) {
   }
 }
 
+/* 긴 표의 머리 행 — 스크립트가 복제해 바 아래에 띄운다(2026-09-07 점검 격차 4).
+ * 표가 옆으로 흐르는 스크롤 상자라 CSS sticky 가 화면에 안 붙는다 — 복제본이 표의 가로 스크롤을 따라간다. */
+.thead-float {
+  position: fixed;
+  top: var(--nav-h);
+  z-index: 15;
+  overflow: hidden;
+  border-bottom: 1px solid var(--hair-strong);
+  background: var(--panel);
+  box-shadow: 0 8px 20px -12px rgba(15, 42, 61, 0.25);
+  pointer-events: none;
+}
+
+.thead-float table {
+  display: table;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  table-layout: fixed;
+}
+
+.thead-float thead th {
+  background: var(--panel);
+}
+
+@media print {
+  .thead-float {
+    display: none !important;
+  }
+}
+
 /* 흐르는 표·코드 블록은 레이아웃 스크립트가 tabindex 를 주어 키보드로 닿는다 — 닿았을 때 보이게. */
 table:focus-visible,
 pre:focus-visible {
@@ -570,20 +604,94 @@ td.num {
 /* ── 첫 화면 ──────────────────────────────────────────────────────────── */
 /* 레이아웃이 첫 화면(page.url == '/')의 body 에 .home 을 준다. README 가 첫 화면이라
  * 마크다운에 클래스를 못 넣는다 — 구조로 고른다. 제목은 간판, 첫 문단은 리드. */
+/* 첫 화면 타일 — 한 화면에 한 문장(2026-09-07 점검 격차 1·2). 애플 첫 화면의 타일 문법:
+ * 56px 급 제목을 중앙에, 한 줄 부제, 그 아래 행동 유도 짝(알약 + 「›」 링크), 큰 여백. */
+.home .doc {
+  padding-top: clamp(4.5rem, 6rem + 4vw, 9rem);
+}
+
 .home h1 {
-  font-size: clamp(2.1rem, 1.3rem + 3.2vw, 3.3rem);
-  line-height: 1.08;
+  max-width: 22ch;
+  margin: 0 auto 1.25rem;
+  font-size: clamp(2.4rem, 1.5rem + 3.6vw, 3.75rem);
+  line-height: 1.06;
   letter-spacing: -0.04em;
+  text-align: center;
 }
 
 .home h1 + p {
-  margin: 0 0 1.5rem;
+  max-width: 36rem;
+  margin: 0 auto 2rem;
   color: var(--muted);
-  font-size: clamp(1.05rem, 0.95rem + 0.5vw, 1.25rem);
-  line-height: 1.6;
+  font-size: clamp(1.1rem, 1rem + 0.6vw, 1.4rem);
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
 }
 
-.home h1 + p strong {
+/* 행동 유도 짝 — README 의 링크 두 개짜리 문단. 첫째는 채운 알약, 둘째는 「›」 붙은 글자 링크. */
+.home h1 + p + p:has(> a:first-child) {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem 1.75rem;
+  margin: 0 0 clamp(4rem, 3rem + 6vw, 8rem);
+  font-size: 0;
+}
+
+.home h1 + p + p:has(> a:first-child) > a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.9rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  transition: background-color 180ms var(--ease), color 180ms var(--ease), transform 180ms var(--ease);
+}
+
+.home h1 + p + p:has(> a:first-child) > a:first-child {
+  padding: 0 1.4rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--bg); /* 밝음: 흰 글자(4.98:1) · 어둠: 잉크 글자 — 밝은 청록 위 흰 글자는 2.6:1 이라 axe 가 잡았다 */
+}
+
+.home h1 + p + p:has(> a:first-child) > a:first-child:hover {
+  background: color-mix(in srgb, var(--accent) 88%, #000000);
+}
+
+.home h1 + p + p:has(> a:first-child) > a:first-child:active {
+  transform: scale(0.98);
+}
+
+.home h1 + p + p:has(> a:first-child) > a:not(:first-child) {
+  color: var(--accent);
+}
+
+.home h1 + p + p:has(> a:first-child) > a:not(:first-child)::after {
+  content: "›";
+  margin-left: 0.3rem;
+  font-size: 1.15em;
+  line-height: 1;
+  transition: transform 180ms var(--ease);
+}
+
+.home h1 + p + p:has(> a:first-child) > a:not(:first-child):hover::after {
+  transform: translateX(3px);
+}
+
+/* 타일 뒤 설명 한 문단 — 본문 크기, 중앙. */
+.home h1 + p + p + p {
+  max-width: 40rem;
+  margin: 0 auto 1rem;
+  color: var(--muted);
+  font-size: 0.98rem;
+  text-align: center;
+}
+
+.home h1 + p + p + p strong {
   color: var(--text);
   font-weight: 600;
 }
