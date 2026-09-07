@@ -15,6 +15,9 @@
 3. 252개월 그래프의 최소·최대(`data/series252.json`) — 대장의 1.9435배(2005-07)·179.2678배(2020-05)와 같다.
 4. 판정표(`verdicts.tsx`) — #09 V1~V4 · #10 W1~W4 의 PASS/FAIL 과 결과 문구의 숫자가 `docs/09_판정결과.md`·`10_판정결과.md` 표와 같다.
 5. 챕터 문안(`scroll-scrub-scenes.ts`)의 숫자가 전부 대장 값 안에 있다.
+6. [2026-09-08] **자료 창 하나** — `src/data/window.ts` 의 `DATA_WINDOW` 가 대장의 가장 새 「단월」 창과 같고,
+   사이트가 「YYYY-MM 단월」·「YYYY년 M월」로 적은 단월 창(지표 타일·부두·챕터·푸터)이 전부 그 값이다.
+   푸터의 「자료 기준」이 손으로 적힌 채 낡던 자리다(사고 31). 부두 막대의 몫 셋(65.2·23.4·11.3%)도 §2 가 대장에서 찾는다.
 
 닿지 않는 곳
 ------------
@@ -110,7 +113,7 @@ def numbers(s):
 
 
 # ── 판정 ────────────────────────────────────────────────────────────────────
-def check(site=SITE, facts_path=FACTS, judge_paths=JUDGE):
+def check(site=SITE, facts_path=FACTS, judge_paths=JUDGE, window_path=None):
     """(문제 목록, 검사 건수, 모름 사유)."""
     if not os.path.isdir(site):
         return [], 0, "측심 저장소가 없다: %s" % site
@@ -141,6 +144,12 @@ def check(site=SITE, facts_path=FACTS, judge_paths=JUDGE):
         n += 1
         if not find_value(rows, "%d 천TEU" % teu):
             problems.append("부두 %s %d천TEU — 대장에 없다" % (label, teu))
+    # 막대가 찍는 몫(teu ÷ 합계 · 소수 첫째)도 대장 행이어야 한다 — 2026-09-08 까지 65.2% 만 등재돼 있었다.
+    for label, teu in cells:
+        n += 1
+        share = "%.1f%%" % (teu / total * 100)
+        if not find_value(rows, share):
+            problems.append("부두 %s 몫 %s — 대장에 없다" % (label, share))
 
     # 3. 시계열 최소·최대
     pts = json.load(io.open(os.path.join(site, "src", "data", "series252.json"), encoding="utf-8"))
@@ -179,7 +188,32 @@ def check(site=SITE, facts_path=FACTS, judge_paths=JUDGE):
             n += 1
             if not any(v.startswith(num) for v in values) and num not in ("252",):
                 problems.append("챕터 문안의 %s — 대장 값에 없다" % num)
+    # 6. 자료 창 하나
+    wpath = window_path or os.path.join(site, "src", "data", "window.ts")
+    wm = re.search(r'DATA_WINDOW\s*=\s*"(\d{4}-\d{2})"', read(wpath)) if os.path.exists(wpath) else None
+    n += 1
+    if not wm:
+        problems.append("src/data/window.ts 의 DATA_WINDOW 를 못 읽었다")
+    else:
+        win = wm.group(1)
+        newest = max(re.findall(r"(\d{4}-\d{2}) 단월", "\n".join(w for _, w, _ in rows.values())) or ["0000-00"])
+        if newest != win:
+            problems.append("DATA_WINDOW %s — 대장의 가장 새 단월 창은 %s" % (win, newest))
+        for fn in ("components/site/metrics.tsx", "components/site/berths.tsx", "components/site/footer.tsx", "scroll-scrub-scenes.ts"):
+            src = read(os.path.join(site, "src", fn))
+            for lit in site_windows(src):
+                n += 1
+                if lit != win:
+                    problems.append("%s 의 단월 창 %s — DATA_WINDOW %s 와 다르다" % (fn, lit, win))
     return problems, n, None
+
+
+def site_windows(src):
+    """사이트 문안의 단월 창 — 「YYYY-MM 단월」과, 범위(부터·까지)가 아닌 「YYYY년 M월」. YYYY-MM 꼴로 낸다."""
+    out = re.findall(r"(\d{4}-\d{2}) 단월", src)
+    for y, m in re.findall(r"(\d{4})년 (\d{1,2})월(?!부터|까지)", src):
+        out.append("%s-%02d" % (y, int(m)))
+    return out
 
 
 def report(hook=False, strict=False):
@@ -223,6 +257,8 @@ def selftest():
     chk("수를 뽑는다", numbers("6/7 성립, 2013 미성립(84.1%)"), {"6/7", "2013", "84.1"})
     chk("지표 상수를 읽는다", site_metrics('{ value: "85.1", unit: "%", label: "x", window: "2025년 · 관측", row: 29 },'),
         [{"value": "85.1", "unit": "%", "window": "2025년 · 관측", "row": 29}])
+    chk("단월 창을 읽는다(범위는 뺀다)", site_windows("2026-07 단월 · 2026년 7월 한 달 · 2005년 1월부터 2025년 12월까지"),
+        ["2026-07", "2026-07"])
 
     print("── 인수시험: 실물 ──")
     problems, n, unknown = check()
@@ -242,6 +278,10 @@ def selftest():
             fake_j["#09"] = jf
             p3, _, _ = check(judge_paths=fake_j)
             chk("판정이 바뀌면 잡는다", any("판정 #09" in p for p in p3), True)
+            wf = os.path.join(d, "window.ts")
+            io.open(wf, "w", encoding="utf-8").write('export const DATA_WINDOW = "2026-06";\n')
+            p4, _, _ = check(window_path=wf)
+            chk("자료 창이 어긋나면 잡는다", any("DATA_WINDOW" in p for p in p4), True)
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
 
