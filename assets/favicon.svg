@@ -1,35 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img"
-     aria-label="비디무스 — 인천항 물동량">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="측심">
 <!--
-  파비콘. **항구를 가장 작게 압축하는 자리다.**
-  [2026-08-30] 그때까지 파비콘이 아예 없었다 — 탭에 아무 표시도 없었다.
-
-  16 px 에서 읽혀야 하므로 그릴 수 있는 것이 거의 없다. 그래서 안벽 크레인의
-  **문틀(portal)** 하나만 남겼다 — 다리 둘, 거더, A 형 탑. 사이트의 단면도와
-  첫 화면 스카이라인이 쓰는 것과 **같은 기호**다.
-
-  이것도 장식이고 아무 수치도 주장하지 않는다.
-
-  색은 CSS 변수를 못 쓴다(파비콘은 지면 밖에서 그려진다). 대신 `prefers-color-scheme`
-  을 SVG 안에 넣어 두 테마를 스스로 처리한다. 어두운 탭에서 검은 그림은 안 보인다.
+  파비콘. 측심(sounding.higgsfield.app)의 기호 — 눈금 매긴 줄에 달린 추(sounding lead). 같은 기하다
+  (측심 저장소 app/public/assets/brand/mark.svg). [2026-09-07 운영자 선언] 브랜드가 측심 하나로 합쳐졌다.
+  이것도 장식이고 아무 수치도 주장하지 않는다. 색은 CSS 변수를 못 쓰므로 prefers-color-scheme 을 안에 둔다.
 -->
 <style>
-  .bg { fill: #1F4A6B; }
-  .fg { stroke: #FFFFFF; }
+  .l { stroke: #0F2A3D; }
+  .w { fill: #1F7A8C; }
   @media (prefers-color-scheme: dark) {
-    .bg { fill: #7FB3D5; }
-    .fg { stroke: #0E1519; }
+    .l { stroke: #EAF0F3; }
+    .w { fill: #3FA3B6; }
   }
 </style>
-<rect class="bg" width="32" height="32" rx="3"/>
-<g class="fg" fill="none" stroke-width="2.4" stroke-linecap="round">
-  <!-- 다리 둘 -->
-  <path d="M10 26V14M22 26V14"/>
-  <!-- 거더 -->
-  <path d="M6 14h20"/>
-  <!-- A 형 탑 -->
-  <path d="M10.5 14 16 6l5.5 8"/>
-  <!-- 하부 가로대 -->
-  <path d="M10 23h12"/>
+<g class="l" fill="none" stroke-width="4" stroke-linecap="square">
+  <path d="M32 4v34M24 12h8M24 21h8M24 30h8M12 60h40"/>
 </g>
+<path class="w" d="M25 38h14l-3 18h-8z"/>
 </svg>

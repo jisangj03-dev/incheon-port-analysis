@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "Vidimus — 인천항 물동량을 공공 1차 데이터로 확인한다"
+title: "측심(Sounding) — 인천항 물동량을 공공 1차 데이터로 잰다"
 message: >-
   이 저장소의 분석·원시 데이터·재현 코드를 인용할 때 아래 정보를 쓴다.
   수치를 옮길 때는 값만이 아니라 창(기간·모집단·단위)을 같이 옮겨 달라 —
@@ -7,7 +7,7 @@ message: >-
   "8.642 / 2026-06 단월 / 수출÷수입 TEU"가 인용이다.
 type: dataset
 authors:
-  - name: "Vidimus (운영자)"
+  - name: "측심 (운영자)"
     alias: jisangj03-dev
     website: "https://github.com/jisangj03-dev"
     roles: ["검수", "발행", "책임"]
@@ -30,7 +30,7 @@ keywords:
   - port-statistics
   - reproducible-research
 license-url: "https://sounding.higgsfield.app/#data"
-version: "reports 01-08"
+version: "reports 01-09"
 date-released: "2026-08-28"
 references:
   - type: data

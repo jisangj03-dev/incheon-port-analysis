@@ -1,4 +1,4 @@
-/* Vidimus · 비디무스 — 인천항 발행 저장소 지면(GitHub Pages)의 스타일. 2026-09-06.
+/* 측심 · Sounding — 인천항 발행 저장소 지면(GitHub Pages)의 스타일. 2026-09-06 · 개명 2026-09-07.
  *
  * 무엇인가. 발행본 아홉 편이 놓이는 그릇이다. 측심(sounding.higgsfield.app)과 같은 결 —
  * 종이 위 잉크, 강조색 하나(측심 청록), 실선 대신 헤어라인, 둥근 모서리, 넉넉한 여백,
@@ -9,7 +9,7 @@
  * 그림이 상자로 뜬다. 시스템이 어두운 테마면 같은 가족의 어두운 값으로 바뀌고 그림은
  * 흰 카드 위에 남는다. 인쇄는 종이 색으로 간다.
  *
- * 대비(실측 기준): 밝음 — 흐린 글자 #5B6B78/흰 5.3:1 · 강조 #1A6E7F/흰 5.5:1.
+ * 대비(실측 기준): 밝음 — 흐린 글자 #5B6B78/흰 5.3:1 · 강조 #1F7A8C/흰 4.98:1(측심 팔레트와 같은 값).
  * 어둠 — 흐린 글자 #9DB0BC/#0B1A26 8.0:1 · 강조 #3FA3B6/#0B1A26 6.4:1. 전부 AA.
  */
 
@@ -22,8 +22,8 @@
   --muted: #5b6b78;
   --hair: rgba(15, 42, 61, 0.1);
   --hair-strong: rgba(15, 42, 61, 0.18);
-  --accent: #1a6e7f;
-  --accent-soft: rgba(26, 110, 127, 0.1);
+  --accent: #1f7a8c;
+  --accent-soft: rgba(31, 122, 140, 0.1);
   --glass: rgba(255, 255, 255, 0.72);
   --image-bg: #ffffff;
   --sans: "Pretendard Variable", Pretendard, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, sans-serif;
@@ -162,20 +162,31 @@ body {
   letter-spacing: -0.015em;
 }
 
-/* 안벽 크레인 문틀 — 파비콘과 같은 기호. 장식이고 아무 수치도 주장하지 않는다. */
+/* 측심 기호 — 파비콘·측심 사이트와 같은 기하. 줄은 잉크, 추는 강조색. 장식이고 아무 수치도 주장하지 않는다. */
 .brand__mark {
   flex: none;
-  width: 22px;
-  height: 22px;
-  color: var(--accent);
+  width: 24px;
+  height: 24px;
+  color: var(--ink);
 }
 
-.brand__kor {
+.brand__weight {
+  fill: var(--accent);
+}
+
+.brand__name {
+  font-size: 1.08rem;
+  letter-spacing: -0.02em;
+}
+
+/* 측심 사이트의 nav small 과 같은 값 — 500 · 0.75rem · 자간 0.14em · 흐린 색. */
+.brand__sub {
   position: relative;
-  top: 0.06em;
+  top: 0.05em;
+  margin-left: -0.15rem;
   font-weight: 500;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
   color: var(--muted);
 }
 
@@ -229,7 +240,7 @@ body {
 }
 
 @media (max-width: 560px) {
-  .brand__kor {
+  .brand__sub {
     display: none;
   }
 

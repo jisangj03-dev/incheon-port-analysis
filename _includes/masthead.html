@@ -1,16 +1,16 @@
-<!-- 상단 바. 유리 바 56px, 헤어라인 하나 — 측심의 바와 같은 문법.
-     제호는 방법의 이름(Vidimus · 비디무스 · 지침 §6.1), 대상은 지면과 푸터가 진다. -->
+<!-- 상단 바. 유리 바 56px, 헤어라인 하나 — 측심 사이트의 바와 같은 문법, 같은 기호, 같은 제호.
+     [2026-09-07 운영자 선언] 브랜드는 측심(Sounding) 하나다. 이 저장소는 그 발행본·원시 데이터·재현 코드를 든다. -->
 <header class="mast">
   <div class="mast__in">
     <a class="brand" href="{{ '/' | relative_url }}">
-      <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M10 26V14M22 26V14"/><path d="M6 14h20"/><path d="M10.5 14 16 6l5.5 8"/><path d="M10 23h12"/></g></svg>
-      <span class="brand__lat">Vidimus</span>
-      <span class="brand__kor">비디무스</span>
+      <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"><path d="M32 4v34M24 12h8M24 21h8M24 30h8M12 60h40"/></g><path class="brand__weight" d="M25 38h14l-3 18h-8z"/></svg>
+      <span class="brand__name">측심</span>
+      <span class="brand__sub">SOUNDING</span>
     </a>
     <nav class="mast__nav" aria-label="사이트">
       <a href="{{ '/' | relative_url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>보고서</a>
       <a href="{{ '/about.html' | relative_url }}" data-optional{% if page.url == '/about.html' %} aria-current="page"{% endif %}>소개</a>
-      <a href="https://sounding.higgsfield.app/">측심<span class="ext" aria-hidden="true">↗</span></a>
+      <a href="https://sounding.higgsfield.app/">사이트<span class="ext" aria-hidden="true">↗</span></a>
       <a href="https://github.com/jisangj03-dev/incheon-port-analysis">저장소<span class="ext" aria-hidden="true">↗</span></a>
     </nav>
   </div>

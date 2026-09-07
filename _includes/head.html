@@ -15,7 +15,7 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b1a26">
-<!-- 파비콘 — 옛 허브가 쓰던 Vidimus 기호(안벽 크레인 문틀)를 그대로 가져왔다. 같은 브랜드다. -->
+<!-- 파비콘 — 측심 사이트와 같은 기호(눈금 줄에 달린 추). [2026-09-07] 브랜드가 측심 하나로 합쳐졌다. -->
 <link rel="icon" type="image/svg+xml" href="{{ '/assets/favicon.svg' | relative_url }}">
 <!-- iOS 홈 화면·사파리 탭 — SVG 파비콘을 못 쓰는 자리. 같은 기호를 180px PNG 로(assets/apple-touch-icon.png · 생성 경위 = 작업기록 2026-09-07). -->
 <link rel="apple-touch-icon" href="{{ '/assets/apple-touch-icon.png' | relative_url }}">
@@ -28,16 +28,16 @@
 <meta property="og:title" content="{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title }}{% endif %}">
 <meta property="og:description" content="{{ vd_desc | escape }}">
 <meta property="og:url" content="{{ page.url | absolute_url }}">
-<meta property="og:image" content="{{ '/assets/og.png' | absolute_url }}">
+<meta property="og:image" content="{{ '/assets/og.jpg' | absolute_url }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Vidimus · 비디무스 — 인천항을 공공 1차 데이터로 확인한다">
+<meta property="og:image:alt" content="측심 · Sounding — 인천항을 공공 1차 데이터로 잰다">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="{{ '/assets/og.png' | absolute_url }}">
+<meta name="twitter:image" content="{{ '/assets/og.jpg' | absolute_url }}">
 
-<!-- 서체. Pretendard(OFL) 동적 부분집합 — 측심과 같은 얼굴. 이 저장소는 발행본·원시 데이터·
+<!-- 서체. Pretendard(OFL) 동적 부분집합 — 측심 사이트와 같은 얼굴. 이 저장소는 발행본·원시 데이터·
      재현 코드의 자리라 글꼴 파일 수 MB 를 여기 들이지 않고 CDN 에서 받는다. 못 받으면
      시스템 한글 서체로 떨어진다(CSS 의 대체 목록). -->
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
-<link rel="stylesheet" href="{{ '/assets/css/vidimus.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/sounding.css' | relative_url }}">

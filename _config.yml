@@ -25,8 +25,8 @@
 #   그 미결은 추인 C·D로 닫혔고, 운영자 선언으로 **축이 인천항 하나가 됐다**(지침 v6.0 §1.3).
 #   이제 대상을 적는 것이 종속이 아니라 확정 사실이다.
 
-title: "Vidimus · 비디무스"
-description: "인천항을 공공 1차 데이터로 확인한다 — 인천항 물동량 리서치"
+title: "측심"
+description: "인천항을 공공 1차 데이터로 잰다 — 발행본 · 원시 데이터 · 재현 코드"
 theme: jekyll-theme-primer
 lang: ko
 url: "https://jisangj03-dev.github.io"
