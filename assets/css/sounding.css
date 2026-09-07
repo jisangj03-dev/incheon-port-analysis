@@ -411,6 +411,13 @@ blockquote strong {
   color: var(--ink);
 }
 
+/* 패널 위의 링크 — 강조색 #1F7A8C 는 흰 바탕에서 4.98:1 이지만 패널(#EEF3F5)에선 4.4:1 이라 axe 가 잡았다(2026-09-07 개명 직후).
+ * 잉크 쪽으로 섞어 한 단계 진하게. 어두운 테마에선 잉크가 밝은 색이라 반대로 밝아진다 — 둘 다 AA. */
+blockquote a,
+pre a {
+  color: color-mix(in srgb, var(--accent) 80%, var(--ink));
+}
+
 code {
   padding: 0.12em 0.4em;
   border-radius: 6px;
@@ -739,8 +746,37 @@ td.num {
   color: var(--accent);
 }
 
+/* 행 오른쪽의 「›」 — 애플 목록 행의 문법. 행 전체가 눌리는 것은 아니고 제목이 링크다(장식 · 낭독기엔 안 읽힌다). */
+.doc li:has(> a[href*="reports/report_"]) {
+  position: relative;
+  padding-right: 2rem;
+}
+
+.doc li:has(> a[href*="reports/report_"])::after {
+  content: "›";
+  position: absolute;
+  right: 0.35rem;
+  top: 1.1rem;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  transition: transform 180ms var(--ease), color 180ms var(--ease);
+}
+
+.doc li:has(> a[href*="reports/report_"]):hover::after {
+  color: var(--accent);
+  transform: translateX(3px);
+}
+
 .doc li > a[href*="reports/report_"]:focus-visible {
   outline-offset: 6px;
+}
+
+/* ── 핵심 요약 — 첫 절의 문장은 결론 자리다(지침 §3). 한 단계 크게, 숨 쉬게. ── */
+.doc > h2:first-of-type + ul > li {
+  margin: 0.7em 0;
+  font-size: 1.04rem;
+  line-height: 1.7;
 }
 
 /* ── 보고서 머리 — 작성일 · 분석 대상 · 한 줄 결론 ──────────────────────── */
@@ -871,6 +907,85 @@ td.num {
 .toc a.is-cur {
   color: var(--accent);
   font-weight: 600;
+}
+
+/* ── 접힌 차례 (좁은 화면) — 애플 개발자 문서의 「이 페이지에서」 ─────────── */
+.toc-m {
+  margin: 2rem 0 0;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--ground);
+}
+
+@media (min-width: 1280px) {
+  .toc-m {
+    display: none;
+  }
+}
+
+.toc-m summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.9rem;
+  padding: 0.55rem 1.1rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.toc-m summary::-webkit-details-marker {
+  display: none;
+}
+
+.toc-m summary::after {
+  content: "›";
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform 200ms var(--ease);
+}
+
+.toc-m[open] summary::after {
+  transform: rotate(-90deg);
+}
+
+.toc-m summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: var(--r-md);
+}
+
+.toc-m ol {
+  margin: 0;
+  padding: 0 1.1rem 0.6rem;
+  list-style: none;
+}
+
+.toc-m li {
+  margin: 0;
+}
+
+.toc-m a {
+  display: block;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--hair);
+  color: var(--text);
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.toc-m a:hover {
+  color: var(--accent);
+}
+
+@media print {
+  .toc-m {
+    display: none !important;
+  }
 }
 
 /* ── 이전 · 다음 편 ────────────────────────────────────────────────────── */

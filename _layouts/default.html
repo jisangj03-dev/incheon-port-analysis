@@ -157,6 +157,15 @@
         toc.appendChild(cap);
         toc.appendChild(ol);
         toc.hidden = false;
+        // 좁은 화면용 접힌 차례 — 머리 정보 목록(작성일·분석 대상·한 줄 결론) 뒤, 첫 절 앞.
+        var det = document.createElement("details");
+        det.className = "toc-m";
+        var sum = document.createElement("summary");
+        sum.textContent = "이 편의 차례";
+        det.appendChild(sum);
+        det.appendChild(ol.cloneNode(true));
+        var meta = doc.querySelector("ul + hr") || h2s[0];
+        if (meta) meta.parentNode.insertBefore(det, meta);
         var links = ol.querySelectorAll("a");
         var setCur = function (id) {
           for (var i = 0; i < links.length; i++) {
