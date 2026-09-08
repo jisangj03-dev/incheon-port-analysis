@@ -231,7 +231,7 @@ def render(snap, live=None):
         L.append(snap["report"])
     if snap.get("touched"):
         L.append("")
-        L.append("## 그 세션에서 편집 도구가 연 파일 (대화록 기준 · 최근 %d개까지)" % FILES_MAX)
+        L.append("## 그 세션에서 편집 도구가 연 파일 (대화록 기준 · 최근 %d개까지 · Bash 로 고친 파일은 여기 없고 아래 미커밋 목록이 든다)" % FILES_MAX)
         for f in snap["touched"]:
             L.append("- `%s`" % f)
     L.append("")
