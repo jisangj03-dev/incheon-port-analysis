@@ -98,6 +98,9 @@ STATE = (
     # 한도로 끊겨 두 저장소의 작업이 커밋 전인 채 남았고 다음 세션이 그것을 추정해야 했다(사고 96).
     # 실패가 아니라 **보고할 사실**이라 종료코드는 0 이고 마지막 줄이 판정을 든다.
     ("session_snapshot.py", ("--check",)),
+    # **[2026-09-08] STATUS 이관 후보와 여유.** 상한 처리가 일주일에 13번 손 동작이었다.
+    # 보고일 뿐이라 종료코드 0 · 마지막 줄이 「여유 N B · 후보 M개」를 든다.
+    ("status_archive.py", ("--check",)),
 )
 # STATUS 는 매 세션 전문이 읽힌다. 커지면 그만큼 착수가 느려진다.
 # 자기 머리말이 「41 KB였다」고 적어 둔 파일이라 그 선을 상한으로 쓴다.
@@ -166,15 +169,23 @@ def run(path, args=(), timeout=60, retry=1):
     return UNK, "종료코드 %d · %s" % (p.returncode, last), time.time() - t0
 
 
+def status_bytes(data):
+    """STATUS 크기 — **LF 기준.** `.gitattributes` 가 md 를 LF 로 고정하는데 이 기계의 작업 트리는
+    CRLF 라 디스크 크기가 줄 수만큼 크다(415줄이면 415 B). 2026-09-08 「42,009 B 넘은 채 커밋」이
+    그것이었다 — git 에는 41,594 B 였다(사고 99). 그래서 디스크가 아니라 **git 이 보는 바이트**를 잰다.
+    `status_archive.py` 도 이 함수로 잰다 — 자는 하나다."""
+    return len(data.replace(b"\r\n", b"\n"))
+
+
 def status_size():
     p = os.path.join(ROOT, "docs", "STATUS.md")
     if not os.path.exists(p):
         return UNK, "docs/STATUS.md 가 없다", 0
-    n = os.path.getsize(p)
+    n = status_bytes(io.open(p, "rb").read())
     if n <= STATUS_LIMIT:
-        return OK, "%d B (상한 %d)" % (n, STATUS_LIMIT), n
-    return BAD, ("%d B — 상한 %d 을 넘었다. **매 세션 전문이 읽히는 파일이다** — "
-                 "끝난 라운드의 경위는 `docs/작업기록.md` 로 옮긴다."
+        return OK, "%d B (LF 기준 · 상한 %d)" % (n, STATUS_LIMIT), n
+    return BAD, ("%d B — 상한 %d 을 넘었다(LF 기준). **매 세션 전문이 읽히는 파일이다** — "
+                 "`python analysis/status_archive.py --check` 로 후보를 보고 `--write` 로 옮긴다."
                  % (n, STATUS_LIMIT)), n
 
 
