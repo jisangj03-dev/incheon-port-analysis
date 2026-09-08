@@ -629,9 +629,19 @@ def selftest():
     check("평범한 URL 은 그대로 둔다", encode_url("https://a/b?x=1"), "https://a/b?x=1")
 
     print("── 인수시험: push대기 (실물에 걸어 확인한다) ──")
-    check("우리 저장소 · 로컬에 있음 · 미push → 근거를 찾는다",
-          local_evidence("https://github.com/jisangj03-dev/incheon-port-analysis/"
-                         "blob/main/analysis/check_links.py") is not None, True)
+    # 고정물은 **지금 만든 임시 파일**이다 — 「로컬에 있고 origin/main 에 없다」가 구성으로 참이다.
+    # 2026-09-09 까지는 이 파일 자신(`check_links.py`)을 고정물로 썼는데, 그날 인천 push 로
+    # 전부 원격에 실리자 시험이 떨어졌다. 실물의 상태에 기대는 고정물은 실물이 바뀌면 낡는다.
+    tmp_rel = "analysis/_selftest_unpushed.tmp"
+    tmp_abs = os.path.join(ROOT, tmp_rel)
+    with open(tmp_abs, "w", encoding="utf-8") as fh:
+        fh.write("selftest fixture — 지워도 된다\n")
+    try:
+        check("우리 저장소 · 로컬에 있음 · 미push → 근거를 찾는다",
+              local_evidence("https://github.com/jisangj03-dev/incheon-port-analysis/"
+                             "blob/main/" + tmp_rel) is not None, True)
+    finally:
+        os.remove(tmp_abs)
     check("없는 파일은 근거가 없다",
           local_evidence("https://github.com/jisangj03-dev/incheon-port-analysis/"
                          "blob/main/analysis/없는파일.py"), None)

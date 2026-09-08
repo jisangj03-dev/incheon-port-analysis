@@ -24,9 +24,15 @@
 -----------
   python analysis/hook_stopline.py --selftest
 
+운영자 통로 (2026-09-09 운영자 위임)
+--------------------------------------
+환경에 `VIDIMUS_PUSH_OK=1` 이 있으면 push 판정을 **통과**시킨다 — `git_pre_push.sh` 와 같은 변수다.
+운영자가 `.claude/settings.local.json` 의 `env` 로 이 변수를 상시 켰다(위임문 · 작업기록 2026-09-09).
+그래서 지금 이 훅이 push 를 막는 경우는 그 env 가 빠진 기계뿐이다. 커밋 전 앵커 검사는 그대로 돈다.
+
 정지선-집행: §4 — push는 운영자만 / 커밋 전 앵커 검사
 정지선-명제: Claude Code 도구 경로로 들어온 **명령 문자열** 중 push를 거부하고, commit 앞에서 앵커 검사를 돌린다
-정지선-한계: **문자열만 본다** — `subprocess.run(['git','push'])` 같은 간접 호출은 못 막는다(실측). 2층이 그것을 받는다
+정지선-한계: **문자열만 본다** — `subprocess.run(['git','push'])` 같은 간접 호출은 못 막는다(실측). 2층이 그것을 받는다 · **`VIDIMUS_PUSH_OK=1` 이 환경에 있으면 push 를 통과시킨다**(2026-09-09 운영자가 settings env 로 상시 켬 — 이 기계에서는 열려 있다)
 """
 
 import json
@@ -107,6 +113,11 @@ def classify(cmd):
     return "pass", None
 
 
+def push_allowed(env):
+    """운영자 통로 — `git_pre_push.sh` 와 같은 변수를 같은 뜻으로 읽는다. 시험이 이 함수를 직접 친다."""
+    return env.get("VIDIMUS_PUSH_OK") == "1"
+
+
 def run_checks():
     """실패한 검사가 있으면 (라벨, 종료코드, 꼬리출력), 없으면 None."""
     for args, label in CHECKS:
@@ -129,7 +140,7 @@ def main():
     cmd = (payload.get("tool_input") or {}).get("command") or ""
     verdict, reason = classify(cmd)
 
-    if verdict == "push":
+    if verdict == "push" and not push_allowed(os.environ):
         emit_deny(reason)
     if verdict == "commit":
         bad = run_checks()
@@ -174,6 +185,13 @@ def selftest():
         hit = got == want
         ok = ok and hit
         print("  %s %-40s -> %-6s (기대 %s)" % ("OK  " if hit else "FAIL", cmd[:40], got, want))
+    # 운영자 통로 — 변수가 정확히 "1" 일 때만 열린다. 없거나 다른 값이면 닫힌다(양방향).
+    print("── 인수시험: 운영자 통로(VIDIMUS_PUSH_OK) ──")
+    for env, want in ({}, False), ({"VIDIMUS_PUSH_OK": "1"}, True), ({"VIDIMUS_PUSH_OK": "0"}, False), ({"VIDIMUS_PUSH_OK": ""}, False):
+        got = push_allowed(env)
+        hit = got == want
+        ok = ok and hit
+        print("  %s env=%-28s -> %-5s (기대 %s)" % ("OK  " if hit else "FAIL", env, got, want))
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
