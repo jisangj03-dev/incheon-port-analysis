@@ -499,6 +499,20 @@ def build(site_dir: str, out_dir: str, verbose: bool = True) -> list[str]:
                     shutil.copyfile(os.path.join(root, fn), os.path.join(dst_dir, fn))
                 except PermissionError:
                     print(f"  [건너뜀] 잠긴 파일: {sub}/{fn}")
+    # [2026-09-08] 발행본 지면은 평평하게(`reports_report_07….html`) 나가는데 본문의 그림은
+    # `images/…`(reports/ 기준 상대경로)라 **미리보기에서만 전부 404** 였다 — 실물(Jekyll)은
+    # /reports/ 아래라 산다. 같은 파일을 `images/` 에도 둔다. 도구 한계가 사이트 결함으로 보이지
+    # 않게. 첫 화면에서 눌러 들어가면(`reports/….md` 경로) 살고, 평평한 주소를 직접 열 때만 404 다 —
+    # 배포 전 전수검사(2026-09-08)가 평평한 주소로 열어 봤다. 크롤은 첫 화면 경로로 들어가 못 볼 자리였다.
+    ri = os.path.join(out_dir, "reports", "images")
+    if os.path.isdir(ri):
+        mi = os.path.join(out_dir, "images")
+        os.makedirs(mi, exist_ok=True)
+        for fn in os.listdir(ri):
+            try:
+                shutil.copyfile(os.path.join(ri, fn), os.path.join(mi, fn))
+            except PermissionError:
+                print(f"  [건너뜀] 잠긴 파일: images/{fn}")
 
     written = []
     for path in pages:
