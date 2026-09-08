@@ -330,10 +330,23 @@ def show():
     print(render(snap, live=repos_state()))
 
 
-def check():
-    """개시 검사 한 줄. 종료코드는 0 — 미커밋은 실패가 아니라 **보고할 사실**이다."""
-    snap = load()
-    live = repos_state()
+def same_session(snap):
+    """스냅샷의 열린 턴이 **이 세션**의 것인가.
+
+    [2026-09-08] `boot_check` 는 턴 **도중**에 돈다 — 그래서 첫 실행에서 자기가 속한 턴을
+    「미종료 · 끊김」으로 찍었다(사고 98). 훅이 적은 session_id 와 지금 세션의 환경 변수
+    `CLAUDE_CODE_SESSION_ID` 가 같으면 그 턴은 끊긴 것이 아니라 진행 중인 것이다.
+    변수가 없으면(운영자 터미널) 가를 수 없고, 그때는 종전대로 「끊김」으로 낸다 — 세션 밖에서
+    열린 턴을 보는 사람에게 그 말은 여전히 맞다.
+    """
+    sid = snap.get("session_id") or ""
+    return bool(sid) and sid == (os.environ.get("CLAUDE_CODE_SESSION_ID") or "")
+
+
+def check_line(snap=None, live=None):
+    """개시 검사 한 줄. 미커밋은 실패가 아니라 **보고할 사실**이다."""
+    snap = load() if snap is None else snap
+    live = repos_state() if live is None else live
     parts = []
     for r in live:
         s = r.get("state")
@@ -343,11 +356,18 @@ def check():
             parts.append("%s 미커밋 %d" % (r["name"], s["dirty_n"]))
     if not snap:
         turn = "스냅샷 없음(훅이 아직 안 돌았다)"
+    elif snap.get("turn_open") and same_session(snap):
+        turn = "이 세션의 턴 진행 중(%s 시작 · 끊긴 것이 아니다)" % snap.get("prompt_ts", "?")
     elif snap.get("turn_open"):
         turn = "마지막 턴 미종료(%s 시작 · 끊김)" % snap.get("prompt_ts", "?")
     else:
         turn = "마지막 턴 끝남(%s)" % (snap.get("stop_ts", "?"))
-    print("세 저장소: " + (" · ".join(parts) if parts else "전부 깨끗") + " · " + turn)
+    return "세 저장소: " + (" · ".join(parts) if parts else "전부 깨끗") + " · " + turn
+
+
+def check():
+    """종료코드는 0 — 보고이지 판정이 아니다."""
+    print(check_line())
     return 0
 
 
@@ -413,6 +433,20 @@ def selftest():
         print("── 인수시험: 시스템 블록은 지시로 안 적는다 ──")
         on_prompt({"session_id": "abcdefgh-1", "transcript_path": tp, "prompt": "<command-name>/x</command-name>"})
         chk("앞의 지시를 지킨다", load()["prompt"], "셋째 지시")
+
+        print("── 인수시험: 개시 검사가 자기 턴을 「끊김」으로 읽지 않는가(사고 98) ──")
+        on_prompt({"session_id": "abcdefgh-1", "transcript_path": tp, "prompt": "넷째 지시"})
+        keep_env = os.environ.get("CLAUDE_CODE_SESSION_ID")
+        os.environ["CLAUDE_CODE_SESSION_ID"] = "abcdefgh-1"
+        chk("같은 세션이면 진행 중", "진행 중" in check_line(load(), load()["repos"]), True)
+        os.environ["CLAUDE_CODE_SESSION_ID"] = "zzzzzzzz-9"
+        chk("다른 세션이면 끊김", "끊김" in check_line(load(), load()["repos"]), True)
+        del os.environ["CLAUDE_CODE_SESSION_ID"]
+        chk("변수가 없으면 끊김(가를 수 없다)", "끊김" in check_line(load(), load()["repos"]), True)
+        if keep_env is not None:
+            os.environ["CLAUDE_CODE_SESSION_ID"] = keep_env
+        on_stop({"session_id": "abcdefgh-1", "transcript_path": tp})
+        chk("닫힌 턴은 끝남", "끝남" in check_line(load(), load()["repos"]), True)
 
         print("── 인수시험: 깨진 입력에 죽지 않는가 ──")
         on_stop({})
