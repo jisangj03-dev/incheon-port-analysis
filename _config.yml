@@ -31,3 +31,8 @@ theme: jekyll-theme-primer
 lang: ko
 url: "https://jisangj03-dev.github.io"
 baseurl: "/incheon-port-analysis"
+
+# [2026-09-08] 세션 운영 파일은 지면으로 렌더하지 않는다. 저장소에는 그대로 있다(공개 경계 안 · §4.1) —
+#   다만 사이트 마스트헤드 아래 「세션 개시」 지면이 서는 것은 의도한 지면이 아니다. 배포 전 전수검사에서 봤다.
+exclude:
+  - CLAUDE.md
