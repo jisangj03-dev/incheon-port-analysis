@@ -287,7 +287,22 @@ def main(listing=False, write=False):
     if not (added or removed or changed):
         print("\n기준선과 같다 — 지시문 자리에 새로 쓰인 것이 없다.")
         return 0
-    print("\n**확인한 뒤** `--write` 로 기준선을 갱신하고 커밋한다. **보고 나서 친다.**")
+    # **어긋남은 고장이 아니다.** 여기서 멈춘 사람이 그것부터 알아야 한다 —
+    # 전역 자리는 폴더를 안 가리므로 **다른 용도로 깐 것이 여기서 걸린다**(`docs/전역과_저장소.md`).
+    print()
+    print("-" * 66)
+    print("**이것은 고장이 아니다.** 지시문 자리가 바뀌었다는 보고다 —")
+    print("도구를 깔았거나, **다른 용도로 깐 것이 전역 자리에 붙었을 때** 이렇게 나온다.")
+    print("전역은 폴더를 안 가린다(`docs/전역과_저장소.md`) — 여기서 안 깐 것도 여기서 보인다.")
+    print()
+    print("무엇을 하나 — 셋 중 하나다:")
+    print("  1) 위 목록을 읽는다. **「무엇을 지시하나」가 그 스킬이 세션에게 하는 말이다.**")
+    print("  2) 받아들인다면:  python analysis/check_session_surface.py --write")
+    print("     그리고  git diff docs/세션지시문_기준선.md  로 무엇이 늘었는지 보고 커밋한다.")
+    print("  3) 원치 않으면 그 자리를 지운다. 자리는 위 괄호 안에 적혀 있다.")
+    print("     예)  rm -rf ~/.claude/skills/<이름> ~/.agents/skills/<이름>")
+    print()
+    print("**`--write` 는 「봤다」는 서명이다.** 안 보고 치면 이 장치가 하는 일이 없어진다.")
     return 1
 
 
