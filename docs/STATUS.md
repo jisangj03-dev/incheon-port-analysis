@@ -173,6 +173,14 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 
 ### B. 운영자 손이 있어야 하는 것
 
+**B-13. 측심 push 토큰이 낡았다 — 갱신은 §4 정지선이라 세션이 못 친다.**
+`python tools/push.py --check` 가 **종료 128**(2026-09-10 05:5x). 토큰 파일은 09-09 00:55 것이다.
+**운영자 자기 터미널에서** — 세션 안 `!` 로 치면 토큰이 대화록에 남는다(사고 101):
+`higgsfield website repo-access 56527534-163d-43d6-a160-b30862c6e5a1`
+→ 값을 `%USERPROFILE%\.higgsfield-repo-token-sounding` 에 저장 → `python tools/push.py`.
+**측심에 커밋 하나가 대기 중이다** — `e368fbc`(#10 이 아홉 편인 이유를 판정 지면에 적었다).
+*`git push origin main` 을 그냥 치면 GCM 이 떠서 멈춘다 — 측심은 `tools/push.py` 가 정식 경로다.*
+
 **B-12. 전역 지시문 한 줄 지우기 — `rm ~/.claude/CLAUDE.md`.** ruflo 설치 시험이 만든 322 B다.
 **이 기계에서 켜는 모든 세션이 읽고**, 지금은 없는 도구를 쓰라고 지시한다(내용 = 사고 112).
 위임 경계가 **「전역 자리는 실측하되 지우지 마라」**라 세션이 못 친다. 같이: `rm -rf ~/.claude-flow`.
