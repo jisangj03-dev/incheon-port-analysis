@@ -12,6 +12,7 @@
 
   python analysis/channel_queue.py                 # 「지금 뭐 대기 중이야」 — 폰에서 읽는 그것
   python analysis/channel_queue.py --check [--net] # 대기 중인 것 전부 검사 → 검증 칸 갱신
+  python analysis/channel_queue.py --before-post <id>   # 누르기 직전 점검(중복 확인용 첫 줄)
   python analysis/channel_queue.py --set <id> --state 게시됨 --url <주소>
   python analysis/channel_queue.py --selftest
 
@@ -25,8 +26,12 @@
 
 닿지 않는 곳
 ------------
-· **이 파일은 우리가 적는 것이다.** 채널에 실제로 글이 있는지는 안 본다 —
+· **이 파일은 우리가 적는 것이다. 채널에 실제로 글이 있는지는 안 본다** —
   「게시됨」은 **우리가 눌렀다는 기록**이지 채널의 상태가 아니다. 확인은 `url` 을 여는 것이다.
+  **2026-09-10 에 이 한계가 실제로 물었다** — 운영자가 파이프라인 밖에서 li-01 을 올렸는데
+  대기열은 `준비` 를 들고 있었다. 대기열만 보고 눌렀으면 같은 글이 두 번 나갔다.
+  **채널을 훑는 검사기는 못 만든다**(자격 증명을 안 다룬다). 대신 `--before-post` 가
+  **채널에서 찾을 첫 줄**을 내놓는다 — 사람이 기억하는 대신 그것을 찾는다.
 · 문안 본문은 `본부\채널문안\` 이 든다. 여기는 **상태만** 든다(사본은 갈라진다).
 · 순서를 강제하지 않는다 — 무엇을 먼저 올릴지는 판단이다.
 """
@@ -223,6 +228,62 @@ def check(net=False):
     return 1 if bad else 0
 
 
+def before_post(rid):
+    """**누르기 직전에 치는 것.** 채널 규칙 · 되돌릴 수 있는가 · **중복 확인용 첫 줄**.
+
+    2026-09-10 실측: 운영자가 파이프라인 밖에서 li-01 을 올렸는데 **대기열은 그것을 몰랐다**
+    — 「게시됨」은 우리가 눌렀다는 기록이지 채널의 상태가 아니기 때문이다(이 파일의 한계 절).
+    대기열만 보고 눌렀으면 같은 글이 두 번 나갔다.
+
+    **채널을 훑는 검사기는 못 만든다**(로그인·자격 증명은 안 다룬다). 그래서 대신
+    **찾을 문자열을 기계가 내놓는다** — 사람이 기억하는 대신 그것을 채널에서 찾는다.
+    """
+    rows, _, _ = read()
+    hit = [r for r in rows if r.get("id") == rid]
+    if len(hit) != 1:
+        print("**일치 %d건 — 그런 id 가 없다.** id=%r" % (len(hit), rid))
+        return 2
+    r = hit[0]
+    ch = CH.CHANNELS.get(r.get("채널"), {})
+    p = draft_path(r)
+    print("== 게시 직전 점검 — %s (%s) ==" % (rid, ch.get("이름", r.get("채널"))))
+    print("  무엇: %s" % r.get("무엇"))
+    print("  상태: %s · 검증: %s" % (r.get("상태"), r.get("검증") or "미검사"))
+    if r.get("상태") == "게시됨":
+        print("\n  **이미 게시됨으로 적혀 있다** — 주소 %s" % r.get("주소"))
+        return 2
+    if not p:
+        print("\n  **문안 파일이 없다**: %s" % r.get("문안"))
+        return 2
+
+    import channel_post as CP
+    meta, body = CP.parse(p)
+    first = body.strip().split("\n")[0].strip()
+    print("\n  ── 중복 확인 ──")
+    print("  **채널에서 이 줄을 먼저 찾는다. 있으면 누르지 않는다.**")
+    print("    「%s」" % first)
+    print("  (대기열은 채널을 안 본다 — 밖에서 올린 것을 모른다. 2026-09-10 에 실제로 그랬다.)")
+
+    print("\n  ── 이 채널에서 알아야 하는 것 ──")
+    if not ch.get("되돌릴수있나", True):
+        print("  **되돌릴 수 없다** — 삭제 유예 %s · 수정 없음. **전문을 보이고 승인받는다.**"
+              % ch.get("삭제유예", "[미확인]"))
+    else:
+        print("  되돌릴 수 있다(수정·삭제 가능). 그래도 승인 뒤에 누른다.")
+    if ch.get("선행조건"):
+        print("  선행 조건: **%s**" % ch["선행조건"])
+    for m in ch.get("메모", []):
+        print("  · %s" % m)
+
+    print("\n  ── 붙여넣을 것 ──")
+    if meta.get("title"):
+        print("  제목(%d자): %s" % (len(meta["title"]), meta["title"]))
+    print("  본문 %d자 · 줄 %d · 링크 %d개" % (len(body), body.count("\n") + 1, len(CH.urls(body))))
+    print("  파일: %s" % p)
+    print("\n  붙여넣은 뒤 **화면의 글자를 이 파일과 대조한다** — 한글이 빠지는 일이 있다.")
+    return 0
+
+
 def setrow(rid, state=None, url=None, note=None, verify=None):
     rows, head, tail = read()
     hit = [r for r in rows if r.get("id") == rid]
@@ -334,6 +395,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="채널 발행 대기열")
     ap.add_argument("--check", action="store_true", help="대기 중인 문안을 전부 검사")
     ap.add_argument("--net", action="store_true", help="검사에서 링크·카드를 실제로 친다")
+    ap.add_argument("--before-post", dest="pre", default=None,
+                    help="누르기 직전 점검 — 중복 확인용 첫 줄과 채널 주의")
     ap.add_argument("--set", dest="rid", default=None, help="갱신할 id")
     ap.add_argument("--state", default=None, help=" · ".join(STATES))
     ap.add_argument("--url", default=None)
@@ -343,6 +406,8 @@ if __name__ == "__main__":
     a = ap.parse_args()
     if a.selftest:
         sys.exit(selftest())
+    if a.pre:
+        sys.exit(before_post(a.pre))
     if a.rid:
         sys.exit(setrow(a.rid, a.state, a.url, a.note, a.verify))
     if a.check:

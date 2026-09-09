@@ -16,6 +16,8 @@
 
   python analysis/channel_post.py --source reports/report_09_*.md   # 문안 재료
   python analysis/channel_post.py --check <문안파일> [--net]         # 검사
+  python analysis/channel_post.py --clip <문안파일>                  # 클립보드에 넣고 정본 해시
+  python analysis/channel_post.py --verify <문안파일> --got <해시>    # 붙여넣은 것과 파일을 맞댄다
   python analysis/channel_post.py --check-all [--net]                # 본부 문안 전부
   python analysis/channel_post.py --selftest
 
@@ -37,6 +39,10 @@
 · **OG 카드는 태그가 있는지와 이미지가 200인지만 본다.** 채널이 실제로 어떻게 그리는지는
   **사람이 미리보기로 본다.** 「속성이 붙었다」는 「그렇게 보인다」가 아니다(사고 73).
 · 수치 대조는 `lint_publish.py --channel` 에 넘긴다 — 대장을 두 번 읽지 않는다.
+· **깨진 음절 검사는 겹받침 목록에 기댄다.** 「그럵」은 정상 유니코드라 인코딩으로는 못 잡고,
+  낱말인지 아닌지는 사전이 있어야 안다. **목록 밖 겹받침을 의심할 뿐 판정하지 않는다** —
+  다른 자리가 깨지면(받침 없는 음절끼리 바뀌면) **이 검사는 침묵한다.**
+  **본체 방어는 `--clip` 과 `--verify` 다** — 전사를 없애고, 대조를 파일과 한다.
 """
 
 import argparse
@@ -156,6 +162,11 @@ def check_links(body, target, net):
     us = CH.urls(body)
     if target and target not in us:
         out.append((WARN, "카드가 될 주소(`target`)가 본문에 없다: %s" % target))
+    elif target and us and len(us) > 1 and us[-1] != target:
+        # **어느 URL 에 카드가 붙는지는 [미확인]이다** — li-02 는 마지막, 게시된 li-01 은 첫째였다.
+        # 확실한 것은 「순서를 바꾸면 바뀐다」뿐이라, 여기서는 **확인하라**고만 한다.
+        out.append((WARN, "URL 이 %d개인데 `target`(%s)이 마지막이 아니다 — **카드가 어디 붙을지는 "
+                          "[미확인]이다.** 붙여넣고 미리보기를 눈으로 본다" % (len(us), target)))
     if not net:
         out.append((INFO, "링크를 안 쳤다 — `--net` 을 줘야 친다. **소스 판정은 사이트에 대한 진술이 아니다**"))
         return out
@@ -234,6 +245,132 @@ def check_numbers(path):
     return [(FAIL, "린터 FAIL — %s" % tail)] + [(FAIL, "  " + h[:110]) for h in hits]
 
 
+# ── 붙여넣기: 전사를 없앤다 ─────────────────────────────────────────────────
+#
+# **2026-09-10 사고.** 문안을 base64 로 만들어 브라우저 스크립트에 **손으로 옮겨 적고**
+# 거기서 디코드해 넣었다. 옮겨 적을 때 base64 한 글자가 틀렸고(위치 1614 · `U`↔`A`),
+# 6비트가 바뀌어 「그런」이 **「그럵」**으로 나갔다.
+#
+# **그런데 대조는 통과했다.** 브라우저 내용을 **같은 깨진 문자열에서 디코드한 변수**와
+# 맞댔기 때문이다 — 사본을 사본과 댄 것이고, **형해화된 대조와 성공한 대조는 출력이 똑같다**
+# (§3-6 · 사고 25). 「불일치 0」이 「같다」가 아니라 **「같은 것을 두 번 봤다」**였다.
+#
+# 처분은 둘이다.
+#   ① **전사 경로를 없앤다** — 파일에서 OS 클립보드로 바로 넣고 브라우저는 Ctrl+V 로 받는다.
+#      본문이 사람(또는 이 세션)의 손을 한 번도 안 거친다.
+#   ② **대조를 독립시킨다** — 파일에서 낸 해시와 브라우저에서 낸 해시를 맞댄다.
+#      해시를 잘못 옮겨 적으면 **불일치가 되지 통과가 되지 않는다**(닫히는 쪽으로 실패한다).
+
+WS = re.compile(r"[\s ​‌﻿]+")
+
+
+def norm_for_hash(text):
+    """양쪽이 **똑같이** 지우는 공백. 편집기는 문단을 제 방식대로 나누므로 공백은 빼고 잰다."""
+    return WS.sub("", text or "")
+
+
+def body_hash(text):
+    import hashlib
+    return hashlib.sha256(norm_for_hash(text).encode("utf-8")).hexdigest()
+
+
+def clip(path):
+    """본문을 OS 클립보드에 넣고 **읽어서 확인한 뒤** 해시를 낸다. 브라우저는 Ctrl+V 로 받는다."""
+    meta, body = parse(path)
+    body = body.rstrip("\n")
+    try:
+        subprocess.run(["clip.exe"], input=body.encode("utf-16-le"), check=True)
+    except Exception as e:
+        print("[불성립] 클립보드에 못 넣었다: %s" % e)
+        print("  이 경로가 없으면 **전사로 돌아가지 말고 멈춘다** — 전사가 2026-09-10 사고의 원인이다.")
+        return 2
+    try:
+        r = subprocess.run(["powershell.exe", "-NoProfile", "-Command",
+                            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Clipboard -Raw"],
+                           stdout=subprocess.PIPE, timeout=30)
+        back = r.stdout.decode("utf-8", "replace").replace("\r\n", "\n").rstrip("\n")
+    except Exception as e:
+        print("[미확인] 클립보드를 되읽지 못했다: %s — **넣었다고 치지 않는다**" % e)
+        return 2
+    if norm_for_hash(back) != norm_for_hash(body):
+        print("**클립보드 왕복이 안 맞는다 — 쓰지 않는다.**")
+        for i, (a, b) in enumerate(zip(norm_for_hash(back), norm_for_hash(body))):
+            if a != b:
+                print("  첫 불일치 %d: 클립보드 %r · 파일 %r" % (i, a, b))
+                break
+        return 2
+    h = body_hash(body)
+    print("== 클립보드에 넣었다 — %s ==" % os.path.basename(path))
+    if meta.get("title"):
+        print("  제목: %s" % meta["title"])
+    print("  본문 %d자 · 공백 뺀 %d자 · 줄 %d"
+          % (len(body), len(norm_for_hash(body)), body.count("\n") + 1))
+    print("  왕복 확인: 넣은 것과 되읽은 것이 같다")
+    print("\n  **정본 해시(공백 제외 SHA-256 앞 16)**: %s" % h[:16])
+    print("  브라우저에서 붙여넣은 뒤 같은 값이 나오는지 본다:")
+    print("    python analysis/channel_post.py --verify %s --got <브라우저해시>"
+          % os.path.relpath(path, ROOT).replace("\\", "/"))
+    print("\n  **base64 로 옮겨 적지 않는다.** 그것이 2026-09-10 에 「그런」을 「그럵」으로 만들었다.")
+    return 0
+
+
+def verify(path, got):
+    """브라우저가 낸 해시를 **파일**과 맞댄다. 사본이 아니라 정본과 대는 것이 요점이다."""
+    _, body = parse(path)
+    want = body_hash(body.rstrip("\n"))[:16]
+    got = (got or "").strip().lower()[:16]
+    ok = got == want
+    print("정본(파일) %s" % want)
+    print("브라우저    %s" % got)
+    print("**일치**" if ok else "**불일치 — 붙여넣은 것이 파일과 다르다. 지우고 다시 넣는다.**")
+    return 0 if ok else 1
+
+
+# ── 깨진 음절 ───────────────────────────────────────────────────────────────
+#
+# 「그럵」은 **정상적인 한글 음절**이다. 유니코드로는 아무 문제가 없고, 낱말이 아닐 뿐이다.
+# 그래서 인코딩 검사로는 못 잡는다. 다만 **비트가 틀어지면 겹받침이 잘 생긴다** —
+# 「런」(ㄴ)이 「럵」(ㄼ)이 된 것이 그것이다. 겹받침을 쓰는 낱말은 닫힌 작은 집합이라
+# **목록 밖 겹받침은 의심**할 수 있다. 실측: 우리 문안 전체의 겹받침 음절은 네 종뿐이다.
+
+JONG = "  ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ"
+JONG = ["", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ",
+        "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ",
+        "ㅌ", "ㅍ", "ㅎ"]
+RARE_JONG = set("ㄳㄵㄶㄺㄻㄼㄽㄾㄿㅀㅄ")
+# 겹받침을 쓰는 한국어 음절 — 닫힌 집합이다. 여기 없는 겹받침 음절은 **의심**이지 오류가 아니다.
+OK_SYLL = set(
+    "몫삯넋"          # ㄳ
+    "앉얹"            # ㄵ
+    "많않끊괜찮짢뚫"   # ㄶ (찮·짢 포함)
+    "읽닭흙맑밝늙굵붉긁낡묽얽칡삵읽"   # ㄺ
+    "젊삶닮앎굶옮곪"   # ㄻ
+    "밟넓짧얇떫엷섧"   # ㄼ
+    "곬"              # ㄽ
+    "핥훑"            # ㄾ
+    "읊"              # ㄿ
+    "싫앓옳잃끓곯닳뚫" # ㅀ
+    "값없엾"          # ㅄ
+)
+
+
+def check_hangul(body):
+    """겹받침이 목록 밖이면 **의심**한다. 깨진 음절은 정상 유니코드라 이 길밖에 없다."""
+    out = []
+    seen = {}
+    for i, ch in enumerate(body or ""):
+        o = ord(ch)
+        if not (0xAC00 <= o <= 0xD7A3):
+            continue
+        j = JONG[(o - 0xAC00) % 28]
+        if j in RARE_JONG and ch not in OK_SYLL:
+            seen.setdefault(ch, body[max(0, i - 12):i + 8].replace("\n", " "))
+    for ch, ctx in seen.items():
+        out.append((WARN, "겹받침이 낯설다 — 「%s」 (…%s…). **깨진 음절일 수 있다.** "
+                          "맞으면 `OK_SYLL` 에 넣는다" % (ch, ctx)))
+    return out
+
+
 def check_one(path, net=False):
     meta, body = parse(path)
     ch = meta.get("channel", "")
@@ -247,6 +384,7 @@ def check_one(path, net=False):
             findings += CH.check_format(ch, body, meta.get("title"))
         except KeyError as e:
             findings.append((FAIL, str(e)))
+    findings += check_hangul(body)
     findings += check_numbers(path)
     findings += check_links(body, meta.get("target"), net)
     findings += check_card(meta.get("target"), net)
@@ -336,6 +474,31 @@ def selftest():
     f = check_card("https://example.org", net=False)
     chk("--net 없으면 안 봤다고 말한다", any("안 봤다" in m for _, m in f), True)
 
+    print("── 인수시험: 깨진 음절 (2026-09-10 사고) ──")
+    chk("「그럵」을 잡는다", bool(check_hangul("왜 그럵 값이었는지는")), True)
+    chk("「그런」은 안 잡는다", check_hangul("왜 그런 값이었는지는"), [])
+    chk("실제로 쓰는 겹받침은 안 잡는다",
+        check_hangul("값이 없다 · 많다 · 앉다 · 읽다 · 밟다 · 싫다 · 젊다 · 핥다 · 읊다 · 몫"), [])
+    chk("판정이 아니라 의심이다(WARN)",
+        all(l == WARN for l, _ in check_hangul("그럵")), True)
+    # **이 검사가 못 보는 것을 시험이 말한다** — 받침 없는 음절끼리 바뀌면 침묵한다.
+    chk("받침 없는 자리의 깨짐은 못 본다(한계)", check_hangul("왜 그러 값이었는지는"), [])
+
+    print("── 인수시험: 해시 대조 (형해화된 대조를 막는다) ──")
+    a = "가나다\n라마바"
+    chk("공백을 지우면 같다", norm_for_hash(a), norm_for_hash("가나다   \n\n 라마바"))
+    chk("한 글자만 달라도 해시가 갈린다",
+        body_hash("왜 그런 값") == body_hash("왜 그럵 값"), False)
+    chk("줄바꿈이 달라도 해시는 같다",
+        body_hash("가나\n다") == body_hash("가나\n\n다"), True)
+    with tempfile.TemporaryDirectory() as d:
+        p = os.path.join(d, "v.md")
+        io.open(p, "w", encoding="utf-8").write("---\nid: t\nchannel: linkedin\n---\n왜 그런 값\n")
+        good = body_hash("왜 그런 값")[:16]
+        chk("맞으면 0", verify(p, good), 0)
+        chk("틀리면 1 — **닫히는 쪽으로 실패한다**", verify(p, body_hash("왜 그럵 값")[:16]), 1)
+        chk("빈 해시도 1", verify(p, ""), 1)
+
     print("── 인수시험: OG 태그 정규식 ──")
     html = ('<meta property="og:title" content="측심">'
             '<meta content="설명" property="og:description">')
@@ -355,10 +518,17 @@ if __name__ == "__main__":
     ap.add_argument("--check", default=None, help="문안 파일 하나를 검사")
     ap.add_argument("--check-all", action="store_true", help="본부 문안 전부")
     ap.add_argument("--net", action="store_true", help="링크와 카드를 실제로 친다")
+    ap.add_argument("--clip", default=None, help="본문을 클립보드에 넣고 정본 해시를 낸다 (전사 금지)")
+    ap.add_argument("--verify", default=None, help="파일")
+    ap.add_argument("--got", default=None, help="브라우저가 낸 해시")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         sys.exit(selftest())
+    if a.clip:
+        sys.exit(clip(a.clip))
+    if a.verify:
+        sys.exit(verify(a.verify, a.got))
     if a.check:
         v, _ = check_one(a.check, a.net)
         sys.exit(1 if v == FAIL else 0)
