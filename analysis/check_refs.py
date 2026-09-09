@@ -33,6 +33,8 @@
   **파일명에 날짜가 박힌 본부 문서**(`항만사이트조사_20260828.md` 류). 그때는 참이었고
   발행본은 형식 때문에 안 고친다(§3-11). **고칠 대상이 아니라 알아 둘 사실이다.**
   **날짜 없는 상시 문서**(지침·CLAUDE·SKILL·챗 운영블록·구성 실측)는 안 봐준다 — 지금 참이어야 한다.
+· **자기 자신은 안 본다** — 인수시험 픽스처가 일부러 깨진 참조를 든다. 그러므로
+  **이 파일 안의 참조는 아무도 안 본다.** 여기 새 조항 번호를 적을 때는 손으로 확인한다.
 · 지침 파일이 없는 기계에서는 **불성립**이지 통과가 아니다(종료 2).
 """
 
@@ -104,12 +106,20 @@ def anchors(text):
 
 
 def targets():
-    """검사 대상 — 저장소 추적 파일 + 본부 md(아카이브 제외)."""
+    """검사 대상 — 저장소 추적 파일 + 본부 md(아카이브 제외).
+
+    **자기 자신은 뺀다.** 이 파일의 인수시험 픽스처가 「지침 §2.6」처럼 **일부러 깨진**
+    참조를 문자열로 들고 있어서, 안 빼면 자기 시험 자료를 결함으로 신고한다
+    (실제로 그렇게 났다 — 커밋되어 `git ls-files` 에 들어온 순간).
+    **참조를 말하는 파일은 참조처럼 생긴 문자열을 가진다.**
+    """
     out = []
     try:
         r = subprocess.run(["git", "ls-files"], cwd=ROOT, stdout=subprocess.PIPE,
                            text=True, encoding="utf-8", errors="replace")
         for rel in (r.stdout or "").splitlines():
+            if rel.replace("\\", "/").endswith("analysis/check_refs.py"):
+                continue
             if rel.lower().endswith((".md", ".py", ".sh", ".html", ".yml", ".yaml", ".txt")):
                 out.append((rel, os.path.join(ROOT, rel)))
     except Exception:
@@ -224,6 +234,12 @@ def selftest():
     chk("맨 「§4」는 안 잡는다 — 그 문서의 4절일 수 있다",
         bool(REF.search("이 문서 §4 를 본다")), False)
     chk("지침 안에서는 맨 §4 도 참조다", bool(SELF_REF.search("§4 를 본다")), True)
+
+    print("── 인수시험: 자기 자신을 안 보는가 (픽스처가 일부러 깨져 있다) ──")
+    names = [rel.replace("\\", "/") for rel, _ in targets()]
+    chk("대상에서 자기를 뺐다", any(n.endswith("analysis/check_refs.py") for n in names), False)
+    chk("다른 analysis 파일은 본다",
+        any(n.startswith("analysis/") and n.endswith(".py") for n in names), True)
 
     print("── 인수시험: 기록과 상시 문서를 가르는가 ──")
     chk("날짜 박힌 본부 문서는 기록", bool(DATED.search("본부/항만사이트조사_20260828.md")), True)
