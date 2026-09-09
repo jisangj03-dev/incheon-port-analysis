@@ -144,10 +144,51 @@ def skill_desc(d):
 PLUGINS_DB = os.path.join(HOME, ".claude", "plugins", "installed_plugins.json")
 
 
-def plugin_skills():
-    """**플러그인이 붙인 스킬을 편다.** 그것도 세션에게 지시가 되는데 `skills/` 밖에 있다.
+TOML_DESC = re.compile(r'^\s*description\s*=\s*"(.*?)"\s*$', re.M)
 
-    설치 대장(`installed_plugins.json`)의 `installPath` 아래 `skills/*/SKILL.md` 를 읽는다.
+
+def md_desc(path):
+    """`.md`/`.toml` 한 장이 **모델에게 무엇이라고 말하는가.** 머리말 `description` 을 쓰고,
+    없으면 첫 비어 있지 않은 본문 줄을 쓴다 — **빈 칸으로 두면 G5b 가 거짓이 된다.**
+
+    **명령은 `.toml` 로도 온다** — 2026-09-10 실측에서 15개가 전부 toml 이라
+    `.md` 만 보던 앞판이 **한 줄도 못 냈다.** 거기선 `description = "..."` 꼴이다.
+    """
+    if path.lower().endswith(".toml"):
+        try:
+            s = io.open(path, encoding="utf-8", errors="replace").read(4000)
+        except Exception:
+            return "", "?"
+        m = TOML_DESC.search(s)
+        d = (m.group(1) if m else "").strip()
+        return re.sub(r"\s+", " ", d)[:150], sha(path)
+    try:
+        t = io.open(path, encoding="utf-8", errors="replace").read(4000)
+    except Exception:
+        return "", "?"
+    m = DESC.search(t)
+    d = (m.group(1) if m else "").strip()
+    if not d or d in ("|", ">", "|-", ">-"):
+        for line in t.split("\n"):
+            s = line.strip()
+            if s and not s.startswith(("---", "#", "name:", "description:", "allowed-tools:")):
+                d = s
+                break
+    return re.sub(r"\s+", " ", d)[:150], sha(path)
+
+
+# **플러그인은 스킬만 들고 오지 않는다.** 슬래시 명령과 서브에이전트도 지시문 자리다 —
+# `/명령` 은 쳤을 때 그 파일 내용이 그대로 지시가 되고, 에이전트는 자기 몫의 지시를 들고 산다.
+# **2026-09-10 실측: 명령 15개(포니테일 6 · 에이전트 스킬즈 9)와 에이전트 4개가
+# 이 장치에 한 줄도 안 나왔다** — 스킬만 폈기 때문이다. **G5b 를 또 자기가 못 채웠다.**
+PLUGIN_PARTS = [("플러그인 명령", "commands"), ("플러그인 에이전트", "agents")]
+
+
+def plugin_skills():
+    """**플러그인이 붙인 스킬·명령·에이전트를 편다.** 전부 세션에게 지시가 되는데
+    `~/.claude/skills` · `~/.claude/commands` 밖, 플러그인 안에 있다.
+
+    설치 대장(`installed_plugins.json`)의 `installPath` 아래를 읽는다.
     **못 읽으면 그 사실을 행으로 남긴다** — 조용히 빠지면 G5a(열거)가 거짓이 된다.
     """
     rows = []
@@ -176,6 +217,19 @@ def plugin_skills():
                 rows.append(("플러그인 스킬", "%s / %s" % (pid.split("@")[0], n),
                              "plugins/%s v%s (%s)" % (pid, ver, scope),
                              desc or "(SKILL.md 없음)", h))
+            for label, sub in PLUGIN_PARTS:
+                d2 = os.path.join(root, sub)
+                if not os.path.isdir(d2):
+                    continue
+                for dirpath, _, names in os.walk(d2):
+                    for n in sorted(names):
+                        if not n.lower().endswith((".md", ".toml")):
+                            continue
+                        f = os.path.join(dirpath, n)
+                        rel = os.path.relpath(f, d2).replace("\\", "/")
+                        desc, h = md_desc(f)
+                        rows.append((label, "%s / %s" % (pid.split("@")[0], os.path.splitext(rel)[0]),
+                                     "plugins/%s v%s (%s)" % (pid, ver, scope), desc, h))
     return rows
 
 
@@ -414,6 +468,42 @@ def selftest():
                  read_baseline()[0][1]), "a/b")
     finally:
         BASELINE = keep
+
+    print("── 인수시험: 플러그인 안의 명령·에이전트를 보는가 (G5b) ──")
+    # 2026-09-10: 스킬만 폈더니 **명령 15 · 에이전트 4 가 한 줄도 안 나왔다.**
+    # 「없다」와 「못 본다」는 다르다 — 실물이 있는데 0 이면 그것이 고장이다.
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        f1 = os.path.join(d, "a.toml")
+        io.open(f1, "w", encoding="utf-8").write(
+            'description = \"컨테이너 물동량을 센다\"\n' + 'prompt = \"\"\"x\"\"\"\n')
+        chk("toml 명령의 설명을 읽는다", md_desc(f1)[0], "컨테이너 물동량을 센다")
+        f2 = os.path.join(d, "b.md")
+        io.open(f2, "w", encoding="utf-8").write("---\nname: b\ndescription: 두 번째\n---\n본문\n")
+        chk("md 명령의 설명을 읽는다", md_desc(f2)[0], "두 번째")
+
+    # **실물 대조** — 플러그인이 `commands/`·`agents/` 를 들고 있으면 행이 나와야 한다.
+    have, seen = {}, {}
+    if os.path.exists(PLUGINS_DB):
+        try:
+            db = json.load(io.open(PLUGINS_DB, encoding="utf-8"))
+        except Exception:
+            db = {}
+        for pid, es in (db.get("plugins") or {}).items():
+            for e in es if isinstance(es, list) else [es]:
+                for label, sub in PLUGIN_PARTS:
+                    p2 = os.path.join(e.get("installPath") or "", sub)
+                    if os.path.isdir(p2):
+                        have[label] = have.get(label, 0) + sum(
+                            1 for _, _, ns in os.walk(p2)
+                            for n in ns if n.lower().endswith((".md", ".toml")))
+    for r in plugin_skills():
+        seen[r[0]] = seen.get(r[0], 0) + 1
+    for label, cnt in sorted(have.items()):
+        chk("실물 %d개가 있는 「%s」이 행으로 나온다" % (cnt, label),
+            seen.get(label, 0), cnt)
+    if not have:
+        print("  (플러그인이 명령·에이전트를 안 들고 있다 — **미실행**이지 통과가 아니다)")
 
     print("── 인수시험: 값을 안 담는가 (§4.1) ──")
     # **접두만 보면 낱말에 걸린다.** 2026-09-10 에 `task-breakdown` 의 `sk-` 가 걸렸다 —
