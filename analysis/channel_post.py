@@ -163,10 +163,11 @@ def check_links(body, target, net):
     if target and target not in us:
         out.append((WARN, "카드가 될 주소(`target`)가 본문에 없다: %s" % target))
     elif target and us and len(us) > 1 and us[-1] != target:
-        # **어느 URL 에 카드가 붙는지는 [미확인]이다** — li-02 는 마지막, 게시된 li-01 은 첫째였다.
-        # 확실한 것은 「순서를 바꾸면 바뀐다」뿐이라, 여기서는 **확인하라**고만 한다.
-        out.append((WARN, "URL 이 %d개인데 `target`(%s)이 마지막이 아니다 — **카드가 어디 붙을지는 "
-                          "[미확인]이다.** 붙여넣고 미리보기를 눈으로 본다" % (len(us), target)))
+        # 카드는 **마지막으로 입력된** URL 에 붙는다(2026-09-10 확정 · `channels.py` 메모).
+        # 우리는 전문을 한 번에 붙여넣으므로 **입력 순서 = 본문 순서**다 — 끝에 있어야 한다.
+        out.append((WARN, "URL %d개 중 `target`(%s)이 **마지막이 아니다** — 한 번에 붙여넣으면 "
+                          "카드는 마지막 URL(%s)에 붙는다. 순서를 바꾸거나 target 을 고친다"
+                          % (len(us), target, us[-1])))
     if not net:
         out.append((INFO, "링크를 안 쳤다 — `--net` 을 줘야 친다. **소스 판정은 사이트에 대한 진술이 아니다**"))
         return out
