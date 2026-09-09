@@ -111,7 +111,7 @@ def strict_targets():
         for p in sorted(glob.glob(os.path.join(ROOT, d, "*.html"))):
             out.append((d + "/" + os.path.basename(p), p))
     for p in sorted(glob.glob(os.path.join(HQ, "채널문안", "*.md"))):
-        out.append(("본부/채널문안/" + os.path.basename(p), p))
+        out.append(("본부/채널문안/" + os.path.basename(p), p))   # `_` 파일도 본다 — 주장은 어디 적히든 주장이다
     p = os.path.join(HQ, "채널문안_측심_20260902.md")
     if os.path.exists(p):
         out.append(("본부/채널문안_측심_20260902.md", p))   # 붙여넣기의 출처라 엄격히 본다

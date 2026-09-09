@@ -32,6 +32,8 @@
     ---
     여기부터 끝까지가 **붙여넣을 본문 그대로다.**
 
+**밑줄로 시작하는 파일(`_*.md`)은 문안이 아니다** — 근거표·메모 자리이고 검사에서 건너뛴다.
+
 닿지 않는 곳
 ------------
 · **문안이 좋은지는 안 본다.** 형식 · 수치 지위 · 링크 · 카드만 본다.
@@ -157,12 +159,14 @@ def http(url, timeout=15.0, want_body=False):
         return None, ""
 
 
-def check_links(body, target, net):
+def check_links(body, target, net, channel=None):
+    """링크 생존과 카드 순서. **카드가 없는 채널에서는 순서를 안 본다** — 메일·GeekNews 가 그렇다."""
     out = []
     us = CH.urls(body)
+    has_card = bool(CH.CHANNELS.get((channel or "").lower(), {}).get("링크카드"))
     if target and target not in us:
         out.append((WARN, "카드가 될 주소(`target`)가 본문에 없다: %s" % target))
-    elif target and us and len(us) > 1 and us[-1] != target:
+    elif has_card and target and us and len(us) > 1 and us[-1] != target:
         # 카드는 **마지막으로 입력된** URL 에 붙는다(2026-09-10 확정 · `channels.py` 메모).
         # 우리는 전문을 한 번에 붙여넣으므로 **입력 순서 = 본문 순서**다 — 끝에 있어야 한다.
         out.append((WARN, "URL %d개 중 `target`(%s)이 **마지막이 아니다** — 한 번에 붙여넣으면 "
@@ -186,9 +190,16 @@ OG = re.compile(r"<meta[^>]+property=[\"']og:(title|description|image)[\"'][^>]*
 OG2 = re.compile(r"<meta[^>]+content=[\"']([^\"']*)[\"'][^>]+property=[\"']og:(title|description|image)[\"']", re.I)
 
 
-def check_card(target, net):
-    """링크 카드 — **태그가 있는가와 이미지가 200인가.** 어떻게 그려지는지는 사람이 본다."""
+def check_card(target, net, channel=None):
+    """링크 카드 — **태그가 있는가와 이미지가 200인가.** 어떻게 그려지는지는 사람이 본다.
+
+    **카드가 없는 채널에서는 안 본다** — 메일에는 링크 미리보기가 없고, 있어도 받는 쪽 프로그램이
+    정한다. 없는 것을 검사하면 경고만 늘고 **경고가 늘면 무시당한다**(§3-5).
+    """
     out = []
+    if channel and not CH.CHANNELS.get(channel.lower(), {}).get("링크카드"):
+        out.append((INFO, "이 채널에는 링크 카드가 없다 — 카드 검사를 안 한다"))
+        return out
     if not target:
         out.append((WARN, "`target` 이 없다 — 어느 주소가 카드가 되는지 안 적혀 있다"))
         return out
@@ -387,8 +398,8 @@ def check_one(path, net=False):
             findings.append((FAIL, str(e)))
     findings += check_hangul(body)
     findings += check_numbers(path)
-    findings += check_links(body, meta.get("target"), net)
-    findings += check_card(meta.get("target"), net)
+    findings += check_links(body, meta.get("target"), net, ch)
+    findings += check_card(meta.get("target"), net, ch)
 
     for lvl in (FAIL, WARN, INFO):
         for l, m in findings:
@@ -404,7 +415,10 @@ def check_all(net=False):
         print("문안 폴더가 없다: %s" % DRAFTS)
         print("  (`본부\\채널문안\\` 에 문안 파일을 둔다. 공개 저장소에 원고를 안 넣는다 — §4.1)")
         return 2
-    files = sorted(glob.glob(os.path.join(DRAFTS, "*.md")))
+    # **밑줄로 시작하면 문안이 아니다** — 근거표·메모 같은 곁딸린 파일. `boot_check` 가
+    # `analysis/_*.py` 를 건너뛰는 것과 같은 관례다.
+    files = sorted(f for f in glob.glob(os.path.join(DRAFTS, "*.md"))
+                   if not os.path.basename(f).startswith("_"))
     if not files:
         print("문안이 없다: %s" % DRAFTS)
         return 2
@@ -474,6 +488,15 @@ def selftest():
     chk("target 없으면 WARN", any(l == WARN for l, _ in f), True)
     f = check_card("https://example.org", net=False)
     chk("--net 없으면 안 봤다고 말한다", any("안 봤다" in m for _, m in f), True)
+    # **카드가 없는 채널에서 카드를 검사하면 경고만 는다** — 없는 것을 검사하지 않는다.
+    f = check_card("https://example.org", net=True, channel="email")
+    chk("메일은 카드 검사를 건너뛴다", [l for l, _ in f], [INFO])
+    f = check_links("글 https://a.example 그리고 https://b.example",
+                    "https://a.example", net=False, channel="email")
+    chk("메일은 카드 순서를 안 본다", any("마지막이 아니다" in m for _, m in f), False)
+    f = check_links("글 https://a.example 그리고 https://b.example",
+                    "https://a.example", net=False, channel="linkedin")
+    chk("링크드인은 카드 순서를 본다", any("마지막이 아니다" in m for _, m in f), True)
 
     print("── 인수시험: 깨진 음절 (2026-09-10 사고) ──")
     chk("「그럵」을 잡는다", bool(check_hangul("왜 그럵 값이었는지는")), True)
