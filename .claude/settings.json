@@ -75,5 +75,23 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "ponytail@ponytail": true,
+    "agent-skills@addy-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "directory",
+        "path": "C:\\Users\\user\\tools\\ponytail"
+      }
+    },
+    "addy-agent-skills": {
+      "source": {
+        "source": "directory",
+        "path": "C:\\Users\\user\\tools\\agent-skills"
+      }
+    }
   }
 }

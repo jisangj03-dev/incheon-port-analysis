@@ -141,6 +141,44 @@ def skill_desc(d):
     return "", "?"
 
 
+PLUGINS_DB = os.path.join(HOME, ".claude", "plugins", "installed_plugins.json")
+
+
+def plugin_skills():
+    """**플러그인이 붙인 스킬을 편다.** 그것도 세션에게 지시가 되는데 `skills/` 밖에 있다.
+
+    설치 대장(`installed_plugins.json`)의 `installPath` 아래 `skills/*/SKILL.md` 를 읽는다.
+    **못 읽으면 그 사실을 행으로 남긴다** — 조용히 빠지면 G5a(열거)가 거짓이 된다.
+    """
+    rows = []
+    if not os.path.exists(PLUGINS_DB):
+        return rows
+    try:
+        db = json.load(io.open(PLUGINS_DB, encoding="utf-8"))
+    except Exception as e:
+        return [("플러그인 스킬", "(대장 못 읽음)", "plugins/installed_plugins.json",
+                 type(e).__name__, "?")]
+    for pid, entries in sorted((db.get("plugins") or {}).items()):
+        for e in entries if isinstance(entries, list) else [entries]:
+            root = e.get("installPath") or ""
+            ver = e.get("version") or "?"
+            scope = e.get("scope") or "?"
+            sd = os.path.join(root, "skills")
+            if not os.path.isdir(sd):
+                rows.append(("플러그인 스킬", "%s (스킬 없음)" % pid, "plugins/%s" % pid,
+                             "v%s · 범위 %s" % (ver, scope), sha(root) if os.path.isfile(root) else "—"))
+                continue
+            for n in sorted(os.listdir(sd)):
+                p = os.path.join(sd, n)
+                if not os.path.isdir(p):
+                    continue
+                desc, h = skill_desc(p)
+                rows.append(("플러그인 스킬", "%s / %s" % (pid.split("@")[0], n),
+                             "plugins/%s v%s (%s)" % (pid, ver, scope),
+                             desc or "(SKILL.md 없음)", h))
+    return rows
+
+
 def survey():
     """지금 있는 것. 반환 [(갈래, 이름, 자리, 설명, 해시)]"""
     rows = []
@@ -155,6 +193,11 @@ def survey():
                 rows.append((label, n, rel, desc or "(SKILL.md 없음)", h))
             elif n.lower().endswith(".md"):
                 rows.append((label, n, rel, "(단일 파일)", sha(p)))
+    # **플러그인이 붙인 스킬은 `~/.claude/skills` 에 안 나온다** — 플러그인 안에 들어 있다.
+    # 그러면 위 순회가 「plugins/ 가 바뀌었다」까지만 말하고 **무엇을 지시하는지는 못 말한다** —
+    # G5b 미달이다(2026-09-10 실측: 포니테일이 스킬 여섯을 붙였는데 이름조차 안 나왔다).
+    # 그래서 설치 대장을 읽어 **플러그인마다 스킬 이름과 설명을 편다.**
+    rows += plugin_skills()
     for label, d in CMD_DIRS:
         if not os.path.isdir(d):
             continue
@@ -373,10 +416,26 @@ def selftest():
         BASELINE = keep
 
     print("── 인수시험: 값을 안 담는가 (§4.1) ──")
+    # **접두만 보면 낱말에 걸린다.** 2026-09-10 에 `task-breakdown` 의 `sk-` 가 걸렸다 —
+    # 스킬 이름이다. 그래서 **키의 모양**으로 잰다: 앞이 글자가 아니고, 뒤에 무작위처럼
+    # 긴 문자열이 붙는다. **느슨하게 만든 게 아니라 낱말과 키를 가르는 것이다** —
+    # 아래 「심은 것을 잡는가」가 진짜 모양을 넣고 실제로 잡히는지 매번 확인한다.
+    LEAK = [
+        ("sk-",       re.compile(r"(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{16,}")),
+        ("ghp_",      re.compile(r"(?<![A-Za-z0-9])ghp_[A-Za-z0-9]{16,}")),
+        ("Bearer ",   re.compile(r"(?<![A-Za-z0-9])Bearer\s+[A-Za-z0-9._~+/=-]{12,}")),
+        ('token":"',  re.compile(r'token"\s*:\s*"[^"]{8,}')),
+    ]
     rows = survey()
     joined = " ".join(" ".join(r) for r in rows)
-    for bad in ("sk-", "ghp_", "Bearer ", "token\":\""):
-        chk("「%s」가 안 담긴다" % bad.strip(), bad in joined, False)
+    for name, rx in LEAK:
+        chk("「%s」가 안 담긴다" % name.strip(), bool(rx.search(joined)), False)
+    planted = ('x sk-' + 'A1b2C3d4E5f6G7h8i9' + ' y ghp_' + 'A1b2C3d4E5f6G7h8i9'
+               + ' z Bearer ' + 'eyJhbGciOi.Zm9v' + ' w token":"' + 'abcd1234efgh')
+    for name, rx in LEAK:
+        chk("심은 「%s」는 잡는다" % name.strip(), bool(rx.search(planted)), True)
+    chk("낱말은 안 잡는다 (task-breakdown · risk-free)",
+        any(rx.search("task-breakdown risk-free") for _, rx in LEAK), False)
     chk("실물에서 여러 건을 본다", len(rows) >= 3, True)
     print("     지금: 지시문 자리 %d건" % len(rows))
 
