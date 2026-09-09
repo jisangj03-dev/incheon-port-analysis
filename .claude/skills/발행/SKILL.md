@@ -1,6 +1,6 @@
 ---
 name: 발행
-description: 보고서 1편을 발행 가능 상태로 만드는 절차. 수집·검증 게이트 → 본문 생성 → 린터 → 운영자 검수 → 커밋까지. push는 하지 않는다. 절차를 문서가 아니라 이 파일과 스크립트에 상주시킨다.
+description: 보고서 1편을 발행 가능 상태로 만드는 절차. 수집·검증 게이트 → 본문 생성 → 린터 → 운영자 검수 → 커밋 → push·배포까지(v6.4). 절차를 문서가 아니라 이 파일과 스크립트에 상주시킨다.
 ---
 
 # 발행 SKILL
@@ -124,13 +124,13 @@ python analysis/lint_publish.py --channel <채널문안 경로> [<경로>...]
 
 **게시 전에 돌린다.** 강등 지위 값(`참고`·`미확인`)이 헤드라인에 실리면 발행 금지다.
 
-## 7. push — 하지 않는다
+## 7. push — 세션이 친다 (v6.4 · 2026-09-09)
 
-**push는 운영자가 실행한다.** 공개 발행은 운영자의 서명이다.
-
-운영자가 밀 때 **pre-push가 검수 게이트를 한 번 친다** — push 범위의 신규
-`reports/*.md`가 `docs/검수기록.md`에 있는지 본다. **경고만 한다**(차단은 `--strict`).
-여기서 미리 보려면:
+**push 와 배포는 Code 가 한다.** 커밋 뒤 `git push origin main`. 측심은 `python tools/push.py` →
+`higgsfield website deploy <id>` → `status` 로 `deployed` 확인(`../sounding/tools/RUNBOOK.md`).
+**pre-push 가 난간 여덟을 경고로 돌린다** — 검수 게이트(`check_review_log`) · 생성물 신선도 · 대장 ·
+접근성 · 셈 · Jekyll · 공개 유출 · 사이트 상수. **막지 않는다**(차단은 `--strict`). stderr 를 읽고
+걸린 것은 push 뒤에라도 고친다. 여기서 미리 보려면:
 
 ```bash
 python analysis/check_review_log.py     # 지금 밀면 검수 없이 나가는 편이 있는가
@@ -140,7 +140,7 @@ python analysis/check_review_log.py     # 지금 밀면 검수 없이 나가는 
 「다음 할 일」의 순서가 `push`를 「#08 검수」 위에 두고 있었고 `report_08`이 그 묶음
 안에 있었다 — **목록대로 따르면 검수 없이 나갈 참이었다**(사고 49).
 
-발행 후: 렌더된 화면을 눈으로 확인한다 (편집기 미리보기 신뢰 금지).
+발행 후: 배포된 주소를 `python analysis/check_links.py --live-url <주소>` 로 치고 렌더된 화면을 본다 (편집기 미리보기 신뢰 금지).
 
 ## 정지선 (이 스킬이 자동으로 넘지 않는 지점)
 
@@ -148,4 +148,4 @@ python analysis/check_review_log.py     # 지금 밀면 검수 없이 나가는 
 2. 게이트 FAIL → 즉시 종료
 3. 린터 FAIL → 발행 정지
 4. 검수기록 없음 → 표기 불가 (`check_review_log.py`가 push 순간에 경고한다)
-5. push → 운영자만
+5. 힘 push · 이력 수정 · 토큰 갱신 · 계정 조작 → 운영자만 (push 자체는 v6.4 로 세션 몫)

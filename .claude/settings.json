@@ -1,7 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "permissions": {
-    "deny": []
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git filter-branch*)",
+      "Bash(git filter-repo*)",
+      "Bash(higgsfield website repo-access*)",
+      "PowerShell(git push --force*)",
+      "PowerShell(git push -f*)",
+      "PowerShell(higgsfield website repo-access*)"
+    ]
   },
   "hooks": {
     "PreToolUse": [

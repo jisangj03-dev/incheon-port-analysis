@@ -151,10 +151,12 @@ def selftest():
         return 1
 
     print("── 인수시험: pre-push 판정 ──")
+    # v6.4(2026-09-09) — 차단 분기가 없다. 어느 환경에서든 통과해야 하고, **통과하지 않으면**
+    # 지운 금지 분기가 어딘가 되살아난 것이다. 세 환경을 그대로 두고 기대값만 0 으로 맞췄다.
     cases = [
         ("운영자 터미널 (CLAUDECODE 없음)", {}, 0),
-        ("Claude Code 세션", {"CLAUDECODE": "1"}, 1),
-        ("Claude Code + 운영자 우회", {"CLAUDECODE": "1", "VIDIMUS_PUSH_OK": "1"}, 0),
+        ("Claude Code 세션 (v6.4 · 통과)", {"CLAUDECODE": "1"}, 0),
+        ("옛 우회 변수가 있어도 같다", {"CLAUDECODE": "1", "VIDIMUS_PUSH_OK": "1"}, 0),
     ]
     ok = True
     for label, extra, want in cases:

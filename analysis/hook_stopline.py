@@ -1,38 +1,32 @@
-"""정지선 훅 — 규칙을 기억이 아니라 하네스가 집행한다.
+"""커밋 전 검증 훅 — 규칙을 기억이 아니라 하네스가 집행한다.
 
 왜 있는가
 ---------
 지침 §0-3: **절차는 지침에 적지 않는다. 코드·스크립트·SKILL에 상주시킨다.**
-두 정지선이 문서에만 있었다.
+「커밋 전에 `verify_anchors.py`를 돌린다」가 문서에만 있었고, 실제로 돌리는 것은 내 기억이었다.
+사람이 나르는 규칙은 유실된다(사고 22). 이 훅이 그것을 집행한다.
 
-  1. **「push는 운영자만」** — 그런데 `.claude/settings.local.json`의 allow 목록에
-     `Bash(git push *)`가 들어 있었다(2026-08-27 실측). **설정이 push를 자동 승인하고 있었다.**
-     지금까지 안 밀린 것은 내 자제심이지 구조가 아니었다(사고 30·45의 구조).
-  2. **「커밋 전에 `verify_anchors.py`를 돌린다」** — 실제로 돌리는 것은 내 기억이었다.
-     사람이 나르는 규칙은 유실된다(사고 22).
+무엇을 하지 않는가 (v6.4 · 2026-09-09)
+---------------------------------------
+**push 를 막지 않는다.** 2026-08-27~09-09 에는 이 훅이 「push 는 운영자만」(구 §4)을 명령 문자열로
+집행했고, 09-09 위임 뒤에는 `VIDIMUS_PUSH_OK=1` env 로 통과시켰다. 그 구조는 env 가 없는 기계에서
+그대로 막히는 함정이었다. 지침 v6.4 가 push·배포를 세션 몫으로 옮기면서 **금지 분기를 지웠다** —
+훅은 금지가 아니라 검증에만 쓴다(2026-09-09 운영자 위임문). 되돌릴 수 없는 것(힘 push · 토큰 갱신)은
+`.claude/settings.json` 의 `permissions.deny` 와 자동 모드 `hard_deny` 가 든다.
+push 분류(`classify` 의 'push')는 남겨 뒀다 — 시험이 따옴표·히어독 파싱을 그 사례로 확인한다.
 
-이 훅이 둘 다 집행한다.
-
-왜 permissions.deny만으로 안 되는가
-------------------------------------
-`Bash(*git push*)` 같은 넓은 규칙은 **「git push」를 언급만 하는 명령까지 막는다**
-(2026-08-27에 실제로 그렇게 막혔다 — 문자열 필터 스크립트가 걸렸다).
-좁은 규칙(`Bash(git push*)`)은 접두만 보므로 `cd X && git push`를 놓친다.
-**훅은 명령을 파싱해 정확히 판정하고, 그 판정을 시험할 수 있다.** deny 규칙은 1차 방어로 남긴다.
+왜 deny 규칙이 아니라 훅인가
+----------------------------
+`Bash(*git commit*)` 같은 넓은 규칙은 **언급만 하는 명령까지 잡고**, 좁은 규칙은 접두만 보므로
+`cd X && git commit` 을 놓친다(2026-08-27 실측). **훅은 명령을 파싱해 정확히 판정하고, 그 판정을 시험할 수 있다.**
 
 사용 / 시험
 -----------
   python analysis/hook_stopline.py --selftest
 
-운영자 통로 (2026-09-09 운영자 위임)
---------------------------------------
-환경에 `VIDIMUS_PUSH_OK=1` 이 있으면 push 판정을 **통과**시킨다 — `git_pre_push.sh` 와 같은 변수다.
-운영자가 `.claude/settings.local.json` 의 `env` 로 이 변수를 상시 켰다(위임문 · 작업기록 2026-09-09).
-그래서 지금 이 훅이 push 를 막는 경우는 그 env 가 빠진 기계뿐이다. 커밋 전 앵커 검사는 그대로 돈다.
-
-정지선-집행: §4 — push는 운영자만 / 커밋 전 앵커 검사
-정지선-명제: Claude Code 도구 경로로 들어온 **명령 문자열** 중 push를 거부하고, commit 앞에서 앵커 검사를 돌린다
-정지선-한계: **문자열만 본다** — `subprocess.run(['git','push'])` 같은 간접 호출은 못 막는다(실측). 2층이 그것을 받는다 · **`VIDIMUS_PUSH_OK=1` 이 환경에 있으면 push 를 통과시킨다**(2026-09-09 운영자가 settings env 로 상시 켬 — 이 기계에서는 열려 있다)
+정지선-집행: §4 — 커밋 전 앵커 검사 (push 는 v6.4 로 세션이 친다 · 이 훅은 막지 않는다)
+정지선-명제: Claude Code 도구 경로로 들어온 **명령 문자열** 중 commit 앞에서 앵커 검사를 돌리고, 실패하면 그 커밋을 막는다
+정지선-한계: **문자열만 본다** — `subprocess.run(['git','commit'])` 같은 간접 호출은 못 본다 · **push 는 검사 대상이 아니다**(금지 분기 삭제 · 2026-09-09). 힘 push·토큰 갱신은 `permissions.deny`·`hard_deny` 가 든다
 """
 
 import json
@@ -68,12 +62,6 @@ CHECKS = [
     (["analysis/verify_anchors.py"], "앵커 3건 대조"),
 ]
 
-PUSH_REASON = (
-    "**정지선: push는 운영자만 한다.** 공개 발행은 운영자의 서명이다(지침 §4).\n"
-    "커밋은 AI 판단으로 한다. push는 운영자가 직접 친다."
-)
-
-
 def emit_deny(reason):
     print(json.dumps({
         "hookSpecificOutput": {
@@ -107,15 +95,11 @@ def classify(cmd):
     """(판정, 사유). 판정 = 'push' | 'commit' | 'pass'. 시험이 이 함수를 직접 친다."""
     cmd = strip_quoted(cmd)
     if PUSH.search(cmd):
-        return "push", PUSH_REASON
+        # 분류만 한다. 막지 않는다(v6.4). 시험이 파싱 정확도를 이 사례로 본다.
+        return "push", None
     if COMMIT.search(cmd):
         return "commit", None
     return "pass", None
-
-
-def push_allowed(env):
-    """운영자 통로 — `git_pre_push.sh` 와 같은 변수를 같은 뜻으로 읽는다. 시험이 이 함수를 직접 친다."""
-    return env.get("VIDIMUS_PUSH_OK") == "1"
 
 
 def run_checks():
@@ -138,10 +122,9 @@ def main():
         sys.exit(0)
 
     cmd = (payload.get("tool_input") or {}).get("command") or ""
-    verdict, reason = classify(cmd)
+    verdict, _ = classify(cmd)
 
-    if verdict == "push" and not push_allowed(os.environ):
-        emit_deny(reason)
+    # push 는 통과다(v6.4). 커밋만 검사로 간다.
     if verdict == "commit":
         bad = run_checks()
         if bad:
@@ -150,7 +133,11 @@ def main():
 
 
 def selftest():
-    """양방향으로 친다(사고 34). 막아야 할 것과 통과시켜야 할 것을 함께 본다."""
+    """양방향으로 친다(사고 34). 검사로 가야 할 것과 통과시켜야 할 것을 함께 본다.
+
+    'push' 판정은 **분류**일 뿐이다(v6.4 · 막지 않는다). 사례를 남긴 이유는 따옴표·히어독 파싱이
+    실제 명령과 데이터를 가르는지를 그 사례가 가장 잘 보여 주기 때문이다.
+    """
     cases = [
         # (명령, 기대 판정)
         ("git push", "push"),
@@ -185,13 +172,12 @@ def selftest():
         hit = got == want
         ok = ok and hit
         print("  %s %-40s -> %-6s (기대 %s)" % ("OK  " if hit else "FAIL", cmd[:40], got, want))
-    # 운영자 통로 — 변수가 정확히 "1" 일 때만 열린다. 없거나 다른 값이면 닫힌다(양방향).
-    print("── 인수시험: 운영자 통로(VIDIMUS_PUSH_OK) ──")
-    for env, want in ({}, False), ({"VIDIMUS_PUSH_OK": "1"}, True), ({"VIDIMUS_PUSH_OK": "0"}, False), ({"VIDIMUS_PUSH_OK": ""}, False):
-        got = push_allowed(env)
-        hit = got == want
-        ok = ok and hit
-        print("  %s env=%-28s -> %-5s (기대 %s)" % ("OK  " if hit else "FAIL", env, got, want))
+    # v6.4 — push 판정에 사유(deny 문구)가 붙지 않아야 한다. 붙으면 금지 분기가 되살아난 것이다.
+    print("── 인수시험: push 는 막지 않는다(v6.4) ──")
+    got, reason = classify("git push origin main")
+    hit = got == "push" and reason is None
+    ok = ok and hit
+    print("  %s %-40s -> %s · 사유 %s (기대 push · None)" % ("OK  " if hit else "FAIL", "git push origin main", got, reason))
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
