@@ -77,7 +77,10 @@ STATE = (
     ("verify_anchors.py", ()),
     ("install_git_hooks.py", ("--check",)),
     ("stopline_table.py", ("--check",)),
-    ("check_guideline_size.py", ()),
+    # **[2026-09-09] 「지침 §X」가 실제로 있는 조항을 가리키는가.** v7.0 이 절 하나와 소절
+    # 둘을 걷고 항 번호를 밀자 스무 곳 넘는 참조가 조용히 허공을 가리켰다. 값이 아니라
+    # **참조**라서 기존 검사기가 하나도 안 봤다. `check_guideline_size.py` 의 자리를 대신한다.
+    ("check_refs.py", ()),
     ("check_generated.py", ()),
     ("check_facts.py", ()),
     ("check_a11y.py", ()),
@@ -87,7 +90,7 @@ STATE = (
     # **허브가 빌드된 적이 없다.** 첫 push 가 첫 빌드이고 Pages 는 조용히 죽는다.
     ("check_jekyll.py", ()),
     # **[2026-09-01 운영자 지시] 사이트에 운영자 실명을 싣지 않는다.** 지운 것은 그때
-    # 상태일 뿐이고, 표기 블록은 §2.6 에 따라 **베껴지면서 퍼진다.**
+    # 상태일 뿐이고, 표기 블록은 기준편을 베끼면서 **퍼진다**(발행 SKILL §3).
     ("check_private.py", ()),
     ("lint_publish.py", ()),
     # **허브 지면도 친다.** 종전에는 인수 없이 불러 `reports/*.md` 만 봤다 —
