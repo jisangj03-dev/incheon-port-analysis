@@ -119,7 +119,7 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 - 보고서 **#01~#09 발행 완료.** #08·#09 는 검수(통독·대조) 미수행을 표기 행이 적고 있다 — 검수하면 그 행을 갱신한다(`review_pick.py --log`).
 - 저작 구조 **B — AI가 생성하고 사람이 운영한다.** 표기 의무(§2.2)가 성립 조건.
 
-### 검사·생성 장치 — 43종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
+### 검사·생성 장치 — 45종(모드 3). `--selftest`가 있는 것은 매 세션 발화 확인
 > **이 수는 아래 목록의 이름 개수**이고, `boot_check` 의 「`--selftest` N개」와 **다른 수다**
 > (그쪽은 세는 쪽 둘을 포함하고 `--check` 만 가진 장치는 뺀다). **같게 만들려 하지 마라.**
 
@@ -137,7 +137,7 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 **`collect_09_backfill.py`** · **`chart_09_backfill.py`** · **`check_counts.py`** ·
 **`basis_10_monthly_floor.py`** · **`judge_10_monthly.py`** · **`build_series_chart.py`** ·
 **`check_jekyll.py`** · **`check_private.py`** · **`check_site_facts.py`** · **`session_snapshot.py`** · **`status_archive.py`** · **`check_refs.py`** ·
-**`channels.py`** · **`channel_post.py`** · **`channel_queue.py`** · **`channel_inflow.py`** · **`check_claims.py`** · **`check_session_surface.py`** · **`check_marks.py`** · **`build_featured_card.py`**
+**`channels.py`** · **`channel_post.py`** · **`channel_queue.py`** · **`channel_inflow.py`** · **`check_claims.py`** · **`check_session_surface.py`** · **`check_marks.py`** · **`build_featured_card.py`** · **`judge_11_terminal.py`** · **`chart_11_terminal_plan.py`**
 
 
 **각 장치가 무엇을 보고 무엇을 못 보는지는 `docs/장치.md` 가 든다** — 라운드마다 자라 STATUS 상한을 네 번 밀었다. **목록과 수는 여기, 설명은 그쪽이다.**
