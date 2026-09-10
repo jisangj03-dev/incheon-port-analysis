@@ -41,7 +41,10 @@
 · **두 자리는 통째로 안 잰다** — 플러그인 캐시의 `.in_use/<PID>` 잠금과 `~/.claude.json` 의
   계수기·대화 이력. 통째로 재면 **매 세션 틀림없이 어긋나** 그 소음이 진짜 변화를 덮고,
   처방인 `--write` 가 「봤다는 서명」이 아니라 눈 감고 치는 버릇이 된다(사고 113).
-  **좁힌 자리와 좁힌 이유는 각각 `RUNTIME_DIRS`·`PROJ_KEYS` 위에 적었다.**
+  **좁힌 자리와 좁힌 이유는 각각 `RUNTIME_DIRS`·`PROJ_KEYS`·`EMPTY_OK`·`CATALOG` 위에 적었다.**
+· **좁히는 것은 「자리」가 아니라 「재는 것」이다.** 경로째 빼면 나중에 거기 쓰는 도구가
+  안 보이고, 그것이 이 장치가 막으려는 바로 그 일이다(운영자 지적 2026-09-10).
+  `data/` 는 **비어 있을 때만** 건너뛰고, 진열대는 **진열 목록**을 잰다.
 · 심링크는 **가리키는 곳의 내용**으로 잰다. 링크가 바뀌면 해시가 바뀐다.
 """
 
@@ -252,14 +255,54 @@ def plugin_skills():
 #   · 프로젝트마다 `mcpServers`(이름만) · `allowedTools` · `enabled/disabledMcpjsonServers`
 # **못 보는 것** — 앤트로픽이 *새로운 종류의* 프로젝트별 지시 키를 넣으면 이름이 아래 넷에 없어
 # 안 잡힌다. **좁힌 만큼을 여기 적어 둔다**(사고 46 — 문면과 기전은 같지 않다).
-# **플러그인 폴더에는 「지시」와 「가게 진열장」이 섞여 있다.**
-# 세션에게 실제로 지시가 되는 것은 `cache/`(깔린 플러그인의 실물)와 `installed_plugins.json` 이고,
-# 그 둘은 `plugin_skills()` 가 스킬·명령·에이전트 **낱낱으로** 편다(설명까지).
-# `marketplaces/` 는 **깔 수 있는 것의 목록**이지 깔린 것이 아니다 — 클로드 코드가 스스로 다시
-# 받아 온다(2026-09-10 실측: 우리가 아무것도 안 한 세션 중 13:09 에 갱신됐다).
-# `data/`·`.last_inuse_sweep` 은 실행기의 살림살이다.
-# **그래서 진열장 대신 「어느 가게가 어디서 오는가」를 잰다** — 가게가 늘면 그것은 잡힌다.
-PLUGIN_RUNTIME = {"marketplaces", "data", ".last_inuse_sweep"}
+# **경로째 빼지 않는다.** 처음엔 `data`·`.last_inuse_sweep`·`marketplaces` 세 이름을 통째로 뺐다.
+# **그러면 나중에 거기 쓰는 도구가 안 보인다** — 이 장치가 막으려는 바로 그 일이다
+# (운영자 지적 2026-09-10 · 사고 113 보강). 자리는 **다 들고, 재는 것만 좁힌다.**
+#   · `data/` — 실행기가 깔린 플러그인마다 **빈 폴더**를 만든다. **비어 있을 때만 건너뛴다.**
+#     파일이 하나라도 생기면 행이 돌아오고 그 내용이 해시에 든다.
+#   · `.last_inuse_sweep` — **뺐다가 되돌렸다.** 매 세션 안 바뀐다(09-09 19:21 것이 09-10 세션에도 그대로).
+#     소음이 아니었다. 소음인 줄 알고 뺀 것이 잘못이다.
+#   · `marketplaces/` — 446개 파일이고 클로드 코드가 스스로 다시 받는다. 바이트 대신
+#     **어느 가게가 무슨 플러그인을 내놓는가**(이름 목록)를 잰다. 판이 올라도 이름이 같으면 같고,
+#     **새 플러그인이 진열되면 다르다.** 진열된 것의 **내용**은 깔린 뒤 `cache/` 가 든다.
+EMPTY_OK = {"data"}          # 비어 있을 때만 건너뛴다
+CATALOG = {"marketplaces"}   # 바이트 대신 진열 목록을 잰다
+
+
+def dir_is_empty(path):
+    for _, _, files in os.walk(path):
+        if files:
+            return False
+    return True
+
+
+def catalog_sha(path):
+    """진열대에서 **무엇이 진열돼 있는가**만 잰다. 반환 (해시, 한 줄).
+
+    **마니페스트를 못 찾으면 그 사실을 목록에 넣는다** — 조용히 빠지면 「진열 0」이
+    「아무것도 없다」로 읽힌다(사고 77).
+    """
+    rows, shops = [], 0
+    for n in sorted(os.listdir(path)):
+        d = os.path.join(path, n)
+        if not os.path.isdir(d):
+            rows.append("(파일) " + n)
+            continue
+        shops += 1
+        mf = os.path.join(d, ".claude-plugin", "marketplace.json")
+        if not os.path.exists(mf):
+            rows.append("(마니페스트 없음) " + n)
+            continue
+        try:
+            j = json.load(io.open(mf, encoding="utf-8"))
+        except Exception:
+            rows.append("(못 읽음) " + n)
+            continue
+        for p in (j.get("plugins") or []):
+            rows.append("%s/%s" % (n, (p or {}).get("name") or "?"))
+    blob = json.dumps(sorted(rows), ensure_ascii=False).encode("utf-8")
+    return (hashlib.sha256(blob).hexdigest()[:12],
+            "가게 %d · 진열 %d — **판 번호·파일 바이트는 안 잰다**" % (shops, len(rows)))
 
 
 def marketplace_sha(path):
@@ -324,13 +367,18 @@ def survey():
         if not os.path.isdir(d):
             continue
         for n in sorted(os.listdir(d)):
-            if label == "플러그인" and n in PLUGIN_RUNTIME:
-                continue
             p = os.path.join(d, n)
             rel = os.path.relpath(p, HOME).replace(chr(92), "/")
-            if label == "플러그인" and n == "known_marketplaces.json":
-                rows.append((label, n, rel, "등록된 가게 — **갱신 시각은 안 잰다**", marketplace_sha(p)))
-                continue
+            if label == "플러그인":
+                if n in EMPTY_OK and os.path.isdir(p) and dir_is_empty(p):
+                    continue
+                if n in CATALOG and os.path.isdir(p):
+                    h, k = catalog_sha(p)
+                    rows.append((label, n, rel, k, h))
+                    continue
+                if n == "known_marketplaces.json":
+                    rows.append((label, n, rel, "등록된 가게 — **갱신 시각은 안 잰다**", marketplace_sha(p)))
+                    continue
             rows.append((label, n, rel, "", dir_sha(p) if os.path.isdir(p) else sha(p)))
     for label, p in CONFIG_FILES:
         if not os.path.exists(p):
@@ -598,8 +646,35 @@ def selftest():
     chk("실물에서 여러 건을 본다", len(rows) >= 3, True)
     print("     지금: 지시문 자리 %d건" % len(rows))
 
-    print("── 인수시험: 좁힌 자리가 「소음만」 빼고 「지시」는 그대로 재는가 (사고 113) ──")
+    print("── 인수시험: 경로째 빼지 않는가 (운영자 지적 · 사고 113 보강) ──")
     import tempfile as _tf
+    with _tf.TemporaryDirectory() as d:
+        empty = os.path.join(d, "data")
+        os.makedirs(os.path.join(empty, "어떤플러그인"))
+        chk("빈 `data/` 는 비어 있다고 본다", dir_is_empty(empty), True)
+        io.open(os.path.join(empty, "어떤플러그인", "지시.md"), "w", encoding="utf-8").write("x")
+        chk("파일이 하나라도 생기면 안 비었다 — 행이 돌아온다", dir_is_empty(empty), False)
+
+        shop = os.path.join(d, "가게들", "어떤가게", ".claude-plugin")
+        os.makedirs(shop)
+        mf = os.path.join(shop, "marketplace.json")
+        def _mk(plugins, ver):
+            io.open(mf, "w", encoding="utf-8").write(json.dumps(
+                {"name": "어떤가게", "version": ver,
+                 "plugins": [{"name": x, "description": "판 " + ver} for x in plugins]},
+                ensure_ascii=False))
+        _mk(["가", "나"], "1")
+        c = catalog_sha(os.path.join(d, "가게들"))[0]
+        _mk(["가", "나"], "2")
+        chk("판이 올라도 진열이 같으면 같은 값", catalog_sha(os.path.join(d, "가게들"))[0], c)
+        _mk(["가", "나", "다"], "1")
+        chk("새 플러그인이 진열되면 다른 값", catalog_sha(os.path.join(d, "가게들"))[0] != c, True)
+        os.remove(mf)
+        h2, line2 = catalog_sha(os.path.join(d, "가게들"))
+        chk("마니페스트가 없으면 그 사실이 목록에 든다", h2 != c, True)
+        chk("가게 수는 그대로 센다 (분모 0 금지)", "가게 1" in line2, True)
+
+    print("── 인수시험: 좁힌 자리가 「소음만」 빼고 「지시」는 그대로 재는가 (사고 113) ──")
     with _tf.TemporaryDirectory() as d:
         # 런타임 잠금: PID 가 바뀌어도 같은 값이어야 한다
         os.makedirs(os.path.join(d, ".in_use"))

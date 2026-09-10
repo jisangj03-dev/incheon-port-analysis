@@ -32,10 +32,14 @@
   **대조가 안 되면 그 파일은 건너뛰고 보고한다**(경계).
 · **이미지·PDF 를 글자 도구에 안 넣는다.** 넣으면 바이너리가 망가진다 —
   상류 저장소가 그 사고를 README 에 적어 뒀다. 그래서 `audit_dir.py` 로 연다.
-· **C2PA 를 다 못 본다.** `c2patool` 이 이 기계에 없어 감사기가 「not fully inspected」를 단다.
-  **0 건은 「없다」가 아니라 「이 도구로는 안 보인다」다**(사고 26). 그 수를 따로 낸다.
-· **형식을 못 가리는 것은 안 연다** — `.woff2`·`.ico`·`.webmanifest`·확장자 없는 것.
-  감사기가 「unrecognized format」으로 남기고, **이 파일은 그 수를 세어 같이 낸다.**
+· **C2PA 는 `c2patool` v0.27.21 로 연다**(`~/tools/c2patool` · 이 파일이 PATH 앞에 붙인다).
+  **없으면 「부분 검사 N개」로 나온다** — 0 이 「없다」가 아니라 「안 봤다」인 자리다(사고 26).
+  인수시험이 **C2PA 가 든 표본을 잡는지**까지 본다 — 0 건이 눈 감은 결과가 아님을 보이려고.
+· **형식을 못 가린 것은 두 번 더 묻는다** — ①UTF-8 로 읽히고 NUL 이 없으면 **글자 도구**로
+  (이름이 아니라 바이트로 가른다) ②`wOF2` 머리말이면 **길이 칸 둘**을 본다(압축을 안 푼다).
+  **남는 것은 `.ico` 하나다** — 이 형식엔 메타데이터 칸이 없고 이 파일은 그것을 안 판정한다.
+· **exiftool 이 없다.** 감사기는 PDF 에서만 그것을 쓰는데 우리 대상에 PDF 가 0 이라 지금은 안 걸린다.
+  **PDF 가 생기면 그 자리는 [미확인]이 된다.**
 · **바이너리는 지우는 쪽을 자동으로 안 돈다.** 걸린 것이 나오면 명령을 찍고 멈춘다 —
   0 건인 채로 만든 정리 경로는 **전후 대조를 해 본 적이 없는 경로**다(경계).
 · 도구가 없는 기계에서는 **불성립**이지 통과가 아니다.
@@ -46,6 +50,7 @@ import glob
 import io
 import json
 import os
+import struct
 import subprocess
 import sys
 
@@ -80,6 +85,9 @@ BINARY_TARGETS = [
 # **바이너리를 여는 자리.** `audit_dir.py` 가 확장자·매직으로 갈라
 # 이미지·컨테이너(PDF·SVG)·동영상 경로로 보낸다. 글자 도구를 안 탄다.
 AUDIT = os.path.join(WR, "audit_dir.py")
+# **C2PA 를 여는 자리.** `c2patool` v0.27.21 (`contentauth/c2pa-rs` · 태그 고정 ·
+# sha256 ff2f711b…). 없으면 감사기가 「c2patool unavailable」을 달고, 그 수를 아래가 낸다.
+C2PA_DIR = os.path.join(os.path.expanduser("~"), "tools", "c2patool")
 BINARY_ROOTS = [
     ("발행본 이미지", os.path.join(ROOT, "reports", "images")),
     ("사이트 자산", os.path.join(ROOT, "assets")),
@@ -126,9 +134,63 @@ def inspect_one(path):
     return None, out
 
 
+def tool_env():
+    """감사기에게 넘길 환경. **`c2patool` 자리를 PATH 앞에 붙인다.**
+
+    감사기는 `shutil.which("c2patool")` 로 찾는다. 기계의 PATH 를 안 고치는 이유는
+    그것이 **이 저장소 밖의 변경**이기 때문이다 — 장치가 자기 의존물의 자리를 들고 다닌다.
+    **없으면 없다고 나온다**(`c2patool unavailable`) — 그것도 산출에 남는다.
+    """
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    if os.path.isdir(C2PA_DIR):
+        env["PATH"] = C2PA_DIR + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def woff2_meta(path):
+    """WOFF2 서체가 **메타데이터를 싣고 있는가.** 반환 (열었나, 무엇이 걸렸나).
+
+    WOFF2 는 감사기가 형식을 안 가려 92개가 통째로 [미확인]이었다. 그런데 이 형식에서
+    무언가를 실을 수 있는 칸은 **머리말의 둘뿐**이다 — 확장 메타데이터(XML)와 비공개 블록.
+    둘 다 머리말 48바이트 안에 길이가 적혀 있어 **압축을 안 풀고도 읽힌다**(stdlib).
+    **못 읽으면 「안 열림」이지 「깨끗함」이 아니다.**
+    """
+    try:
+        with io.open(path, "rb") as fh:
+            b = fh.read(48)
+        if len(b) < 44 or b[:4] != b"wOF2":
+            return False, None
+        _, meta_len, _, _, priv_len = struct.unpack(">IIIII", b[24:44])
+        why = []
+        if meta_len:
+            why.append("확장 메타데이터 %d B" % meta_len)
+        if priv_len:
+            why.append("비공개 블록 %d B" % priv_len)
+        return True, (" · ".join(why) if why else None)
+    except Exception:
+        return False, None
+
+
+def looks_text(path):
+    """**이름이 아니라 바이트로 묻는다** — UTF-8 로 읽히고 NUL 이 없으면 글자다.
+
+    확장자로 가르면 `.woff2` 는 걸러지지만 확장자 없는 설정 파일도 같이 걸러진다.
+    실제로 `_headers`·`_redirects`·`.webmanifest` 넷이 그 이유로 안 열리고 있었다.
+    """
+    try:
+        with io.open(path, "rb") as fh:
+            b = fh.read(1 << 20)
+        if b"\x00" in b:
+            return False
+        b.decode("utf-8")
+        return True
+    except Exception:
+        return False
+
+
 def run_json(script, args, timeout=600):
     """stdout 과 stderr 를 **안 섞는다** — 섞으면 JSON 이 안 읽힌다."""
-    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    env = tool_env()
     try:
         p = subprocess.run([sys.executable, script] + list(args), stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE, text=True, encoding="utf-8",
@@ -160,6 +222,28 @@ def audit_roots():
             rel = str(f.get("path", "?")).replace(chr(92), "/")
             notes = " ".join(f.get("notes") or [])
             if "unrecognized format" in notes:
+                # **형식을 못 가린 것 중 「글자인 것」은 글자 도구로 보낸다.**
+                # 가르는 기준은 **확장자가 아니라 내용**이다 — UTF-8 로 읽히고 NUL 이 없으면 글자다.
+                # `.woff2`·`.ico` 는 여기서 걸러진다(압축 바이너리·NUL). 경계는 그대로다:
+                # **바이너리를 글자 도구에 안 넣는다.** 다만 「글자냐」를 이름이 아니라 바이트로 묻는다.
+                fp = os.path.join(root, os.path.relpath(rel, "").replace("/", os.sep)) \
+                    if not os.path.isabs(rel) else rel
+                fp = fp if os.path.exists(fp) else os.path.join(ROOT, rel)
+                if looks_text(fp):
+                    n, _ = inspect_one(fp)
+                    if n is None:
+                        hits.append((rel, "**글자로 봤는데 못 돌렸다** — 0 이 아니다"))
+                    else:
+                        opened += 1
+                        if n:
+                            hits.append((rel, "안 보이는 문자 %d건" % n))
+                    continue
+                ok, why = woff2_meta(fp)
+                if ok:
+                    opened += 1
+                    if why:
+                        hits.append((rel, why))
+                    continue
                 ext = os.path.splitext(rel)[1].lower()
                 unrouted[ext] = unrouted.get(ext, 0) + 1
                 continue
@@ -236,7 +320,9 @@ def main(strict=False, do_clean=False):
         print("    안 연 것: %s" % " · ".join("%s %d" % (k or "(확장자 없음)", v)
                                               for k, v in sorted(unrouted.items())))
     if partial:
-        print("    **부분 검사 %d개** — c2patool 이 없어 C2PA 를 다 못 봤다. 0 이 「없다」가 아니다" % partial)
+        print("    **부분 검사 %d개** — C2PA 를 다 못 봤다. 0 이 「없다」가 아니다" % partial)
+        print("      `c2patool` 자리: %s (%s)"
+              % (C2PA_DIR, "있다" if os.path.isdir(C2PA_DIR) else "**없다**"))
     if hits2:
         print("    **걸린 것 %d개**" % len(hits2))
         for rel, why in hits2:
@@ -302,11 +388,43 @@ def selftest():
     chk("글자 대상이 여럿", len(tf) >= 20, True)
     print("     지금: 글자 %d · 바이너리 %d" % (len(tf), len(bf)))
 
+    print("── 인수시험: 글자·서체·C2PA 를 이름이 아니라 바이트로 가르는가 ──")
+    with tempfile.TemporaryDirectory() as d:
+        t = os.path.join(d, "설정없는이름")
+        io.open(t, "w", encoding="utf-8").write("/*  헤더\n")
+        chk("확장자가 없어도 글자면 글자다", looks_text(t), True)
+        z = os.path.join(d, "b.bin")
+        io.open(z, "wb").write(b"ab\x00cd")
+        chk("NUL 이 있으면 글자가 아니다", looks_text(z), False)
+
+        # WOFF2 머리말을 손으로 짓는다 — 압축 본문 없이 길이 칸만 본다
+        def _woff(meta_len, priv_len):
+            p = os.path.join(d, "f%d_%d.woff2" % (meta_len, priv_len))
+            head = (b"wOF2" + b"\x00" * 20
+                    + struct.pack(">IIIII", 0, meta_len, meta_len, 0, priv_len)
+                    + b"\x00" * 4)
+            io.open(p, "wb").write(head)
+            return p
+        chk("서체에 메타데이터가 없으면 깨끗", woff2_meta(_woff(0, 0)), (True, None))
+        chk("확장 메타데이터가 있으면 걸린다", woff2_meta(_woff(120, 0))[1] is not None, True)
+        chk("비공개 블록이 있으면 걸린다", woff2_meta(_woff(0, 64))[1] is not None, True)
+        chk("서체가 아니면 안 열었다고 한다", woff2_meta(z), (False, None))
+
+    # **양성 대조** — 0 건이 「도구가 눈을 감아서」가 아님을 보인다(사고 26)
+    sample = os.path.join(C2PA_DIR, "sample", "C.jpg")
+    if os.path.exists(sample):
+        code, out, _ = run_json(os.path.join(WR, "inspect_image.py"), [sample])
+        chk("C2PA 가 든 표본을 잡는다", "C2PA: True" in out and "c2patool" in out, True)
+    else:
+        print("  (표본 %s 이 없다 — **미실행**이지 통과가 아니다)" % sample)
+
     print("── 인수시험: 바이너리를 실제로 여는가 (분모가 0이 아니다 · 사고 77) ──")
     op2, unr2, h2, pt2 = audit_roots()
     chk("바이너리를 연다 — 0 이면 「없다」가 아니라 「못 봤다」", op2 > 0, True)
     chk("못 돌린 것이 「걸린 것 0」으로 안 숨는다",
         all("못 돌렸다" not in w and "JSON 이 아니다" not in w for _, w in h2), True)
+    chk("C2PA 를 여는 도구가 자리에 있다", os.path.isdir(C2PA_DIR), True)
+    chk("부분 검사가 0 이다 — 0 이 아니면 C2PA 를 그만큼 못 본 것이다", pt2, 0)
     print("     지금: 연 것 %d · 안 연 것 %d · 부분검사 %d · 걸린 것 %d"
           % (op2, sum(unr2.values()), pt2, len(h2)))
 
