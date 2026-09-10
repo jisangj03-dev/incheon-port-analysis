@@ -19,11 +19,18 @@
    사이트가 「YYYY-MM 단월」·「YYYY년 M월」로 적은 단월 창(지표 타일·부두·챕터·푸터)이 전부 그 값이다.
    푸터의 「자료 기준」이 손으로 적힌 채 낡던 자리다(사고 31). 부두 막대의 몫 셋(65.2·23.4·11.3%)도 §2 가 대장에서 찾는다.
 
+7. [2026-09-11] **공유 카드의 선언 ↔ 실물** — `__root.tsx` 가 글자로 적은 `og:image:width/height` 와
+   `app-meta.json` 의 `og_image_url` 이 가리키는 **파일의 실제 화소**가 같은가. **망을 안 탄다.**
+   둘이 갈려도 화면에서는 안 보인다 — 보는 것은 크롤러뿐이다. 2026-09-10 실측: 선언 1200×630 ·
+   실물 1600×1073(마켓플레이스 커버가 `og_image_url` 자리에 들어가 있었다).
+
 닿지 않는 곳
 ------------
 · 값이 **맞는지**는 안 본다 — 대장과 **같은지**만 본다. 대장이 틀리면 같이 틀린다(대장은 `check_facts.py` 가 본다).
 · 문장이 맞는지는 안 본다. 숫자만 본다.
 · 측심 저장소가 없는 기계에서는 「모름」이다 — 통과로 세지 않는다.
+· **카드가 실제로 어떻게 보이는지는 안 본다** — 크기가 선언과 같은지만 본다.
+  링크드인·슬랙이 그것을 어떻게 자르는지는 붙여넣어 봐야 안다(사고 73).
 
   python analysis/check_site_facts.py             # 판정
   python analysis/check_site_facts.py --hook      # pre-push 용 — 문제 있을 때만 말한다
@@ -205,7 +212,57 @@ def check(site=SITE, facts_path=FACTS, judge_paths=JUDGE, window_path=None):
                 n += 1
                 if lit != win:
                     problems.append("%s 의 단월 창 %s — DATA_WINDOW %s 와 다르다" % (fn, lit, win))
+    # 7. **공유 카드 — 선언한 크기와 파일의 실제 화소가 같은가** [2026-09-11]
+    #    `__root.tsx` 가 `og:image:width/height` 를 **글자로 적어 두고**, 실제 이미지는
+    #    `app-meta.json` 의 `og_image_url` 이 가리킨다. **둘이 갈려도 화면에서는 안 보인다** —
+    #    보는 것은 크롤러뿐이다. 2026-09-10 실측: 선언 1200×630 · 실물 1600×1073(마켓플레이스
+    #    커버가 `og_image_url` 자리에 들어가 있었다). 링크드인이 미리보기를 못 만들던 자리다.
+    #    **조심으로 안 되는 것은 장치로 막는다**(사고 75).
+    problems2, n2 = og_card(site)
+    problems += problems2
+    n += n2
     return problems, n, None
+
+
+def og_card(site):
+    """공유 카드의 **선언 ↔ 실물**. 반환 (문제 목록, 검사 건수).
+
+    **망을 안 탄다** — 선언도 이미지도 저장소 안에 있다.
+    **Pillow 가 없으면 「못 쟀다」를 문제로 올린다** — 0 건이 「맞다」로 읽히면 안 된다(사고 26).
+    """
+    problems, n = [], 0
+    root = read(os.path.join(site, "src", "routes", "__root.tsx"))
+    metaf = os.path.join(site, "src", "app-meta.json")
+    if not root or not os.path.exists(metaf):
+        return ["공유 카드 — `__root.tsx` 나 `app-meta.json` 을 못 읽었다"], 1
+    w = re.search(r'"og:image:width",\s*content:\s*"(\d+)"', root)
+    h = re.search(r'"og:image:height",\s*content:\s*"(\d+)"', root)
+    if not (w and h):
+        return ["공유 카드 — `og:image:width/height` 선언을 못 찾았다"], 1
+    want = (int(w.group(1)), int(h.group(1)))
+    try:
+        url = (json.load(io.open(metaf, encoding="utf-8")).get("og_image_url") or "")
+    except Exception as e:
+        return ["공유 카드 — `app-meta.json` 을 못 읽었다: %s" % type(e).__name__], 1
+    rel = url.split("/assets/", 1)[-1] if "/assets/" in url else None
+    if not rel:
+        return ["공유 카드 — `og_image_url` 이 이 사이트의 `/assets/` 를 안 가리킨다: %s" % url[:60]], 1
+    path = os.path.join(site, "public", "assets", *rel.split("/"))
+    n += 1
+    if not os.path.exists(path):
+        return ["공유 카드 — `og_image_url` 이 가리키는 파일이 없다: %s" % rel], n
+    try:
+        from PIL import Image
+        got = Image.open(path).size
+    except ImportError:
+        return ["공유 카드 — **Pillow 가 없어 못 쟀다.** 통과가 아니다"], n
+    except Exception as e:
+        return ["공유 카드 — 이미지를 못 열었다(%s): %s" % (type(e).__name__, rel)], n
+    if got != want:
+        problems.append("공유 카드 — 선언 %d×%d 인데 실물은 %d×%d 다 (%s). "
+                        "크롤러만 보는 자리라 화면으로는 안 드러난다"
+                        % (want[0], want[1], got[0], got[1], rel))
+    return problems, n
 
 
 def site_windows(src):
@@ -282,6 +339,31 @@ def selftest():
             io.open(wf, "w", encoding="utf-8").write('export const DATA_WINDOW = "2026-06";\n')
             p4, _, _ = check(window_path=wf)
             chk("자료 창이 어긋나면 잡는다", any("DATA_WINDOW" in p for p in p4), True)
+            # **공유 카드도 잡는 쪽을 친다** — 화면으로는 안 드러나는 자리라 더 그렇다.
+            # 2026-09-10 에 실제로 일어난 꼴 그대로 짓는다: 선언 1200×630 · 실물 1600×1073.
+            from PIL import Image as _Im
+            site2 = os.path.join(d, "site")
+            os.makedirs(os.path.join(site2, "src", "routes"))
+            os.makedirs(os.path.join(site2, "public", "assets", "og"))
+            io.open(os.path.join(site2, "src", "routes", "__root.tsx"), "w", encoding="utf-8").write(
+                '{ property: "og:image:width", content: "1200" },\n'
+                '{ property: "og:image:height", content: "630" },\n')
+            def _meta(name):
+                io.open(os.path.join(site2, "src", "app-meta.json"), "w", encoding="utf-8").write(
+                    '{"og_image_url": "https://x/assets/og/%s"}' % name)
+            _Im.new("RGB", (1600, 1073)).save(os.path.join(site2, "public", "assets", "og", "cover.jpg"))
+            _Im.new("RGB", (1200, 630)).save(os.path.join(site2, "public", "assets", "og", "card.jpg"))
+            _meta("cover.jpg")
+            p5, n5 = og_card(site2)
+            chk("선언과 실물이 갈리면 잡는다", any("1600×1073" in x for x in p5), True)
+            _meta("card.jpg")
+            chk("맞으면 조용하다", og_card(site2)[0], [])
+            _meta("없는파일.jpg")
+            chk("가리키는 파일이 없으면 잡는다", any("파일이 없다" in x for x in og_card(site2)[0]), True)
+            io.open(os.path.join(site2, "src", "app-meta.json"), "w", encoding="utf-8").write(
+                '{"og_image_url": "https://cdn.example.com/somewhere/x.jpg"}')
+            chk("`/assets/` 를 안 가리키면 잡는다",
+                any("안 가리킨다" in x for x in og_card(site2)[0]), True)
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
 
