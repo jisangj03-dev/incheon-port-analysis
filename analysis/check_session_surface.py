@@ -38,6 +38,10 @@
 · **가시성은 안전이 아니다.** 무엇이 쓰였는지 아는 것과 그것이 해롭지 않은 것은 다르다.
   **이 파일은 「알 수 있다」까지만 보장하고 「괜찮다」는 사람이 판단한다.**
 · **해시는 바뀐 것을 알리지 무엇이 바뀌었는지는 안 알린다.** 내용은 사람이 읽는다.
+· **두 자리는 통째로 안 잰다** — 플러그인 캐시의 `.in_use/<PID>` 잠금과 `~/.claude.json` 의
+  계수기·대화 이력. 통째로 재면 **매 세션 틀림없이 어긋나** 그 소음이 진짜 변화를 덮고,
+  처방인 `--write` 가 「봤다는 서명」이 아니라 눈 감고 치는 버릇이 된다(사고 113).
+  **좁힌 자리와 좁힌 이유는 각각 `RUNTIME_DIRS`·`PROJ_KEYS` 위에 적었다.**
 · 심링크는 **가리키는 곳의 내용**으로 잰다. 링크가 바뀌면 해시가 바뀐다.
 """
 
@@ -102,14 +106,22 @@ def sha(path):
         return "?"
 
 
+# **런타임 잠금은 지시가 아니다.** 플러그인 실행기가 세션마다 `.in_use/<PID>` 를 새로 쓴다.
+# 그 파일을 해시에 넣으면 이 장치가 **매 세션 틀림없이 발화하고**, 그 소음이 진짜 변화를 덮는다 —
+# 그러면 처방인 `--write` 가 「봤다는 서명」이 아니라 **눈 감고 치는 버릇**이 된다(사고 113).
+# **좁히는 것이지 푸는 것이 아니다** — 내용이 있는 파일은 하나도 안 뺀다.
+RUNTIME_DIRS = {".in_use"}
+
+
 def dir_sha(path):
-    """디렉터리 전체를 한 값으로. 파일 이름과 내용을 **정렬해** 넣는다."""
+    """디렉터리 전체를 한 값으로. 파일 이름과 내용을 **정렬해** 넣는다.
+    `RUNTIME_DIRS` 만 뺀다 — 왜 빼는지는 그 상수 위에 적었다."""
     h = hashlib.sha256()
     for base, dirs, files in os.walk(path):
-        dirs.sort()
+        dirs[:] = sorted(d for d in dirs if d not in RUNTIME_DIRS)
         for f in sorted(files):
             p = os.path.join(base, f)
-            h.update(os.path.relpath(p, path).replace("\\", "/").encode("utf-8"))
+            h.update(os.path.relpath(p, path).replace(chr(92), "/").encode("utf-8"))
             h.update(sha(p).encode("ascii"))
     return h.hexdigest()[:12]
 
@@ -233,6 +245,62 @@ def plugin_skills():
     return rows
 
 
+# **`~/.claude.json` 은 72 KB 인데 거의 전부가 계수기다** — `numStartups`·`tipsHistory`·
+# `skillUsage`·프로젝트별 마지막 세션 비용까지. **파일 해시를 그대로 쓰면 세션이 끝날 때마다
+# 바뀌어** 이 장치가 매번 발화한다(2026-09-10 실측 · 사고 113). 그래서 **지시가 되는 부분만** 잰다:
+#   · 최상위 **키 이름 전부** — 새 종류가 생기면 잡힌다
+#   · 프로젝트마다 `mcpServers`(이름만) · `allowedTools` · `enabled/disabledMcpjsonServers`
+# **못 보는 것** — 앤트로픽이 *새로운 종류의* 프로젝트별 지시 키를 넣으면 이름이 아래 넷에 없어
+# 안 잡힌다. **좁힌 만큼을 여기 적어 둔다**(사고 46 — 문면과 기전은 같지 않다).
+# **플러그인 폴더에는 「지시」와 「가게 진열장」이 섞여 있다.**
+# 세션에게 실제로 지시가 되는 것은 `cache/`(깔린 플러그인의 실물)와 `installed_plugins.json` 이고,
+# 그 둘은 `plugin_skills()` 가 스킬·명령·에이전트 **낱낱으로** 편다(설명까지).
+# `marketplaces/` 는 **깔 수 있는 것의 목록**이지 깔린 것이 아니다 — 클로드 코드가 스스로 다시
+# 받아 온다(2026-09-10 실측: 우리가 아무것도 안 한 세션 중 13:09 에 갱신됐다).
+# `data/`·`.last_inuse_sweep` 은 실행기의 살림살이다.
+# **그래서 진열장 대신 「어느 가게가 어디서 오는가」를 잰다** — 가게가 늘면 그것은 잡힌다.
+PLUGIN_RUNTIME = {"marketplaces", "data", ".last_inuse_sweep"}
+
+
+def marketplace_sha(path):
+    """가게 목록에서 **어디서 오는가**만 잰다 — `lastUpdated` 는 클로드 코드가 혼자 고친다."""
+    try:
+        d = json.load(io.open(path, encoding="utf-8"))
+    except Exception:
+        return sha(path)
+    core = {k: (v or {}).get("source") for k, v in sorted(d.items())}
+    blob = json.dumps(core, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()[:12]
+
+
+PROJ_KEYS = ("mcpServers", "allowedTools", "enabledMcpjsonServers", "disabledMcpjsonServers")
+
+
+def big_config_digest(path):
+    """반환 (해시, 사람이 읽을 한 줄). **값이 아니라 지시가 되는 부분만** 든다(§4.1)."""
+    try:
+        d = json.load(io.open(path, encoding="utf-8"))
+    except Exception:
+        return sha(path), "(JSON 아님)"
+    projs, mcp = {}, 0
+    for name, v in sorted((d.get("projects") or {}).items()):
+        if not isinstance(v, dict):
+            continue
+        row = {}
+        for k in PROJ_KEYS:
+            if k in v:
+                row[k] = sorted(v[k].keys()) if isinstance(v[k], dict) else v[k]
+        if row.get("mcpServers"):
+            mcp += 1
+        if row:
+            projs[name] = row
+    core = {"최상위": sorted(d.keys()), "프로젝트": projs}
+    blob = json.dumps(core, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    line = "최상위 키 %d개 · 프로젝트 %d개(MCP 를 든 것 %d) — **계수기·이력은 안 잰다**" % (
+        len(d.keys()), len(d.get("projects") or {}), mcp)
+    return hashlib.sha256(blob).hexdigest()[:12], line
+
+
 def survey():
     """지금 있는 것. 반환 [(갈래, 이름, 자리, 설명, 해시)]"""
     rows = []
@@ -256,8 +324,13 @@ def survey():
         if not os.path.isdir(d):
             continue
         for n in sorted(os.listdir(d)):
+            if label == "플러그인" and n in PLUGIN_RUNTIME:
+                continue
             p = os.path.join(d, n)
-            rel = os.path.relpath(p, HOME).replace("\\", "/")
+            rel = os.path.relpath(p, HOME).replace(chr(92), "/")
+            if label == "플러그인" and n == "known_marketplaces.json":
+                rows.append((label, n, rel, "등록된 가게 — **갱신 시각은 안 잰다**", marketplace_sha(p)))
+                continue
             rows.append((label, n, rel, "", dir_sha(p) if os.path.isdir(p) else sha(p)))
     for label, p in CONFIG_FILES:
         if not os.path.exists(p):
@@ -273,13 +346,9 @@ def survey():
     for label, p in BIG_CONFIG:
         if not os.path.exists(p):
             continue
-        try:
-            keys = sorted(json.load(io.open(p, encoding="utf-8")).keys())
-            k = "최상위 키 %d개: %s" % (len(keys), " · ".join(keys[:6]))
-        except Exception:
-            k = "(JSON 아님)"
-        rows.append((label, os.path.basename(p), os.path.relpath(p, HOME).replace("\\", "/"),
-                     k[:110], sha(p)))
+        h, k = big_config_digest(p)
+        rows.append((label, os.path.basename(p), os.path.relpath(p, HOME).replace(chr(92), "/"),
+                     k[:110], h))
     return rows
 
 
@@ -528,6 +597,51 @@ def selftest():
         any(rx.search("task-breakdown risk-free") for _, rx in LEAK), False)
     chk("실물에서 여러 건을 본다", len(rows) >= 3, True)
     print("     지금: 지시문 자리 %d건" % len(rows))
+
+    print("── 인수시험: 좁힌 자리가 「소음만」 빼고 「지시」는 그대로 재는가 (사고 113) ──")
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as d:
+        # 런타임 잠금: PID 가 바뀌어도 같은 값이어야 한다
+        os.makedirs(os.path.join(d, ".in_use"))
+        io.open(os.path.join(d, "SKILL.md"), "w", encoding="utf-8").write("지시\n")
+        io.open(os.path.join(d, ".in_use", "111"), "w", encoding="utf-8").write("1")
+        a = dir_sha(d)
+        io.open(os.path.join(d, ".in_use", "222"), "w", encoding="utf-8").write("2")
+        chk("`.in_use` 가 바뀌어도 같은 값", dir_sha(d), a)
+        io.open(os.path.join(d, "SKILL.md"), "w", encoding="utf-8").write("다른 지시\n")
+        chk("내용이 바뀌면 다른 값", dir_sha(d) != a, True)
+
+        # 전역 설정: 계수기는 안 재고 MCP·허용도구는 잰다
+        gp = os.path.join(d, "c.json")
+        def _w(o):
+            io.open(gp, "w", encoding="utf-8").write(json.dumps(o, ensure_ascii=False))
+        base = {"numStartups": 1, "tipsHistory": {"a": 1}, "projects": {"P": {"mcpServers": {}, "lastCost": 1}}}
+        _w(base)
+        b = big_config_digest(gp)[0]
+        base["numStartups"] = 99
+        base["tipsHistory"] = {"a": 9, "b": 9}
+        base["projects"]["P"]["lastCost"] = 77
+        _w(base)
+        chk("계수기가 바뀌어도 같은 값", big_config_digest(gp)[0], b)
+        base["projects"]["P"]["mcpServers"] = {"새서버": {}}
+        _w(base)
+        chk("MCP 서버가 붙으면 다른 값", big_config_digest(gp)[0] != b, True)
+        _w({"numStartups": 1, "tipsHistory": {"a": 1}, "새최상위키": 1,
+            "projects": {"P": {"mcpServers": {}, "lastCost": 1}}})
+        chk("최상위 키가 늘면 다른 값", big_config_digest(gp)[0] != b, True)
+
+        # 가게 목록: 갱신 시각은 안 재고 가게가 늘면 잰다
+        mp = os.path.join(d, "m.json")
+        io.open(mp, "w", encoding="utf-8").write(json.dumps(
+            {"가게": {"source": {"source": "git", "url": "u"}, "lastUpdated": "1"}}, ensure_ascii=False))
+        c = marketplace_sha(mp)
+        io.open(mp, "w", encoding="utf-8").write(json.dumps(
+            {"가게": {"source": {"source": "git", "url": "u"}, "lastUpdated": "2"}}, ensure_ascii=False))
+        chk("가게 갱신 시각이 바뀌어도 같은 값", marketplace_sha(mp), c)
+        io.open(mp, "w", encoding="utf-8").write(json.dumps(
+            {"가게": {"source": {"source": "git", "url": "u"}, "lastUpdated": "1"},
+             "새가게": {"source": {"source": "git", "url": "v"}}}, ensure_ascii=False))
+        chk("가게가 늘면 다른 값", marketplace_sha(mp) != c, True)
 
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
