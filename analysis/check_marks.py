@@ -21,7 +21,8 @@
 -----------
 **A층(글자)** — 안 보이는 유니코드·양방향 제어·태그 문자·공백 동형자.
   `~/tools/watermarks-remover` 의 `inspect_text.py` / `clean_text.py` 를 부른다.
-**메타데이터** — 이미지·PDF 는 **이 파일이 안 연다**(경계). 있다는 사실만 세고 사람에게 넘긴다.
+**메타데이터** — 이미지·PDF·동영상은 `audit_dir.py` 가 **연다**. 글자 도구에 안 넣는다 —
+  그쪽이 형식을 갈라 이미지·컨테이너(PDF·SVG)·동영상 경로로 따로 보낸다.
 
 닿지 않는 곳
 ------------
@@ -30,13 +31,20 @@
 · **원본을 안 덮는다.** `--clean` 은 `.cleaned` 사본을 만들고 **전후 내용을 대조**한다.
   **대조가 안 되면 그 파일은 건너뛰고 보고한다**(경계).
 · **이미지·PDF 를 글자 도구에 안 넣는다.** 넣으면 바이너리가 망가진다 —
-  상류 저장소가 그 사고를 README 에 적어 뒀다.
+  상류 저장소가 그 사고를 README 에 적어 뒀다. 그래서 `audit_dir.py` 로 연다.
+· **C2PA 를 다 못 본다.** `c2patool` 이 이 기계에 없어 감사기가 「not fully inspected」를 단다.
+  **0 건은 「없다」가 아니라 「이 도구로는 안 보인다」다**(사고 26). 그 수를 따로 낸다.
+· **형식을 못 가리는 것은 안 연다** — `.woff2`·`.ico`·`.webmanifest`·확장자 없는 것.
+  감사기가 「unrecognized format」으로 남기고, **이 파일은 그 수를 세어 같이 낸다.**
+· **바이너리는 지우는 쪽을 자동으로 안 돈다.** 걸린 것이 나오면 명령을 찍고 멈춘다 —
+  0 건인 채로 만든 정리 경로는 **전후 대조를 해 본 적이 없는 경로**다(경계).
 · 도구가 없는 기계에서는 **불성립**이지 통과가 아니다.
 """
 
 import argparse
 import glob
 import io
+import json
 import os
 import subprocess
 import sys
@@ -69,11 +77,19 @@ BINARY_TARGETS = [
     ("사이트 자산", os.path.join(ROOT, "assets", "**", "*")),
     ("측심 공개 자산", os.path.join(ROOT, "..", "sounding", "app", "public", "**", "*")),
 ]
+# **바이너리를 여는 자리.** `audit_dir.py` 가 확장자·매직으로 갈라
+# 이미지·컨테이너(PDF·SVG)·동영상 경로로 보낸다. 글자 도구를 안 탄다.
+AUDIT = os.path.join(WR, "audit_dir.py")
+BINARY_ROOTS = [
+    ("발행본 이미지", os.path.join(ROOT, "reports", "images")),
+    ("사이트 자산", os.path.join(ROOT, "assets")),
+    ("측심 공개 자산", os.path.join(ROOT, "..", "sounding", "app", "public")),
+]
 BIN_EXT = (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".pdf", ".mp4", ".webm", ".ico", ".woff", ".woff2")
 
 
 def have_tool():
-    return os.path.exists(INSPECT) and os.path.exists(CLEAN)
+    return os.path.exists(INSPECT) and os.path.exists(CLEAN) and os.path.exists(AUDIT)
 
 
 def files(patterns):
@@ -108,6 +124,58 @@ def inspect_one(path):
             except Exception:
                 return None, out
     return None, out
+
+
+def run_json(script, args, timeout=600):
+    """stdout 과 stderr 를 **안 섞는다** — 섞으면 JSON 이 안 읽힌다."""
+    env = dict(os.environ, PYTHONIOENCODING="utf-8")
+    try:
+        p = subprocess.run([sys.executable, script] + list(args), stdout=subprocess.PIPE,
+                           stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                           errors="replace", timeout=timeout, env=env)
+        return p.returncode, p.stdout or "", p.stderr or ""
+    except Exception as e:
+        return None, "", "%s: %s" % (type(e).__name__, e)
+
+
+def audit_roots():
+    """이미지·PDF·동영상을 **연다.** 반환 (연 것, 못 연 것{확장자:수}, 걸린 것, 부분검사 수).
+
+    **못 돌린 것은 「걸린 것 0」이 아니다** — 그 사실 자체를 걸린 것으로 올린다(사고 26).
+    """
+    opened, unrouted, hits, partial = 0, {}, [], 0
+    for label, root in BINARY_ROOTS:
+        if not os.path.isdir(root):
+            continue
+        code, out, err = run_json(AUDIT, [root, "--json"])
+        if code is None or not out.strip():
+            hits.append(("(%s 전체)" % label, "**못 돌렸다** — %s" % (err.strip()[:60] or "산출 없음")))
+            continue
+        try:
+            d = json.loads(out)
+        except Exception:
+            hits.append(("(%s 전체)" % label, "**JSON 이 아니다** — 통과로 치지 않는다"))
+            continue
+        for f in d.get("files", []):
+            rel = str(f.get("path", "?")).replace(chr(92), "/")
+            notes = " ".join(f.get("notes") or [])
+            if "unrecognized format" in notes:
+                ext = os.path.splitext(rel)[1].lower()
+                unrouted[ext] = unrouted.get(ext, 0) + 1
+                continue
+            opened += 1
+            if "c2patool unavailable" in notes:
+                partial += 1
+            why = []
+            if f.get("has_c2pa"):
+                why.append("C2PA")
+            if f.get("has_ai_metadata"):
+                why.append("AI 메타데이터")
+            if f.get("suspicious_total"):
+                why.append("안 보이는 문자 %s건" % f["suspicious_total"])
+            if why:
+                hits.append((rel, " · ".join(why)))
+    return opened, unrouted, hits, partial
 
 
 def main(strict=False, do_clean=False):
@@ -159,23 +227,32 @@ def main(strict=False, do_clean=False):
                 os.replace(outp, p)
                 print("      정리해 넣었다(전후 대조 통과).")
 
-    # 바이너리는 **세기만** 한다.
-    bf = [(l, p) for l, p in files(BINARY_TARGETS) if p.lower().endswith(BIN_EXT)]
-    print("\n  이미지·PDF 등 %d개 — **이 파일이 안 연다**(경계). 메타데이터는 사람 손이다." % len(bf))
-    if bf:
-        kinds = {}
-        for _, p in bf:
-            kinds[os.path.splitext(p)[1].lower()] = kinds.get(os.path.splitext(p)[1].lower(), 0) + 1
-        print("    %s" % " · ".join("%s %d" % (k, v) for k, v in sorted(kinds.items())))
+    # **바이너리도 연다** — 다만 글자 도구가 아니라 `audit_dir.py` 가 연다(머리말).
+    opened, unrouted, hits2, partial = audit_roots()
+    print()
+    print("  이미지·PDF·동영상 — 연 것 %d개 · 형식을 못 가려 안 연 것 %d개"
+          % (opened, sum(unrouted.values())))
+    if unrouted:
+        print("    안 연 것: %s" % " · ".join("%s %d" % (k or "(확장자 없음)", v)
+                                              for k, v in sorted(unrouted.items())))
+    if partial:
+        print("    **부분 검사 %d개** — c2patool 이 없어 C2PA 를 다 못 봤다. 0 이 「없다」가 아니다" % partial)
+    if hits2:
+        print("    **걸린 것 %d개**" % len(hits2))
+        for rel, why in hits2:
+            print("      %-52s %s" % (rel[:52], why))
+        print("    지우려면 — **원본을 안 덮는다**. 사본을 만들고 사람이 대 본다:")
+        print("      python ~/tools/watermarks-remover/service/scripts/clean_file.py <파일> -o <파일>.cleaned")
 
     print()
-    if not hits and not unknown:
-        print("표식 0건 / 글자 대상 %d개 검사." % len(tf))
+    if not hits and not unknown and not hits2:
+        print("표식 0건 / 글자 %d개 · 바이너리 %d개 검사." % (len(tf), opened))
         return 0
     if unknown:
         print("**[미확인]이 있다 — 통과가 아니다.**")
         return 1 if strict else 0
-    print("**표식 %d개 파일.** `--clean` 이 사본으로 정리하고 전후를 대조한다." % len(hits))
+    print("**표식 — 글자 %d개 파일 · 바이너리 %d개.** 글자는 `--clean` 이 사본으로 정리하고 전후를 대조한다."
+          % (len(hits), len(hits2)))
     return 1 if strict else 0
 
 
@@ -224,6 +301,14 @@ def selftest():
     print("── 인수시험: 대상이 실제로 잡히는가 (분모가 0이 아니다 · 사고 77) ──")
     chk("글자 대상이 여럿", len(tf) >= 20, True)
     print("     지금: 글자 %d · 바이너리 %d" % (len(tf), len(bf)))
+
+    print("── 인수시험: 바이너리를 실제로 여는가 (분모가 0이 아니다 · 사고 77) ──")
+    op2, unr2, h2, pt2 = audit_roots()
+    chk("바이너리를 연다 — 0 이면 「없다」가 아니라 「못 봤다」", op2 > 0, True)
+    chk("못 돌린 것이 「걸린 것 0」으로 안 숨는다",
+        all("못 돌렸다" not in w and "JSON 이 아니다" not in w for _, w in h2), True)
+    print("     지금: 연 것 %d · 안 연 것 %d · 부분검사 %d · 걸린 것 %d"
+          % (op2, sum(unr2.values()), pt2, len(h2)))
 
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
