@@ -106,6 +106,7 @@ CHANNELS = {
         "제목관측": None,
         "본문상한": None,
         "훅": None,
+        "게시지면": False,                  # **열어 볼 지면이 없다** — 1:1 서신이라 「주소」가 성립 안 한다
         "되돌릴수있나": False,              # **보낸 메일은 회수 못 한다**
         "삭제유예": "없다",                 # GeekNews 의 두 시간조차 없다
         "자기것허용": True,
@@ -311,6 +312,10 @@ def selftest():
         ["disquiet", "email", "geeknews", "linkedin"])
     chk("메일은 회수가 안 된다", CHANNELS["email"]["되돌릴수있나"], False)
     chk("메일은 유예조차 없다", CHANNELS["email"]["삭제유예"], "없다")
+    chk("메일은 게시 지면이 없다", CHANNELS["email"].get("게시지면"), False)
+    chk("나머지 셋은 지면이 있다",
+        [CHANNELS[c].get("게시지면", True) for c in ("linkedin", "geeknews", "disquiet")],
+        [True, True, True])
     try:
         rules("브런치")
         chk("모르는 채널은 막는다", True, False)
