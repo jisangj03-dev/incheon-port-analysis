@@ -38,7 +38,8 @@ DST = os.path.join(ROOT, ".git", "hooks", "pre-push")
 # [2026-09-03] 측심(`sounding`)을 넣었다 — 9/6 에 실제로 push 되는 저장소인데 2층이 비어 있었다.
 # 지난 세션에 push 를 막은 것은 1층(`hook_stopline.py` · 명령 문자열)이고, 간접 호출은 그 층이
 # 못 막는다(사고 46). 웹사이트 작업이 일어나는 저장소가 하필 또 관할 밖이었다.
-SIBLINGS = ("jisangj03-dev.github.io", "sounding")
+# **[2026-09-12] 허브를 뺐다** — push 되지 않는 저장소에 push 훅을 까는 것은 뜻이 없다(사고 115).
+SIBLINGS = ("sounding",)
 
 
 def governed():

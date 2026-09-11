@@ -105,11 +105,13 @@ except Exception:
     pass
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HUB = os.path.join(os.path.dirname(ROOT), "jisangj03-dev.github.io")
+# **[2026-09-12] 허브를 SITES 에서 뺐다** — push 된 적 없는 저장소의 링크를 세도
+# 그 지면을 볼 사람이 없다(사고 115). 아래 URL 의 `jisangj03-dev.github.io` 는
+# **인천 저장소의 Pages 주소**이고 살아 있다 — 같은 글자지만 다른 것이다.
 
 # (이름, 폴더, 사이트 URL, baseurl)
 SITES = [
-    ("허브", HUB, "https://jisangj03-dev.github.io", ""),
+
     ("인천", ROOT, "https://jisangj03-dev.github.io", "/incheon-port-analysis"),
 ]
 
@@ -402,20 +404,25 @@ def local_evidence(url):
         elif path.rstrip("/") == "/incheon-port-analysis":
             rel, repo = "index.md", ROOT
         else:
-            rel, repo = path.lstrip("/"), HUB
-        if not rel or rel.endswith("/"):
+            # **[2026-09-12] `/incheon-port-analysis/` 밖은 근거가 없다.** 종전에는
+            # 옛 허브 폴더를 근거로 삼았는데 **그 저장소는 push 된 적이 없다**(사고 115) —
+            # 즉 「파일이 있으니 곧 살아난다」가 성립하지 않는 자리였다. 근거로 안 센다.
+            rel, repo = None, None
+        if rel is not None and (not rel or rel.endswith("/")):
             rel += "index.md"  # 루트·디렉터리 주소는 그 자리의 index 가 근거다
-        if rel.endswith(".html"):
+        if rel is None:
+            pass
+        elif rel.endswith(".html"):
             cands += [(repo, rel[:-5] + ".md"), (repo, rel)]
         else:
             cands.append((repo, rel))
     elif host == "github.com":
         m = re.match(r"^/jisangj03-dev/([^/]+)/(?:blob|tree|raw)/[^/]+/(.*)$", path)
         if m:
-            repo = ROOT if m.group(1) == "incheon-port-analysis" else HUB
+            repo = ROOT if m.group(1) == "incheon-port-analysis" else None
             cands.append((repo, m.group(2)))
     for repo, rel in cands:
-        if rel and os.path.exists(os.path.join(repo, rel.replace("/", os.sep))):
+        if repo and rel and os.path.exists(os.path.join(repo, rel.replace("/", os.sep))):
             if not pushed(repo, rel):
                 return (repo, rel)
     return None
@@ -650,22 +657,19 @@ def selftest():
     check("이미 push 된 것은 push대기가 아니다",
           local_evidence("https://github.com/jisangj03-dev/incheon-port-analysis/"
                          "blob/main/analysis/lint_publish.py"), None)
-    check("허브 루트는 index.md 가 근거다",
-          local_evidence("https://jisangj03-dev.github.io/") is not None, True)
+    # **[2026-09-12] 「허브 루트는 index.md 가 근거다」를 뒤집었다.** 그 저장소는 한 번도
+    # push 된 적이 없다(사고 115) — 파일이 있어도 **살아날 예정이 아니다.**
+    # 근거로 세면 죽은 주소가 「push대기」로 읽힌다.
+    check("옛 허브 루트는 근거가 없다",
+          local_evidence("https://jisangj03-dev.github.io/"), None)
 
     print("── 인수시험: 실물 사이트 ──")
-    hub_known, hub_raw = site_targets(HUB, "")
     inc_known, inc_raw = site_targets(ROOT, "/incheon-port-analysis")
-    check("허브가 제자리에 있다", os.path.isdir(HUB), True)
-    check("허브 permalink 에 /data 가 있다", "/data" in hub_known, True)
-    check("허브 permalink 에 /terminals 가 있다", "/terminals" in hub_known, True)
-    check("허브 정적 파일에 og.png 가 있다", "/assets/og.png" in hub_known, True)
-    check("없는 지면은 없다고 나온다", "/checks" in hub_known, False)
-    check("허브 지면은 날것이 아니다 (front matter 가 있다)", hub_raw, set())
+    check("인천이 SITES 의 유일한 지면이다", [s[0] for s in SITES], ["인천"])
     check("_config.yml 의 exclude 를 읽는다",
-          "README_운영자안내.md" in site_exclude(HUB), True)
+          "CLAUDE.md" in site_exclude(ROOT), True)
     check("exclude 된 것은 내보내는 자리에 없다",
-          "/README_운영자안내.md" in hub_known, False)
+          "/incheon-port-analysis/CLAUDE.md" in inc_known, False)
     check("인천 발행본 .html 은 known 이다",
           "/incheon-port-analysis/reports/report_02_공컨테이너_비율.html" in inc_known, True)
     check("인천 발행본 .md 는 날것이다 (실측: 200 · text/markdown)",

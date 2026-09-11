@@ -54,7 +54,9 @@ for _s in (sys.stdout, sys.stderr):
         pass
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_SITE = os.path.abspath(os.path.join(HERE, "..", "..", "jisangj03-dev.github.io"))
+# **[2026-09-12] 기본값을 인천으로 돌렸다.** 종전 기본값이 옛 허브라 `--site .` 를 빼면
+# **죽은 지면이 떴다**(2026-09-07 실측이 그것을 사고로 적었다 · 사고 115).
+DEFAULT_SITE = os.path.abspath(os.path.join(HERE, ".."))
 DEFAULT_OUT = os.path.join(
     os.environ.get("TEMP", os.path.join(HERE, "..")), "vidimus_preview"
 )

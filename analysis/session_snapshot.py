@@ -54,7 +54,7 @@ PARENT = os.path.dirname(ROOT)
 # 작업 폴더 셋(CLAUDE.md). 없는 폴더는 「없음」으로 적고 넘어간다.
 REPOS = (
     ("인천항물동량", ROOT),
-    ("허브", os.path.join(PARENT, "jisangj03-dev.github.io")),
+    # **[2026-09-12] 허브를 뺐다** — push 된 적 없는 저장소라 미커밋을 세어도 뜻이 없다(사고 115).
     ("측심", os.path.join(PARENT, "sounding")),
 )
 
@@ -271,7 +271,7 @@ def verdict(snap, live):
     if dirty:
         return ("**판정: 이전 세션은 턴을 끝냈으나 미커밋 파일이 %d 있다.** 「마지막 보고」가 그것을 설명하는지 본다 — "
                 "설명하지 않으면 커밋 전에 끊긴 것이다(사고 96)." % dirty)
-    return "판정: 이전 세션은 턴을 끝냈고 세 저장소가 깨끗하다. STATUS 「착수점」대로 간다."
+    return "판정: 이전 세션은 턴을 끝냈고 저장소가 전부 깨끗하다. STATUS 「착수점」대로 간다."
 
 
 def read_payload():
@@ -362,7 +362,7 @@ def check_line(snap=None, live=None):
         turn = "마지막 턴 미종료(%s 시작 · 끊김)" % snap.get("prompt_ts", "?")
     else:
         turn = "마지막 턴 끝남(%s)" % (snap.get("stop_ts", "?"))
-    return "세 저장소: " + (" · ".join(parts) if parts else "전부 깨끗") + " · " + turn
+    return "저장소 %d: " % len(REPOS) + (" · ".join(parts) if parts else "전부 깨끗") + " · " + turn
 
 
 def check():
@@ -419,7 +419,11 @@ def selftest():
         chk("턴이 열린다", snap["turn_open"], True)
         chk("지시가 적힌다", snap["prompt"], "셋째 지시")
         chk("새 턴은 옛 보고를 비운다", snap["report"], "")
-        chk("저장소 셋을 본다", len(snap["repos"]), 3)
+        # **[2026-09-12] 수를 안 박는다** — 허브를 뺐고(사고 115) 또 늘거나 줄 수 있다.
+        # 박아야 하는 것은 「목록이 REPOS 와 같다」이지 「셋이다」가 아니다(사고 83).
+        names = sorted(r.get("이름", r.get("name", "")) for r in snap["repos"])
+        chk("REPOS 를 빠짐없이 본다", names, sorted(n for n, _ in REPOS))
+        chk("허브를 안 본다", any("허브" in n for n in names), False)
         md = io.open(SNAP_MD, encoding="utf-8").read()
         chk("열린 채면 「끊겼다」를 쓴다", "끊겼다" in md, True)
         on_stop({"session_id": "abcdefgh-1", "transcript_path": tp})

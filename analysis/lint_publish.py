@@ -255,6 +255,31 @@ def conclusion_zones(md: str):
     return zones
 
 
+# **제목이 본문보다 넓게 말하는 자리**(사고 116). 두 번 났다 —
+# #11 「합계 한 줄은 다섯 곳을 **대표**하지 않는다」(잰 것은 부호 동행 하나였다) ·
+# #12 선커밋 「창을 **되찾**는다」(220개월 중 39개월이었다). 둘 다 본문은 정직했고 제목만 넓었다.
+#
+# **낱말로 겨눈다.** 넓이를 주장하는 말이 제목에 있으면, **그 제목이 재지 않은 것**을
+# 리드나 §1 이 한 줄로 들어야 한다. 낱말이 없으면 아무 말도 안 한다 —
+# **오탐을 내는 린터는 무시당한다**(§3-5). 2026-09-12 실측: #01~#10 은 하나도 안 걸리고 #11 만 걸린다.
+SCOPE_WORDS = ("되찾", "대표", "전부", "전체", "모두")
+# 범위를 적었다는 표시. **형식이 아니라 문장**이라 두 낱말이 한 문장에 같이 있는 것으로 본다.
+SCOPE_MARK = re.compile(r"제목[^.\n]{0,60}범위|범위[^.\n]{0,60}제목")
+
+
+def scope_warn(md: str, zones):
+    """제목이 넓이를 주장하면 **그 제목이 재지 않은 것**을 리드·§1 이 들어야 한다."""
+    h1 = next((t for z, t, _ in zones if z == "H1"), "")
+    if not any(w in h1 for w in SCOPE_WORDS):
+        return []
+    head = md.split("## 2.")[0] if "## 2." in md else md[:4000]
+    if SCOPE_MARK.search(head):
+        return []
+    hit = [w for w in SCOPE_WORDS if w in h1]
+    return [f"[범위] 제목이 넓이를 주장한다({'·'.join(hit)}) — "
+            f"**이 제목이 재지 않은 것**을 리드나 §1 이 한 줄로 들어야 한다(사고 116)"]
+
+
 FRONT_CLAIM_KEYS = ("title", "kicker", "standfirst", "description", "subject")
 
 # 지면에서 **관측이 들어 있는 덩어리**. 이것만 걷어내면 남는 것이 산문이다.
@@ -365,6 +390,7 @@ def lint(path: Path, facts, channel: bool = False, site: bool = False):
                     f"[구조] 결론 자리 '{need}'를 찾지 못했다 — 이 구역은 **검사되지 않았다.** "
                     f"보고서 골격(지침 §2.5)을 따르거나 conclusion_zones()를 고쳐라"
                 )
+        warns += scope_warn(md, zones)
 
     for zone, text, ln in zones:
         clean = strip_noise(text)
@@ -698,6 +724,21 @@ def selftest_site(facts):
     chk("골격 없는 발행본은 여전히 골격 WARN 4건",
         len([w for w in bw if "[구조]" in w]), 4)
 
+    print("── 인수시험: 제목이 본문보다 넓게 말하는가 (사고 116) ──")
+    # **장치의 존재는 검사의 수행이 아니다**(사고 26) — 발화하는지를 여기서 친다.
+    wide = "# 편 — 창을 되찾는다\n\n> 리드.\n\n- **한 줄 결론**: 값.\n\n## 1. 핵심 요약\n\n가.\n\n## 2. 분석 결과\n"
+    chk("넓이 주장에 범위가 없으면 잡는다",
+        len(scope_warn(wide, conclusion_zones(wide))), 1)
+    ok_md = wide.replace("> 리드.", "> **제목이 말하는 「되찾는다」의 범위는 하나다** — 읽을 수 있는 구간뿐이다.")
+    chk("범위를 적으면 안 잡는다", scope_warn(ok_md, conclusion_zones(ok_md)), [])
+    plain = wide.replace("창을 되찾는다", "45개월째 깨지지 않았다")
+    chk("넓이를 주장 안 하는 제목은 아무 말도 안 한다",
+        scope_warn(plain, conclusion_zones(plain)), [])
+    # **오탐 분모를 같이 친다** — 발행본 전부에서 이 경고가 몇 건인가.
+    live = [p for p in sorted((ROOT / "reports").glob("*.md"))]
+    n_scope = sum(len([w for w in lint(p, facts)[1] if "[범위]" in w]) for p in live)
+    chk("지금 발행본 %d편에서 범위 경고 0건" % len(live), n_scope, 0)
+
     print("지면 모드 통과" if ok else "지면 모드 실패")
     return ok
 
@@ -742,14 +783,11 @@ def main():
     args = [a for a in args if a not in ("--show-exempt", "--channel")]
     if channel and not args:
         sys.exit(0)
-    # `--hub` = 허브 지면 전부. **목록을 손으로 들지 않는다** — 지면이 늘면 낡는다(사고 83).
-    # 이것이 없으면 지면 모드는 **사람이 경로를 기억해 줄 때만** 돈다(사고 69 의 재발 경로).
-    if "--hub" in sys.argv:
-        hub = ROOT.parent / "jisangj03-dev.github.io"
-        targets = sorted(p for p in hub.rglob("*.md")
-                         if "_site" not in p.parts and not p.name.startswith("README"))
-    else:
-        targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
+    # **[2026-09-12] `--hub` 모드를 없앴다.** 사고 69 가 만든 지면 모드는 옳았는데
+    # **그 지면이 죽었다** — 한 번도 push 된 적 없는 저장소였다(사고 115).
+    # 살아 있는 지면은 측심 하나이고 그것은 마크다운이 아니다 —
+    # `check_claims.py` 와 `check_site_facts.py` 가 그쪽을 본다.
+    targets = [Path(a) for a in args] or sorted((ROOT / "reports").glob("*.md"))
     tf = tw = te = 0
     mode = " · 채널 문안 모드(전문을 결론 자리로 본다)" if channel else ""
     print(f"대장 등재 수치 {len(facts)}건 · 검사 대상 {len(targets)}건{mode}\n")

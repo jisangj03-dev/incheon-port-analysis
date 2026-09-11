@@ -55,7 +55,8 @@ except Exception:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-HUB = os.path.normpath(os.path.join(ROOT, "..", "jisangj03-dev.github.io"))
+# **[2026-09-12] 허브를 뺐다.** 그 저장소는 한 번도 push 된 적이 없다(사고 115).
+# 살아 있는 Jekyll 지면은 인천 하나다 — 측심은 Jekyll 이 아니다.
 
 # GitHub Pages 가 허용하는 플러그인. **손에 든 목록이라 낡는다** — 그래서 경고만 낸다.
 PAGES_PLUGINS = {
@@ -217,7 +218,7 @@ def report(hook=False, strict=False):
     lines = []
     bad = []       # 빌드가 깨질 자리
     unknown = []   # 모름 — **통과가 아니다**(사고 26)
-    for root, name in ((ROOT, "인천"), (HUB, "허브")):
+    for root, name in ((ROOT, "인천"),):
         fails, warns, d = scan(root, name)
         if fails is None:
             why = "저장소가 이 기계에 없다" if not os.path.isdir(root) else "PyYAML 이 없다"

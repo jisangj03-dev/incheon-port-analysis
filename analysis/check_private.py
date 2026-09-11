@@ -59,7 +59,7 @@ except Exception:
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-HUB = os.path.normpath(os.path.join(ROOT, "..", "jisangj03-dev.github.io"))
+# **[2026-09-12] 허브를 뺐다** — push 된 적 없는 저장소다(사고 115). 새는 자리는 인천·측심 둘이다.
 # [2026-09-03] 측심(`sounding`) — 9/6 에 나가는 새 공개 사이트. 이 검사는 인천·허브만 보고
 # 있었고 **정작 나갈 저장소를 안 보고 있었다** — 「못 한다」가 아니라 「안 봤다」였다.
 SOUNDING = os.path.normpath(os.path.join(ROOT, "..", "sounding"))
@@ -175,7 +175,7 @@ def report(hook=False, strict=False):
     lines = []
     hard_n = 0
     unknown = 0
-    for root, name in ((ROOT, "인천"), (HUB, "허브"), (SOUNDING, "측심")):
+    for root, name in ((ROOT, "인천"), (SOUNDING, "측심")):
         found, n = scan_repo(root, name)
         if found is None:
             why = "저장소가 없다" if not os.path.isdir(root) else "git 이 안 돈다"

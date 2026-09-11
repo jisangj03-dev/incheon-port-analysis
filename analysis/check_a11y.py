@@ -60,7 +60,10 @@ except Exception:
     pass
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HUB = os.path.join(ROOT, "..", "jisangj03-dev.github.io")
+# **[2026-09-12] 허브에서 인천으로 돌렸다.** 이 검사가 보던 지면은 한 번도 push 된 적이
+# 없는 저장소의 것이었다(사고 115). **인천 저장소가 살아 있는 Jekyll 사이트다** —
+# `_includes/masthead.html` · `_layouts/default.html` · `assets/css/sounding.css` 가 여기 있다.
+SITE = ROOT
 
 TABLE = re.compile(r"<table\b.*?</table>", re.I | re.S)
 TH = re.compile(r"<th\b([^>]*)>", re.I)
@@ -121,9 +124,9 @@ def audit(path):
 
 def audit_shell():
     """제호·레이아웃·판형 — 지면마다가 아니라 한 번만 본다."""
-    mast = os.path.join(HUB, "_includes", "masthead.html")
-    lay = os.path.join(HUB, "_layouts", "default.html")
-    css = os.path.join(HUB, "assets", "css", "vidimus.css")
+    mast = os.path.join(SITE, "_includes", "masthead.html")
+    lay = os.path.join(SITE, "_layouts", "default.html")
+    css = os.path.join(SITE, "assets", "css", "sounding.css")
     for p in (mast, lay, css):
         if not os.path.exists(p):
             return ["%s 를 못 찾았다 — **모른다**(통과가 아니다)" % os.path.basename(p)]
@@ -131,18 +134,40 @@ def audit_shell():
     l = io.open(lay, encoding="utf-8").read()
     c = io.open(css, encoding="utf-8").read()
     bad = []
-    sk = re.search(r'<a[^>]*class="[^"]*skiplink[^"]*"[^>]*href="#([\w-]+)"', m)
+    # **[2026-09-12] 찾는 방식을 명제에 맞췄다 — 느슨하게 한 것이 아니다.**
+    # 종전 판은 `class="skiplink"` 가 **제호 조각 안에** 있어야 통과했다. 그것은
+    # 옛 허브의 마크업이고, 이 검사가 거는 명제는 「키보드로 내비를 건너뛸 수 있는가」다.
+    # 인천 지면은 같은 것을 `class="skip"` 으로 **레이아웃에** 두고 있었다 —
+    # 명제는 참인데 검사가 FAIL 을 냈다. **구현 자리를 못 박으면 명제를 못 본다.**
+    sk = re.search(r'<a[^>]*class="[^"]*\b(skip|skiplink)\b[^"]*"[^>]*href="#([\w-]+)"',
+                   m + "\n" + l)
     if not sk:
         bad.append("건너뛰기 링크가 없다 — 키보드로는 지면마다 내비를 전부 지나야 한다")
-    elif ('id="%s"' % sk.group(1)) not in l:
-        bad.append("건너뛰기 링크가 없는 곳(#%s)을 가리킨다" % sk.group(1))
+    else:
+        cls, dest = sk.group(1), sk.group(2)
+        if ('id="%s"' % dest) not in l:
+            bad.append("건너뛰기 링크가 없는 곳(#%s)을 가리킨다" % dest)
+        if (".%s:focus" % cls) not in c:
+            bad.append("건너뛰기 링크가 포커스에서 나타나는 규칙이 없다 — 숨은 채로 남는다")
     if "lang=" not in l:
         bad.append("html 에 lang 이 없다 — 낭독기가 어느 말인지 모른다")
-    if ".skiplink:focus" not in c:
-        bad.append("건너뛰기 링크가 포커스에서 나타나는 규칙이 없다 — 숨은 채로 남는다")
-    if ".vh{" not in c:
-        bad.append("`.vh` 규칙이 없다 — 감춘 표 이름이 화면에 두 번 보인다")
+    # **`.vh` 는 쓰는 지면에서만 요구한다.** 감춘 이름을 쓰지 않는 지면에 그 규칙을
+    # 요구하면 **안 쓰는 패턴의 부재를 결함으로 세는 것**이고, 그것은 오탐이다.
+    # 인천 지면은 표 이름을 `aria-labelledby` 로 **보이는 제목**에 잇는다 — 감추지 않는다.
+    if 'class="vh"' in "".join(pages_text()) and ".vh{" not in c:
+        bad.append("`.vh` 를 쓰는 지면이 있는데 `.vh` 규칙이 없다 — 감춘 이름이 화면에 보인다")
     return bad
+
+
+def pages_text():
+    """지면·조각의 본문 전부. `.vh` 같은 **패턴을 실제로 쓰는가**를 묻는 데 쓴다."""
+    out = []
+    for p in pages():
+        try:
+            out.append(io.open(p, encoding="utf-8").read())
+        except OSError:
+            pass
+    return out
 
 
 def pages():
@@ -157,7 +182,7 @@ def pages():
     """
     WATCH = ("_includes", "_layouts")
     out = []
-    for dirpath, dirnames, files in os.walk(HUB):
+    for dirpath, dirnames, files in os.walk(SITE):
         dirnames[:] = [d for d in dirnames
                        if not d.startswith(".")
                        and (not d.startswith("_") or d in WATCH)]
@@ -172,7 +197,7 @@ def run():
     rows = []
     for p in pages():
         bad, n = audit(p)
-        rows.append((os.path.relpath(p, HUB).replace("\\", "/"), bad, n))
+        rows.append((os.path.relpath(p, SITE).replace("\\", "/"), bad, n))
     return rows, audit_shell()
 
 
@@ -229,8 +254,8 @@ def selftest() -> int:
     print("── 인수시험: 제호 검사가 실제로 발화하는가 ──")
     # **저장소의 현재 상태를 안 박는다**(사고 65). 임시 골격으로 기전만 친다.
     with tempfile.TemporaryDirectory() as d:
-        global HUB
-        keep = HUB
+        global SITE
+        keep = SITE
         try:
             os.makedirs(os.path.join(d, "_includes"))
             os.makedirs(os.path.join(d, "_layouts"))
@@ -239,24 +264,43 @@ def selftest() -> int:
                     encoding="utf-8").write("<header></header>")
             io.open(os.path.join(d, "_layouts", "default.html"), "w",
                     encoding="utf-8").write("<html><main></main></html>")
-            io.open(os.path.join(d, "assets", "css", "vidimus.css"), "w",
-                    encoding="utf-8").write("body{}")
-            HUB = d
+            css_path = os.path.join(d, "assets", "css", "sounding.css")
+            io.open(css_path, "w", encoding="utf-8").write("body{}")
+            SITE = d
             bad = audit_shell()
             chk("건너뛰기 링크 없음을 잡는다", any("건너뛰기 링크가 없다" in b for b in bad), True)
             chk("lang 없음을 잡는다", any("lang" in b for b in bad), True)
-            chk(".vh 없음을 잡는다", any(".vh" in b for b in bad), True)
+            # **안 쓰는 패턴의 부재를 결함으로 안 센다** — 골격에 `.vh` 가 없으므로 안 나와야 맞다.
+            chk("안 쓰는 `.vh` 를 요구하지 않는다", any(".vh" in b for b in bad), False)
+            io.open(os.path.join(d, "index.md"), "w", encoding="utf-8").write(
+                '<table><caption class="vh">가</caption></table>')
+            chk("쓰는 지면이 생기면 `.vh` 를 요구한다",
+                any(".vh" in b for b in audit_shell()), True)
+            os.remove(os.path.join(d, "index.md"))
 
             io.open(os.path.join(d, "_includes", "masthead.html"), "w",
                     encoding="utf-8").write('<a class="skiplink" href="#nowhere">가</a>')
+            io.open(css_path, "w", encoding="utf-8").write(".skiplink:focus{}")
             chk("목적지가 없는 건너뛰기를 잡는다",
                 any("없는 곳" in b for b in audit_shell()), True)
+            # **자리를 안 박는다** — 레이아웃에 둔 건너뛰기도 같은 명제를 채운다(인천 지면이 그렇다).
+            io.open(os.path.join(d, "_includes", "masthead.html"), "w",
+                    encoding="utf-8").write("<header></header>")
+            io.open(os.path.join(d, "_layouts", "default.html"), "w",
+                    encoding="utf-8").write(
+                '<html lang="ko"><a class="skip" href="#main">가</a>'
+                '<main id="main"></main></html>')
+            io.open(css_path, "w", encoding="utf-8").write(".skip:focus{}")
+            chk("레이아웃에 둔 건너뛰기도 통과시킨다", audit_shell(), [])
+            io.open(css_path, "w", encoding="utf-8").write("body{}")
+            chk("포커스 규칙이 없으면 잡는다",
+                any("포커스" in b for b in audit_shell()), True)
         finally:
-            HUB = keep
+            SITE = keep
 
     print("── 인수시험: 실물 ──")
     rows, shell = run()
-    chk("허브 지면을 찾는다", len(rows) >= 8, True)
+    chk("인천 지면을 찾는다", len(rows) >= 8, True)
     for name, bad, n in rows:
         if bad:
             print("  ·  %-24s %d건" % (name, len(bad)))
