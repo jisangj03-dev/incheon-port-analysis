@@ -179,7 +179,7 @@ def judge():
                  "미성립": t2_bad, "판정": "PASS" if not t2_bad else "FAIL"}
 
     # T3 — 합계 부호와 터미널 다섯 부호가 모두 같은 달이 6개월 이상
-    signs, agree = {}, []
+    signs, agree, agree5 = {}, [], []
     for m in months:
         row = {"합계": sign(yoy_total.get(m))}
         for t in sorted(term[m]):
@@ -188,8 +188,19 @@ def judge():
         vals = list(row.values())
         if None not in vals and len(set(vals)) == 1:
             agree.append(m)
+        five = [v for k, v in row.items() if k != "합계"]
+        if None not in five and len(set(five)) == 1:
+            agree5.append(m)
+    # **기준의 사전 난이도** — 판정에 안 쓴다. T2 의 「선언값」과 같은 자리의 자기비판이다.
+    # 부호가 서로 무관하고 +/− 가 반반이라면 **터미널 다섯이 모두 같을 확률**은 2·(1/2)^5.
+    # **합계는 동전으로 안 센다** — 다섯의 합이라 독립이 아니다. 여섯 조건 ≈ 다섯 조건이고,
+    # 이 창에서는 `동행`(여섯)과 `다섯만 동행`이 실제로 같은 수다.
+    n_terms = max(len(signs[m]) - 1 for m in months) if months else 0
+    p_null = 2 * (0.5 ** n_terms) if n_terms else 0.0
     out["T3"] = {"동행": len(agree), "검사": len(months), "기준": T3_MIN_MONTHS,
                  "동행한 달": agree,
+                 "다섯만 동행": len(agree5),
+                 "귀무확률": p_null, "귀무기대": p_null * len(months),
                  "판정": "PASS" if len(agree) >= T3_MIN_MONTHS else "FAIL"}
     out["signs"] = signs
 
@@ -260,6 +271,15 @@ def report():
         else:
             extra = v.get("사유", "")
         print("  %-4s %-10s %s" % (k, v["판정"], extra))
+    v3 = r["T3"]
+    print()
+    print("── T3 의 사전 난이도 (판정에 안 쓴다) ──")
+    print("  부호가 무관하고 반반이면 다섯이 모두 같을 확률 %.4f (= 2·(1/2)^5)" % v3["귀무확률"])
+    print("  %d개월 기대치 %.2f개월 · 관측 %d개월 · 기준은 %d개월 이상이었다"
+          % (v3["검사"], v3["귀무기대"], v3["동행"], v3["기준"]))
+    print("  다섯만 동행 %d개월 — 합계를 빼도 같은 수다(합계는 다섯의 합이라 동전이 아니다)"
+          % v3["다섯만 동행"])
+    print("  **가정은 이 데이터로 검증하지 않았다.** 기준이 얼마나 빡빡했는지의 자[尺]일 뿐이다")
     n_fail = sum(1 for k in ("T1", "T2", "T3", "T4") if r[k]["판정"] == "FAIL")
     print()
     print("PASS %d · FAIL %d · 판정 불가 %d"
@@ -308,6 +328,14 @@ def selftest():
     chk("T1 검사 분모가 0 이 아니다", r["T1"]["검사"] > 0, True)
     chk("T2 하한이 선언값 50.0", SHARE_FLOOR, 50.0)
     chk("T3 기준이 6개월", r["T3"]["기준"], 6)
+
+    print("── 인수시험: T3 사전 난이도는 판정을 안 바꾼다 ──")
+    chk("귀무확률 = 2·(1/2)^5", round(r["T3"]["귀무확률"], 6), 0.0625)
+    chk("10개월 기대치", round(r["T3"]["귀무기대"], 4), 0.625)
+    chk("기준은 기대치보다 크다 — 빡빡했다", r["T3"]["기준"] > r["T3"]["귀무기대"], True)
+    chk("합계를 빼도 같은 수다", r["T3"]["다섯만 동행"], r["T3"]["동행"])
+    chk("판정은 관측과 기준만으로 난다",
+        r["T3"]["판정"], "PASS" if r["T3"]["동행"] >= r["T3"]["기준"] else "FAIL")
     chk("판정 넷이 다 났다",
         sorted(k for k in ("T1", "T2", "T3", "T4") if "판정" in r[k]), ["T1", "T2", "T3", "T4"])
 

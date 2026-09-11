@@ -104,11 +104,13 @@ def build(path=OUT):
     fig = plt.figure(figsize=(11, 7.6), dpi=120, facecolor=PLANE)
     fig.text(0.055, 0.955, "인천항 컨테이너 부두 — 안벽 길이에 월평균 처리량을 얹었다",
              fontsize=19, fontweight="bold", color=INK, va="top")
+    # **실측과 모식을 축에 붙인다.** 캡션에만 적으면 눈이 먼저 지도로 읽는다
+    # (2026-09-11 운영자 지적). 그래서 이 줄은 **가장 옅은 글자가 아니어야 한다.**
     fig.text(0.055, 0.915,
-             "2025-10~2026-07 · 10개월 · 안벽 길이는 실측(m) · 채움 = 월평균 1m당 천TEU",
-             fontsize=11.5, color=INK2, va="top")
+             "가로 = 안벽 길이(실측 m) · 세로 배치 = 모식 — 부두의 평면 좌표는 공표되지 않는다. 지도가 아니다.",
+             fontsize=11.5, fontweight="bold", color=INK2, va="top")
     fig.text(0.055, 0.888,
-             "**배치는 모식이다** — 부두의 평면 좌표는 공표되지 않는다. 길이만 비례하고 위치는 아니다. 지도가 아니다.".replace("**", ""),
+             "2025-10~2026-07 · 10개월 · 채움 = 월평균 1m당 천TEU · 세로 순서·간격에는 뜻이 없다.",
              fontsize=11, color=MUTED, va="top")
 
     ax = fig.add_axes([0.055, 0.135, 0.89, 0.72], facecolor=SURFACE)
