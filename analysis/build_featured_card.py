@@ -104,6 +104,11 @@ NOTE_FLOOR = "선커밋 하한 3.88 — 근거 구간 48개월의 관측 최소�
 NOTE_BASIS = "근거 구간 48개월\n(2022~2025)"
 NOTE_JUDGE = "판정 구간 204개월 (2005~2021) — 이 기준을 여기에 댔다"
 TABLE_SUB = "FAIL 은 기준대로 판정해 떨어진 것이고, 정상 산출물로 그대로 발행했다."
+# **표가 #10 을 네 줄 든다. 그런데 #10 은 보고서 편으로 안 나와 있다.**
+# 이 장을 보고 사이트에 온 사람이 #10 을 찾으면 못 찾는다 — 사이트와 README 에는
+# 그 안내를 붙였는데 **이 장에는 없었다.** 나침반이 가리키는 곳에 표지가 없는 자리다.
+TABLE_NOTE = ("#10 은 판정만 끝났고 보고서 편으로는 아직 안 냈다 — 기준 넷과 판정, 그 근거는 "
+              "저장소의 docs/10_판정결과.md 가 든다.")
 FOOT1 = ("출처 — 공공데이터포털 · 인천항만공사 공컨테이너 화물 통계 API(ipaEmpConCargoInfo). "
          "모집단은 외항(ocCt=1), 단위는 TEU.")
 FOOT2 = "원시 CSV · 수집·판정·차트 코드 · 선커밋 이력 — github.com/jisangj03-dev/incheon-port-analysis"
@@ -264,6 +269,8 @@ def build(path=OUT):
         tb.plot([0, 1], [y - 0.052, y - 0.052], color=GRID, lw=0.8, clip_on=False)
         y -= 0.104
 
+    tb.text(0, y + 0.046, TABLE_NOTE, fontsize=10.5, color=INK2, va="top")
+
     fig.text(0.065, 0.072, FOOT1, fontsize=10.5, color=INK2, va="top")
     fig.text(0.065, 0.050, FOOT2, fontsize=10.5, color=INK2, va="top")
     fig.text(0.065, 0.028, FOOT3, fontsize=10.5, color=SERIES, va="top")
@@ -277,7 +284,7 @@ def build(path=OUT):
 def drawn_text():
     """**그림에 찍히는 문장 전부.** 인수시험이 이것만 훑는다."""
     out = [TITLE, SUB1, SUB2, CHART_TITLE, NOTE_FLOOR, NOTE_BASIS, NOTE_JUDGE,
-           TABLE_SUB, FOOT1, FOOT2, FOOT3]
+           TABLE_SUB, TABLE_NOTE, FOOT1, FOOT2, FOOT3]
     for row in VERDICTS:
         out.extend([row[0], row[1], row[2], row[3]])
     return out
@@ -334,6 +341,12 @@ def selftest():
             chk("%s 가 %s 에 있다" % (ch, fam), ord(ch) in cmap, True)
     except ImportError:
         print("  (fontTools 가 없다 — **미실행**이지 통과가 아니다)")
+
+    print("── 인수시험: #10 을 찾으러 갈 사람에게 표지를 준다 ──")
+    joined2 = " ".join(drawn_text())
+    chk("표가 #10 을 든다", any(r[0].startswith("#10") for r in VERDICTS), True)
+    chk("그러면 #10 안내도 든다", "10_판정결과.md" in joined2, True)
+    chk("「편으로는 아직 안 냈다」를 적는다", "아직 안 냈다" in joined2, True)
 
     print("── 인수시험: 그림이 실제로 만들어지는가 ──")
     import tempfile
