@@ -50,7 +50,10 @@ except Exception:
     pass
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HUB = os.path.join(ROOT, "..", "jisangj03-dev.github.io")
+# **살아 있는 지면은 측심 하나다.** 옛 허브(`../jisangj03-dev.github.io`)는 원격 브랜치가
+# 없고 한 번도 push 된 적이 없다 — 지침 §6 이 「사이트가 아니다 · 손대지 않는다」로 적는다.
+# 2026-09-12 이전에는 이 파일이 그 허브의 편수를 셌다(아래 `c_reports_site` 주석).
+SITE = os.path.join(ROOT, "..", "sounding")
 
 
 def read(*parts):
@@ -126,30 +129,44 @@ def c_devices_real():
     return len(found), len(found) - len(missing), how
 
 
-def c_reports_home():
-    """첫 화면 「보고서 N편」 ↔ `reports/report_*.md` 개수."""
-    s = read(HUB, "index.md")
-    if s is None:
-        return None, None, "허브 index.md 가 없다"
-    m = re.search(r"보고서 (\d+)편", s)
-    if not m:
-        return None, None, "「보고서 N편」 문구를 못 찾았다"
+def n_published():
+    """발행본 개수 — `reports/report_*.md`. 두 짝의 공통 분모다."""
     d = os.path.join(ROOT, "reports")
-    n = len([f for f in os.listdir(d)
-             if f.startswith("report_") and f.endswith(".md")]) if os.path.isdir(d) else 0
-    return int(m.group(1)), n, "reports/report_*.md"
+    return len([f for f in os.listdir(d)
+                if f.startswith("report_") and f.endswith(".md")]) if os.path.isdir(d) else 0
 
 
-def c_reports_index():
-    """허브 보고서 목록의 `| #NN |` 행 ↔ 발행본 개수."""
-    s = read(HUB, "reports", "index.md")
+def c_reports_site():
+    """**측심 보고서 목록** ↔ 발행본 개수.
+
+    [2026-09-12 갱신] 종전 이 자리의 짝 둘은 **옛 허브**(`../jisangj03-dev.github.io`)의
+    `index.md` 「보고서 N편」과 `reports/index.md` 표 행을 셌다. **그 저장소는 죽었다** —
+    원격 브랜치가 없고 한 번도 push 된 적이 없다(지침 §6 · 「손대지 않는다」).
+    **죽은 지면을 살아 있는 분모와 대면 영원히 어긋난다** — 그리고 영원히 어긋나는 검사는
+    검사가 아니라 소음이다(사고 113). 그래서 **재는 자리를 살아 있는 지면으로 옮겼다.**
+    """
+    s = read(SITE, "app", "src", "components", "site", "reports.tsx")
     if s is None:
-        return None, None, "허브 reports/index.md 가 없다"
-    rows = len(re.findall(r"(?m)^\|\s*#\d+\s*\|", s))
-    d = os.path.join(ROOT, "reports")
-    n = len([f for f in os.listdir(d)
-             if f.startswith("report_") and f.endswith(".md")]) if os.path.isdir(d) else 0
-    return rows, n, "reports/report_*.md"
+        return None, None, "측심 저장소가 없다 — 이 기계에서는 「모름」"
+    rows = len(re.findall(r'\{\s*n:\s*"\d+"', s))
+    if not rows:
+        return None, None, "reports.tsx 에서 목록 항목을 못 찾았다"
+    return rows, n_published(), "reports/report_*.md ↔ 측심 reports.tsx"
+
+
+def c_reports_readme():
+    """**README 보고서 목록** ↔ 발행본 개수.
+
+    README·측심·도판이 같은 목록을 되풀이해 적는 자리다(사고 108). 도판은 **편수를 아예
+    안 실어서** 이 짝이 없다 — 그것이 맞는 설계이고, 그래서 여기서 셀 것도 없다.
+    """
+    s = read(ROOT, "README.md")
+    if s is None:
+        return None, None, "README.md 가 없다"
+    rows = len(re.findall(r"(?m)^- \[\*\*#\d+\*\*", s))
+    if not rows:
+        return None, None, "README 에서 `- [**#NN**` 목록을 못 찾았다"
+    return rows, n_published(), "reports/report_*.md ↔ README 목록"
 
 
 def c_incident_numbers():
@@ -171,8 +188,8 @@ def c_incident_numbers():
 PAIRS = (
     ("STATUS 장치 수", c_devices),
     ("STATUS 장치 목록 ↔ 실물", c_devices_real),
-    ("첫 화면 보고서 편수", c_reports_home),
-    ("허브 목록 행수", c_reports_index),
+    ("측심 보고서 목록 ↔ 발행본", c_reports_site),
+    ("README 보고서 목록 ↔ 발행본", c_reports_readme),
     ("사고 번호 연속", c_incident_numbers),
 )
 
@@ -208,14 +225,14 @@ def selftest():
     print("── 인수시험: 어긋남을 잡는가 · 맞는 것을 안 잡는가 (사고 39) ──")
     import tempfile
     with tempfile.TemporaryDirectory() as d:
-        global ROOT, HUB
-        keep_r, keep_h = ROOT, HUB
+        global ROOT, SITE
+        keep_r, keep_s = ROOT, SITE
         try:
             os.makedirs(os.path.join(d, "docs"))
             os.makedirs(os.path.join(d, "reports"))
-            hub = os.path.join(d, "hub")
-            os.makedirs(os.path.join(hub, "reports"))
-            ROOT, HUB = d, hub
+            site = os.path.join(d, "sounding")
+            os.makedirs(os.path.join(site, "app", "src", "components", "site"))
+            ROOT, SITE = d, site
 
             def w(p, t):
                 io.open(os.path.join(d, p), "w", encoding="utf-8").write(t)
@@ -232,18 +249,30 @@ def selftest():
             said, real, _ = c_devices()
             chk("맞으면 같다", said == real, True)
 
-            # 보고서 — 파일 둘인데 셋이라고 적는다.
+            # 보고서 — 파일 둘인데 측심 목록은 셋을 든다.
             for f in ("report_01_a.md", "report_02_b.md"):
                 io.open(os.path.join(d, "reports", f), "w", encoding="utf-8").write("x")
-            io.open(os.path.join(hub, "index.md"), "w", encoding="utf-8").write(
-                "<dd>보고서 3편 · 정정 0건</dd>")
-            said, real, _ = c_reports_home()
-            chk("보고서 편수 어긋남을 본다", (said, real), (3, 2))
+            rt = os.path.join(site, "app", "src", "components", "site", "reports.tsx")
+            io.open(rt, "w", encoding="utf-8").write(
+                'const reports = [\n{ n: "01", file: "a" },\n{ n: "02", file: "b" },\n'
+                '{ n: "03", file: "c" },\n];\n')
+            said, real, _ = c_reports_site()
+            chk("측심 목록 어긋남을 본다", (said, real), (3, 2))
+            io.open(rt, "w", encoding="utf-8").write(
+                'const reports = [\n{ n: "01", file: "a" },\n{ n: "02", file: "b" },\n];\n')
+            chk("맞으면 같다 (측심)", c_reports_site()[:2], (2, 2))
 
-            io.open(os.path.join(hub, "reports", "index.md"), "w",
-                    encoding="utf-8").write("| #02 | a |\n| #01 | b |\n")
-            said, real, _ = c_reports_index()
-            chk("목록 행수가 맞으면 같다", (said, real), (2, 2))
+            # README — 목록 하나인데 파일은 둘이다.
+            w("README.md", "## 보고서\n\n- [**#01** 가](reports/report_01_a.md)\n  한 줄.\n")
+            said, real, _ = c_reports_readme()
+            chk("README 목록 어긋남을 본다", (said, real), (1, 2))
+            w("README.md",
+              "- [**#01** 가](reports/report_01_a.md)\n- [**#02** 나](reports/report_02_b.md)\n")
+            chk("맞으면 같다 (README)", c_reports_readme()[:2], (2, 2))
+
+            # **죽은 지면을 안 센다** — 측심이 없는 기계에서는 「모름」이지 통과가 아니다(사고 26).
+            os.remove(rt)
+            chk("측심이 없으면 「모름」", c_reports_site()[:2], (None, None))
 
             # 사고 번호 — 3이 빠졌다.
             w("docs/사고기록.md", "**1.** 가\n**2.** 나\n**4.** 다\n")
@@ -262,7 +291,7 @@ def selftest():
             said, real, why = c_incident_numbers()
             chk("파일이 없으면 「모름」", (said, real), (None, None))
         finally:
-            ROOT, HUB = keep_r, keep_h
+            ROOT, SITE = keep_r, keep_s
 
     print("── 인수시험: 실물 ──")
     rows = run()
@@ -270,9 +299,11 @@ def selftest():
     # 대신 **무엇을 보는지**를 묻는다. 그것은 짝이 늘어도 뜻이 안 변하고,
     # 짝이 **사라지면** 잡힌다 — 그쪽이 이 시험이 막아야 할 방향이다.
     chk("장치 목록을 실물과도 댄다", "STATUS 장치 목록 ↔ 실물" in [r[0] for r in rows], True)
-    chk("첫 화면·허브·사고 번호를 본다",
+    chk("측심·README·사고 번호를 본다",
         all(any(k in r[0] for r in rows)
-            for k in ("첫 화면", "허브 목록", "사고 번호")), True)
+            for k in ("측심 보고서 목록", "README 보고서 목록", "사고 번호")), True)
+    # **죽은 지면으로 돌아가지 않는다** — 옛 허브는 push 된 적이 없다(지침 §6).
+    chk("옛 허브를 안 센다", any("허브" in r[0] for r in rows), False)
     for label, said, real, how, okk in rows:
         mark = "일치" if okk else ("**모름**" if okk is None else "**어긋남**")
         print("  ·  %-22s %s" % (label, mark))
