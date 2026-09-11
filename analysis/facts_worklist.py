@@ -77,6 +77,24 @@ def sentences(text: str):
     return out
 
 
+def ledger_rows(names):
+    """이름마다 **대장 전문**에서 그 이름이 든 행을 찾는다. 반환 {이름: [(줄번호, 행)]}.
+
+    **`load_facts()` 를 안 쓴다.** 그쪽은 `LINT-TABLE` 블록만 읽는데,
+    **놓쳐서 사고가 난 행이 하필 그 블록 밖에 있었다** — `SICT`(2026-09-11 · #11 §2 정정).
+    비수치 정본 절은 린터가 안 읽는 자리이고, **안 읽는다는 것이 없다는 뜻은 아니다.**
+    """
+    text = (ROOT / "docs" / "FACTS.md").read_text(encoding="utf-8")
+    out = {n: [] for n in names}
+    for i, ln in enumerate(text.splitlines(), 1):
+        if not ln.startswith("|"):
+            continue
+        for n in names:
+            if n and n.lower() in ln.lower():
+                out[n].append((i, ln.strip()))
+    return out
+
+
 def find_lines(md: str, token: str):
     """값이 실제로 나오는 (줄번호, 문장). 린터가 안 주는 것."""
     hits = []
@@ -216,6 +234,18 @@ def selftest() -> int:
         chk("%s — 린터 미등재 수와 맞는다" % name[:12],
             len(u) == len({w.split("'")[1] for w in lint_warns}), True)
 
+    print("── 인수시험: 대장 대조가 린터 블록 밖까지 본다 ──")
+    # **이 시험이 곧 사고의 재현이다.** `SICT` 행은 비수치 정본 절에 있어
+    # `load_facts()` 로는 안 보인다 — 안 보이는 곳을 안 보면 같은 일이 또 난다.
+    rows = ledger_rows(["SICT", "SNCT", "존재하지않는이름XYZ"])
+    chk("비수치 절의 SICT 를 찾는다", bool(rows["SICT"]), True)
+    chk("린터 블록의 SNCT 도 찾는다", bool(rows["SNCT"]), True)
+    chk("없는 이름은 빈 목록", rows["존재하지않는이름XYZ"], [])
+    # `load_facts()` 는 값 칸에서 숫자를 못 찾으면 그 행을 통째로 건너뛴다(대장 「비수치 정본」 주석).
+    # **`SICT` 정본 행이 바로 그런 행이다** — 그래서 이 대조는 원문 줄을 직접 읽어야 한다.
+    chk("SICT 정본 행을 줄로 잡는다",
+        any(r.startswith("| SICT |") for _, r in rows["SICT"]), True)
+
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
 
@@ -227,10 +257,30 @@ def main() -> int:
         description="대장 미등재 값의 작업 목록 — 창을 추정하지 않고 찾아 온다.")
     ap.add_argument("--report", default=None, help="파일명 일부 (예: report_01)")
     ap.add_argument("--value", default=None, help="이 값의 출처만 추적")
+    ap.add_argument("--names", nargs="+", default=None,
+                    help="선커밋 전에 — 다룰 이름이 대장에 이미 행을 갖고 있는지 전수로")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
+
+    if a.names:
+        rows = ledger_rows(a.names)
+        have = [n for n in a.names if rows[n]]
+        print("== 대장 대조 — 선커밋을 쓰기 전에 ==")
+        print("  이름 %d개 · 대장에 행이 있는 이름 %d개 · 없는 이름 %d개"
+              % (len(a.names), len(have), len(a.names) - len(have)))
+        for n in a.names:
+            if rows[n]:
+                print("\n  [%s] 대장 %d행" % (n, len(rows[n])))
+                for ln, row in rows[n]:
+                    print("    FACTS.md:%d  %s" % (ln, row[:200]))
+            else:
+                print("\n  [%s] 대장에 없다 — **없다는 것도 정보다**" % n)
+        print("\n  **행이 있으면 읽고 나서 선커밋을 쓴다.** 선커밋은 blob 이 증거라 한 글자도 못 고친다 —")
+        print("  **안 본 채 적은 것이 그대로 굳는다**(#11 §2 정정 · 2026-09-11).")
+        print("  **이 도구는 읽었는지를 검사하지 않는다.** 앞에 놓아 줄 뿐이고, 읽는 것은 사람이 한다.")
+        return 0
 
     facts = L.load_facts()
     files = load_data_files()
