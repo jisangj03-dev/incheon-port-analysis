@@ -75,9 +75,14 @@ def get(url: str, referer: str | None = None) -> bytes:
         return r.read()
 
 
-def list_posts():
-    """게시판에서 (대상연월, 글 URL) 목록을 최신순으로."""
-    page = get(LIST_URL).decode("utf-8", "replace")
+# 게시판 쪽 이동 — `fnPageMove(n)` 이 `#pageindex` 에 값을 넣고 폼을 낸다
+# (`/ko/office/common/resources/js/wk_common.js`). GET 으로도 같은 목록이 온다.
+# **「끝 페이지로」 단추가 마지막 쪽 번호를 든다.**
+END_RE = re.compile(r'fnPageMove\((\d+)\)[^>]*class="btn_end"')
+
+
+def posts_on(page: str):
+    """한 쪽의 (대상연월, 글 URL). 제목이 「항만운영통계」 + 연월인 것만."""
     out = []
     for m in re.finditer(
         r'<a[^>]+href="(board\.do\?[^"]*bbsIdx=\d+[^"]*)"[^>]*>(.*?)</a>', page, re.S
@@ -89,6 +94,40 @@ def list_posts():
                 (f"{ym.group(1)}-{int(ym.group(2)):02d}", BASE + "/ko/" + htmllib.unescape(m.group(1)))
             )
     return out
+
+
+def list_posts(max_pages: int = 0):
+    """게시판에서 (대상연월, 글 URL) 목록을 최신순으로 — **목록 전체를 읽는다.**
+
+    **[2026-09-12] 이 함수가 첫 쪽만 읽고 있었다.** `pageindex` 를 안 붙였고,
+    게시판은 한 쪽에 10건만 낸다. #11 의 창이 10개월이 된 것이 그 결과다 —
+    **원천의 한계가 아니라 수집기의 기본값이 창을 정했다**(사고 114).
+    지금은 「끝 페이지로」 단추가 든 쪽수만큼 돈다.
+
+    **쪽수를 못 읽으면 첫 쪽만 읽고 그 사실을 말한다.** 조용히 첫 쪽만 읽는 것이
+    바로 고친 버그이므로, 같은 상태로 되돌아갈 때는 **소리가 나야 한다.**
+
+    `max_pages` 는 쪽 수 상한(0 = 전부). 최신 몇 달만 볼 때 목록을 다 긁지 않는다.
+    """
+    first = get(LIST_URL).decode("utf-8", "replace")
+    out = posts_on(first)
+    m = END_RE.search(first)
+    if not m:
+        print("  [경고] 목록 쪽수를 못 읽었다 — **첫 쪽만 읽는다.** 목록 표시가 바뀌었을 수 있다")
+        return out
+    last = int(m.group(1))
+    stop = min(last, max_pages) if max_pages else last
+    for p in range(2, stop + 1):
+        out += posts_on(get(LIST_URL + "&pageindex=%d" % p).decode("utf-8", "replace"))
+    if stop < last:
+        print(f"  [알림] 목록 {last}쪽 중 {stop}쪽까지만 읽었다 (--pages)")
+    # 같은 달이 두 번 올라온 적이 있을 수 있다 — **최신 글을 남기고 하나로 줄인다.**
+    seen, uniq = set(), []
+    for ym, url in out:
+        if ym not in seen:
+            seen.add(ym)
+            uniq.append((ym, url))
+    return uniq
 
 
 def attachment(post_url: str) -> str | None:
@@ -442,6 +481,29 @@ def selftest() -> int:
     chk("어긋남의 자리는 신항 (78+107=185 ≠ 소계 184)",
         t["SNCT"]["당월_천TEU"] + t["HJIT"]["당월_천TEU"] - g["신항"]["당월_천TEU"], 1.0)
 
+    # ── 목록 깊이 — **첫 쪽만 읽던 버그의 회귀 시험**(사고 114) ──
+    # 망을 안 탄다. 쪽 HTML 조각으로 파서만 친다.
+    def pg(n, end=None):
+        s = "".join('<a href="board.do?menuIdx=1700&bbsIdx=%d">20%02d년 %d월 인천항 항만운영통계</a>'
+                    % (n * 10 + i, n, i + 1) for i in range(3))
+        if end:
+            s += ('<a href="#" onclick="fnPageMove(%d);return false;" class="btn_end">끝</a>' % end)
+        return s
+
+    chk("쪽 하나에서 글을 뽑는다", len(posts_on(pg(6))), 3)
+    chk("항만운영통계가 아니면 안 뽑는다",
+        posts_on('<a href="board.do?bbsIdx=1">2026년 7월 채용 공고</a>'), [])
+    chk("끝 페이지 수를 읽는다", int(END_RE.search(pg(6, 23)).group(1)), 23)
+    chk("끝 페이지 표시가 없으면 None — 첫 쪽만 읽고 소리를 낸다",
+        END_RE.search(pg(6)), None)
+    # **출처 대장이 `--out` 을 따라간다** — 안 따라가면 다른 창 수집이 #11 의 게이트 1 을 덮는다.
+    for out, want in ((os.path.join("analysis", "terminal_monthly.csv"),
+                       os.path.join("analysis", "terminal_monthly_sources.csv")),
+                      (os.path.join("analysis", "terminal_monthly_long.csv"),
+                       os.path.join("analysis", "terminal_monthly_long_sources.csv"))):
+        chk("출처 대장 경로: %s" % os.path.basename(out),
+            re.sub(r"\.csv$", "", out) + "_sources.csv", want)
+
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
@@ -449,6 +511,8 @@ def selftest() -> int:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0, help="최근 N개월만")
+    ap.add_argument("--pages", type=int, default=0, help="목록 쪽 상한 (0 = 전부)")
+    ap.add_argument("--since", default=None, help="이 달부터 (YYYY-MM 포함)")
     ap.add_argument("--out", default=OUT_CSV)
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
@@ -459,9 +523,14 @@ def main() -> int:
     os.chdir(root)
 
     print("== 인천항 터미널별 월별 컨테이너 처리실적 수집 ==")
-    posts = list_posts()
+    posts = list_posts(max_pages=a.pages)
+    if a.since:
+        posts = [p for p in posts if p[0] >= a.since]
     if a.limit:
         posts = posts[: a.limit]
+    if not posts:
+        print("\n[중단] 대상 달이 없다.")
+        return 2
     print(f"  대상 {len(posts)}개월: {posts[-1][0]} ~ {posts[0][0]}\n")
 
     records, sources = [], []
@@ -525,7 +594,10 @@ def main() -> int:
     print("  · 공/적 구분과 수출입 방향 축이 **없다.** 이 소스에 그 축이 없다.")
     print("  · 「그 외」 항목이 있고 연안화물선 컨테이너가 거기로 분류된다(공표자료 각주).")
 
-    idx = os.path.join("analysis", "terminal_monthly_sources.csv")
+    # **출처 대장은 `--out` 을 따라간다.** 고정 경로였을 때는 다른 창으로 한 번만 수집해도
+    # `terminal_monthly_sources.csv` 가 덮여 **#11 의 게이트 1 이 조용히 깨진다.**
+    # 기본값에서는 이름이 그대로라 옛 경로가 안 바뀐다.
+    idx = re.sub(r"\.csv$", "", a.out) + "_sources.csv"
     with io.open(idx, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(["기준연월", "첨부URL", "바이트", "SHA256_앞16"])
