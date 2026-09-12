@@ -83,7 +83,7 @@ def build(path=OUT):
              .replace("**", "").replace("`", ""),
              fontsize=11.5, fontweight="bold", color=INK2, va="top")
     fig.text(0.055, 0.903,
-             "게시판에는 220개월이 있고 그중 39개월(17.7%)을 읽었다 · 몫의 분모 = 공표 합계 · 2026 구간은 잠정치",
+             "게시판에 글이 있는 달은 220개월(구간 폭 239 중 19개월은 글이 없다) · 그중 39개월(17.7%)을 읽었다 · 2026 구간은 잠정치",
              fontsize=10.5, color=MUTED, va="top")
 
     # ── 위 칸 — 신항 몫 시계열 ──

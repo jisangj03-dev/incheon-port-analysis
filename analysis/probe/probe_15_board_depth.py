@@ -28,6 +28,7 @@
 from __future__ import annotations
 import argparse
 import html as htmllib
+import os
 import re
 import sys
 import urllib.request
@@ -74,6 +75,48 @@ def months_on(page_html: str) -> list[str]:
         if "항만운영통계" in title and ym:
             out.append("%s-%02d" % (ym.group(1), int(ym.group(2))))
     return out
+
+
+def span_gaps(months):
+    """구간 폭과 **글이 없는 달**. 반환 (폭, 빠진 달 목록).
+
+    **[2026-09-13] 이 함수가 왜 생겼나.** #12 지면이 「게시판에는 220개월이 다 있고」로
+    나갔는데 **220은 글이 있는 달의 수이고 구간 폭은 239개월**이다. 두 끝을 빼면 239 가
+    나오므로 **읽는 사람이 220 과 맞출 수 없었다.** 그 셋(폭·글·빠진 달)을 **코드가 같이 낸다** —
+    손으로 세면 또 하나가 빠진다(사고 117).
+    """
+    ms = sorted(months)
+    y0, m0 = (int(x) for x in ms[0].split("-"))
+    y1, m1 = (int(x) for x in ms[-1].split("-"))
+    span = (y1 - y0) * 12 + (m1 - m0) + 1
+    have, miss, y, m = set(ms), [], y0, m0
+    while (y, m) <= (y1, m1):
+        k = "%04d-%02d" % (y, m)
+        if k not in have:
+            miss.append(k)
+        m += 1
+        if m == 13:
+            y, m = y + 1, 1
+    return span, miss
+
+
+def full() -> int:
+    """목록 전 쪽을 읽어 **폭 · 글 수 · 빠진 달**을 낸다. 제목만 본다."""
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    import collect_terminal_monthly as C
+    posts = C.list_posts()
+    ms = sorted(ym for ym, _ in posts)
+    span, miss = span_gaps(ms)
+    print("== 게시판 전 쪽 — 폭과 빠진 달 (제목만 본다) ==")
+    print("  구간            %s ~ %s" % (ms[0], ms[-1]))
+    print("  **구간 폭**       %d개월" % span)
+    print("  **글이 있는 달**   %d개월  (구간 폭의 %.1f%%)" % (len(ms), len(ms) / span * 100))
+    print("  **글이 없는 달**   %d개월" % len(miss))
+    print("     %s" % " ".join(miss))
+    print()
+    print("  **셋을 같이 적는다** — 「%d개월이 다 있다」는 거짓이고," % span)
+    print("  「%d개월」만 적으면 두 끝을 뺀 %d 과 안 맞는다." % (len(ms), span))
+    return 0
 
 
 def probe() -> int:
@@ -123,12 +166,21 @@ def selftest() -> int:
     chk("항만운영통계 + 연월만 잡는다", got, ["2026-07", "2006-09"])
     chk("다른 제목은 안 잡는다 — 한계를 그대로 둔다", "2006-08" in got, False)
 
+    print("── 인수시험: 폭·글 수·빠진 달 (망을 안 탄다) ──")
+    span, miss = span_gaps(["2006-09", "2006-11", "2006-12"])
+    chk("폭은 두 끝으로 센다", span, 4)
+    chk("빠진 달을 든다", miss, ["2006-10"])
+    span2, miss2 = span_gaps(["2024-01", "2024-02", "2024-03"])
+    chk("빈 데 없으면 폭 = 글 수", (span2, miss2), (3, []))
+    chk("폭은 글 수보다 작을 수 없다", span >= 3, True)
+
     print("\n통과" if ok else "\n실패")
     return 0 if ok else 1
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="게시판 깊이 프로브 — 값은 안 연다")
+    ap.add_argument("--full", action="store_true", help="전 쪽을 읽어 폭·글 수·빠진 달")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
-    sys.exit(selftest() if a.selftest else probe())
+    sys.exit(selftest() if a.selftest else (full() if a.full else probe()))
