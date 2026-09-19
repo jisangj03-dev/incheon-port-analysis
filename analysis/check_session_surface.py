@@ -498,6 +498,11 @@ def main(listing=False, write=False):
               % len(changed))
         for b, n in changed:
             print("    [%s] %s  %s → %s" % (n[0], n[1], b[4], n[4]))
+            # 설명 칸이 셈을 들고 있는 자리(진열대·가게 목록)는 **무엇이 몇 개 늘었는지**를
+            # 그 칸이 이미 말한다. 해시만 찍으면 읽으라고 해 놓고 읽을 것을 안 준다.
+            if n[3] and b[3] != n[3]:
+                print("        %s" % b[3])
+                print("     →  %s" % n[3])
     if not (added or removed or changed):
         print("\n기준선과 같다 — 지시문 자리에 새로 쓰인 것이 없다.")
         return 0
