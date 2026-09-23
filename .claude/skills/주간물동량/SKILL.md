@@ -39,14 +39,29 @@ description: 측심 주간 루틴의 유일한 동작 정의. 새 월 통계 확
 7. 전부(데이터 + 페이지 + 채널문안 + 대기열 행)를 **커밋 하나 또는 논리적으로 묶은 몇 개**로,
    **PR 하나**로 올린다. PR 본문에 그 주 무엇이 바뀌었는지(새 월 갱신 vs 단면 전환)와
    사람 손 목록(링크드인 클릭)을 적는다.
-8. 사람 손: 로그인·게시 버튼은 다루지 않는다 — PR 머지 뒤 오너가 `docs/채널문안/`의 파일을
-   보고 직접 게시하고 `channel_queue.py --set --state 게시됨 --url`로 닫는다.
-   **측심 라이브 사이트(sounding.higgsfield.app)로의 반영은 이 루틴의 몫이 아니다** — 그 저장소는
-   별도이고 `repo-access` 토큰 갱신이 오너 전용이다(지침 §4 가). 인천 Pages(이 저장소) 갱신만으로 끝낸다.
+8. **측심 사이트(`sounding` 저장소, 별도) 반영** — `물동량.md`가 바뀐 주에는
+   `<sounding>/app/src/components/site/reports.tsx`의 `reports` 배열 중 `file: "물동량.html"`
+   항목의 `title`·`meta`를 그 주의 내용에 맞게 고친다(기존 보고서 편 항목을 고치던 것과 같은 자리 ·
+   새 항목을 또 추가하지 않는다 — 항목은 하나로 유지, 내용만 갱신). **커밋까지만 하고 push·배포는
+   안 한다** — sounding의 push·`higgsfield website deploy`는 `repo-access` 토큰이 있어야 하는데
+   그 토큰은 오너 전용이고 **어디에도 기록하지 않는다**(지침 §4 가와 같은 경계, 2026-09-24 위임문
+   경계 그대로).
+   **[미확인 · 알려진 한계] 이 단계가 클라우드 루틴에서 실제로 도는지는 아직 검증되지 않았다** —
+   이 루틴의 trigger(`측심-주간물동량`)는 지금 `incheon-port-analysis`(GitHub) 하나만 `sources`로
+   문다. `sounding`의 원격은 GitHub가 아니라 Higgsfield 자체 git 호스트(`apps-repos.higgs.ai`)라
+   claude.ai/code의 저장소 커넥터로 그대로 물릴 수 있는지 [미확인]이다. **될 때까지는 이 단계를
+   PR 본문에 「사람 손: sounding reports.tsx 갱신 필요」로 적어 두는 것으로 대신한다** — 루틴이
+   거짓으로 「했다」고 적지 않는다.
+9. 사람 손: 로그인·게시 버튼은 다루지 않는다 — PR 머지 뒤 오너가 `docs/채널문안/`의 파일을
+   보고 직접 게시하고 `channel_queue.py --set --state 게시됨 --url`로 닫는다. sounding 쪽 커밋이
+   위 8번에서 안 됐으면(클라우드 접근 [미확인]인 동안은 늘 그렇다) 오너가 직접 고치거나, 이
+   세션(대화형)에 다시 맡긴다.
 
 ## 산출물
 
 `incheon-port-analysis`의 PR 1건/주 — 데이터·`reports/물동량.md`·채널문안·대기열.
+가능하면(위 8번 참고) `sounding` 저장소의 로컬 커밋 1건(push 안 함) — 안 되면 PR 본문의
+사람 손 목록에 그 주 몫으로 남는다.
 
 ## 지표
 
