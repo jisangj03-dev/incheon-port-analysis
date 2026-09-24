@@ -119,7 +119,14 @@ def draft_path(row):
     f = (row.get("문안") or "").strip().strip("`")
     if not f:
         return None
-    p = f if os.path.isabs(f) else os.path.join(DRAFTS, f)
+    if os.path.isabs(f):
+        p = f
+    elif "/" in f or "\\" in f:
+        # 슬래시가 있으면 저장소 상대 경로다 — 비공개 원칙과 다르게 이 저장소에 문안을
+        # 두기로 한 채널(예: docs/채널문안/)을 위해서다. 파일명만 적은 기존 관례는 본부다.
+        p = os.path.join(ROOT, f)
+    else:
+        p = os.path.join(DRAFTS, f)
     return p if os.path.exists(p) else None
 
 
