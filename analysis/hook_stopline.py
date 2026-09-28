@@ -102,12 +102,20 @@ def classify(cmd):
     return "pass", None
 
 
+# verify_anchors.py 의 exit 3 = "환경 한계"(봉인 파일이 이 저장소만 clone한
+# 기계에는 원천적으로 없다) — 위반이 아니므로 막지 않는다. [2026-09-28 제안]
+# 그 밖의 어떤 0 이 아닌 코드도 막는다 — 새 검사를 추가할 때 이 상수를
+# 넓히지 마라. 「막지 않는 코드」는 검사마다 그 검사 자신이 「위반이 아님을
+# 코드로 증명한 것」이어야 한다(`verify_anchors.decide_exit` 처럼).
+NON_BLOCKING = {3}
+
+
 def run_checks():
     """실패한 검사가 있으면 (라벨, 종료코드, 꼬리출력), 없으면 None."""
     for args, label in CHECKS:
         r = subprocess.run([sys.executable] + args, cwd=ROOT,
                            capture_output=True, timeout=110)
-        if r.returncode != 0:
+        if r.returncode != 0 and r.returncode not in NON_BLOCKING:
             out = (r.stdout or b"").decode("utf-8", "replace").strip()
             return label, r.returncode, "\n".join(out.splitlines()[-6:])
     return None
@@ -178,6 +186,23 @@ def selftest():
     hit = got == "push" and reason is None
     ok = ok and hit
     print("  %s %-40s -> %s · 사유 %s (기대 push · None)" % ("OK  " if hit else "FAIL", "git push origin main", got, reason))
+
+    # [2026-09-28 제안] NON_BLOCKING(exit 3) 만 안 막고, 그 밖의 0 이 아닌 코드는
+    # 여전히 막는가 — 실제 CHECKS 를 흉내 낸 가짜 스크립트 종료코드로 확인한다.
+    print("── 인수시험: run_checks — exit 3 만 안 막는다(그 밖은 다 막는다) ──")
+    global CHECKS
+    real_checks = CHECKS
+    try:
+        for code, want_blocked in ((0, False), (3, False), (1, True), (2, True), (5, True)):
+            CHECKS = [(["-c", "import sys; sys.exit(%d)" % code], "가짜 검사 exit %d" % code)]
+            blocked = run_checks() is not None
+            hit = blocked == want_blocked
+            ok = ok and hit
+            print("  %s exit %d -> %s (기대 %s)" % ("OK  " if hit else "FAIL", code,
+                  "막음" if blocked else "통과", "막음" if want_blocked else "통과"))
+    finally:
+        CHECKS = real_checks
+
     print("통과" if ok else "실패")
     return 0 if ok else 1
 
