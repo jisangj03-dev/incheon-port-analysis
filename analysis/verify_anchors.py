@@ -17,54 +17,60 @@
   2. 열람 금지 파일 2종이 제자리에 있는가. **내용은 읽지 않는다** — 존재와 크기만 본다.
      (읽는 순간 이 스크립트가 정지선을 어긴다.)
 
-[2026-09-28 제안] 봉인 파일이 「이 저장소만 clone한 기계」에서 항상 없는 문제
-------------------------------------------------------------------------
+[2026-09-28 제안 · v2 — 첫 시도를 채팅이 되짚었다] 봉인 파일 부재 판정
+------------------------------------------------------------------
 `_probe_dump.txt`는 `.gitignore` 대상이고 생성 스크립트가 없다 — **운영자의
 로컬 기계에만 있는 사본**이다. 매번 새로 뜨는 클라우드 컨테이너(주간물동량
 루틴 등)는 이 파일을 원천적으로 가진 적이 없다. 지금까지는 그 부재가 다른
 위반(해시 불일치·앵커 자체 소실)과 똑같이 커밋을 막았다 — **환경 한계와
 정지선 위반을 구별하지 못했다.**
 
-이 결함을 고치되 **검사를 끄거나 약하게 만들지 않는다.** 이 저장소의 다른
-장치(`check_refs.py`·`check_claims.py`)가 이미 같은 문제를 겪고 있고, 같은
-관례로 푼다 — 운영자 홈의 `OneDrive\\문서\\본부`가 있는지로 「이 기계가
-운영자의 실제 기계인가」를 가른다. **그 관례를 그대로 가져온다**(새 기전을
-만들지 않는다).
+**첫 시도(운영자 홈의 `본부` 폴더 유무로 가른다)는 방향이 거꾸로였다** —
+채팅이 잡았다. 그 폴더는 정리·보관 계획이 있어 지워질 수 있고, 지워지면
+**운영자의 실제 기계에서도** 봉인 파일 부재가 「이 저장소만 clone한
+기계」로 오판돼 검사가 조용히 풀린다. **실패 방향이 안전한 쪽이 아니었다** —
+확인 안 됨(폴더 없음)이 곧바로 "막지 않음"으로 이어졌다.
 
-- 앵커 3건의 소실·불일치는 **기계와 무관하게 항상 위반**이다(exit 1) — 이 셋은
-  전부 git으로 커밋돼 있어 어떤 clone에도 있어야 정상이고, 없다는 것 자체가
-  이상 신호다. **여기는 하나도 안 물렀다.**
-- 봉인 파일이 없을 때:
-  - **운영자의 기계(위 본부 폴더가 있다)** — 원래 있어야 할 파일이 없다는 뜻이므로
-    **그대로 위반**이다(exit 1). **여기도 안 물렀다.**
-  - **이 저장소만 clone한 기계(본부 폴더가 없다)** — 이 기계는 애초에 이 파일을
-    가져 본 적이 없으므로 부재가 삭제·조작의 증거가 아니다. **exit 3**(새 코드 —
-    "환경 한계", 위반이 아니다)으로 갈라 알린다. `hook_stopline.py`가 이 코드만
-    막지 않는다.
+그래서 기본값을 뒤집는다:
+
+- **기본값은 위반(exit 1, 막는다).** 아무 신호도 없으면 이 기계가 클라우드인지
+  운영자 기계인지 모르고, **모르면 막는다** — 사고 26(모름은 통과가 아니다)과
+  같은 원칙이다.
+- **클라우드임을 적극적으로 확인했을 때만** exit 3("환경 한계" — 위반 아님)
+  으로 가른다. 확인 수단은 Claude Code 자신이 원격/클라우드 실행에 심는
+  환경변수다(`is_confirmed_cloud()`) — 사람이 흉내 낼 수는 있지만, **운영자의
+  실제 기계에서 우연히 켜지는 값이 아니다.** 이 신호가 틀렸을 때의 위험도
+  비대칭이다: 잘못 믿으면 "덜 들키는 삭제"가 아니라 "더 깐깐한 차단"(클라우드가
+  아닌데 클라우드로 오판 → 여전히 exit 3은 앵커 위반이 섞이면 절대 못 가린다,
+  아래 `decide_exit` 참고)이지, 그 반대(운영자 기계의 진짜 삭제를 클라우드로
+  오판해 놓침)가 아니다 — `본부` 폴더 유무만으로 판정하던 첫 시도가 정확히
+  그 반대 방향의 위험을 안고 있었다.
+- 앵커 3건의 소실·불일치는 **기계·환경 신호와 무관하게 항상 위반**이다
+  (exit 1) — 여기는 첫 시도와 마찬가지로 하나도 안 물렀다.
 
 **해시 대조로 못 바꾸는 이유.** 봉인 파일은 "내용을 안 읽는다"가 설계 목적이다
 (위 §2, `selftest()`가 시험한다) — 해시를 내려면 바이트를 읽어야 하므로 그 자체가
-이 파일의 존재 이유(열람 금지)와 부딪힌다. 그래서 이번 제안은 해시가 아니라
-**"이 기계가 애초에 이 파일을 가질 수 있는 기계인가"**를 가르는 쪽을 택했다.
+이 파일의 존재 이유(열람 금지)와 부딪힌다. 그래서 이번 제안도 해시가 아니라
+**"이 기계가 클라우드임을 적극적으로 확인할 수 있는가"**를 가르는 쪽을 택했다.
 
-**아직 못 푸는 것.** 운영자 기계에서 이 파일이 사라진 경우와, 그 기계에
-`본부` 폴더가 우연히 없어진 경우를 이 코드는 구별하지 못한다 — 후자도 똑같이
-"이 저장소만 clone한 기계"로 오판해 exit 3을 낸다. 이 폴더는 저장소보다 오래
-있어 온 로컬 고정물이라 가능성은 낮다고 보지만, **0은 아니다.** 이 한계는
-`check_refs.py`·`check_claims.py`가 이미 안고 있는 것과 같다.
+**아직 못 푸는 것.** `is_confirmed_cloud()`가 보는 환경변수는 Claude Code가
+스스로 심는 값이라 그 값 자체가 조작·위조됐을 가능성은 이 코드가 못 잡는다.
+다만 그 경우도 **기본값 방향과 반대로 작동해야 위험해진다** — 즉 "클라우드가
+아닌데 클라우드로 위조"해야 검사가 풀리므로, 값이 그냥 없어지거나 깨지는
+사고(첫 시도가 겪은 것과 같은 종류)로는 안 뚫린다.
 
 사용
 ----
   python analysis/verify_anchors.py
 
-종료코드 0 = 전부 일치 / 1 = 정지선 위반 가능(항상 막는다) /
-3 = 환경 한계 — 이 기계에서 봉인 파일을 잴 수 없다(막지 않는다. 사고 26 — 모름은 통과가 아니다).
+종료코드 0 = 전부 일치 / 1 = 정지선 위반 가능(항상 막는다, 확인 안 되면 이쪽이 기본값) /
+3 = 클라우드임을 적극적으로 확인함 — 봉인 파일 검사를 생략한다(막지 않는다).
 
 정지선-집행: §4 — 앵커 3건 수정·정렬·재저장 금지 / 봉인 2건 열람 금지
 정지선-명제: 앵커 3건의 SHA-256이 기록값과 같고, 이 코드가 봉인 2건의 내용을 안 읽는다
 정지선-한계: 다른 도구·사람이 앵커를 고치는 것은 못 막는다. 커밋 시점에 **사후로** 알려 줄 뿐이다.
-  「이 저장소만 clone한 기계」 판정은 `본부` 폴더 유무로만 가르므로, 그 폴더가
-  없어진 운영자 기계를 오판할 수 있다(위 "아직 못 푸는 것").
+  클라우드 판정은 Claude Code가 심는 환경변수를 신뢰한다 — 그 값 자체의 위조는
+  못 잡는다(위 "아직 못 푸는 것").
 """
 
 import contextlib
@@ -81,9 +87,6 @@ except Exception:
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# check_refs.py·check_claims.py 와 같은 관례 — 새 기전을 만들지 않는다.
-HQ = Path(os.path.expanduser("~")) / "OneDrive" / "문서" / "본부"
-
 # 수정·정렬·재저장 금지. 값은 CRLF 상태의 디스크 바이트로 측정됐다(.gitattributes가 csv를 CRLF로 고정하는 이유).
 ANCHORS = {
     "analysis/container_2025_direction.csv":
@@ -97,17 +100,39 @@ ANCHORS = {
 # 열람 금지. 존재만 확인한다.
 SEALED = ["_probe_dump.txt", "analysis/probe/probe_2026_raw.csv"]
 
+# Claude Code가 원격/클라우드 실행에 스스로 심는 값들 — 실측(2026-09-28,
+# 이 세션 자신의 `env`)으로 확인한 이름들이다. 하나라도 그 값이면 "적극적으로
+# 확인됨"으로 본다. **기본값은 이 목록에 없다 — 아무 신호가 없으면 위반이다.**
+_CLOUD_ENV_TRUE = ("CLAUDE_CODE_REMOTE",)
+_CLOUD_ENV_NONEMPTY = ("CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE",)
+_CLOUD_CONTAINER_MARKER = "claude_code_remote"
 
-def repo_only_clone():
-    """이 기계가 본부 폴더(운영자 로컬 고정물)를 안 가졌는가 — check_refs.py·check_claims.py 와 같은 판정."""
-    return not HQ.is_dir()
+
+def is_confirmed_cloud(env=None):
+    """이 기계가 클라우드/원격 컨테이너임을 **적극적으로 확인한다.**
+
+    확인 안 되면 False — 그것이 기본값이고, `decide_exit`에서 위반(exit 1) 쪽으로
+    떨어진다. 「본부 폴더가 없다」처럼 소극적 신호(무언가의 부재)로 클라우드를
+    추론하지 않는다 — 그 폴더는 운영자 기계에서도 없어질 수 있어 실패 방향이
+    거꾸로였다(첫 시도의 결함). 여기서는 **있어야 참이 되는 값**만 본다.
+    """
+    env = os.environ if env is None else env
+    for k in _CLOUD_ENV_TRUE:
+        if env.get(k, "").strip().lower() == "true":
+            return True
+    for k in _CLOUD_ENV_NONEMPTY:
+        if env.get(k, "").strip():
+            return True
+    if _CLOUD_CONTAINER_MARKER in env.get("CLAUDE_CODE_CONTAINER_ID", ""):
+        return True
+    return False
 
 
 def decide_exit(anchor_violation, sealed_violation, sealed_env_limited):
-    """세 신호만으로 종료코드를 정하는 순수 함수 — 인수시험이 파일 없이 이 함수만 친다.
+    """네 신호만으로 종료코드를 정하는 순수 함수 — 인수시험이 파일 없이 이 함수만 친다.
 
-    앵커 위반이나 「진짜」 봉인 위반(운영자 기계에서 없어짐)은 늘 1이다 —
-    환경 한계(exit 3)가 그것들을 절대 가리지 않는다.
+    앵커 위반이나 「진짜」 봉인 위반(클라우드로 확인 안 된 기계에서 없어짐)은
+    늘 1이다 — 환경 한계(exit 3)가 그것들을 절대 가리지 않는다.
     """
     if anchor_violation or sealed_violation:
         return 1
@@ -120,7 +145,7 @@ def main():
     anchor_violation = False
     sealed_violation = False
     sealed_env_limited = False
-    only_clone = repo_only_clone()
+    cloud = is_confirmed_cloud()
 
     print("── 수정 금지 앵커 (SHA-256) ──")
     for rel, want in ANCHORS.items():
@@ -143,8 +168,8 @@ def main():
         if p.exists():
             print(f"  [제자리] {rel}  ({p.stat().st_size} B)")
             continue
-        if only_clone:
-            print(f"  [모름] {rel} — 이 저장소만 clone한 기계에서는 잴 수 없다. 통과로 치지 않는다.")
+        if cloud:
+            print(f"  [생략] {rel} — 클라우드로 확인됨. 이 파일은 검사하지 않는다.")
             sealed_env_limited = True
         else:
             print(f"  [없음] {rel}")
@@ -155,14 +180,14 @@ def main():
     if code == 1:
         print("정지선 위반 가능 — 커밋하지 마라.")
     elif code == 3:
-        print("환경 한계 — 이 기계에서는 봉인 파일을 잴 수 없다(모름). 위반이 아니다.")
+        print("★★★ 봉인 파일 검사 생략(클라우드) — 위반이 아니다. 앵커 3건은 그대로 검사됐다. ★★★")
     else:
         print(f"앵커 {len(ANCHORS)}건 일치 · 봉인 파일 {len(SEALED)}건 제자리.")
     sys.exit(code)
 
 
 def selftest():
-    """「봉인 파일의 내용을 안 읽는다」와 「종료코드 분기가 옳다」를 함께 시험한다.
+    """「봉인 파일의 내용을 안 읽는다」·「클라우드 판정이 옳다」·「종료코드 분기가 옳다」를 함께 시험한다.
 
     지금까지 그 보장은 주석 한 줄과 「코드가 우연히 안 읽는다」였다.
     누가 read_bytes 한 줄만 넣어도 아무도 못 잡는다 — 사고 26(장치의 존재는 검사의 수행이 아니다).
@@ -176,6 +201,23 @@ def selftest():
 
     ok = True
 
+    print("── 인수시험: 클라우드 확인 — 기본값은 False(위반 쪽)다 ──")
+    cloud_cases = [
+        ({}, False),
+        ({"CLAUDE_CODE_REMOTE": "false"}, False),
+        ({"CLAUDE_CODE_REMOTE": ""}, False),
+        ({"CLAUDE_CODE_REMOTE": "true"}, True),
+        ({"CLAUDE_CODE_REMOTE": "TRUE"}, True),
+        ({"CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE": "cloud_default"}, True),
+        ({"CLAUDE_CODE_CONTAINER_ID": "container_x--claude_code_remote--y"}, True),
+        ({"HOME": "/root"}, False),  # 아무 관련 없는 값은 클라우드로 안 읽는다
+    ]
+    for env, want in cloud_cases:
+        got = is_confirmed_cloud(env)
+        hit = got == want
+        ok = ok and hit
+        print("  %s is_confirmed_cloud(%s) -> %s (기대 %s)" % ("OK  " if hit else "FAIL", env, got, want))
+
     print("── 인수시험: 종료코드 분기 (decide_exit — 파일 없이 순수 함수만) ──")
     cases = [
         # (anchor_violation, sealed_violation, sealed_env_limited) -> 기대 종료코드
@@ -184,7 +226,7 @@ def selftest():
         ((False, True, False), 1),   # 진짜 봉인 위반은 막는다
         ((False, True, True), 1),    # 진짜 위반이 섞이면 환경 한계가 안 가린다
         ((True, False, False), 1),   # 앵커 위반은 늘 막는다
-        ((True, False, True), 1),    # 앵커 위반은 환경 한계로 안 가려진다
+        ((True, False, True), 1),    # 앵커 위반은 클라우드 확인으로 안 가려진다
     ]
     for args, want in cases:
         got = decide_exit(*args)
