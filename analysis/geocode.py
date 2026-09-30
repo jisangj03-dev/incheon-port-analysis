@@ -25,6 +25,8 @@
 
 키가 없어도 도는 것 — 캐시 조회 · `--dry-run`(몇 건이 캐시에 있고 몇 건을 부를지) ·
 `--summary`(검증 요약) · `--sample`(채팅 대조용 무작위 10건) · `--selftest`.
+`--refine-only` 는 `JUSO_SEARCH_KEY` 하나로 돈다 — 정제만 하고 상태 `REFINED` 로 캐시에 남긴다.
+좌표 키가 들어온 뒤 보통 실행이 그 행들의 좌표만 받는다(검색은 다시 안 부른다).
 
 닿지 않는 곳
 ------------
@@ -66,7 +68,10 @@ ROOT = os.path.dirname(HERE)
 CACHE = os.path.join(HERE, "geocode_cache.csv")
 
 FIELDS = ["원주소", "검색어", "정제주소", "지번주소", "시도", "위도", "경도",
-          "상태", "후보수", "출처API", "조회일"]
+          "상태", "후보수", "건물식별", "출처API", "조회일"]
+# 좌표제공 API 가 받는 건물 식별자. 정제만 한 행(REFINED)은 이것을 캐시에 남겨
+# 좌표 단계가 검색 API 를 다시 안 부르게 한다(개발 키 만료 뒤에도 좌표 단계가 돈다).
+BLD_KEYS = ("admCd", "rnMgtSn", "udrtYn", "buldMnnm", "buldSlno")
 
 JUSO_SEARCH_URL = "https://business.juso.go.kr/addrlink/addrLinkApi.do"
 JUSO_COORD_URL = "https://business.juso.go.kr/addrlink/addrCoordApi.do"
@@ -239,7 +244,7 @@ def juso_search(keyword, key, fetch):
 
 def juso_coord(item, key, fetch):
     """검색 후보 하나 → (entX, entY) 또는 None."""
-    need = ("admCd", "rnMgtSn", "udrtYn", "buldMnnm", "buldSlno")
+    need = BLD_KEYS
     if any(k not in item for k in need):
         raise StopError("검색 후보에 좌표 조회용 필드가 없다: %s" % ",".join(k for k in need if k not in item))
     p = {k: item[k] for k in need}
@@ -258,19 +263,44 @@ def juso_coord(item, key, fetch):
     return float(rows[0]["entX"]), float(rows[0]["entY"])
 
 
-def geocode_one(addr, keys, fetch, today):
+def bld_pack(item):
+    return "|".join(str(item.get(k, "")) for k in BLD_KEYS)
+
+
+def bld_unpack(text):
+    parts = (text or "").split("|")
+    return dict(zip(BLD_KEYS, parts)) if len(parts) == len(BLD_KEYS) and all(parts[:2]) else None
+
+
+def geocode_one(addr, keys, fetch, today, refine_only=False, prev=None):
+    """refine_only — 검색만 하고 REFINED 로 남긴다.
+    prev 가 REFINED 이고 건물식별이 있으면 검색을 건너뛰고 좌표만 받는다."""
+    if prev and prev.get("상태") == "REFINED" and not refine_only:
+        item = bld_unpack(prev.get("건물식별"))
+        if item:
+            row = dict(prev, 조회일=today)
+            xy = juso_coord(item, keys["JUSO_COORD_KEY"], fetch)
+            if xy is None:
+                row["상태"] = "NO_COORD"
+                return row
+            lat, lon = utmk_to_wgs84(*xy)
+            row.update({"위도": "%.7f" % lat, "경도": "%.7f" % lon, "상태": "OK"})
+            return row
     base = {"원주소": norm_key(addr), "검색어": "", "정제주소": "", "지번주소": "", "시도": "",
-            "위도": "", "경도": "", "상태": "NOT_FOUND", "후보수": "0",
+            "위도": "", "경도": "", "상태": "NOT_FOUND", "후보수": "0", "건물식별": "",
             "출처API": SOURCE, "조회일": today}
     for kw in keyword_variants(addr):
         cands, total = juso_search(kw, keys["JUSO_SEARCH_KEY"], fetch)
         if not cands:
             continue
         top = cands[0]
-        xy = juso_coord(top, keys["JUSO_COORD_KEY"], fetch)
         base.update({"검색어": kw, "정제주소": top.get("roadAddr", ""),
                      "지번주소": top.get("jibunAddr", ""), "시도": top.get("siNm", ""),
-                     "후보수": str(total)})
+                     "후보수": str(total), "건물식별": bld_pack(top)})
+        if refine_only:
+            base["상태"] = "REFINED"
+            return base
+        xy = juso_coord(top, keys["JUSO_COORD_KEY"], fetch)
         if xy is None:
             base["상태"] = "NO_COORD"
             return base
@@ -315,21 +345,38 @@ def read_input(path, col):
     return out
 
 
+def pending(addrs, cache, retry_failed=False, refine_only=False):
+    """부를 것. 정제 모드에서 REFINED 는 끝난 것이고, 보통 모드에서는 좌표를 받을 것이다."""
+    def need(a):
+        if a not in cache:
+            return True
+        st = cache[a]["상태"]
+        if st == "REFINED":
+            return not refine_only
+        return retry_failed and st != "OK" and not (refine_only and st == "NO_COORD")
+    return [a for a in addrs if need(a)]
+
+
 def run(addrs, cache, keys, fetch, dry_run=False, retry_failed=False, sleep=0.1,
-        today=None, save=None):
+        today=None, save=None, refine_only=False):
     """캐시에 없는 것만 부른다. 돌려주는 값 = (부른 수, 적중 수, 부를 수)."""
     today = today or datetime.date.today().isoformat()
-    todo = [a for a in addrs if a not in cache
-            or (retry_failed and cache[a]["상태"] != "OK")]
+    todo = pending(addrs, cache, retry_failed, refine_only)
     hit = len(addrs) - len(todo)
     if dry_run:
         return 0, hit, len(todo)
-    if todo and not (keys["JUSO_SEARCH_KEY"] and keys["JUSO_COORD_KEY"]):
-        raise StopError("키가 없다 — JUSO_SEARCH_KEY · JUSO_COORD_KEY (docs/주소좌표_키발급안내.md)")
+    if todo:
+        need = ["JUSO_SEARCH_KEY"] if refine_only else ["JUSO_COORD_KEY"]
+        if not refine_only and any(not (a in cache and cache[a]["상태"] == "REFINED") for a in todo):
+            need.append("JUSO_SEARCH_KEY")
+        missing = [k for k in need if not keys[k]]
+        if missing:
+            raise StopError("키가 없다 — %s (docs/주소좌표_키발급안내.md)" % " · ".join(missing))
     called = 0
     for i, a in enumerate(todo, 1):
         try:
-            cache[a] = geocode_one(a, keys, fetch, today)
+            prev = None if retry_failed and a in cache and cache[a]["상태"] != "REFINED" else cache.get(a)
+            cache[a] = geocode_one(a, keys, fetch, today, refine_only=refine_only, prev=prev)
         except StopError:
             if save:
                 save(cache)
@@ -369,9 +416,15 @@ def summarize(addrs, cache):
         k = "%.5f,%.5f" % (float(r["위도"]), float(r["경도"]))
         by_xy.setdefault(k, []).append(r["원주소"])
     dup = {k: v for k, v in by_xy.items() if len(v) > 1}
-    multi = [r for r in ok if int(r["후보수"] or 0) > 1]
+    refined = [r for r in rows if r["정제주소"]]
+    multi = [r for r in refined if int(r["후보수"] or 0) > 1]
+    # 정제 단계만의 판정 — 좌표가 없어도 잴 수 있는 것(경계는 ① 시도명만).
+    refine_out = [r for r in refined if r["시도"] != INCHEON_SIDO]
     return {"분모": len(addrs), "미조회": missing, "성공": ok, "실패": fail,
-            "경계밖": outside, "중복좌표": dup, "다중후보": multi}
+            "경계밖": outside, "중복좌표": dup, "다중후보": multi,
+            "정제": refined, "정제실패": [r for r in rows if not r["정제주소"]],
+            "정제시도밖": refine_out,
+            "좌표대기": [r for r in rows if r["상태"] == "REFINED"]}
 
 
 def print_summary(s):
@@ -380,13 +433,19 @@ def print_summary(s):
     rate = (100.0 * len(s["성공"]) / n) if n else 0.0
     print("── 검증 요약 ──")
     print("  고유 원주소 %d · 조회됨 %d · 미조회 %d" % (n, done, len(s["미조회"])))
+    print("  [정제] 성공 %d / %d = %.1f%% · 실패 %d · 다중 후보 %d · 시도≠인천광역시 %d · 좌표 대기 %d"
+          % (len(s["정제"]), n, (100.0 * len(s["정제"]) / n) if n else 0.0, len(s["정제실패"]),
+             len(s["다중후보"]), len(s["정제시도밖"]), len(s["좌표대기"])))
     print("  성공 %d / %d = %.1f%%  (기준 95%% · 재시도 하한 80%%)" % (len(s["성공"]), n, rate))
     print("  실패 %d · 인천 경계 밖 %d (기준 0) · 중복 좌표 %d묶음 · 다중 후보 %d"
           % (len(s["실패"]), len(s["경계밖"]), len(s["중복좌표"]), len(s["다중후보"])))
     if not n:
         print("  **분모 0 — 통과가 아니다.**")
     for r in s["실패"]:
-        print("  [실패 %s] %s" % (r["상태"], r["원주소"]))
+        if r["상태"] != "REFINED":
+            print("  [실패 %s] %s" % (r["상태"], r["원주소"]))
+    for r in s["정제시도밖"]:
+        print("  [정제 시도 밖 %s] %s → %s" % (r["시도"] or "빈칸", r["원주소"], r["정제주소"]))
     for r, why in s["경계밖"]:
         print("  [경계 밖 %s] %s → %s" % (why, r["원주소"], r["정제주소"]))
     for k, v in sorted(s["중복좌표"].items()):
@@ -529,6 +588,30 @@ def selftest():
     chk("사각형 밖을 잡는다", summarize(["먼곳"], {"먼곳": far})["경계밖"][0][1], "사각형 밖")
     chk("분모 0 은 0%", summarize([], {})["분모"], 0)
 
+    print("── 정제만(좌표 키 없음) → 좌표 키 들어온 뒤 ──")
+    rc, n1 = {}, len(calls)
+    skey = dict(keys, JUSO_COORD_KEY="")
+    ra = ["인천 중구 가상로 1", "인천 중구 없는주소 9", "인천 서구 두후보로 3"]
+    chk("정제 — 좌표 키 없이 돈다", run(ra, rc, skey, fake, sleep=0, refine_only=True), (3, 0, 3))
+    chk("정제 — 좌표 API 안 부름", JUSO_COORD_URL in calls[n1:], False)
+    chk("정제 — 상태", [rc[a]["상태"] for a in ra], ["REFINED", "NOT_FOUND", "REFINED"])
+    rs = summarize(ra, rc)
+    chk("정제 요약 — 성공 2 · 실패 1 · 다중 1 · 좌표 대기 2",
+        (len(rs["정제"]), len(rs["정제실패"]), len(rs["다중후보"]), len(rs["좌표대기"]), len(rs["성공"])),
+        (2, 1, 1, 2, 0))
+    chk("정제 재실행 — 부를 것 0", run(ra, rc, skey, fake, dry_run=True, refine_only=True), (0, 3, 0))
+    try:
+        run(ra, rc, dict(keys, JUSO_COORD_KEY=""), fake, sleep=0)
+        chk("좌표 단계에 좌표 키 없으면 멈춘다", False, True)
+    except StopError as e:
+        chk("좌표 단계에 좌표 키 없으면 멈춘다", "JUSO_COORD_KEY" in str(e), True)
+    n2 = len(calls)
+    ckey = dict(keys, JUSO_SEARCH_KEY="")   # 개발 검색 키가 만료된 뒤를 흉내 낸다
+    chk("좌표 단계 — 검색 키 없이 REFINED 둘만", run(ra, rc, ckey, fake, sleep=0)[0], 2)
+    chk("좌표 단계 — 검색 API 안 부름", JUSO_SEARCH_URL in calls[n2:], False)
+    chk("좌표 단계 — OK 로 바뀜", [rc[a]["상태"] for a in ra], ["OK", "NOT_FOUND", "OK"])
+    chk("좌표 단계 — 정제주소 보존", rc[ra[0]]["정제주소"], "인천광역시 가상로 1")
+
     print("── 키를 안 흘린다 ──")
     k = {"JUSO_SEARCH_KEY": "devU01TX0FVVEgyMDI2", "JUSO_COORD_KEY": "", "VWORLD_KEY": ""}
     chk("오류 문구의 키 가림", mask("url?confmKey=devU01TX0FVVEgyMDI2&x=1", k), "url?confmKey=***&x=1")
@@ -564,6 +647,8 @@ def main():
     ap.add_argument("--col", default="소재지", help="주소 열 이름")
     ap.add_argument("--dry-run", action="store_true", help="부르지 않고 몇 건을 부를지만")
     ap.add_argument("--retry-failed", action="store_true", help="캐시의 실패 행도 다시 부른다")
+    ap.add_argument("--refine-only", action="store_true",
+                    help="검색 API 로 정제만(JUSO_SEARCH_KEY 하나) — 상태 REFINED")
     ap.add_argument("--limit", type=int, default=0, help="이번에 부를 최대 수(0=전부)")
     ap.add_argument("--summary", action="store_true", help="검증 요약만")
     ap.add_argument("--sample", type=int, default=0, help="채팅 대조용 무작위 N건(시드 고정)")
@@ -586,11 +671,11 @@ def main():
         if not (a.summary or a.sample or a.crosscheck_vworld):
             todo_addrs = addrs
             if a.limit:
-                pending = [x for x in addrs if x not in cache
-                           or (a.retry_failed and cache[x]["상태"] != "OK")]
-                todo_addrs = [x for x in addrs if x not in pending] + pending[:a.limit]
+                pend = pending(addrs, cache, a.retry_failed, a.refine_only)
+                todo_addrs = [x for x in addrs if x not in pend] + pend[:a.limit]
             c, h, t = run(todo_addrs, cache, keys, fetch, dry_run=a.dry_run,
-                          retry_failed=a.retry_failed, save=None if a.dry_run else write_cache)
+                          retry_failed=a.retry_failed, save=None if a.dry_run else write_cache,
+                          refine_only=a.refine_only)
             print("고유 원주소 %d · 캐시 적중 %d · %s %d"
                   % (len(addrs), h, "부를 것" if a.dry_run else "부른 것", t if a.dry_run else c))
             print("키: %s" % " · ".join("%s=%s" % (k, "있음" if v else "없음") for k, v in keys.items()))

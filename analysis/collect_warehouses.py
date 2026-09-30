@@ -17,7 +17,15 @@
 열 이름은 판마다 달라질 수 있어 별칭으로 찾는다. 주소 열을 못 찾으면 멈춘다.
 
   python analysis/collect_warehouses.py --src <받은.csv> --basis 2025-07-01
+  python analysis/collect_warehouses.py --stats <통계_지역별물류창고업등록현황_YYMMDD.xls>
   python analysis/collect_warehouses.py --selftest
+
+시도 집계표(`--stats`)
+---------------------
+포털 15083282 의 「바로가기」가 가리키는 곳은 nlic **통계 화면**(`WhsStatsWarehouseLocation.action`)이고,
+그 화면의 「엑셀다운로드」는 **시도 × 창고 근거법** 집계표다 — 주소가 없다(2026-09-30 실측 · 17 시도).
+주소가 든 행 단위 목록은 같은 사이트의 「물류시설 → 물류창고업 현황」(`WhsInfoWarehouseSch.action`)에 있다.
+이 집계표는 그대로 올린다 — 포털 이용허락범위 「제한 없음」· 비용 「무료」(2026-09-30 포털 화면 확인).
 
 산출
 ----
@@ -56,6 +64,8 @@ KEEP = [
     ("등록일자", ["등록일자", "등록일", "인허가일자"]),
 ]
 OUT_FIELDS = [k for k, _ in KEEP]
+STATS_OUT = os.path.join(HERE, "warehouse_stats_by_sido.csv")
+STATS_URL = "https://www.nlic.go.kr/nlic/WhsStatsWarehouseLocation.action"
 SRC_FIELDS = ["출처", "URL", "기준일", "수집일", "원본파일", "원본SHA256", "원본행수", "인천행수"]
 
 # 버리는 열 중 개인정보로 보이는 것 — 버린 사실을 따로 크게 말한다.
@@ -112,6 +122,45 @@ def write_csv(path, fields, rows):
         w.writerows(rows)
 
 
+def parse_stats(rows):
+    """nlic 집계표(3단 머리) → (열 이름, 시도 행). 머리를 「근거법·창고유형」으로 한 줄로 편다.
+    합계 행이 시도 합과 맞지 않으면 멈춘다."""
+    if not rows or str(rows[0][0]).strip() != "소재지":
+        raise SystemExit("집계표 머리가 다르다(첫 칸이 「소재지」가 아니다): %r" % (rows[:1],))
+    law, kind = rows[1], rows[2]
+    cols, cur = [], ""
+    for j in range(1, len(law)):
+        cur = str(law[j]).strip() or cur
+        k = str(kind[j]).strip()
+        cols.append("합계" if cur == "합계" else "%s·%s" % (cur, k))
+    body = []
+    for r in rows[3:]:
+        name = str(r[0]).strip()
+        if not name:
+            continue
+        body.append([name] + [int(round(float(v or 0))) for v in r[1:1 + len(cols)]])
+    total = [b for b in body if b[0] == "합계"]
+    sido = [b for b in body if b[0] != "합계"]
+    if len(total) != 1:
+        raise SystemExit("합계 행이 하나가 아니다: %d" % len(total))
+    for j in range(1, len(cols) + 1):
+        if sum(b[j] for b in sido) != total[0][j]:
+            raise SystemExit("시도 합 ≠ 합계 (%s)" % cols[j - 1])
+    for b in body:
+        if sum(b[2:]) != b[1]:
+            raise SystemExit("%s: 유형 합 ≠ 합계" % b[0])
+    return cols, body
+
+
+def read_xls(path):
+    try:
+        import xlrd  # 구형 .xls(CDFV2) — nlic 가 이 형식으로 준다
+    except ImportError:
+        raise SystemExit("xlrd 가 없다: pip install xlrd")
+    sh = xlrd.open_workbook(path).sheet_by_index(0)
+    return [sh.row_values(i) for i in range(sh.nrows)]
+
+
 def selftest():
     ok = True
 
@@ -144,6 +193,18 @@ def selftest():
     alt = "업체명,소재지도로명주소,창고면적\n가,인천광역시 남동구 가상로 5,10\n"
     r2, _, m2, _ = refine(alt)
     chk("별칭으로 열 찾기", (m2["상호"], m2["소재지"], r2[0]["면적"]), ("업체명", "소재지도로명주소", "10"))
+    st = [["소재지", "", "", ""], ["", "합계", "물시법", "관세법"], ["", "", "물시법창고", "보세창고"],
+          ["합계", 5.0, 3.0, 2.0], ["인천광역시", 3.0, 2.0, 1.0], ["경기도", 2.0, 1.0, 1.0]]
+    cols, body = parse_stats(st)
+    chk("집계표 머리 펴기", cols, ["합계", "물시법·물시법창고", "관세법·보세창고"])
+    chk("집계표 인천 행", [b for b in body if b[0] == "인천광역시"], [["인천광역시", 3, 2, 1]])
+    bad = [list(r) for r in st]
+    bad[4][2] = 9.0
+    try:
+        parse_stats(bad)
+        chk("합이 안 맞으면 멈춘다", False, True)
+    except SystemExit:
+        chk("합이 안 맞으면 멈춘다", True, True)
     print("\n인수시험 %s" % ("통과" if ok else "**실패**"))
     return 0 if ok else 1
 
@@ -152,10 +213,29 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--src", help="포털에서 받은 CSV")
     ap.add_argument("--basis", help="자료 기준일 YYYY-MM-DD (포털 파일명·수정일 기준)")
+    ap.add_argument("--stats", help="nlic 통계 화면의 엑셀(시도 × 근거법 집계표 .xls)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
         return selftest()
+    if a.stats:
+        raw = open(a.stats, "rb").read()
+        cols, body = parse_stats(read_xls(a.stats))
+        m = re.search(r"(\d{6})\.xls$", os.path.basename(a.stats))
+        basis = "20%s-%s-%s" % (m.group(1)[:2], m.group(1)[2:4], m.group(1)[4:]) if m else ""
+        with io.open(STATS_OUT, "w", encoding="utf-8", newline="") as f:
+            w = csv.writer(f, lineterminator="\n")
+            w.writerow(["# 출처: 국토교통부 물류창고업 등록현황(국가물류통합정보센터 통계) %s" % STATS_URL])
+            w.writerow(["# 내려받은 날: %s · 원본파일: %s · SHA-256: %s · 이용허락범위 제한 없음(공공데이터포털 15083282)"
+                        % (basis or datetime.date.today().isoformat(), os.path.basename(a.stats),
+                           hashlib.sha256(raw).hexdigest())])
+            w.writerow(["시도"] + cols)
+            w.writerows(body)
+        inc = [b for b in body if b[0] == "인천광역시"][0]
+        tot = [b for b in body if b[0] == "합계"][0]
+        print("시도 %d · 전국 %d개소 · 인천 %d개소(%.1f%%)" % (len(body) - 1, tot[1], inc[1], 100.0 * inc[1] / tot[1]))
+        print("→ %s" % os.path.relpath(STATS_OUT))
+        return 0
     if not (a.src and a.basis):
         ap.error("--src 와 --basis 가 필요하다")
     datetime.date.fromisoformat(a.basis)
