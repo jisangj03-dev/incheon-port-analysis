@@ -67,26 +67,69 @@ def area_of(row):
     return adm[:5], gu, adm[:8], dong
 
 
-def aggregate(rows, kinds=None):
-    """→ (구 집계, 동 집계, 코드 없는 행 수). kinds = {원주소: 창고구분}."""
+def _name_by_code(counter):
+    """한 코드에 이름이 여럿이면(옛 구 이름·새 구 이름) 가장 많이 나온 것을 쓴다."""
+    return sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))[0][0] if counter else ""
+
+
+def aggregate(rows, facts=None):
+    """→ (구 집계, 동 집계, 코드 없는 행 수).
+    rows = 캐시 행(고유 원주소당 1). facts = {원주소: [{구분, 면적, 냉동냉장면적}, …]} — 주면 **창고 한 곳당 1개소**로 세고
+    면적 합·구분별 개소를 얹는다(한 주소에 창고가 여럿이면 여럿). 안 주면 고유 주소당 1개소."""
+    from collections import Counter
     gu, dong, nocode = {}, {}, 0
     for r in rows:
         a = area_of(r)
+        ents = (facts or {}).get(r.get("원주소"), [None]) or [None]
         if not a:
-            nocode += 1
+            nocode += len(ents)
             continue
         gc, gn, dc, dn = a
-        g = gu.setdefault(gc, {"코드": gc, "이름": gn, "개소": 0})
-        g["개소"] += 1
-        d = dong.setdefault(dc, {"코드": dc, "구": gn, "이름": dn, "개소": 0})
-        d["개소"] += 1
+        g = gu.setdefault(gc, {"코드": gc, "이름": "", "개소": 0, "면적합": 0.0, "냉동냉장면적": 0.0,
+                               "구분별": Counter(), "_n": Counter()})
+        d = dong.setdefault(dc, {"코드": dc, "구": "", "이름": "", "개소": 0, "면적합": 0.0, "_n": Counter(), "_g": Counter()})
+        g["_n"][gn] += len(ents)
+        d["_n"][dn] += len(ents)
+        d["_g"][gn] += len(ents)
+        for e in ents:
+            g["개소"] += 1
+            d["개소"] += 1
+            if e:
+                g["면적합"] += e.get("면적", 0.0)
+                g["냉동냉장면적"] += e.get("냉동냉장면적", 0.0)
+                d["면적합"] += e.get("면적", 0.0)
+                g["구분별"][e.get("구분") or "미상"] += 1
+    for g in gu.values():
+        g["이름"] = _name_by_code(g.pop("_n"))
+    for d in dong.values():
+        d["이름"] = _name_by_code(d.pop("_n"))
+        d["구"] = _name_by_code(d.pop("_g"))
     key = lambda x: (-x["개소"], x["코드"])
     return sorted(gu.values(), key=key), sorted(dong.values(), key=key), nocode
 
 
 def write_tables(gu, dong, nocode, n, note, out_gu=OUT_GU, out_dong=OUT_DONG, out_md=OUT_MD):
-    for path, fields, rows in ((out_gu, ["코드", "이름", "개소"], gu),
-                               (out_dong, ["코드", "구", "이름", "개소"], dong)):
+    kinds = sorted({k for g in gu for k in g["구분별"]})
+    has_area = any(g["면적합"] for g in gu)
+    gu_fields = ["코드", "이름", "개소"] + (["면적합_m2", "냉동냉장면적_m2"] if has_area else []) + ["개소·" + k for k in kinds]
+    dong_fields = ["코드", "구", "이름", "개소"] + (["면적합_m2"] if has_area else [])
+
+    def gu_row(g):
+        r = {"코드": g["코드"], "이름": g["이름"], "개소": g["개소"]}
+        if has_area:
+            r["면적합_m2"] = round(g["면적합"])
+            r["냉동냉장면적_m2"] = round(g["냉동냉장면적"])
+        for k in kinds:
+            r["개소·" + k] = g["구분별"].get(k, 0)
+        return r
+
+    def dong_row(d):
+        r = {"코드": d["코드"], "구": d["구"], "이름": d["이름"], "개소": d["개소"]}
+        if has_area:
+            r["면적합_m2"] = round(d["면적합"])
+        return r
+    for path, fields, rows in ((out_gu, gu_fields, [gu_row(g) for g in gu]),
+                               (out_dong, dong_fields, [dong_row(d) for d in dong])):
         with io.open(path, "w", encoding="utf-8", newline="") as f:
             w = csv.DictWriter(f, fieldnames=fields, lineterminator="\n")
             w.writeheader()
@@ -94,11 +137,17 @@ def write_tables(gu, dong, nocode, n, note, out_gu=OUT_GU, out_dong=OUT_DONG, ou
     total = sum(g["개소"] for g in gu)
     lines = ["# 인천 물류창고 — 구·군별 개소(정제 주소의 법정동코드 기준)", "",
              "> %s" % note, "",
-             "고유 주소 %d · 코드로 집계 %d · 코드 없음 %d" % (n, total, nocode), "",
-             "| 구·군 | 법정동코드(5) | 개소 | 비중 |", "|---|---|---:|---:|"]
+             "고유 주소 %d · 코드로 집계 %d개소 · 코드 없음 %d" % (n, total, nocode), ""]
+    head = "| 구·군 | 법정동코드(5) | 개소 | 비중 |" + (" 면적 합(m²) | 냉동냉장(m²) |" if has_area else "")
+    lines += [head, "|---|---|---:|---:|" + ("---:|---:|" if has_area else "")]
     for g in gu:
-        lines.append("| %s | %s | %d | %.1f%% |" % (g["이름"], g["코드"], g["개소"],
-                                                    100.0 * g["개소"] / total if total else 0))
+        row = "| %s | %s | %d | %.1f%% |" % (g["이름"], g["코드"], g["개소"], 100.0 * g["개소"] / total if total else 0)
+        if has_area:
+            row += " %s | %s |" % (format(round(g["면적합"]), ","), format(round(g["냉동냉장면적"]), ","))
+        lines.append(row)
+    if kinds:
+        lines += ["", "관련법률(구분)별 개소: " + " · ".join(
+            "%s %d" % (k, sum(g["구분별"].get(k, 0) for g in gu)) for k in kinds)]
     lines += ["", "읍·면·동 상위 15 (전체는 `warehouse_by_dong.csv`)", "",
               "| 구·군 | 읍·면·동 | 개소 |", "|---|---|---:|"]
     lines += ["| %s | %s | %d |" % (d["구"], d["이름"], d["개소"]) for d in dong[:15]]
@@ -144,14 +193,23 @@ def load(inp, col):
         raise SystemExit("%s 가 없다 — 창고 목록 수집 전이다(collect_warehouses.py --src). **분모 0.**" % inp)
     addrs = geocode.read_input(inp, col)
     cache = geocode.read_cache()
-    kinds = {}
+    kinds, facts = {}, {}
+
+    def num(v):
+        try:
+            return float(str(v).replace(",", "") or 0)
+        except ValueError:
+            return 0.0
     with io.open(inp, encoding="utf-8-sig", newline="") as f:
         for r in csv.DictReader(f):
-            kinds.setdefault(geocode.norm_key(r.get(col, "")), (r.get("구분") or "").strip())
-    return addrs, cache, kinds
+            k = geocode.norm_key(r.get(col, ""))
+            kinds.setdefault(k, (r.get("구분") or "").strip())
+            facts.setdefault(k, []).append({"구분": (r.get("구분") or "").strip(), "면적": num(r.get("면적")),
+                                          "냉동냉장면적": num(r.get("냉동냉장면적"))})
+    return addrs, cache, kinds, facts
 
 
-def run(addrs, cache, kinds, boundary=None, code_field=None, license_note=None, outs=None):
+def run(addrs, cache, kinds, boundary=None, code_field=None, license_note=None, outs=None, facts=None):
     """→ (단계, 쓴 파일들). outs 는 시험용 산출 경로 덮어쓰기."""
     outs = outs or {}
     rows = [cache[a] for a in addrs if a in cache]
@@ -163,7 +221,7 @@ def run(addrs, cache, kinds, boundary=None, code_field=None, license_note=None, 
     wrote = []
     if ok:
         wrote.append(point_map(ok, kinds, outs.get("points", OUT_POINTS)))
-    gu, dong, nocode = aggregate(refined)
+    gu, dong, nocode = aggregate(refined, facts)
     note = ("좌표 %d건 — 점 지도는 `warehouse_points.html`." % len(ok)) if ok else \
         "좌표가 아직 없다(좌표제공 키 대기). 정제 결과의 행정구역 코드로만 셌다."
     write_tables(gu, dong, nocode, len(addrs), note,
@@ -208,6 +266,16 @@ def selftest():
     chk("동 코드 8자리", dong[0]["코드"], "28110125")
     chk("군 지역 읍 이름", [d["이름"] for d in dong if d["구"] == "강화군"], ["강화읍"])
     chk("코드 없는 행은 따로 센다", nocode, 1)
+    # 창고 단위 집계 — 한 주소에 창고 둘, 구 이름이 섞여 있어도 코드로 묶고 다수 이름을 쓴다
+    cache2 = dict(cache)
+    cache2["사"] = row("사", "2811012500", "인천광역시 제물포구 항동7가 9")
+    facts = {"가": [{"구분": "물류시설법", "면적": 100.0, "냉동냉장면적": 10.0}, {"구분": "관세법", "면적": 50.0, "냉동냉장면적": 0.0}],
+             "사": [{"구분": "물류시설법", "면적": 25.0, "냉동냉장면적": 0.0}]}
+    gu2, dong2, nc2 = aggregate([cache2[a] for a in ("가", "나", "사")], facts)
+    chk("창고 단위 개소(한 주소 둘)", gu2[0]["개소"], 4)
+    chk("면적 합·냉동냉장 합", (gu2[0]["면적합"], gu2[0]["냉동냉장면적"]), (175.0, 10.0))
+    chk("구분별 개소", dict(gu2[0]["구분별"]), {"물류시설법": 2, "관세법": 1})
+    chk("이름 섞이면 다수 이름", gu2[0]["이름"], "중구")
     d = tempfile.mkdtemp()
     outs = {k: os.path.join(d, k) for k in ("gu", "dong", "md", "points", "choro")}
     stage, wrote = run(addrs, cache, {}, outs=outs)
@@ -247,8 +315,8 @@ def main():
         return selftest()
     if not a.inp:
         ap.error("--in 이 필요하다")
-    addrs, cache, kinds = load(a.inp, a.col)
-    stage, wrote = run(addrs, cache, kinds, a.boundary, a.code_field, a.boundary_license)
+    addrs, cache, kinds, facts = load(a.inp, a.col)
+    stage, wrote = run(addrs, cache, kinds, a.boundary, a.code_field, a.boundary_license, facts=facts)
     for w in wrote:
         print("→ %s" % os.path.relpath(w))
     return 0 if wrote else 1

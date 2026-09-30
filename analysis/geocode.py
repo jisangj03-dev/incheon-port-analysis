@@ -53,8 +53,11 @@ import math
 import os
 import random
 import re
+import shutil
+import subprocess
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 
@@ -207,16 +210,45 @@ def keyword_variants(addr):
     m = re.match(r"^(.*?(?:동|가|리)\d*\s*(?:산\s*)?\d+(?:-\d+)?)(?=\s|$)", s)
     if m and m.group(1).strip() not in out:
         out.append(m.group(1).strip())
-    return [v for v in out if v]
+    # ④ 구 이름이 옛것이거나 새것이라 검색이 못 찾는 경우(2026 구 개편 — 서구·중구 일부가 서해구·검단구·제물포구 등으로 바뀜).
+    #    구·군 토큰을 빼고 「시 + 동/도로명 + 번지」로 찾고, 괄호 안 법정동이 있으면 동을 앞에 붙인다.
+    orig = norm_key(addr)
+    dm = re.search(r"\(([가-힣0-9]+[동가리])[,)\s]", orig)
+    toks = s.split()
+    if len(toks) >= 3 and re.search(r"(구|군)$", toks[1]):
+        base = " ".join([toks[0]] + toks[2:])
+        out.append(base)
+        if dm:
+            body = " ".join(toks[2:])
+            out.append(dm.group(1) + " " + body)
+            m2 = re.match(r"^(.*?(?:로|길)\s*\d+(?:-\d+)?)", body)
+            if m2:
+                out.append(dm.group(1) + " " + m2.group(1))
+    return list(dict.fromkeys(v for v in out if v))
 
 
 # ── HTTP ────────────────────────────────────────────────────────────
 
 def http_get_json(url, params, timeout=20):
     q = urllib.parse.urlencode(params)
+    # 에이전트 프록시가 파이썬 TLS 터널을 자주 끊는다(2026-10-01 실측 — urllib 는 거의 매번 끊기고 curl 은 재시도로 통과).
+    # curl 이 있으면 curl --retry-all-errors 로, 없으면 urllib 를 끊김만 다시 시도한다.
+    if shutil.which("curl"):
+        r = subprocess.run(["curl", "-sS", "-m", str(min(timeout, 8)), "--retry", "8", "--retry-all-errors",
+                            "--retry-delay", "1", "-A", "sounding-geocode/1", url + "?" + q],
+                           capture_output=True)
+        if r.returncode != 0:
+            raise ConnectionError("curl 실패(%s)" % r.returncode)
+        return json.loads(r.stdout.decode("utf-8"))
     req = urllib.request.Request(url + "?" + q, headers={"User-Agent": "sounding-geocode/1"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read().decode("utf-8"))
+    for i in range(5):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.loads(r.read().decode("utf-8"))
+        except (ConnectionError, urllib.error.URLError):
+            if i == 4:
+                raise
+            time.sleep(1.5 * (i + 1))
 
 
 # ── 도로명주소 API ───────────────────────────────────────────────────
@@ -358,9 +390,9 @@ def pending(addrs, cache, retry_failed=False, refine_only=False):
 
 
 def run(addrs, cache, keys, fetch, dry_run=False, retry_failed=False, sleep=0.1,
-        today=None, save=None, refine_only=False):
+        today=None, save=None, refine_only=False, workers=1):
     """캐시에 없는 것만 부른다. 돌려주는 값 = (부른 수, 적중 수, 부를 수)."""
-    today = today or datetime.date.today().isoformat()
+    today = today or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().isoformat()
     todo = pending(addrs, cache, retry_failed, refine_only)
     hit = len(addrs) - len(todo)
     if dry_run:
@@ -373,21 +405,46 @@ def run(addrs, cache, keys, fetch, dry_run=False, retry_failed=False, sleep=0.1,
         if missing:
             raise StopError("키가 없다 — %s (docs/주소좌표_키발급안내.md)" % " · ".join(missing))
     called = 0
-    for i, a in enumerate(todo, 1):
-        try:
-            prev = None if retry_failed and a in cache and cache[a]["상태"] != "REFINED" else cache.get(a)
-            cache[a] = geocode_one(a, keys, fetch, today, refine_only=refine_only, prev=prev)
-        except StopError:
+
+    def work(a):
+        prev = None if retry_failed and a in cache and cache[a]["상태"] != "REFINED" else cache.get(a)
+        return geocode_one(a, keys, fetch, today, refine_only=refine_only, prev=prev)
+
+    def settle(i, a, res):
+        """결과 하나를 캐시에 반영. 멈춤 오류는 그대로 올린다."""
+        nonlocal called
+        if isinstance(res, StopError):
             if save:
                 save(cache)
-            raise
-        except Exception as e:  # 망 오류 — 캐시에 안 적는다(다음에 다시 부른다)
-            print("  망 오류(캐시 안 함) %s: %s" % (a, mask(e, keys)))
-            continue
+            raise res
+        if isinstance(res, Exception):  # 망 오류 — 캐시에 안 적는다(다음에 다시 부른다)
+            print("  망 오류(캐시 안 함) %s: %s" % (a, mask(res, keys)))
+            return
+        cache[a] = res
         called += 1
         if save and i % 50 == 0:
             save(cache)
-        time.sleep(sleep)
+
+    if workers > 1 and todo:
+        # 프록시 터널이 자주 끊겨 한 건이 느리다 — 병렬로 부른다. 캐시는 이 스레드에서만 쓴다.
+        from concurrent.futures import ThreadPoolExecutor
+
+        def safe(a):
+            try:
+                return work(a)
+            except Exception as e:
+                return e
+        with ThreadPoolExecutor(max_workers=workers) as ex:
+            for i, (a, res) in enumerate(zip(todo, ex.map(safe, todo)), 1):
+                settle(i, a, res)
+    else:
+        for i, a in enumerate(todo, 1):
+            try:
+                res = work(a)
+            except Exception as e:
+                res = e
+            settle(i, a, res)
+            time.sleep(sleep)
     if save:
         save(cache)
     return called, hit, len(todo)
@@ -654,6 +711,7 @@ def main():
     ap.add_argument("--sample", type=int, default=0, help="채팅 대조용 무작위 N건(시드 고정)")
     ap.add_argument("--crosscheck-vworld", type=int, default=0,
                     help="무작위 N건을 브이월드와 거리 대조(좌표는 저장하지 않는다)")
+    ap.add_argument("--workers", type=int, default=1, help="병렬 호출 수(프록시가 자주 끊길 때)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
     if a.selftest:
@@ -675,7 +733,7 @@ def main():
                 todo_addrs = [x for x in addrs if x not in pend] + pend[:a.limit]
             c, h, t = run(todo_addrs, cache, keys, fetch, dry_run=a.dry_run,
                           retry_failed=a.retry_failed, save=None if a.dry_run else write_cache,
-                          refine_only=a.refine_only)
+                          refine_only=a.refine_only, workers=a.workers)
             print("고유 원주소 %d · 캐시 적중 %d · %s %d"
                   % (len(addrs), h, "부를 것" if a.dry_run else "부른 것", t if a.dry_run else c))
             print("키: %s" % " · ".join("%s=%s" % (k, "있음" if v else "없음") for k, v in keys.items()))

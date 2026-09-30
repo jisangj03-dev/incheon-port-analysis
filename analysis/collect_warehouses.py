@@ -58,15 +58,18 @@ SOURCE_URL = "https://www.data.go.kr/data/15083282/fileData.do"
 KEEP = [
     ("관리번호", ["창고관리번호", "관리번호", "인허가번호", "등록번호"]),
     ("상호", ["상호", "업체명", "사업장명", "상호명", "창고명"]),
-    ("구분", ["창고구분", "창고유형", "구분", "업종", "창고종류"]),
+    ("구분", ["창고구분", "창고유형", "구분", "업종", "창고종류", "관련법률"]),
     ("소재지", ["소재지", "소재지주소", "소재지도로명주소", "도로명주소", "주소", "소재지지번주소", "지번주소"]),
     ("면적", ["면적", "창고면적", "보관면적", "총면적", "연면적"]),
     ("등록일자", ["등록일자", "등록일", "인허가일자"]),
 ]
-OUT_FIELDS = [k for k, _ in KEEP]
+OUT_FIELDS = [k for k, _ in KEEP] + ["냉동냉장면적"]
+# nlic 행 단위 목록은 면적이 유형별 네 열(…창고면적(m²))이다 — 단일 면적 열이 없으면 이 열들의 합을 쓴다.
+AREA_PART = re.compile(r"면적\s*\(?\s*(m|㎡)")
+COLD_PART = re.compile(r"냉동냉장.*면적")
 STATS_OUT = os.path.join(HERE, "warehouse_stats_by_sido.csv")
 STATS_URL = "https://www.nlic.go.kr/nlic/WhsStatsWarehouseLocation.action"
-SRC_FIELDS = ["출처", "URL", "기준일", "수집일", "원본파일", "원본SHA256", "원본행수", "인천행수"]
+SRC_FIELDS = ["출처", "URL", "기준일", "수집일", "원본파일", "원본SHA256", "원본행수", "인천행수", "원천파일SHA256"]
 
 # 버리는 열 중 개인정보로 보이는 것 — 버린 사실을 따로 크게 말한다.
 PERSONAL = re.compile(r"대표|성명|전화|연락|휴대|팩스|FAX|메일|이메일", re.I)
@@ -93,8 +96,25 @@ def map_columns(header):
                 break
     if "소재지" not in mapping:
         raise SystemExit("주소 열을 못 찾았다. 원천 열: %s" % ", ".join(h))
-    dropped = [c for c in h if c not in mapping.values()]
+    parts = [c for c in h if AREA_PART.search(c)] if "면적" not in mapping else []
+    if parts:
+        mapping["면적"] = tuple(parts)
+    used = set()
+    for v in mapping.values():
+        used.update(v if isinstance(v, tuple) else (v,))
+    dropped = [c for c in h if c not in used]
     return mapping, dropped
+
+
+def num(v):
+    try:
+        return float(str(v).replace(",", "").strip() or 0)
+    except ValueError:
+        return 0.0
+
+
+def fmt(x):
+    return ("%.2f" % x).rstrip("0").rstrip(".")
 
 
 def refine(text):
@@ -108,7 +128,13 @@ def refine(text):
         addr = re.sub(r"\s+", " ", (r.get(mapping["소재지"]) or "")).strip()
         if not INCHEON.match(addr + " "):
             continue
-        out = {k: (r.get(mapping[k]) or "").strip() if k in mapping else "" for k in OUT_FIELDS}
+        out = {k: "" for k in OUT_FIELDS}
+        for k, col in mapping.items():
+            if isinstance(col, tuple):
+                out[k] = fmt(sum(num(r.get(c)) for c in col))
+            else:
+                out[k] = (r.get(col) or "").strip()
+        out["냉동냉장면적"] = fmt(sum(num(r.get(c)) for c in rd.fieldnames if COLD_PART.search(c) and AREA_PART.search(c)))
         out["소재지"] = addr
         rows.append(out)
     rows.sort(key=lambda x: (x["소재지"], x["관리번호"], x["상호"]))
@@ -193,6 +219,14 @@ def selftest():
     alt = "업체명,소재지도로명주소,창고면적\n가,인천광역시 남동구 가상로 5,10\n"
     r2, _, m2, _ = refine(alt)
     chk("별칭으로 열 찾기", (m2["상호"], m2["소재지"], r2[0]["면적"]), ("업체명", "소재지도로명주소", "10"))
+    nl = ("상호명,소재지,일반창고면적(m²),냉동냉장창고면적(m²),보관장소면적(m²),타법률창고면적(m²),관련법률\n"
+          "가,인천광역시 서해구 북항로 1 (원창동),100.5,20,0,0,물류시설법\n"
+          "나,\"인천광역시 제물포구 서해대로 2, 에이동 (신흥동3가)\",0,0,30,5,관세법\n")
+    r3, _, m3, d3 = refine(nl)
+    chk("nlic 면적 네 열 합", [r["면적"] for r in r3], ["120.5", "35"])
+    chk("냉동냉장 면적 따로", [r["냉동냉장면적"] for r in r3], ["20", "0"])
+    chk("관련법률 → 구분", [r["구분"] for r in r3], ["물류시설법", "관세법"])
+    chk("면적 열은 버린 열에 없다", [c for c in d3 if "면적" in c], [])
     st = [["소재지", "", "", ""], ["", "합계", "물시법", "관세법"], ["", "", "물시법창고", "보세창고"],
           ["합계", 5.0, 3.0, 2.0], ["인천광역시", 3.0, 2.0, 1.0], ["경기도", 2.0, 1.0, 1.0]]
     cols, body = parse_stats(st)
@@ -213,6 +247,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--src", help="포털에서 받은 CSV")
     ap.add_argument("--basis", help="자료 기준일 YYYY-MM-DD (포털 파일명·수정일 기준)")
+    ap.add_argument("--origin-sha", default="", help="--src 가 가공본일 때 그 앞단 원본(.xls)의 SHA-256")
+    ap.add_argument("--origin-url", default="", help="원천 화면 주소(기본은 포털 15083282)")
     ap.add_argument("--stats", help="nlic 통계 화면의 엑셀(시도 × 근거법 집계표 .xls)")
     ap.add_argument("--selftest", action="store_true")
     a = ap.parse_args()
@@ -227,7 +263,7 @@ def main():
             w = csv.writer(f, lineterminator="\n")
             w.writerow(["# 출처: 국토교통부 물류창고업 등록현황(국가물류통합정보센터 통계) %s" % STATS_URL])
             w.writerow(["# 내려받은 날: %s · 원본파일: %s · SHA-256: %s · 이용허락범위 제한 없음(공공데이터포털 15083282)"
-                        % (basis or datetime.date.today().isoformat(), os.path.basename(a.stats),
+                        % (basis or datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().isoformat(), os.path.basename(a.stats),
                            hashlib.sha256(raw).hexdigest())])
             w.writerow(["시도"] + cols)
             w.writerows(body)
@@ -244,11 +280,12 @@ def main():
     rows, n, mapping, dropped = refine(text)
     write_csv(OUT, OUT_FIELDS, rows)
     write_csv(SRC_LOG, SRC_FIELDS, [{
-        "출처": SOURCE_NAME, "URL": SOURCE_URL, "기준일": a.basis,
-        "수집일": datetime.date.today().isoformat(), "원본파일": os.path.basename(a.src),
-        "원본SHA256": hashlib.sha256(raw).hexdigest(), "원본행수": n, "인천행수": len(rows)}])
+        "출처": SOURCE_NAME, "URL": a.origin_url or SOURCE_URL, "기준일": a.basis,
+        "수집일": datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).date().isoformat(), "원본파일": os.path.basename(a.src),
+        "원본SHA256": hashlib.sha256(raw).hexdigest(), "원본행수": n, "인천행수": len(rows),
+        "원천파일SHA256": a.origin_sha}])
     print("원본 %d행 → 인천 %d행 · 고유 주소 %d" % (n, len(rows), len({r["소재지"] for r in rows})))
-    print("쓴 열: %s" % ", ".join("%s←%s" % (k, v) for k, v in mapping.items()))
+    print("쓴 열: %s" % ", ".join("%s←%s" % (k, "+".join(v) if isinstance(v, tuple) else v) for k, v in mapping.items()))
     personal = [c for c in dropped if PERSONAL.search(c)]
     print("버린 열: %s" % (", ".join(dropped) or "없음"))
     if personal:
