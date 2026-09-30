@@ -224,7 +224,7 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 
 ### B. 운영자 손이 있어야 하는 것
 
-**B-15. 주소→좌표 키·망** [2026-09-30]. 도로명주소 검색·좌표제공 승인키 둘(브이월드는 선택) · 클라우드 환경 변수 + 망 허용(`business.juso.go.kr`·`api.vworld.kr`·`www.data.go.kr` — 지금 403) · 원본 CSV 1개. 안내 = `docs/주소좌표_키발급안내.md` · 기준 = `docs/주소좌표_판정기준_선커밋_20260930.md`. 좌표 0건 — 풀리면 수집→변환→`--sample 10` 채팅 대조.
+**B-15. 주소→좌표 키·망** [2026-09-30 · 19:10 환경 저장 뒤 재측]. `JUSO_SEARCH_KEY` 있음(개발 키 ~10/7 · 실호출 `errorCode 0`) · `JUSO_COORD_KEY` **없음**(운영 키 심사 중). 망: `business.juso.go.kr` 200 · `www.data.go.kr` 200 · `api.vworld.kr` 연결 끊김 · **`www.nlic.go.kr` 403** — 창고 목록(15083282)은 포털 파일이 아니라 nlic 링크형이라 **이 도메인이 빠져 수집 0건.** 풀리면 `collect_warehouses.py` → `geocode.py --refine-only` → `--summary`. 안내 = `docs/주소좌표_키발급안내.md` · 기준 = `docs/주소좌표_판정기준_선커밋_20260930.md`. 좌표 0건.
 
 **B-3. 인쇄 확인 — Ctrl+P 두 번.** 밝은 모드·어두운 모드 각각.
 통과 조건은 하나 — **어느 모드로 열었든 종이 미리보기의 글자가 검은가.**
