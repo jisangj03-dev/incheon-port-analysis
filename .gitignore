@@ -24,3 +24,9 @@ analysis/_boot_log.tsv
 # 세션 스냅샷 — 훅이 턴마다 쓴다(analysis/session_snapshot.py). 이 기계의 관측이지 저장소의 상태가 아니다. 반입하지 않는다.
 analysis/_session_snapshot.json
 analysis/_session_snapshot.md
+
+# 주소→좌표 API 키 — 틀은 `.env.example`. 이 파일은 절대 올리지 않는다(analysis/geocode.py 가 읽는다).
+.env
+.env.*
+!.env.example
+analysis/geocode_cache.csv.tmp
