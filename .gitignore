@@ -30,3 +30,7 @@ analysis/_session_snapshot.md
 .env.*
 !.env.example
 analysis/geocode_cache.csv.tmp
+
+# 창고 행 단위 자료 — 상호·원주소가 든다. 집계(warehouse_by_*.csv·지도)만 올린다(2026-10-01 오너 지시).
+analysis/incheon_warehouses.csv
+analysis/geocode_cache.csv
