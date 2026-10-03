@@ -201,6 +201,25 @@
 | 28.6% | **2026-06 단월** · 공컨 ÷ 전체(적+공) × 100 · report #02 와 같은 정의 | 관측 | 분자 = 공컨 82,636.0 TEU(수출 74,065.75 + 수입 8,570.25, `container_2026_direction.csv` GInOut=1·2 · ocCt=1) ÷ 분모 = 같은 달 공표 합계 289천TEU(`terminal_monthly_long.csv`) | 분자·분모 소스가 다르다(공컨은 API 정밀값, 전체는 항만운영통계 반올림 공표치) — report #02 의 방법론과 같은 이원화 한계를 그대로 안는다 |
 | 26.6% | **2026-03 단월** · 공컨 비율(위와 같은 정의) · **최근 12개월(2025-07~2026-06) 중 최저** | 관측 | `terminal_monthly_long.csv`(계층=합계) · `container_2026_direction.csv`(GInOut=1·2 · ocCt=1) | 물동량 페이지 「공컨 비율 추이」 절의 범위 하한. 분자·분모 이원화 한계는 위 28.6% 행과 같다 |
 | 31.6% | **2026-01 단월** · 공컨 비율(위와 같은 정의) · **최근 12개월(2025-07~2026-06) 중 최고** | 관측 | `terminal_monthly_long.csv`(계층=합계) · `container_2026_direction.csv`(GInOut=1·2 · ocCt=1) | 물동량 페이지 「공컨 비율 추이」 절의 범위 상한. 분자·분모 이원화 한계는 위 28.6% 행과 같다 |
+| 4개월 | **2025-09~2026-08 · 12개월** · 인천광역시 · 수입 > 수출인 달의 수(2026-02·06·07·08) · #13 I3 | 검증 | `analysis/judge_sido_item.py` | 선커밋 문턱 9개월 · FAIL |
+| 63.6% | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 수출 상위 3개 류(85·87·30) 비중 · I1 | 검증 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 선커밋 문턱 50% · PASS |
+| 13.6%p | #13 I1 의 값(63.6%)이 문턱(50%)보다 높은 폭 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 뺄셈값 |
+| 14.3% | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 87류(차량) 수출 비중 · 수출 2위 · I2 | 검증 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | I2 는 선커밋이 「쉬운 기준」으로 적은 것 |
+| 88.9 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 87류 수출 12개월 합(억 달러) | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 금액 단위 천 달러를 억 달러로 환산(÷100,000) — 명세 「달러」는 틀렸다(#13 §2.4) |
+| 0.7 | #13 I2 의 사전 통과 확률 하한(선커밋이 0.7~0.8 로 적음) | 관측 | `docs/인천품목_판정기준_선커밋_20261003.md` (blob `e42cbac0`) | 선언값이지 계산값이 아니다 |
+| 623.8 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 수출 12개월 합(억 달러) · 96개 류 합 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 총계 행 합과 차 6천 달러 |
+| 614.9 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 수입 12개월 합(억 달러) | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 총계 행 합과 차 4천 달러 |
+| 6.4배 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 87류 수출 ÷ 수입(88.9 ÷ 13.8) | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 방향 기울기 · 판정 대상 아님 |
+| 5.2배 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 30류 수출 ÷ 수입(75.5 ÷ 14.4) | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 동일 |
+| 149.6 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 27류(광물성 연료) 수입 12개월 합(억 달러) · 수입 2위 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` |  |
+| 7.9 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 27류 수출 12개월 합(억 달러) | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` |  |
+| 232.5 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 85류 수출 12개월 합(억 달러) · 수출 1위 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` |  |
+| 235.3 | **2025-09~2026-08 · 12개월** · 인천광역시(시도 기준 · 인천항 아님) · 관세청 시도별 품목별 · #13 — 85류 수입 12개월 합(억 달러) · 수입 1위 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` |  |
+| 25.3 | 2026-06 · 인천광역시 85류 수입(억 달러) · #13 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 마지막 석 달 값의 하나 — 추세 판정 아님 |
+| 24.9 | 2026-07 · 인천광역시 85류 수입(억 달러) · #13 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 동일 |
+| 26.7 | 2026-08 · 인천광역시 85류 수입(억 달러) · #13 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 동일 |
+| 16.1 | 2025-09~2026-05 · 인천광역시 85류 월 수입의 최솟값(억 달러) · #13 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 앞 아홉 달 범위의 아래 끝 |
+| 19.5 | 2025-09~2026-05 · 인천광역시 85류 월 수입의 최댓값(억 달러) · #13 | 관측 | `analysis/judge_sido_item.py` → `incheon_sido_item_judgement.md` | 앞 아홉 달 범위의 위 끝 |
 
 <!-- LINT-TABLE-END -->
 

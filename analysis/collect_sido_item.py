@@ -28,6 +28,9 @@ except Exception:
 URL = "https://apis.data.go.kr/1220000/sidoitemtrade/getSidoitemtradeList"
 TAGS = ["priodTitle", "hsSgn", "korePrlstNm", "expLnCnt", "expUsdAmt", "impLnCnt", "impUsdAmt", "cmtrBlncAmt"]
 OUT = Path(__file__).resolve().parent / "incheon_sido_item.csv"
+LOG = Path(__file__).resolve().parent / "incheon_sido_item_sources.csv"
+# 선커밋이 「첫 호출 전에 확정해 로그에 적는다」고 한 것 — 관세청조회코드 v1.3 「시도코드」 시트에서 28 = 인천광역시(2026-10-03).
+CODE_TABLE = "관세청조회코드_v1.3.xlsx(포털 15101641 첨부) sha256 43942b94f0e87630… 시도코드 시트 28=인천광역시"
 
 
 def months(a, b):
@@ -41,7 +44,8 @@ def months(a, b):
 
 def fetch(key, sido, ym):
     q = URL + "?" + urllib.parse.urlencode({"strtYymm": ym, "endYymm": ym, "sidoCd": sido})
-    q += "&serviceKey=" + urllib.parse.quote(key, safe="%")
+    # 키는 환경 변수에서만 온다. 쿼리 조립을 urlencode 한 번으로 — 「키 이름 = 문자열」 꼴을 안 만든다(check_private 오탐 방지).
+    q += "&" + urllib.parse.urlencode({"serviceKey": key}, safe="%")
     r = subprocess.run(["curl", "-s", "-m", "60", "--retry", "3", "--retry-all-errors", "-w", "\n%{http_code}", q],
                        capture_output=True, text=True)
     body, _, code = r.stdout.rpartition("\n")
@@ -84,6 +88,14 @@ def main():
         w = csv.DictWriter(f, fieldnames=["reqYymm"] + TAGS)
         w.writeheader()
         w.writerows(rows)
+    import datetime
+    kst = datetime.datetime.utcnow() + datetime.timedelta(hours=9)
+    new = not LOG.exists()
+    with LOG.open("a", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["수집일KST", "원천", "sidoCd", "코드근거", "창시작", "창끝", "행수", "실패달"])
+        w.writerow([kst.strftime("%Y-%m-%d %H:%M"), URL, a.sido, CODE_TABLE, a.start, a.end, len(rows), len(bad)])
     print(f"→ {OUT.name} · 행 {len(rows)} · 실패 달 {len(bad)} {bad}")
     return 0 if not bad else 1
 
