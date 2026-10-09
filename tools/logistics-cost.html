@@ -1,0 +1,280 @@
+---
+title: "셀러 물류비 자가진단 — 3PL 견적 비교 계산기"
+no_cdn: true
+---
+<!-- 셀러 물류 도구 갈래 1 (2026-10-09). 기준 = docs/물류사업_갈래_판정기준_선커밋_20261009.md §1.
+     계산은 assets/js/cost-check.js 하나가 한다(엑셀 「3PL 견적 비교표」와 같은 뼈대).
+     이 지면은 외부 호출 0(C2): 글꼴 CDN 도 받지 않는다(front matter no_cdn). 입력값은 서버로 가지 않는다. -->
+<style>
+  .cc { --cc-gap: 0.75rem; }
+  .cc * { box-sizing: border-box; }
+  .cc-lede { color: var(--muted); }
+  .cc-panel { background: var(--ground); border: 1px solid var(--hair); border-radius: var(--r-md); padding: 1rem; margin: 1.25rem 0; }
+  .cc-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--cc-gap); }
+  .cc label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--ink); margin-bottom: 0.25rem; }
+  .cc input, .cc select { width: 100%; min-height: 44px; font: inherit; font-size: 1rem; color: var(--ink); background: var(--bg); border: 1px solid var(--hair-strong); border-radius: var(--r-sm); padding: 0.45rem 0.6rem; }
+  .cc input:focus-visible, .cc select:focus-visible, .cc button:focus-visible, .cc a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .cc input[inputmode="numeric"] { text-align: right; font-variant-numeric: tabular-nums; }
+  .cc button { min-height: 44px; font: inherit; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--accent); background: var(--bg); color: var(--accent); padding: 0.45rem 0.9rem; cursor: pointer; }
+  .cc button.cc-primary { background: var(--accent); color: #fff; }
+  .cc-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+  .cc-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--hair-strong); margin-top: 1.5rem; }
+  .cc-tabs button { border: 0; border-radius: var(--r-sm) var(--r-sm) 0 0; background: transparent; color: var(--muted); flex: 1; }
+  .cc-tabs button[aria-selected="true"] { background: var(--accent-soft); color: var(--ink); box-shadow: inset 0 -3px 0 var(--accent); }
+  .cc-item { border-bottom: 1px solid var(--hair); padding: 0.85rem 0; }
+  .cc-item h3 { font-size: 0.95rem; margin: 0 0 0.15rem; }
+  .cc-item .cc-unit { font-size: 0.8rem; color: var(--muted); margin: 0 0 0.5rem; }
+  .cc-grid3 { display: grid; grid-template-columns: 1.2fr 1fr 0.8fr; gap: 0.5rem; }
+  .cc-grid3 label { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+  .cc-amt { font-size: 0.85rem; color: var(--muted); text-align: right; margin: 0.35rem 0 0; font-variant-numeric: tabular-nums; }
+  .cc-hidden h3 { font-size: 1rem; margin: 1.5rem 0 0.25rem; }
+  .cc-hid { border-bottom: 1px solid var(--hair); padding: 0.75rem 0; }
+  .cc-hid p { font-size: 0.85rem; color: var(--muted); margin: 0.25rem 0 0.5rem; }
+  .cc-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--cc-gap); }
+  .cc-card { background: var(--bg); border: 1px solid var(--hair-strong); border-radius: var(--r-md); padding: 0.85rem; }
+  .cc-card h3 { font-size: 0.9rem; margin: 0 0 0.35rem; color: var(--muted); }
+  .cc-big { font-size: 1.5rem; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; margin: 0; }
+  .cc-sub { font-size: 0.85rem; color: var(--text); margin: 0.2rem 0 0; font-variant-numeric: tabular-nums; }
+  .cc-warn { color: #b3261e; font-weight: 600; }
+  .cc-qs ol { padding-left: 1.25rem; }
+  .cc-qs li { margin: 0.35rem 0; }
+  .cc-next li { margin: 0.5rem 0; }
+  .cc-note { font-size: 0.85rem; color: var(--muted); }
+  @media (prefers-color-scheme: dark) { .cc-warn { color: #ff8a80; } }
+  @media (max-width: 640px) {
+    .cc-cards { grid-template-columns: 1fr; }
+    .cc-grid3 { grid-template-columns: 1fr 1fr; }
+    .cc-grid3 > div:first-child { grid-column: 1 / -1; }
+  }
+</style>
+
+<div class="cc">
+<h1>셀러 물류비 자가진단 — 3PL 견적 비교 계산기</h1>
+
+<ul>
+  <li><strong>한 줄 결론</strong>: 3PL·풀필먼트 견적서 두세 장을 청구서 항목 10칸에 똑같이 옮겨 적고, 건당 합계와 견적서에 안 적힌 칸(모름)을 함께 보는 계산기입니다. 입력값은 이 화면 밖으로 나가지 않습니다.</li>
+</ul>
+
+<p class="cc-lede">출고 단가만 나란히 놓으면 견적이 비교되지 않습니다. 어느 곳은 박스와 입고 작업을 단가에 넣고, 어느 곳은 단가를 낮게 적은 대신 입고비·포장재·월 기본료를 따로 받기 때문입니다. 아래 칸에 견적서를 그대로 옮기면 건당 합계와 업체에 물어볼 질문이 나옵니다.</p>
+
+<div class="cc-panel">
+  <div class="cc-row2">
+    <div>
+      <label for="cc-ship">월 출고 건수</label>
+      <input id="cc-ship" inputmode="numeric" autocomplete="off" placeholder="예: 내 한 달 출고 건수">
+    </div>
+    <div>
+      <label for="cc-ret">월 반품 건수</label>
+      <input id="cc-ret" inputmode="numeric" autocomplete="off" placeholder="모르면 비워 두기">
+    </div>
+  </div>
+  <p class="cc-note">건당 칸(출고 단가·포장재)의 월 수량은 출고 건수를, 반품 칸은 반품 건수를 따라갑니다. 다르면 칸마다 수량을 직접 적으면 됩니다.</p>
+  <div class="cc-btns">
+    <button type="button" id="cc-sample">가상 예시 넣기</button>
+    <button type="button" id="cc-clear">모두 비우기</button>
+  </div>
+  <p class="cc-note" id="cc-sample-note" hidden>지금 들어간 숫자는 <strong>가상값</strong>입니다. 실제 업체 견적이 아닙니다(출고 1,000건·반품 30건 셀러가 견적 두 곳을 받은 경우).</p>
+</div>
+
+<h2>견적서 옮겨 적기</h2>
+<p>칸마다 견적서 표기를 넷 중 하나로 고릅니다. <strong>별도</strong> = 따로 청구(단가·수량을 적습니다), <strong>단가에 포함</strong> = 출고 단가 안에 들어 있음(0원), <strong>없음</strong> = 이 업체는 청구하지 않음, <strong>모름</strong> = 견적서에 안 적혀 있음(업체에 물어볼 칸). 부가세 포함 여부는 견적마다 같게 맞춰 주세요.</p>
+
+<div class="cc-tabs" role="tablist" aria-label="비교할 블록">
+  <button type="button" role="tab" id="cc-tab-0" aria-controls="cc-pane" aria-selected="true">지금 방식</button>
+  <button type="button" role="tab" id="cc-tab-1" aria-controls="cc-pane" aria-selected="false" tabindex="-1">견적 A</button>
+  <button type="button" role="tab" id="cc-tab-2" aria-controls="cc-pane" aria-selected="false" tabindex="-1">견적 B</button>
+</div>
+<div id="cc-pane" role="tabpanel" aria-labelledby="cc-tab-0">
+  <p class="cc-note" id="cc-pane-hint">지금 방식에는 자가출고든 지금 쓰는 3PL이든 현재 청구 구조를 넣습니다. 자가출고라면 직원·아르바이트에게 주는 포장 인건비를 10번 칸에 넣으세요(셀러 본인 시간은 돈 칸과 따로 봅니다).</p>
+  <div id="cc-items"></div>
+  <div class="cc-hidden">
+    <h3>계약 전 확인 — 숨은 비용 4종</h3>
+    <p class="cc-note">보관비·입출고비는 견적에서 예측이 됩니다. 3PL 운영 실무자에게 들은 바로는, 화주가 청구서를 받고 놀라는 건 아래 넷입니다(구조만 옮겼고 금액은 받지 않았습니다). 있으면 금액을 위 칸(9번·10번)에 넣고, 모르면 질문 목록에 들어갑니다.</p>
+    <div id="cc-hid"></div>
+  </div>
+</div>
+
+<h2 id="cc-result-h">결과</h2>
+<div id="cc-result" aria-live="polite">
+  <div class="cc-cards" id="cc-cards"></div>
+  <p id="cc-flip"></p>
+  <div class="cc-panel cc-qs" id="cc-qs-box" hidden>
+    <h3>업체에 물어볼 것</h3>
+    <div id="cc-qs"></div>
+    <div class="cc-btns"><button type="button" id="cc-copy">질문 목록 복사</button></div>
+    <p class="cc-note" id="cc-copy-note" role="status"></p>
+  </div>
+  <p class="cc-note">건당 합계는 판정 기준 넷 가운데 첫째(건당 총물류비)만 맞춥니다. 출고에 드는 시간, 비슷한 셀러들 사이에서 내 단가 위치, 옮기는 비용(입고 작업·옮긴 뒤 오출고 책임)까지 보면 결론이 &lsquo;옮긴다&rsquo;가 아니라 &lsquo;지금 업체와 재협상&rsquo;일 때도 많습니다.</p>
+</div>
+
+<h2>다음에 해 볼 것</h2>
+<ul class="cc-next" id="cc-next">
+  <li data-link="criteria"><a href="https://logisticsforeveryone.tistory.com/78">셀러 물류비 판정 기준 — 유지·재협상·전환을 가르는 네 가지</a> · 위 결과를 어떻게 읽을지 정리한 글입니다.</li>
+  <li data-link="sheet" hidden><a href="https://logisticsforeveryone.tistory.com/entry/3PL-견적-비교">같은 10칸의 무료 비교표(엑셀)</a> · 견적서를 파일로 남겨 두고 동료와 나눠 볼 때.</li>
+  <li data-link="k829076" hidden><a href="https://kmong.com/gig/829076">정산·마진 시트(크몽)</a> · 여기서 나온 건당 물류비를 상품별 마진 계산에 넣어 보고 싶을 때.</li>
+  <li data-link="k824011"><a href="https://kmong.com/gig/824011">광고 주간 리포트(크몽, 입문 59,000원부터)</a> · 물류비 다음으로 큰 비용이 광고비라면, 광고 CSV 한 개로 주간 합계·전주 대비를 한 장에 보는 시트입니다.</li>
+</ul>
+
+<hr>
+
+<h2>표기</h2>
+<table>
+  <thead><tr><th>항목</th><th>내용</th></tr></thead>
+  <tbody>
+    <tr><td><strong>검수·발행</strong></td><td><strong>운영자</strong> — 발행 결정(이 지면의 공개는 저장소 main 머지가 승인이다). 통독은 아직 수행되지 않았다. 계산이 엑셀 가상 샘플과 같은 답을 내는지는 스크립트가 대조했다(아래 재현 코드).</td></tr>
+    <tr><td><strong>칸 목록 출처</strong></td><td>셀러 설문 문항 「택배·3PL 기본 단가 말고 따로 청구되는 비용」 선택지 8개 + 출고 기본 단가 + 3PL 운영 실무자 답신(2026-10-07, 이름 비공개)의 숨은 비용 구조. 금액·요율은 담지 않았다 — 숫자는 전부 사용자가 넣는다.</td></tr>
+    <tr><td><strong>재현 코드</strong></td><td><code>assets/js/cost-check.js</code>(계산) · <code>analysis/check_cost_tool.py</code>(가상 샘플 대조 · 외부 호출 0 · 금액 상수 0 검사)</td></tr>
+    <tr><td><strong>판정</strong></td><td>이 지면은 가설을 판정하지 않는다. 갈래 기준 = <a href="https://github.com/jisangj03-dev/incheon-port-analysis/blob/main/docs/물류사업_갈래_판정기준_선커밋_20261009.md">선커밋 문서</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<script src="{{ '/assets/js/cost-check.js' | relative_url }}"></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.CostCheck;
+  if (!C) return;
+  // 크몽·블로그 링크를 켜는 곳. 판매 중이 확인된 것만 true(기준 C6).
+  // 829076 = 10/8 기준 승인 대기 · 무료 비교표 글 = 게시 전(jota PR #210). 확인되면 한 줄씩 true 로.
+  var LIVE = { criteria: true, sheet: false, k829076: false, k824011: true };
+
+  var state = { ship: "", ret: "", blocks: [0, 1, 2].map(function () { return C.ITEMS.map(function () { return ["", "", ""]; }); }) };
+  var hidden = [{}, {}, {}];
+  var cur = 0;
+  var won = function (n) { return Math.round(n).toLocaleString("ko-KR") + "원"; };
+  var signed = function (n) { var r = Math.round(n); return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.abs(r).toLocaleString("ko-KR") + "원"; };
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+
+  function qtyHint(kind) {
+    return kind === "ship" ? "출고 건수" : kind === "ret" ? "반품 건수" : kind === "one" ? "1" : "";
+  }
+
+  function drawPane() {
+    var rows = state.blocks[cur];
+    var html = C.ITEMS.map(function (it, i) {
+      var r = rows[i], id = "cc-" + i;
+      var opts = ['<option value="">고르기</option>'].concat(C.OPTS.map(function (o) {
+        return '<option' + (r[0] === o ? " selected" : "") + ">" + o + "</option>";
+      })).join("");
+      return '<div class="cc-item"><h3>' + (i + 1) + ". " + esc(it[0]) + '</h3><p class="cc-unit">청구 단위: ' + esc(it[1]) + "</p>" +
+        '<div class="cc-grid3">' +
+        '<div><label for="' + id + '-m">견적서 표기</label><select id="' + id + '-m" data-i="' + i + '" data-k="0">' + opts + "</select></div>" +
+        '<div><label for="' + id + '-p">단가(원)</label><input id="' + id + '-p" data-i="' + i + '" data-k="1" inputmode="numeric" autocomplete="off" value="' + esc(r[1]) + '"></div>' +
+        '<div><label for="' + id + '-q">월 수량</label><input id="' + id + '-q" data-i="' + i + '" data-k="2" inputmode="numeric" autocomplete="off" placeholder="' + qtyHint(it[2]) + '" value="' + esc(r[2]) + '"></div>' +
+        '</div><p class="cc-amt" id="' + id + '-a"></p></div>';
+    }).join("");
+    $("cc-items").innerHTML = html;
+    var h = hidden[cur];
+    $("cc-hid").innerHTML = C.HIDDEN.map(function (x) {
+      var opts = ['<option value="">고르기</option>'].concat(C.HIDDEN_OPTS.map(function (o) {
+        return "<option" + (h[x.key] === o ? " selected" : "") + ">" + o + "</option>";
+      })).join("");
+      return '<div class="cc-hid"><label for="cc-h-' + x.key + '">' + esc(x.name) + " <span class=\"cc-note\">(금액은 " + x.slot + "번 칸)</span></label>" +
+        "<p>" + esc(x.how) + '</p><select id="cc-h-' + x.key + '" data-h="' + x.key + '">' + opts + "</select></div>";
+    }).join("");
+    $("cc-pane-hint").hidden = cur !== 0;
+    update();
+  }
+
+  function update() {
+    var res = C.compute(state);
+    var qs = C.questions(res, hidden);
+    var gaps = C.hiddenGaps(state, hidden);
+    var ship = C.num(state.ship);
+    // 이 블록의 칸별 월 금액
+    C.ITEMS.forEach(function (it, i) {
+      var r = state.blocks[cur][i], el = $("cc-" + i + "-a");
+      if (!el) return;
+      var q = C.num(r[2]);
+      if (q === null) q = it[2] === "ship" ? ship : it[2] === "ret" ? C.num(state.ret) : it[2] === "one" ? 1 : null;
+      el.textContent = r[0] ? "월 금액 " + won(C.rowAmount(r[0], r[1], q)) + (r[0] === "모름" ? " · 물어볼 칸" : "") : "";
+    });
+    $("cc-cards").innerHTML = res.map(function (r, b) {
+      if (!r.filled) return '<div class="cc-card"><h3>' + r.name + '</h3><p class="cc-sub">아직 비어 있음</p></div>';
+      var per = r.perUnit === null ? "출고 건수를 넣으면 나옵니다" : won(r.perUnit);
+      var lines = '<p class="cc-big">' + per + '</p><p class="cc-sub">건당 합계 · 월 ' + won(r.monthly) + "</p>";
+      if (r.diff !== null) lines += '<p class="cc-sub">지금 방식보다 건당 ' + signed(r.diff) + "</p>";
+      lines += '<p class="cc-sub' + (r.unknown.length ? " cc-warn" : "") + '">모름 칸 ' + r.unknown.length + "개</p>";
+      if (gaps[b].length) lines += '<p class="cc-sub cc-warn">' + gaps[b].map(esc).join("<br>") + "</p>";
+      return '<div class="cc-card"><h3>' + r.name + "</h3>" + lines + "</div>";
+    }).join("");
+    var flips = res.filter(function (r) { return r.flip; }).map(function (r) {
+      return r.name + "에는 모름 칸이 " + r.unknown.length + "개 있습니다. 그 칸들을 합쳐 건당 " + won(r.flip.perUnit) +
+        "(월 " + won(r.flip.monthly) + ")을 넘으면 " + r.flip.against + "보다 비싸집니다.";
+    });
+    $("cc-flip").textContent = flips.join(" ");
+    var any = qs.some(function (q) { return q.list.length; });
+    $("cc-qs-box").hidden = !any;
+    $("cc-qs").innerHTML = qs.filter(function (q) { return q.list.length; }).map(function (q) {
+      return "<p><strong>" + q.name + "</strong></p><ol>" + q.list.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ol>";
+    }).join("");
+  }
+
+  function setTab(b) {
+    cur = b;
+    [0, 1, 2].forEach(function (k) {
+      var t = $("cc-tab-" + k);
+      t.setAttribute("aria-selected", k === b ? "true" : "false");
+      t.tabIndex = k === b ? 0 : -1;
+    });
+    $("cc-pane").setAttribute("aria-labelledby", "cc-tab-" + b);
+    drawPane();
+  }
+
+  [0, 1, 2].forEach(function (k) {
+    var t = $("cc-tab-" + k);
+    t.addEventListener("click", function () { setTab(k); });
+    t.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      var n = (k + (e.key === "ArrowRight" ? 1 : 2)) % 3;
+      setTab(n); $("cc-tab-" + n).focus();
+    });
+  });
+
+  $("cc-pane").addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.dataset.h) { hidden[cur][t.dataset.h] = t.value; update(); return; }
+    if (t.dataset.i === undefined) return;
+    state.blocks[cur][+t.dataset.i][+t.dataset.k] = t.value;
+    update();
+  });
+  $("cc-ship").addEventListener("input", function (e) { state.ship = e.target.value; update(); });
+  $("cc-ret").addEventListener("input", function (e) { state.ret = e.target.value; update(); });
+
+  $("cc-sample").addEventListener("click", function () {
+    var S = C.SAMPLE;
+    state.ship = String(S.ship); state.ret = String(S.ret);
+    state.blocks = S.blocks.map(function (rows) {
+      return rows.map(function (r) { return [r[0], r[1] === null ? "" : String(r[1]), r[2] === null ? "" : String(r[2])]; });
+    });
+    hidden = [{}, { power: "모름", legal: "모름", oneoff: "모름", fuel: "모름" }, {}];
+    $("cc-ship").value = state.ship; $("cc-ret").value = state.ret;
+    $("cc-sample-note").hidden = false;
+    drawPane();
+  });
+  $("cc-clear").addEventListener("click", function () {
+    state = { ship: "", ret: "", blocks: [0, 1, 2].map(function () { return C.ITEMS.map(function () { return ["", "", ""]; }); }) };
+    hidden = [{}, {}, {}];
+    $("cc-ship").value = ""; $("cc-ret").value = "";
+    $("cc-sample-note").hidden = true;
+    drawPane();
+  });
+  $("cc-copy").addEventListener("click", function () {
+    var text = C.questions(C.compute(state), hidden).filter(function (q) { return q.list.length; }).map(function (q) {
+      return "[" + q.name + "]\n" + q.list.map(function (s, i) { return (i + 1) + ". " + s; }).join("\n");
+    }).join("\n\n");
+    var note = $("cc-copy-note");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { note.textContent = "복사했습니다. 업체에 보낼 메시지에 붙여 넣으세요."; },
+        function () { note.textContent = "복사가 막혀 있습니다. 목록을 길게 눌러 직접 복사해 주세요."; });
+    } else { note.textContent = "이 브라우저는 복사 단추를 지원하지 않습니다. 목록을 직접 복사해 주세요."; }
+  });
+
+  var items = document.querySelectorAll("#cc-next li[data-link]");
+  for (var i = 0; i < items.length; i++) items[i].hidden = !LIVE[items[i].getAttribute("data-link")];
+
+  drawPane();
+})();
+</script>
