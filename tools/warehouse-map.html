@@ -1,0 +1,121 @@
+---
+title: "인천 물류창고 구·동 배치도"
+no_cdn: true
+---
+<!-- 갈래 2 (2026-10-09). 기준 = docs/물류사업_갈래_판정기준_선커밋_20261009.md §2.
+     데이터 = _data/warehouse_gu.json (analysis/build_tool_data.py 가 공개 집계 CSV 두 개에서 만든다).
+     원본 행(상호·주소)·좌표·행정경계·지도 타일 0. 외부 호출 0(no_cdn). -->
+<style>
+  .wm * { box-sizing: border-box; }
+  .wm-lede { color: var(--muted); }
+  .wm-btns { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 0.75rem; }
+  .wm button { min-height: 44px; font: inherit; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--accent); background: var(--bg); color: var(--accent); padding: 0.45rem 0.9rem; cursor: pointer; }
+  .wm button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .wm button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .wm-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, minmax(76px, auto)); gap: 6px; background: var(--ground); border: 1px solid var(--hair); border-radius: var(--r-md); padding: 8px; }
+  .wm-tile { border-radius: var(--r-sm); padding: 0.4rem 0.45rem; border: 1px solid var(--hair-strong); display: flex; flex-direction: column; justify-content: space-between; min-width: 0; }
+  .wm-tile b { font-size: 0.85rem; line-height: 1.2; word-break: keep-all; }
+  .wm-tile span { font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+  .wm-cap { font-size: 0.85rem; color: var(--muted); margin: 0.4rem 0 1rem; }
+  .wm-legend { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--muted); }
+  .wm-legend i { display: inline-block; width: 90px; height: 10px; border-radius: 5px; background: linear-gradient(90deg, rgba(31,122,140,0.08), rgba(31,122,140,1)); }
+  .wm-bar { display: grid; grid-template-columns: 7.5rem 1fr 3.2rem; align-items: center; gap: 0.5rem; margin: 0.3rem 0; font-size: 0.85rem; }
+  .wm-bar .t { height: 12px; border-radius: 6px; background: var(--accent); min-width: 2px; }
+  .wm-bar .n { text-align: right; font-variant-numeric: tabular-nums; }
+  .wm-bar .l { word-break: keep-all; }
+  .wm-note { font-size: 0.85rem; color: var(--muted); }
+  @media (max-width: 420px) { .wm-tile b { font-size: 0.78rem; } .wm-tile span { font-size: 0.72rem; } .wm-bar { grid-template-columns: 6.2rem 1fr 2.8rem; } }
+</style>
+
+<div class="wm">
+<h1>인천 물류창고 구·동 배치도</h1>
+
+<ul>
+  <li><strong>한 줄 결론</strong>: 인천에 등록된 물류창고 480곳을 구·군 칸에 나눠 담았습니다. 개소·면적·냉동냉장 면적을 바꿔 가며 어느 구에 몰려 있는지 보는 배치도입니다.</li>
+</ul>
+
+<p class="wm-lede">국토교통부 물류창고업 등록 자료를 구·동 단위로 묶은 공개 집계만 씁니다. 창고 하나하나의 상호·주소는 담지 않았습니다. 해설과 한계는 정리형 페이지 <a href="{{ '/reports/물류창고.html' | relative_url }}">인천 물류창고 480곳은 어디에 있나</a>에 있습니다.</p>
+
+<div class="wm-btns" role="group" aria-label="칸 색으로 볼 값">
+  <button type="button" data-m="count" aria-pressed="true">개소</button>
+  <button type="button" data-m="area" aria-pressed="false">면적</button>
+  <button type="button" data-m="cold" aria-pressed="false">냉동냉장 면적</button>
+</div>
+<div class="wm-grid" id="wm-grid" role="list" aria-label="구·군별 값(개략 배치)"></div>
+<p class="wm-cap"><strong>개략 배치 — 실제 경계·거리 아님.</strong> 칸의 위치는 구·군의 대략적인 방향만 맞췄습니다. 행정경계 파일은 이용허락을 확인하지 못해 쓰지 않았고, 창고 좌표는 아직 0건입니다.</p>
+<div class="wm-legend"><span>적음</span><i aria-hidden="true"></i><span>많음</span> · <span id="wm-mode-note"></span></div>
+<noscript><p class="wm-note">배치도는 자바스크립트를 켜야 보입니다. 같은 값의 표는 <a href="{{ '/reports/물류창고.html' | relative_url }}">정리형 페이지</a>에 있습니다.</p></noscript>
+
+<h2>읍·면·동 순위</h2>
+<p id="wm-dong-head"></p>
+<div id="wm-dong"></div>
+<p class="wm-note" id="wm-dong-more"></p>
+
+<h2>읽을 때 주의할 것</h2>
+<ul>
+  <li>등록된 창고만 셉니다. 물류창고업 등록 대상이 아닌 자가 창고·소규모 창고는 없습니다.</li>
+  <li>냉동냉장 면적은 물류시설법으로 등록한 창고만 채운 열입니다. 보세창고·식품 계열 창고의 냉장 면적은 원자료에서 상온과 나뉘지 않아, 이 값을 인천 전체의 냉장 보관 능력으로 읽으면 안 됩니다.</li>
+  <li>주소 정제에 실패한 10곳은 빠져 있습니다(490 → 480). 구 이름은 2026-07-01 행정구역 개편 뒤 이름입니다.</li>
+</ul>
+
+<hr>
+
+<h2>표기</h2>
+<table>
+  <thead><tr><th>항목</th><th>내용</th></tr></thead>
+  <tbody>
+    <tr><td><strong>검수·발행</strong></td><td><strong>운영자</strong> — 발행 결정(이 지면의 공개는 저장소 main 머지가 승인이다). 통독은 아직 수행되지 않았다. 화면의 합계가 집계 CSV 합계와 같은지는 스크립트가 대조했다.</td></tr>
+    <tr><td><strong>데이터 출처</strong></td><td>국토교통부 물류창고업 등록 자료(국가물류통합정보센터 「물류창고업 현황」, 자료 기준일 2026-10-01) · 행정안전부 도로명주소 검색 API(주소 정제)</td></tr>
+    <tr><td><strong>재현 코드</strong></td><td><code>analysis/warehouse_map.py</code>(구·동 집계) → <code>analysis/build_tool_data.py</code>(배치도 데이터) · 검사 <code>analysis/check_cost_tool.py</code>(합계 일치·원본 행 0)</td></tr>
+    <tr><td><strong>판정</strong></td><td>이 지면은 가설을 판정하지 않는다. 갈래 기준 = <a href="https://github.com/jisangj03-dev/incheon-port-analysis/blob/main/docs/물류사업_갈래_판정기준_선커밋_20261009.md">선커밋 문서</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var D = {{ site.data.warehouse_gu | jsonify }};
+  if (!D || !D.gu) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Number(n).toLocaleString("ko-KR"); };
+  var pct = function (a, b) { return b ? (a / b * 100).toFixed(1) + "%" : "0%"; };
+  var LABEL = { count: "개소", area: "면적", cold: "냉동냉장 면적" };
+  var UNIT = { count: "곳", area: "m²", cold: "m²" };
+  var NOTE = { count: "인천 합계 " + fmt(D.total.count) + "곳",
+               area: "인천 합계 " + fmt(D.total.area) + "m²",
+               cold: "합계 " + fmt(D.total.cold) + "m² · 물류시설법 창고만 채운 열" };
+
+  function draw(m) {
+    var max = Math.max.apply(null, D.gu.map(function (g) { return g[m]; }));
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    $("wm-grid").innerHTML = D.gu.map(function (g) {
+      var t = max ? g[m] / max : 0;
+      var a = g[m] ? 0.08 + 0.92 * Math.sqrt(t) : 0;
+      var ink = a > 0.55 ? "#fff" : (dark ? "#eaf0f3" : "#0f2a3d");
+      var bg = g[m] ? "rgba(31,122,140," + a.toFixed(3) + ")" : "transparent";
+      var share = m === "cold" ? "" : " · " + pct(g[m], D.total[m]);
+      return '<div class="wm-tile" role="listitem" style="grid-column:' + (g.x + 1) + ";grid-row:" + (g.y + 1) + ";background:" + bg + ";color:" + ink + '">' +
+        "<b>" + g.name + "</b><span>" + fmt(g[m]) + UNIT[m] + share + "</span></div>";
+    }).join("");
+    $("wm-mode-note").textContent = LABEL[m] + " — " + NOTE[m];
+    var btns = document.querySelectorAll(".wm-btns button");
+    for (var i = 0; i < btns.length; i++) btns[i].setAttribute("aria-pressed", btns[i].getAttribute("data-m") === m ? "true" : "false");
+  }
+
+  var btns = document.querySelectorAll(".wm-btns button");
+  for (var i = 0; i < btns.length; i++) btns[i].addEventListener("click", function (e) { draw(e.currentTarget.getAttribute("data-m")); });
+  draw("count");
+
+  // 읍·면·동 — 개소 순. 상위 4곳이 차지하는 비중은 데이터에서 계산한다(손으로 적지 않는다).
+  var dong = D.dong.slice().sort(function (a, b) { return b.count - a.count || b.area - a.area; });
+  var top4 = dong.slice(0, 4).reduce(function (s, d) { return s + d.count; }, 0);
+  $("wm-dong-head").textContent = "창고가 있는 읍·면·동은 " + dong.length + "곳입니다. 상위 4곳에 " + fmt(top4) + "곳(" + pct(top4, D.total.count) + ")이 몰려 있습니다.";
+  var maxd = dong[0].count, SHOW = 12;
+  $("wm-dong").innerHTML = dong.slice(0, SHOW).map(function (d) {
+    return '<div class="wm-bar"><span class="l">' + d.gu + " " + d.name + '</span><span class="t" style="width:' + (d.count / maxd * 100).toFixed(1) + '%" aria-hidden="true"></span><span class="n">' + fmt(d.count) + "곳</span></div>";
+  }).join("");
+  var rest = dong.slice(SHOW);
+  $("wm-dong-more").textContent = rest.length ? "나머지 " + rest.length + "곳은 " + rest[rest.length - 1].count + "~" + rest[0].count + "곳씩입니다. 전체 목록: 저장소 analysis/warehouse_by_dong.csv" : "";
+})();
+</script>
