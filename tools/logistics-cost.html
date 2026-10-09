@@ -110,7 +110,7 @@ no_cdn: true
 <h2>다음에 해 볼 것</h2>
 <ul class="cc-next" id="cc-next">
   <li data-link="criteria"><a href="https://logisticsforeveryone.tistory.com/78">셀러 물류비 판정 기준 — 유지·재협상·전환을 가르는 네 가지</a> · 위 결과를 어떻게 읽을지 정리한 글입니다.</li>
-  <li data-link="sheet" hidden><a href="https://logisticsforeveryone.tistory.com/entry/3PL-견적-비교">같은 10칸의 무료 비교표(엑셀)</a> · 견적서를 파일로 남겨 두고 동료와 나눠 볼 때.</li>
+  <li data-link="sheet" hidden><a href="https://logisticsforeveryone.tistory.com/79">같은 10칸의 무료 비교표(엑셀)</a> · 견적서를 파일로 남겨 두고 동료와 나눠 볼 때.</li>
   <li data-link="k829076" hidden><a href="https://kmong.com/gig/829076">정산·마진 시트(크몽)</a> · 여기서 나온 건당 물류비를 상품별 마진 계산에 넣어 보고 싶을 때.</li>
   <li data-link="k824011"><a href="https://kmong.com/gig/824011">광고 주간 리포트(크몽, 입문 59,000원부터)</a> · 물류비 다음으로 큰 비용이 광고비라면, 광고 CSV 한 개로 주간 합계·전주 대비를 한 장에 보는 시트입니다.</li>
 </ul>
@@ -136,8 +136,8 @@ no_cdn: true
   var C = window.CostCheck;
   if (!C) return;
   // 크몽·블로그 링크를 켜는 곳. 판매 중이 확인된 것만 true(기준 C6).
-  // 829076 = 10/8 기준 승인 대기 · 무료 비교표 글 = 게시 전(jota PR #210). 확인되면 한 줄씩 true 로.
-  var LIVE = { criteria: true, sheet: false, k829076: false, k824011: true };
+  // 829076 = 10/9 기준 승인 대기(페이지 없음) · 무료 비교표 글 = 블로그 /79 공개(10/9 15:40). 확인되면 한 줄씩 true 로.
+  var LIVE = { criteria: true, sheet: true, k829076: false, k824011: true };
 
   var state = { ship: "", ret: "", blocks: [0, 1, 2].map(function () { return C.ITEMS.map(function () { return ["", "", ""]; }); }) };
   var hidden = [{}, {}, {}];
