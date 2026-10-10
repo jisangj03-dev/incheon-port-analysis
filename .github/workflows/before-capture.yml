@@ -2,6 +2,7 @@
 # 클라우드 세션은 네트워크 정책이 github.io·higgsfield.app 을 막아 공개 화면을 못 찍는다.
 # 그래서 이 파일이 든 커밋이 이 브랜치에 push 될 때 러너가 찍어서 docs/개편전_20261010/ 에 커밋한다.
 # 다음 커밋에서 이 파일을 지운다 — main 에는 남지 않는다.
+# v2: 첫 판은 리빌 블록이 빈 채로 찍혔다 — capture.mjs 가 끝까지 스크롤한 뒤 찍는다. git pull 로 앞 커밋을 덮는다.
 name: before-capture
 
 on:
@@ -34,6 +35,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add "docs/개편전_20261010"
+          git add -A "docs/개편전_20261010"
           git commit -m "개편 전 캡처 8장 (공개 화면 · Actions 러너가 찍음)"
           git push

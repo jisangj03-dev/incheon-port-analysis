@@ -5,6 +5,8 @@
 //
 // 공개 주소는 이 컨테이너(클라우드 세션)의 네트워크 정책이 막는다 — 그래서 GitHub Actions 에서 돈다.
 // 전체 화면(fullPage) · CSS 화소 배율(scale:"css") — 모바일 3배 화소로 찍으면 높이가 브라우저 한도를 넘는다.
+// 스크롤해야 나타나는 블록(리빌)이 있다 — 첫 판은 그 자리가 빈 채로 찍혔다. 그래서 끝까지 한 화면씩
+// 내려가 리빌을 다 깨운 뒤 맨 위로 돌아와 찍는다. 움직임 줄이기(reducedMotion)도 같이 켠다.
 import { chromium, devices } from "@playwright/test";
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -30,7 +32,7 @@ const log = [];
 let bad = 0;
 for (const [sname, opts] of SIZES) {
   const { defaultBrowserType, ...ctxOpts } = opts;
-  const ctx = await browser.newContext(ctxOpts);
+  const ctx = await browser.newContext({ ...ctxOpts, reducedMotion: "reduce" });
   for (const [name, url] of SCREENS) {
     if (!url) continue;
     const page = await ctx.newPage();
@@ -38,6 +40,15 @@ for (const [sname, opts] of SIZES) {
     try {
       const res = await page.goto(url, { waitUntil: "networkidle", timeout: 60_000 });
       await page.evaluate(() => document.fonts && document.fonts.ready);
+      await page.evaluate(async () => {
+        const step = Math.max(200, Math.floor(window.innerHeight * 0.8));
+        for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 120));
+        }
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(800);
       const h = await page.evaluate(() => document.documentElement.scrollHeight);
       await page.screenshot({ path: file, fullPage: true, scale: "css" });
       log.push(`| ${name} | ${sname} | ${res ? res.status() : "?"} | ${h} | ${url} |`);
