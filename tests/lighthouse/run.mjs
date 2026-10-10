@@ -29,18 +29,18 @@ function chromePath() {
 }
 
 const env = { ...process.env, CHROME_PATH: chromePath() };
-// [2026-10-10 CI] 세 지면 모두 CHROME_INTERSTITIAL_ERROR — 진단 줄이 「최종 chrome-error://chromewebdata/」를 냈다:
-// 인증서 경고가 아니라 **탐색 자체가 오류 화면으로 떨어졌다.** Chrome for Testing 153 과 Chrome 안정판 154 둘 다 같았고
-// 같은 러너·같은 주소의 Playwright 시험은 통과했다. 이 컨테이너의 크로미움 141 에서는 재현되지 않는다.
-// HttpsUpgrades 를 끈 시도는 효과가 없었다(철회). 지금 가설 = Chrome 142+ 의 Local Network Access 검사가
-// about:blank → 127.0.0.1 탐색을 막는다. 그 기능만 끄고, chrome-launcher 기본 플래그는 **목록을 합쳐서** 그대로 준다
-// (--disable-features 를 따로 주면 기본 목록을 덮는다). 실패하면 아래 diagnose() 가 net 오류 이름을 찍는다.
-const require_ = createRequire(import.meta.url);
-const { Launcher } = require_("chrome-launcher");
-const EXTRA_DISABLED = ["LocalNetworkAccessChecks", "LocalNetworkAccessChecksWebRTC"];
-const BASE_FLAGS = Launcher.defaultFlags().map((f) =>
-  f.startsWith("--disable-features=") ? `${f},${EXTRA_DISABLED.join(",")}` : f);
-const FLAGS = [...BASE_FLAGS, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage"].join(" ");
+// [2026-10-10 CI] 세 지면 모두 CHROME_INTERSTITIAL_ERROR(최종 chrome-error://chromewebdata/)로 멈췄다.
+// 브라우저 탓으로 보고 HttpsUpgrades·Local Network Access 를 꺼 봤으나 **원인은 서버였다** — 채팅 재현:
+// 서버가 없을 때만 정확히 같은 오류가 나고(메인 문서 net::ERR_CONNECTION_REFUSED), 떠 있으면 200 으로 잰다.
+// 그래서 브라우저 플래그는 되돌렸고, 워크플로가 with_server.py 로 서버 준비를 기다린 뒤 이 파일을 부른다.
+// 시작 전에 홈 200 을 확인해, 서버가 없으면 「브라우저 오류」로 보이기 전에 여기서 멈춘다.
+const FLAGS = ["--headless=new", "--no-sandbox", "--disable-dev-shm-usage"].join(" ");
+
+const probe = await fetch(`${base}/incheon-port-analysis/`).then((r) => r.status, (e) => `연결 실패 ${e.cause?.code || e.message}`);
+if (probe !== 200) {
+  console.error(`서버가 응답하지 않는다: ${base}/incheon-port-analysis/ → ${probe}. Lighthouse 를 돌리지 않고 멈춘다.`);
+  process.exit(1);
+}
 
 function diagnose(url) {
   // 같은 크롬·같은 플래그로 크롬이 직접 열게 해 DOM 을 받는다 — 오류 화면이면 오류 이름(ERR_…)이 그 안에 있다.
