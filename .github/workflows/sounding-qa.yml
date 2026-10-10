@@ -64,8 +64,12 @@ jobs:
             --server "python -m http.server 4173 --bind 127.0.0.1 --directory _site" --port 4173 \
             -- python tests/py/calc_smoke.py
 
+      # 러너에 깔린 Google Chrome 안정판으로 잰다 — Playwright 의 Chrome for Testing 153 은
+      # 첫 실행에서 세 지면 모두 CHROME_INTERSTITIAL_ERROR 였다(같은 주소의 Playwright 시험은 통과).
       - name: Lighthouse 13.5.0 (홈·계산기·배치도 · 모바일)
         run: |
+          export CHROME_PATH="$(command -v google-chrome || command -v google-chrome-stable)"
+          "$CHROME_PATH" --version
           python -m http.server 4173 --bind 127.0.0.1 --directory _site > /dev/null 2>&1 &
           sleep 2
           node tests/lighthouse/run.mjs http://127.0.0.1:4173

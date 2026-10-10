@@ -29,14 +29,11 @@ function chromePath() {
 }
 
 const env = { ...process.env, CHROME_PATH: chromePath() };
-// [2026-10-10 첫 CI] 세 지면 모두 「Chrome prevented page load with an interstitial」로 멈췄다.
-// 같은 러너에서 Playwright 시험은 같은 주소로 통과했다 — Playwright 는 크로미움을 띄울 때
-// HttpsUpgrades 를 끈다(chromiumSwitches). Lighthouse(chrome-launcher)는 안 끈다. 그래서 같은 기능을 끈다.
-// 측정 대상(성능·접근성·권장·SEO)과는 무관한 브라우저 보안 승격 기능이다.
-const FLAGS = [
-  "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
-  "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2ForTypicallySecureUsers",
-].join(" ");
+// [2026-10-10 첫 CI] 세 지면 모두 CHROME_INTERSTITIAL_ERROR 로 멈췄다(Playwright 크로미움 = Chrome for Testing 153).
+// 둘째 시도로 HttpsUpgrades 를 꺼 봤으나 같았다 — 그 가설은 틀렸다. 그리고 --disable-features 를 따로 주면
+// chrome-launcher 의 기본 목록을 덮을 수 있어 뺐다. CI 는 러너의 Google Chrome 안정판(CHROME_PATH)을 쓴다 —
+// Lighthouse 가 시험받는 짝이다. 실패하면 아래 진단 줄(최종 주소·경고)이 다음 수를 고르게 한다.
+const FLAGS = ["--headless=new", "--no-sandbox", "--disable-dev-shm-usage"].join(" ");
 const rows = [];
 let bad = 0;
 for (const [name, path] of PAGES) {
@@ -46,6 +43,8 @@ for (const [name, path] of PAGES) {
   if (!existsSync(json)) { rows.push([name, `실행 실패(종료 ${r.status})`, "", "", ""]); bad++; continue; }
   const rep = JSON.parse(readFileSync(json, "utf-8"));
   if (rep.runtimeError) {   // 점수 대신 이유를 남긴다 — 「실행 실패」 넉 자로는 다음 수를 못 고른다
+    console.error(`[진단] ${name}: 요청 ${rep.requestedUrl} → 최종 ${rep.finalDisplayedUrl} · 브라우저 ${rep.environment?.hostUserAgent}`);
+    for (const w of rep.runWarnings || []) console.error(`[진단] ${name} 경고: ${w}`);
     rows.push([name, `실행 실패: ${rep.runtimeError.code}`, "", "", ""]); bad++; continue;
   }
   const s = (k) => Math.round((rep.categories[k]?.score ?? NaN) * 100);
@@ -53,6 +52,8 @@ for (const [name, path] of PAGES) {
 }
 const md = [
   `# Lighthouse 요약 — ${new Date().toISOString()}`,
+  "",
+  `브라우저: ${env.CHROME_PATH}`,
   "",
   `대상: ${base} · Lighthouse 13.5.0 · 모바일(기본) · 결과 JSON 은 같은 폴더`,
   "",
