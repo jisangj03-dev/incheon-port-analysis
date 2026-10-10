@@ -29,7 +29,7 @@ A 는 이쪽이 지금 할 수 있는 것, C 는 아직 안 본 축이다.
 **3) 마지막 세션이 어디서 멈췄나 (2026-10-10 51차 · 개편 준비 — 도구 설치·클라우드 검사 정비 · PR 대기 · 경위 = 작업기록 「51차」).**
 
 **① 개편 도구가 깔렸고 돈다** — `package.json`·lock(npm audit 0) · `npx playwright test`(계산기 회귀 4,044/2,805/2,960 · Pagefind '공컨' · 차트 번들) · `npm run astro:build|astro:check` · `npm run lighthouse` · CI `.github/workflows/sounding-qa.yml`(artifact 만). Lighthouse 는 @lhci/cli 가 아니라 CLI 13.5.0 직접.
-**② 클라우드 개시 검사 — 종료코드 3 = 환경 생략**(`analysis/env_limits.py` · 클라우드 확인 때만). 클라우드 판정 = 실패 0 · 모름 0 · 환경 생략 7. 훅은 실패를 드러낸다(`|| exit 0` 폐지 · 사고 118).
+**② 클라우드 개시 검사 — 종료코드 3 = 환경 생략**(`analysis/env_limits.py` · 클라우드 확인 때만). 클라우드 판정 = 실패 0 · 모름 0 · 환경 생략 7. 훅은 실패를 드러낸다(`|| exit 0` 폐지 · 사고 118). 다섯 훅 전부 클라우드 발화 확인(Stop·SessionEnd 는 재개 때 스냅샷으로) · PR #19 머지(10/10).
 **③ 남은 것** — 공개 화면 두 결함(홈 Pretendard CDN 외부 요청 · 배치도 색 대비 = Lighthouse 접근성 97)은 **개편 몫**(이번엔 공개 화면 불변).
 
 **그 뒤 토큰이 실제로 죽었다** [2026-09-18 48차 실측]. `tools/push.py --check` → **종료 128 · `Authentication failed`**(저장 143.4시간 뒤 관측 · 지문 `27f203ee`). 위 32번 줄의 `unpacker error`(서버 쪽·종료 1)와는 **다른 오류**다 — 그때는 인증이 통과했고 지금은 인증 자체가 막힌다. **§4(가) 정지선** — 세션은 못 고치고, **운영자가 자기 터미널에서** `higgsfield website repo-access 56527534-163d-43d6-a160-b30862c6e5a1` 로 새 토큰을 받아 `%USERPROFILE%\.higgsfield-repo-token-sounding` 에 저장해야 한다. 그 전까지 미push 3건(`54fcda2`·`0c5f59e`·`321283c` — `tools/push.py` 분류 고침·#12 목록 걸기·220/239 정정)은 라이브에 안 오른다.
