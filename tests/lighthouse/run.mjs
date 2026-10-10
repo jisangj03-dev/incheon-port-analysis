@@ -29,11 +29,26 @@ function chromePath() {
 }
 
 const env = { ...process.env, CHROME_PATH: chromePath() };
-// [2026-10-10 첫 CI] 세 지면 모두 CHROME_INTERSTITIAL_ERROR 로 멈췄다(Playwright 크로미움 = Chrome for Testing 153).
-// 둘째 시도로 HttpsUpgrades 를 꺼 봤으나 같았다 — 그 가설은 틀렸다. 그리고 --disable-features 를 따로 주면
-// chrome-launcher 의 기본 목록을 덮을 수 있어 뺐다. CI 는 러너의 Google Chrome 안정판(CHROME_PATH)을 쓴다 —
-// Lighthouse 가 시험받는 짝이다. 실패하면 아래 진단 줄(최종 주소·경고)이 다음 수를 고르게 한다.
-const FLAGS = ["--headless=new", "--no-sandbox", "--disable-dev-shm-usage"].join(" ");
+// [2026-10-10 CI] 세 지면 모두 CHROME_INTERSTITIAL_ERROR — 진단 줄이 「최종 chrome-error://chromewebdata/」를 냈다:
+// 인증서 경고가 아니라 **탐색 자체가 오류 화면으로 떨어졌다.** Chrome for Testing 153 과 Chrome 안정판 154 둘 다 같았고
+// 같은 러너·같은 주소의 Playwright 시험은 통과했다. 이 컨테이너의 크로미움 141 에서는 재현되지 않는다.
+// HttpsUpgrades 를 끈 시도는 효과가 없었다(철회). 지금 가설 = Chrome 142+ 의 Local Network Access 검사가
+// about:blank → 127.0.0.1 탐색을 막는다. 그 기능만 끄고, chrome-launcher 기본 플래그는 **목록을 합쳐서** 그대로 준다
+// (--disable-features 를 따로 주면 기본 목록을 덮는다). 실패하면 아래 diagnose() 가 net 오류 이름을 찍는다.
+const require_ = createRequire(import.meta.url);
+const { Launcher } = require_("chrome-launcher");
+const EXTRA_DISABLED = ["LocalNetworkAccessChecks", "LocalNetworkAccessChecksWebRTC"];
+const BASE_FLAGS = Launcher.defaultFlags().map((f) =>
+  f.startsWith("--disable-features=") ? `${f},${EXTRA_DISABLED.join(",")}` : f);
+const FLAGS = [...BASE_FLAGS, "--headless=new", "--no-sandbox", "--disable-dev-shm-usage"].join(" ");
+
+function diagnose(url) {
+  // 같은 크롬·같은 플래그로 크롬이 직접 열게 해 DOM 을 받는다 — 오류 화면이면 오류 이름(ERR_…)이 그 안에 있다.
+  const r = spawnSync(env.CHROME_PATH, [...FLAGS.split(" "), "--dump-dom", url], { encoding: "utf-8", timeout: 30_000 });
+  const dom = (r.stdout || "").replace(/\s+/g, " ");
+  const err = dom.match(/(?:net::)?ERR_[A-Z_]+/);
+  console.error(`[진단] 크롬 직접 열기(--dump-dom): 종료 ${r.status} · ${err ? err[0] : "오류 이름 없음"} · DOM ${dom.length}자 · ${dom.slice(0, 160)}`);
+}
 const rows = [];
 let bad = 0;
 for (const [name, path] of PAGES) {
@@ -45,6 +60,7 @@ for (const [name, path] of PAGES) {
   if (rep.runtimeError) {   // 점수 대신 이유를 남긴다 — 「실행 실패」 넉 자로는 다음 수를 못 고른다
     console.error(`[진단] ${name}: 요청 ${rep.requestedUrl} → 최종 ${rep.finalDisplayedUrl} · 브라우저 ${rep.environment?.hostUserAgent}`);
     for (const w of rep.runWarnings || []) console.error(`[진단] ${name} 경고: ${w}`);
+    if (!bad) diagnose(base + path);   // 첫 실패에서 한 번만
     rows.push([name, `실행 실패: ${rep.runtimeError.code}`, "", "", ""]); bad++; continue;
   }
   const s = (k) => Math.round((rep.categories[k]?.score ?? NaN) * 100);
