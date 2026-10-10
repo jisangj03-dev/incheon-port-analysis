@@ -94,11 +94,13 @@ def strip_quoted(cmd):
 def classify(cmd):
     """(판정, 사유). 판정 = 'push' | 'commit' | 'pass'. 시험이 이 함수를 직접 친다."""
     cmd = strip_quoted(cmd)
+    # [2026-10-10] commit 을 push 보다 먼저 본다. 종전 순서에서는 `git commit … && git push` 한 줄이
+    # 「push」로 분류돼 **앵커 검사를 건너뛰었다** — 51차 세션이 발화 기록(_hook_log.tsv)에서 봤다.
+    if COMMIT.search(cmd):
+        return "commit", None
     if PUSH.search(cmd):
         # 분류만 한다. 막지 않는다(v6.4). 시험이 파싱 정확도를 이 사례로 본다.
         return "push", None
-    if COMMIT.search(cmd):
-        return "commit", None
     return "pass", None
 
 
@@ -188,6 +190,8 @@ def selftest():
         # 커밋은 검사로 간다
         ("git commit -m x", "commit"),
         ("git add . && git commit -F -", "commit"),
+        # 한 줄에 커밋과 push 가 같이 있으면 커밋 검사로 간다(2026-10-10 · 전에는 push 로 빠졌다)
+        ("git add -A && git commit -q -m x && git push -q origin b", "commit"),
         # 나머지는 통과
         ("ls -la", "pass"),
         ("git log --oneline -1", "pass"),
