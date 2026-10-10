@@ -264,9 +264,10 @@ def audit_roots():
 
 def main(strict=False, do_clean=False):
     if not have_tool():
-        print("[불성립] 표식 도구를 못 찾았다: %s" % WR)
-        print("  `~/tools/watermarks-remover`(v0.7.0) 가 있어야 한다. **통과로 치지 않는다.**")
-        return 2
+        # `~/tools/watermarks-remover`(v0.7.0) 는 운영자 기계의 로컬 도구다.
+        # 클라우드로 확인되면 3(환경 생략), 아니면 2(모름) — analysis/env_limits.py
+        from env_limits import say_missing
+        return say_missing("표식 도구 `~/tools/watermarks-remover`(v0.7.0)", WR)
 
     tf = files(TEXT_TARGETS)
     print("== 표식 검사 ==")
@@ -357,13 +358,16 @@ def selftest():
     global INSPECT
     keep = INSPECT
     INSPECT = os.path.join(keep, "없는파일.py")
-    chk("도구 없으면 불성립(2)", main(), 2)
+    from env_limits import missing_code
+    # 클라우드로 확인되면 3(환경 생략), 아니면 2(모름). **어느 쪽이든 0 이 아니다.**
+    chk("도구 없으면 불성립(2) 또는 환경 생략(3)", main(), missing_code())
     INSPECT = keep
 
     if not have_tool():
+        # [2026-10-10] 종전엔 여기서 0 을 냈다 — 「미실행이지 통과가 아니다」라고 찍고 통과로 세였다(사고 26).
         print("  (도구가 없는 기계 — 나머지는 **미실행**이지 통과가 아니다)")
-        print("\n통과" if ok else "\n실패")
-        return 0 if ok else 1
+        print("\n실패" if not ok else "\n부분 통과 — 도구 없는 시험 미실행")
+        return 1 if not ok else missing_code()
 
     print("── 인수시험: 심은 것을 찾아내는가 ──")
     with tempfile.TemporaryDirectory() as d:

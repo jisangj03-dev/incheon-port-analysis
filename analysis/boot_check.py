@@ -49,7 +49,9 @@ except Exception:
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
-OK, BAD, UNK = "통과", "**실패**", "**모름**"
+OK, BAD, UNK, ENV = "통과", "**실패**", "**모름**", "환경생략"
+# [2026-10-10] 종료코드 3 = **환경 생략** — 이 기계에 그 전제가 원천적으로 없다(클라우드 확인됨).
+# 실패도 모름도 아니고 **통과도 아니다.** 따로 세고 따로 찍는다. 규칙 = analysis/env_limits.py.
 
 # 소요 로그 — **일화 대신 계열**(사고 84). 추적하지 않는 로컬 파일이다.
 # 스크립트마다 「시작」 줄과 「끝」 줄을 따로 적으므로, 멈춘 실행은 **시작만 있고 끝이 없는
@@ -184,6 +186,8 @@ def run(path, args=(), timeout=60, retry=1):
         return OK, last, time.time() - t0
     if p.returncode == 1:
         return BAD, last, time.time() - t0
+    if p.returncode == 3:
+        return ENV, last, time.time() - t0
     # 2 이상은 「돌리지 못했다」에 가깝다 — 실패와 가른다.
     return UNK, "종료코드 %d · %s" % (p.returncode, last), time.time() - t0
 
@@ -294,6 +298,11 @@ def selftest():
         io.open(two, "w", encoding="utf-8").write("import sys\nsys.exit(2)\n")
         st, _, _ = run(two)
         chk("종료코드 2 는 실패가 아니라 모름", st, UNK)
+        three = os.path.join(d, "e.py")
+        io.open(three, "w", encoding="utf-8").write("import sys\nsys.exit(3)\n")
+        st, _, _ = run(three)
+        chk("종료코드 3 은 환경 생략", st, ENV)
+        chk("환경 생략은 통과가 아니다", st == OK, False)
         good = os.path.join(d, "g.py")
         io.open(good, "w", encoding="utf-8").write("print('통과')\n")
         st, last, _ = run(good)
@@ -355,7 +364,7 @@ def main():
         return selftest()
 
     t0 = time.time()
-    fails, unks = [], []
+    fails, unks, envs = [], [], []
     log_line("세션", "boot_check", "", 0.0, "시작")
 
     print("=" * 74)
@@ -374,9 +383,10 @@ def main():
         name = os.path.relpath(p, ROOT).replace("\\", "/")
         times.append((sec, name))
         if st != OK or "재시도" in last:
-            (fails if st == BAD else unks if st == UNK else []).append((name, last))
+            (fails if st == BAD else unks if st == UNK else envs if st == ENV else []).append((name, last))
             print("  %-9s %-44s %s" % (st, name, last))
-    print("  -> 실패 %d · 모름 %d · 나머지 통과" % (len(fails), len(unks)))
+    print("  -> 실패 %d · 모름 %d · 환경 생략 %d · 나머지 통과"
+          % (len(fails), len(unks), sum(1 for n, _ in envs if n.endswith(".py"))))
     # **가장 느렸던 셋을 찍는다.** 멈춤은 갑자기 오지 않고 느려지다 온다.
     slow = sorted(times, reverse=True)[:3]
     if slow:
@@ -392,7 +402,7 @@ def main():
             st, last, sec = run(p, args, timeout=120)
             log_line("끝", name, st, sec, last)
             if st != OK:
-                (fails if st == BAD else unks).append((name, last))
+                (fails if st == BAD else envs if st == ENV else unks).append((name, last))
             print("  %-9s %-34s %s" % (st, name, last))
 
         st, why, _ = console_safe()
@@ -414,15 +424,22 @@ def main():
         print(" **모름 %d건 — 통과로 세지 않는다**(사고 26)." % len(unks))
         for n, w in unks:
             print("   · %-34s %s" % (n, w))
+    if envs:
+        print(" 환경 생략 %d건 — 이 기계에 전제가 없다(클라우드 확인됨). **통과로 세지 않는다.**" % len(envs))
+        for n, w in envs:
+            print("   · %-34s %s" % (n, w))
     if not fails and not unks:
-        print(" 전부 통과 · %.1f초" % (time.time() - t0))
+        if envs:
+            print(" 잴 수 있는 것은 전부 통과 · 환경 생략 %d건은 위와 같다 · %.1f초" % (len(envs), time.time() - t0))
+        else:
+            print(" 전부 통과 · %.1f초" % (time.time() - t0))
         print(" 소요 로그: analysis/_boot_log.tsv — 다음 초과 때 마지막 「시작」 줄이 선 자리다")
         print(" **다음: `docs/STATUS.md` 전문을 읽는다.**")
         print("   맨 앞 「착수점」 절만 읽어도 시작할 수 있고,")
         print("   바로 손댈 것은 **「다음 할 일 · A」의 첫 항목**이다.")
         print("   (A = 이쪽이 지금 할 수 있는 것 · B = 운영자 손 · C = 아직 안 본 축)")
-    log_line("합계", "boot_check", BAD if fails else (UNK if unks else OK), time.time() - t0,
-             "실패 %d · 모름 %d" % (len(fails), len(unks)))
+    log_line("합계", "boot_check", BAD if fails else (UNK if unks else (ENV if envs else OK)), time.time() - t0,
+             "실패 %d · 모름 %d · 환경 생략 %d" % (len(fails), len(unks), len(envs)))
     return 1 if fails else 0
 
 

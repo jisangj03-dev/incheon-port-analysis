@@ -36,3 +36,15 @@ baseurl: "/incheon-port-analysis"
 #   다만 사이트 마스트헤드 아래 「세션 개시」 지면이 서는 것은 의도한 지면이 아니다. 배포 전 전수검사에서 봤다.
 exclude:
   - CLAUDE.md
+  # [2026-10-10] 개편 도구 — 검사·빌드용이라 지면이 아니다. exclude 를 적으면 Jekyll 기본 제외(node_modules 등)가
+  #   덮이므로 직접 든다. astro/ 는 공개 사이트에 연결하지 않는 최소 구성이다(개편은 다음 세션).
+  - package.json
+  - package-lock.json
+  - node_modules
+  - requirements-dev.txt
+  - playwright.config.mjs
+  - tests
+  - astro
+  - lighthouse-results
+  - playwright-report
+  - test-results

@@ -135,9 +135,28 @@ def main():
     # push 는 통과다(v6.4). 커밋만 검사로 간다.
     if verdict == "commit":
         bad = run_checks()
+        fire_log(verdict, "막음 %s(%d)" % (bad[0], bad[1]) if bad else "검사 통과")
         if bad:
             emit_deny("정지선 검사 실패 — %s (종료코드 %d). 커밋을 막았다.\n%s" % bad)
+    else:
+        fire_log(verdict, "")
     sys.exit(0)
+
+
+# [2026-10-10] **발화 기록.** 이 훅은 통과 경로가 무출력이고 settings.json 이 `|| exit 0` 으로
+# 감싸 있어서, 「돌았다」와 「안 돌았다」가 밖에서 똑같이 보였다(사고 26 의 얼굴).
+# 그래서 부를 때마다 한 줄을 남긴다 — 추적하지 않는 로컬 파일이다(.gitignore).
+# 명령 문자열은 안 적는다(비밀이 섞일 수 있다) — 판정과 결과만.
+FIRE_LOG = os.path.join(ROOT, "analysis", "_hook_log.tsv")
+
+
+def fire_log(verdict, note):
+    try:
+        import time
+        with open(FIRE_LOG, "a", encoding="utf-8") as fh:
+            fh.write("%s\thook_stopline\t%s\t%s\n" % (time.strftime("%Y-%m-%dT%H:%M:%S"), verdict, note))
+    except Exception:
+        pass  # 기록이 훅을 인질로 잡지 않는다
 
 
 def selftest():

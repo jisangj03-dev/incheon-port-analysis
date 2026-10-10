@@ -175,10 +175,19 @@ def report(hook=False, strict=False):
     lines = []
     hard_n = 0
     unknown = 0
+    env_skip = 0
+    from env_limits import missing_code, ENV_SKIP
     for root, name in ((ROOT, "인천"), (SOUNDING, "측심")):
         found, n = scan_repo(root, name)
         if found is None:
             why = "저장소가 없다" if not os.path.isdir(root) else "git 이 안 돈다"
+            # [2026-10-10] 형제 저장소가 **없는** 것은 클라우드 새 클론에서 원천적이다(그 원격은
+            # GitHub 밖이라 clone 해 오지 못한다). 클라우드 확인 + 없음 → 환경 생략. 자기 저장소(인천)와
+            # 「있는데 git 이 안 돈다」는 여전히 모름이다 — 그건 환경이 아니라 고장이다.
+            if root != ROOT and not os.path.isdir(root) and missing_code() == ENV_SKIP:
+                lines.append(f"  환경생략 {name} — {why}(클라우드 확인됨). **통과로 세지 않는다.**")
+                env_skip += 1
+                continue
             lines.append(f"  **모름**  {name} — {why}. **통과로 세지 않는다.**")
             unknown += 1
             continue
@@ -201,6 +210,9 @@ def report(hook=False, strict=False):
         if rc == 0:
             print("\n실명 · 개인 이메일 · 인증키 — 셋 다 0건.")
             print("**이미지 안의 글자는 이 검사가 못 본다.** 그건 사람이 눈으로 본다.")
+            if env_skip:
+                print("  환경 생략 %d곳 — 있는 저장소만 쟀다. 통과가 아니다." % env_skip)
+                return ENV_SKIP
         return rc
 
     # ── pre-push 모드 ─────────────────────────────────────────────────────
@@ -256,6 +268,33 @@ def selftest():
     # 없는 저장소는 「모름」
     chk("없는 저장소는 모름을 낸다",
         scan_repo(os.path.join(tempfile.mkdtemp(), "없다"), "t")[0], None)
+
+    # [2026-10-10] 형제 저장소 부재 — 클라우드 확인일 때만 환경 생략(3), 아니면 종전대로 막는다(1).
+    # **pre-push(--hook --strict)는 환경 생략으로 막히지 않아야 한다** — 클라우드 push 가 전부 막힌다.
+    global SOUNDING
+    sig = ("CLAUDE_CODE_REMOTE", "CLAUDE_CODE_REMOTE_ENVIRONMENT_TYPE", "CLAUDE_CODE_CONTAINER_ID")
+    keep_s, keep_env = SOUNDING, {k: os.environ.get(k) for k in sig}
+    import contextlib
+    import io as _io
+    SOUNDING = os.path.join(tempfile.mkdtemp(), "없다")
+    try:
+        for val, want_plain, want_hook in (("true", 3, 0), ("", 1, 1)):
+            for k in sig:
+                os.environ.pop(k, None)
+            os.environ["CLAUDE_CODE_REMOTE"] = val
+            with contextlib.redirect_stdout(_io.StringIO()), contextlib.redirect_stderr(_io.StringIO()):
+                got_plain = report()
+                got_hook = report(hook=True, strict=True)
+            tag = "클라우드" if val else "신호 없음"
+            chk("측심 없음 · %s → %d" % (tag, want_plain), got_plain, want_plain)
+            chk("측심 없음 · %s · pre-push → %d" % (tag, want_hook), got_hook, want_hook)
+    finally:
+        SOUNDING = keep_s
+        for k, v in keep_env.items():
+            if v is None:
+                os.environ.pop(k, None)
+            else:
+                os.environ[k] = v
 
     bad = 0
     for label, ok, got in cases:

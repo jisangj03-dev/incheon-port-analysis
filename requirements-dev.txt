@@ -1,0 +1,5 @@
+# 검사·도구용 파이썬 의존성 — 클라우드 새 클론에서 boot_check 가 「모듈 없음」으로 멈추지 않게(2026-10-10).
+# 고정 버전 = 14일 넘게 지난 배포만(docs/도구도입_판정_20261010.md 의 게이트와 같다). 설치 = .claude/hooks/session-start.sh
+matplotlib==3.11.2   # chart_*·build_featured_card --selftest (2026-09-11 배포)
+folium==0.20.0       # warehouse_map --selftest (2025-06-16)
+playwright==1.63.0   # webapp-testing 스킬(파이썬) — Node @playwright/test 와 같은 판 (2026-09-15)

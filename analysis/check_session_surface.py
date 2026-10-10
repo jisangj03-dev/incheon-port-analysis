@@ -116,6 +116,22 @@ def sha(path):
 RUNTIME_DIRS = {".in_use"}
 
 
+def sha_lf(path):
+    """줄끝을 LF 로 맞춰 잰다 — **저장소가 든 파일**(프로젝트 갈래)용. [2026-10-10]
+    같은 커밋이 운영자 기계(Windows · autocrlf)와 클라우드(LF)에서 다른 바이트가 되면
+    기계를 옮길 때마다 「바뀌었다」가 나고, 그 소음이 `--write` 를 눈 감은 버릇으로 만든다(사고 113)."""
+    try:
+        with io.open(path, "rb") as fh:
+            return hashlib.sha256(fh.read().replace(b"\r\n", b"\n")).hexdigest()[:12]
+    except Exception:
+        return "?"
+
+
+def is_project(label):
+    """저장소에 든 자리인가 — 기계가 바뀌어도 같은 커밋이면 같아야 하는 갈래."""
+    return label.startswith("프로젝트") or label == "MCP(프로젝트)"
+
+
 def dir_sha(path):
     """디렉터리 전체를 한 값으로. 파일 이름과 내용을 **정렬해** 넣는다.
     `RUNTIME_DIRS` 만 뺀다 — 왜 빼는지는 그 상수 위에 적었다."""
@@ -355,6 +371,9 @@ def survey():
             rel = os.path.relpath(p, HOME).replace("\\", "/")
             if os.path.isdir(p):
                 desc, h = skill_desc(p)
+                if is_project(label):
+                    sk = os.path.join(p, "SKILL.md")
+                    h = sha_lf(sk) if os.path.exists(sk) else h
                 rows.append((label, n, rel, desc or "(SKILL.md 없음)", h))
             elif n.lower().endswith(".md"):
                 rows.append((label, n, rel, "(단일 파일)", sha(p)))
@@ -390,7 +409,7 @@ def survey():
                 keys = " · ".join(sorted(json.load(io.open(p, encoding="utf-8")).keys()))[:110]
             except Exception:
                 keys = "(JSON 아님)"
-        rows.append((label, os.path.basename(p), rel, keys, sha(p)))
+        rows.append((label, os.path.basename(p), rel, keys, sha_lf(p) if is_project(label) else sha(p)))
     for label, p in BIG_CONFIG:
         if not os.path.exists(p):
             continue
@@ -459,8 +478,77 @@ def compare(now, base):
     return added, removed, changed
 
 
+# ── 클라우드 — 다른 기계다 [2026-10-10] ─────────────────────────────────────
+#
+# 기준선은 **운영자 기계의 사진**이다(사용자·에이전트·플러그인 스킬 · 전역 설정).
+# 클라우드 새 클론은 그 자리들이 원천적으로 다르다 — 거기서 대조하면 176건이 「없어졌다」로
+# 뜨고, 그 상태로 `--write` 를 치면 **운영자 기계의 사진을 클라우드 사진으로 덮는다.**
+# 그래서 클라우드로 확인되면 **저장소가 든 자리(프로젝트 갈래)만** 이름·해시로 대조하고,
+# 기계 갈래는 환경 생략(3)으로 남긴다. `--write` 도 프로젝트 갈래만 고친다.
+ROOT_REL = os.path.relpath(ROOT, HOME).replace(chr(92), "/")
+
+
+def repo_rel(loc):
+    """「홈 기준 자리」에서 저장소 안 상대 경로만 뗀다(기계마다 clone 자리가 다르다)."""
+    for pre in (ROOT_REL + "/",):
+        if loc.startswith(pre):
+            return loc[len(pre):]
+    return loc
+
+
+def base_prefix(base):
+    """기준선이 쓰는 저장소 자리(운영자 기계의 clone 경로). 프로젝트 기억 행에서 읽는다."""
+    for r in base:
+        if r[0] == "프로젝트 기억" and r[2].endswith("/CLAUDE.md"):
+            return r[2][: -len("CLAUDE.md")]
+    return ""
+
+
+def cloud_rows(now, base):
+    """클라우드의 프로젝트 행을 기준선 자리 표기로 옮긴다 — 운영자 기계에서 그대로 맞물리게."""
+    pre = base_prefix(base)
+    return [(r[0], r[1], pre + repo_rel(r[2]), r[3], r[4]) for r in now if is_project(r[0])]
+
+
+def cloud_main(now, base, write=False):
+    from env_limits import ENV_SKIP
+    proj_now = cloud_rows(now, base)
+    if write:
+        keep = [r for r in base if not is_project(r[0])]
+        write_baseline(keep + proj_now)
+        print("기준선 갱신(클라우드 · 프로젝트 갈래만): %d건 · 기계 갈래 %d건은 그대로 뒀다"
+              % (len(proj_now), len(keep)))
+        print("**무엇이 바뀌었는지 `git diff` 로 보고 커밋한다.**")
+        return 0
+    proj_base = [r for r in base if is_project(r[0])]
+    added, removed, changed = compare(proj_now, proj_base)
+    print("== 세션 지시문 자리 (클라우드 — 프로젝트 갈래만) ==")
+    print("  기준선 프로젝트 %d건 · 지금 %d건" % (len(proj_base), len(proj_now)))
+    for title, rows in (("새로 생겼다", added), ("없어졌다", removed)):
+        if rows:
+            print("\n  **%s %d건**" % (title, len(rows)))
+            for r in rows:
+                print("    [%s] %s  %s" % (r[0], r[1], (r[3] or "")[:90]))
+    if changed:
+        print("\n  **내용이 바뀌었다 %d건**" % len(changed))
+        for b, n in changed:
+            print("    [%s] %s  %s → %s" % (n[0], n[1], b[4], n[4]))
+    if added or removed or changed:
+        print("\n  읽고 받아들이면  python analysis/check_session_surface.py --write  (프로젝트 갈래만 고친다)")
+        return 1
+    n_machine = sum(1 for r in base if not is_project(r[0]))
+    print("\n  프로젝트 갈래는 기준선과 같다.")
+    print("  환경 생략 — 기계 갈래 %d건(사용자·에이전트·플러그인·전역)은 운영자 기계의 사진이라 대조하지 않았다." % n_machine)
+    return ENV_SKIP
+
+
 def main(listing=False, write=False):
     now = survey()
+    if not listing:
+        from env_limits import is_confirmed_cloud
+        base0 = read_baseline()
+        if base0 is not None and is_confirmed_cloud():
+            return cloud_main(now, base0, write)
     if listing:
         print("== 세션 지시문 자리 — 지금 있는 것 %d건 ==" % len(now))
         for r in now:
@@ -574,6 +662,19 @@ def selftest():
     add, rem, chg = compare(now2, base)
     chk("해시가 바뀌면 변경으로 잡는다", [n[1] for _, n in chg], ["a"])
     chk("같은 이름이 다시 깔려도 잡힌다(G5c)", len(chg), 1)
+
+    print("── 인수시험: 클라우드는 프로젝트 갈래만 — 운영자 기계 사진을 안 덮는다 ──")
+    cb = [("사용자 스킬", "x", ".claude/skills/x", "d", "aaaaaaaaaaaa"),
+          ("프로젝트 기억", "CLAUDE.md", "company/c/CLAUDE.md", "", "bbbbbbbbbbbb")]
+    cn = [("프로젝트 기억", "CLAUDE.md", ROOT_REL + "/CLAUDE.md", "", "bbbbbbbbbbbb")]
+    chk("clone 자리를 기준선 표기로 옮긴다", cloud_rows(cn, cb)[0][2], "company/c/CLAUDE.md")
+    chk("기계 갈래는 대조에서 빠진다", [r[0] for r in cloud_rows(cn + cb[:1], cb)], ["프로젝트 기억"])
+    with tempfile.TemporaryDirectory() as d:
+        f = os.path.join(d, "a.json")
+        io.open(f, "wb").write(b"{\r\n}\r\n")
+        g = os.path.join(d, "b.json")
+        io.open(g, "wb").write(b"{\n}\n")
+        chk("줄끝만 다른 파일은 같은 해시(프로젝트 갈래)", sha_lf(f), sha_lf(g))
 
     print("── 인수시험: 기준선 왕복 ──")
     global BASELINE
