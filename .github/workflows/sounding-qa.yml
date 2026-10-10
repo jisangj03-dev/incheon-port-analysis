@@ -1,0 +1,87 @@
+# 측심 검사 — PR 마다 계산기 회귀·Pagefind·차트 번들·Astro·Lighthouse 를 돌린다(2026-10-10).
+# 결과는 artifact 로만 남긴다. 외부 업로드 없음(Lighthouse 는 CLI 직접 실행 · 파일 출력만).
+# Pages 배포 방식은 바꾸지 않는다 — 이 워크플로는 빌드해서 재기만 하고 배포하지 않는다.
+name: sounding-qa
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sounding-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"   # Astro 기본 텔레메트리(외부 전송)를 끈다
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      # GitHub Pages 와 같은 빌더(github-pages 묶음). 기준주소 /incheon-port-analysis 를 그대로 살린다.
+      - name: Jekyll 빌드 (Pages 와 같은 빌더)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site/incheon-port-analysis
+      - name: 빌드 산출물 소유권(도커가 root 로 쓴다)
+        run: sudo chown -R "$(id -u):$(id -g)" _site
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: npm audit (고정 버전 취약점 0 확인)
+        run: npm audit --audit-level=low
+
+      - name: Pagefind 색인
+        run: npx pagefind --site _site/incheon-port-analysis
+      - name: Astro build · check (공개 사이트와 무관한 최소 구성)
+        run: |
+          npm run astro:build
+          npm run astro:check
+
+      - name: Playwright 브라우저
+        run: npx playwright install --with-deps chromium
+      - name: Playwright 시험 (계산기 회귀 · Pagefind '공컨' · 차트 번들)
+        run: npx playwright test
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: webapp-testing 스킬 경로 (with_server.py + 파이썬 Playwright)
+        run: |
+          python -m pip install -q -r requirements-dev.txt
+          python .claude/skills/webapp-testing/scripts/with_server.py \
+            --server "python -m http.server 4173 --bind 127.0.0.1 --directory _site" --port 4173 \
+            -- python tests/py/calc_smoke.py
+
+      # 앞 단계(with_server.py · 4173)의 서버가 아직 내려가는 중이면 같은 포트의 새 서버가 bind 에 실패한다 —
+      # 첫 세 번의 CHROME_INTERSTITIAL_ERROR 가 그것이었다(채팅 재현 · 메인 문서 ERR_CONNECTION_REFUSED).
+      # 다른 포트(4175)를 쓰고, with_server.py 가 포트 준비를 기다린 뒤, curl 로 홈 200 을 먼저 확인한다.
+      - name: Lighthouse 13.5.0 (홈·계산기·배치도 · 모바일)
+        run: |
+          python .claude/skills/webapp-testing/scripts/with_server.py \
+            --server "python -m http.server 4175 --bind 127.0.0.1 --directory _site" --port 4175 \
+            -- bash -c 'curl -sf -o /dev/null http://127.0.0.1:4175/incheon-port-analysis/ && node tests/lighthouse/run.mjs http://127.0.0.1:4175'
+          cat lighthouse-results/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 결과 보관 (artifact 만)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sounding-qa-${{ github.run_number }}
+          retention-days: 30
+          path: |
+            playwright-report/
+            test-results/
+            lighthouse-results/
+          if-no-files-found: warn

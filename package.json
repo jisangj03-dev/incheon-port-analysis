@@ -1,0 +1,23 @@
+{
+  "name": "sounding-tooling",
+  "private": true,
+  "description": "측심 검사·빌드 도구(공개 사이트와 무관). 버전은 docs/도구도입_판정_20261010.md 와 같다.",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@observablehq/plot": "0.6.17",
+    "@playwright/test": "1.63.0",
+    "astro": "7.3.5",
+    "chart.js": "4.5.1",
+    "lighthouse": "13.5.0",
+    "pagefind": "1.5.2",
+    "typescript": "6.0.3"
+  },
+  "scripts": {
+    "astro:build": "astro build --root astro",
+    "astro:check": "astro check --root astro",
+    "pagefind": "pagefind --site _site/incheon-port-analysis",
+    "test": "playwright test",
+    "lighthouse": "node tests/lighthouse/run.mjs"
+  }
+}

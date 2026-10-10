@@ -1,0 +1,53 @@
+---
+// 시험 지면 — Chart.js·Observable Plot 이 저장소 안 번들(Vite)로 import 되는지 본다.
+// 값은 계산기 회귀 시험의 엑셀 가상 샘플 답(건당)이다. 실제 업체 견적이 아니다.
+const sample = [
+  { name: "지금 방식", perUnit: 4044 },
+  { name: "견적 A", perUnit: 2805 },
+  { name: "견적 B", perUnit: 2960 },
+];
+---
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>도구 시험 — 차트 번들</title>
+  </head>
+  <body>
+    <h1>차트 번들 시험(비공개)</h1>
+    <p>건당 물류비 가상 샘플 — 실제 업체 견적 아님.</p>
+    <figure>
+      <canvas id="cj" width="480" height="240" data-chart="chartjs" aria-label="Chart.js 막대"></canvas>
+      <figcaption>Chart.js</figcaption>
+    </figure>
+    <figure id="op" data-chart="plot"><figcaption>Observable Plot</figcaption></figure>
+    <script id="sample" type="application/json" set:html={JSON.stringify(sample)} />
+    <script>
+      import { Chart, BarController, BarElement, CategoryScale, LinearScale } from "chart.js";
+      import * as Plot from "@observablehq/plot";
+
+      type Row = { name: string; perUnit: number };
+      const data: Row[] = JSON.parse(document.getElementById("sample")!.textContent || "[]");
+
+      Chart.register(BarController, BarElement, CategoryScale, LinearScale);
+      const chart = new Chart(document.getElementById("cj") as HTMLCanvasElement, {
+        type: "bar",
+        data: { labels: data.map((d) => d.name), datasets: [{ label: "건당(원)", data: data.map((d) => d.perUnit) }] },
+        options: { animation: false, responsive: false },
+      });
+
+      const svg = Plot.plot({
+        marginLeft: 70,
+        x: { label: "건당(원)" },
+        marks: [Plot.barX(data, { x: "perUnit", y: "name" }), Plot.ruleX([0])],
+      });
+      document.getElementById("op")!.prepend(svg);
+
+      (window as unknown as { __charts: unknown }).__charts = {
+        chartjs: chart.data.datasets[0].data.length,
+        plotRects: svg.querySelectorAll("rect").length,
+      };
+    </script>
+  </body>
+</html>

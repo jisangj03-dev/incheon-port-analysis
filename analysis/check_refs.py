@@ -160,9 +160,9 @@ def scan(valid):
 
 def main(strict=False, listing=False):
     if not os.path.isfile(GUIDE):
-        print("[불성립] 지침 파일을 못 찾았다: %s" % GUIDE)
-        print("  이 저장소만 clone한 기계에서는 잴 수 없다. 통과로 치지 않는다.")
-        return 2
+        # 클라우드로 확인되면 3(환경 생략), 아니면 2(모름) — analysis/env_limits.py
+        from env_limits import say_missing
+        return say_missing("지침 파일", GUIDE)
     valid = anchors(io.open(GUIDE, encoding="utf-8").read())
     if listing:
         print("== 지침의 유효 앵커 %d개 ==" % len(valid))

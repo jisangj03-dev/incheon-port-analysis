@@ -198,10 +198,11 @@ def main(strict=False, listing=False):
         return 0
 
     missing = check_anchors()
-    if missing is None:
-        print("[불성립] 지침 파일을 못 찾았다: %s" % GUIDE)
-        print("  이 저장소만 clone한 기계에서는 잴 수 없다. 통과로 치지 않는다.")
-        return 2
+    no_guide = missing is None
+    if no_guide:
+        # [2026-10-10] 지침이 없어도 **저장소 안 공개물 대조는 잴 수 있다** — 그 몫은 친다.
+        # 정본 앵커 대조만 빠지므로 판정은 통과가 아니라 환경 생략(3)·모름(2)이다(env_limits).
+        missing = []
 
     st, so = strict_targets(), soft_targets()
     print("== 주장 일치 검사 ==")
@@ -244,7 +245,13 @@ def main(strict=False, listing=False):
     else:
         print("**고쳐야 할 것 %d건.** 지침의 역할 조항이 바뀌었으면 **공개물을 같은 커밋에서 연다.**"
               % len(bad))
-    return 1 if (bad and strict) else 0
+    if bad and strict:
+        return 1
+    if no_guide:
+        from env_limits import say_missing
+        print("  (정본 앵커 대조만 빠졌다 — 위 공개물 대조는 쳤다)")
+        return say_missing("지침 파일", GUIDE)
+    return 0
 
 
 def selftest():
@@ -300,10 +307,24 @@ def selftest():
         chk("옛 축 문면을 잡는다", [h[0] for h in scan_file(axis, CLAIMS)], ["축"])
 
     print("── 인수시험: 대상 ──")
+    # [2026-10-10] 채널 문안은 저장소 밖(본부)에 있다. 그 폴더가 없는 기계(클라우드 새 클론)에서도
+    # **「채널 문안을 엄격 쪽으로 본다」는 논리**를 시험할 수 있게, 없으면 임시 본부를 세워 친다.
+    global HQ
+    keep_hq, tmp_hq = HQ, None
+    if not glob.glob(os.path.join(HQ, "채널문안", "*.md")):
+        tmp_hq = tempfile.mkdtemp()
+        os.makedirs(os.path.join(tmp_hq, "채널문안"))
+        io.open(os.path.join(tmp_hq, "채널문안", "li-00.md"), "w", encoding="utf-8").write("시험\n")
+        HQ = tmp_hq
     st = [r for r, _ in strict_targets()]
     chk("about.md 를 본다", "about.md" in st, True)
     chk("README.md 를 본다", "README.md" in st, True)
     chk("채널 문안을 본다", any(r.startswith("본부/채널문안/") for r in st), True)
+    HQ = keep_hq
+    if tmp_hq:
+        import shutil
+        shutil.rmtree(tmp_hq, ignore_errors=True)
+        print("     (본부 폴더가 없는 기계 — 임시 본부로 쳤다)")
     so = [r for r, _ in soft_targets()]
     chk("발행본은 경고 쪽", any(r.startswith("reports/") for r in so), True)
     chk("발행본은 엄격 쪽이 아니다", any(r.startswith("reports/") for r in st), False)
