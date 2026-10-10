@@ -29,17 +29,27 @@ function chromePath() {
 }
 
 const env = { ...process.env, CHROME_PATH: chromePath() };
+// [2026-10-10 첫 CI] 세 지면 모두 「Chrome prevented page load with an interstitial」로 멈췄다.
+// 같은 러너에서 Playwright 시험은 같은 주소로 통과했다 — Playwright 는 크로미움을 띄울 때
+// HttpsUpgrades 를 끈다(chromiumSwitches). Lighthouse(chrome-launcher)는 안 끈다. 그래서 같은 기능을 끈다.
+// 측정 대상(성능·접근성·권장·SEO)과는 무관한 브라우저 보안 승격 기능이다.
+const FLAGS = [
+  "--headless=new", "--no-sandbox", "--disable-dev-shm-usage",
+  "--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2ForTypicallySecureUsers",
+].join(" ");
 const rows = [];
 let bad = 0;
 for (const [name, path] of PAGES) {
   const json = `${OUT}/${name}.json`;
   const r = spawnSync("npx", ["lighthouse", base + path, "--quiet", "--output=json", `--output-path=${json}`,
-    "--chrome-flags=--headless=new --no-sandbox --disable-dev-shm-usage"], { env, stdio: ["ignore", "inherit", "inherit"] });
-  if (r.status !== 0 || !existsSync(json)) { rows.push([name, "실행 실패", "", "", ""]); bad++; continue; }
+    `--chrome-flags=${FLAGS}`], { env, stdio: ["ignore", "inherit", "inherit"] });
+  if (!existsSync(json)) { rows.push([name, `실행 실패(종료 ${r.status})`, "", "", ""]); bad++; continue; }
   const rep = JSON.parse(readFileSync(json, "utf-8"));
+  if (rep.runtimeError) {   // 점수 대신 이유를 남긴다 — 「실행 실패」 넉 자로는 다음 수를 못 고른다
+    rows.push([name, `실행 실패: ${rep.runtimeError.code}`, "", "", ""]); bad++; continue;
+  }
   const s = (k) => Math.round((rep.categories[k]?.score ?? NaN) * 100);
   rows.push([name, s("performance"), s("accessibility"), s("best-practices"), s("seo")]);
-  if (rep.runtimeError) { console.error(`${name}: ${rep.runtimeError.message}`); bad++; }
 }
 const md = [
   `# Lighthouse 요약 — ${new Date().toISOString()}`,
