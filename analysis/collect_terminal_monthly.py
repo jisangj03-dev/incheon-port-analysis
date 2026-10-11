@@ -26,7 +26,10 @@ import html as htmllib
 import io
 import os
 import re
+import subprocess
 import sys
+import time
+import urllib.error
 import urllib.request
 import zipfile
 
@@ -71,8 +74,20 @@ def get(url: str, referer: str | None = None) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     if referer:
         req.add_header("Referer", referer)
-    with urllib.request.urlopen(req, timeout=60) as r:
-        return r.read()
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            return r.read()
+    except urllib.error.URLError:
+        # 클라우드 컨테이너에서 이 호스트는 urllib 이 자주 끊긴다 — curl 재시도로 잇는다(geocode.py 와 같은 처리).
+        cmd = ["curl", "-sSf", "-m", "90", "-A", UA]
+        if referer:
+            cmd += ["-e", referer]
+        for _ in range(5):
+            r = subprocess.run(cmd + [url], capture_output=True)
+            if r.returncode == 0:
+                return r.stdout
+            time.sleep(3)
+        raise
 
 
 # 게시판 쪽 이동 — `fnPageMove(n)` 이 `#pageindex` 에 값을 넣고 폼을 낸다
