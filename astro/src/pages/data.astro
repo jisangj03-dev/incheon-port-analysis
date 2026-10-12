@@ -1,0 +1,48 @@
+---
+// 데이터 출처 대장(개편 기준 16 · A5) — data/sources.json 을 그대로 보인다. 확인 못 한 칸은 「미확인」.
+import Base from "../layouts/Base.astro";
+import Updated from "../components/Updated.astro";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot, lastUpdated } from "../lib/content";
+import { REPO } from "../lib/site";
+const reg = JSON.parse(readFileSync(join(repoRoot(), "data/sources.json"), "utf-8"));
+const updated = lastUpdated("data/sources.json");
+const jsonld = reg.sources.filter((s: any) => s.kogl !== "해당 없음" || s.id === "osm-protomaps").map((s: any) => ({ "@context": "https://schema.org", "@type": "Dataset", name: s.name, creator: { "@type": "Organization", name: s.owner }, license: s.license, description: `${s.name} — ${s.where}` }));
+---
+<Base title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." path="/data.html" jsonld={jsonld}>
+  <div class="wrap" style="padding-top:2.5rem">
+    <p class="eyebrow">데이터</p>
+    <h1>어디서 온 숫자인가</h1>
+    <p class="lede" style="max-width:62ch">공공데이터는 이용허락이 출처마다 다르다. <strong>상업 이용 금지(공공누리 2·4유형) 자료는 쓰지 않고, 변경 금지(3·4유형) 자료는 가공하지 않는다.</strong> 공공데이터포털 화면이 적는 「이용허락범위 제한 없음」은 공공누리 유형 번호가 아니라서, 유형은 확인하기 전까지 「미확인」으로 둔다.</p>
+    <p><Updated date={updated} source="출처 대장 data/sources.json" /></p>
+    <div class="tbl" tabindex="0" role="region" aria-label="출처 대장 표">
+      <table>
+        <thead><tr><th scope="col">출처</th><th scope="col">기관</th><th scope="col">이용허락</th><th scope="col">공공누리</th><th scope="col">상업 이용</th><th scope="col">가공</th><th scope="col">확인</th></tr></thead>
+        <tbody>
+          {reg.sources.map((s: any) => (
+            <tr id={s.id}>
+              <th scope="row">{s.name}<br /><small>{s.where}</small></th>
+              <td>{s.owner}</td><td>{s.license}</td>
+              <td class={s.kogl === "미확인" ? "unk" : ""}>{s.kogl}</td>
+              <td class={/미확인/.test(s.commercial) ? "unk" : ""}>{s.commercial}</td>
+              <td class={/미확인/.test(s.modify) ? "unk" : ""}>{s.modify}</td>
+              <td>{s.checked}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <h2>원시 데이터와 재현 코드</h2>
+    <p>보고서의 모든 수치는 <a href={REPO}>저장소</a>의 원시 CSV(<code>analysis/</code>)와 코드에서 다시 계산된다. 수치 대장 = <a href={`${REPO}/blob/main/docs/FACTS.md`}>FACTS.md</a>.</p>
+  </div>
+</Base>
+<style>
+  .tbl { overflow-x: auto; border: 1px solid var(--hair); border-radius: var(--r-md); }
+  table { border-collapse: collapse; font-size: 0.86rem; min-width: 880px; width: 100%; }
+  th, td { border-bottom: 1px solid var(--hair); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
+  thead th { background: var(--hull); color: var(--ink); }
+  tbody th { color: var(--ink); font-weight: 650; }
+  small { color: var(--mist); font-weight: 400; }
+  .unk { color: var(--sodium); font-weight: 700; }
+</style>

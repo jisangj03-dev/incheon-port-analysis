@@ -81,6 +81,12 @@ PLACEHOLDER = re.compile(
     r"(?i)^(x+|y+|<.*>|\{.*\}|your[_-]?|여기|보관|例|example|dummy|placeholder|"
     r"발급받|환경변수|env|os\.environ|config\.|\.\.\.|없음|none|null)"
 )
+# 공개가 설계인 식별자 — 비밀값이 아니라 방문자의 모든 지면 HTML 에 그대로 실리는 값이다. **값 하나씩, 근거와 같이** 든다.
+# [2026-10-12] Cloudflare Web Analytics 비컨 토큰(개편 기준 17 · 선장님 결정 · 채팅이 발급해 「공개되는 값이라 비밀값 아님」으로 넘김).
+#   이 목록에 없는 token·key 리터럴은 그대로 잡는다(selftest 가 본다). 값을 늘리려면 근거 한 줄과 같이 늘린다.
+PUBLIC_IDS = {
+    "d50802d5e62b45baa1de6d74ea63add7": "Cloudflare Web Analytics 비컨 토큰 — 공개 HTML 에 실리는 값(개편 기준 17)",
+}
 LOCALPATH = re.compile(r"[A-Za-z]:[\\/]Users[\\/][^\s\"'<>|:*?\r\n]{1,40}")
 
 TEXT_EXT = {
@@ -115,7 +121,7 @@ def scan_text(rel, text):
             hits.append(("이메일", i, line.strip()[:90]))
         for m in KEYISH.finditer(line):
             v = m.group("v")
-            if not PLACEHOLDER.match(v):
+            if not PLACEHOLDER.match(v) and v not in PUBLIC_IDS:
                 hits.append(("인증키", i, f"{m.group(1)} = <{len(v)}자 리터럴>"))
         for m in LOCALPATH.finditer(line):
             hits.append(("로컬경로", i, m.group(0)[:70]))
@@ -243,6 +249,10 @@ def selftest():
     # 잡아야 하는 것 넷
     chk("실명을 잡는다", [k for k, _, _ in scan_text("a", "검수 · 발행: " + _NAME)], ["실명"])
     chk("이메일을 잡는다", [k for k, _, _ in scan_text("a", "문의 " + _MAIL)], ["이메일"])
+    chk("공개 식별자 목록의 값은 통과시킨다",
+        [k for k, _, _ in scan_text("a", "tok" + 'en: "' + next(iter(PUBLIC_IDS)) + '"')], [])
+    chk("목록에 없는 token 리터럴은 잡는다",
+        [k for k, _, _ in scan_text("a", "tok" + 'en: "d50802d5e62b45baa1de6d74ea63add8"')], ["인증키"])
     chk("박힌 인증키를 잡는다",
         [k for k, _, _ in scan_text("a", "service" + 'Key = "aZ90kLmn3QpR7sT1uV"')], ["인증키"])
     chk("로컬 절대경로를 잡는다",

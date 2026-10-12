@@ -1,0 +1,65 @@
+---
+// 도구 실행 증명(판정 v2 · 2026-10-12) — 공개 배포물에는 없다(SOUNDING_LAB=1 빌드에만).
+// maplibre-gl(같은 주소의 vendor/ · 워커 setWorkerUrl) · pmtiles 프로토콜 · @protomaps/basemaps 층 생성 · deck.gl(interleaved:false)
+// · three · gsap · lenis · Plot · d3 가 저장소 안 파일만으로 돌고 밖으로 요청을 안 내는지 본다. 값은 시험용(실제 통계 아님).
+import Base from "../../layouts/Base.astro";
+import { u } from "../../lib/site";
+---
+<Base title="도구 실행 증명 v2" description="판정 v2 도구가 외부 요청 없이 저장소 파일만으로 도는지 보는 비공개 시험 지면." path="/lab/tools-v2.html" noindex>
+  <div class="wrap" style="padding-top:2rem">
+    <h1>도구 실행 증명 v2 (비공개)</h1>
+    <p>시험값 — 실제 통계 아님.</p>
+    <div id="map" style="width:100%;max-width:640px;height:320px;border-radius:12px;overflow:hidden;background:#05090f"></div>
+    <canvas id="three" width="320" height="180" style="display:block;margin-top:12px"></canvas>
+    <div id="plot"></div>
+    <pre id="out">…</pre>
+  </div>
+  <script define:vars={{ ml: u("/vendor/maplibre/maplibre-gl.mjs"), worker: u("/vendor/maplibre/maplibre-gl-worker.mjs"), css: u("/vendor/maplibre/maplibre-gl.css") }}>
+    window.__ml = { ml, worker, css };
+  </script>
+  <script>
+    import { Protocol } from "pmtiles";
+    import { layers, namedFlavor } from "@protomaps/basemaps";
+    import { MapboxOverlay } from "@deck.gl/mapbox";
+    import { ArcLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
+    import * as THREE from "three";
+    import { gsap } from "gsap";
+    import Lenis from "lenis";
+    import * as Plot from "@observablehq/plot";
+    import * as d3 from "d3";
+
+    const out: Record<string, unknown> = {};
+    const done = () => { (window as any).__proof = out; document.getElementById("out")!.textContent = JSON.stringify(out, null, 1); };
+    try {
+      // three — 정육면체 한 장 그리기
+      const r = new THREE.WebGLRenderer({ canvas: document.getElementById("three") as HTMLCanvasElement, antialias: true, preserveDrawingBuffer: true });
+      const sc = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(50, 320 / 180, 0.1, 10); cam.position.z = 3;
+      const m = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshNormalMaterial()); m.rotation.set(0.5, 0.7, 0); sc.add(m); r.render(sc, cam);
+      out.three = THREE.REVISION;
+    } catch (e) { out.three = `실패 ${e}`; }
+    const tw = gsap.to({ v: 0 }, { v: 1, duration: 0.1 }); out.gsap = !!tw;
+    const lenis = new Lenis({ autoRaf: true }); out.lenis = !!lenis; lenis.destroy();
+    const svg = Plot.plot({ marks: [Plot.barY([3, 5, 2], { x: (_, i) => i, y: (d) => d })] }); document.getElementById("plot")!.append(svg);
+    out.plotRects = svg.querySelectorAll("rect").length; out.d3 = d3.sum([1, 2, 3]);
+    out.basemapLayers = layers("protomaps", namedFlavor("dark"), { lang: "ko" }).length;
+
+    const cfg = (window as any).__ml;
+    const css = document.createElement("link"); css.rel = "stylesheet"; css.href = cfg.css; document.head.append(css);
+    const maplibregl: any = await import(/* @vite-ignore */ cfg.ml);
+    maplibregl.setWorkerUrl(new URL(cfg.worker, location.href).href);
+    const proto = new Protocol(); maplibregl.addProtocol("pmtiles", proto.tile);
+    const map = new maplibregl.Map({ container: "map", style: { version: 8, sources: {}, layers: [{ id: "bg", type: "background", paint: { "background-color": "#0b1a26" } }] }, center: [126.6, 37.45], zoom: 9, attributionControl: false });
+    map.on("load", () => {
+      out.maplibre = maplibregl.getVersion();
+      const overlay = new MapboxOverlay({ interleaved: false, layers: [
+        new ArcLayer({ id: "arc", data: [{ s: [126.6, 37.45], t: [121.47, 31.23] }], getSourcePosition: (d: any) => d.s, getTargetPosition: (d: any) => d.t, getSourceColor: [63, 211, 230], getTargetColor: [255, 181, 71], getWidth: 3 }),
+        new ScatterplotLayer({ id: "pt", data: [{ p: [126.6, 37.45] }], getPosition: (d: any) => d.p, getRadius: 4000, getFillColor: [255, 181, 71] }),
+        new TextLayer({ id: "tx", data: [{ p: [126.6, 37.45], t: "인천항" }], getPosition: (d: any) => d.p, getText: (d: any) => d.t, characterSet: "auto", getColor: [238, 245, 250], getSize: 14, fontFamily: "system-ui, sans-serif" }),
+      ], onAfterRender: () => { out.deck = "rendered"; done(); } });
+      map.addControl(overlay);
+      out.workerUrl = maplibregl.getWorkerUrl();
+      done();
+    });
+    done();
+  </script>
+</Base>

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""webapp-testing 스킬 실동 확인 — with_server.py 가 띄운 로컬 빌드에서 계산기를 연다(2026-10-10).
+"""webapp-testing 스킬 실동 확인(2026-10-12 계산기 v2 화면 · Astro 빌드) — with_server.py 가 띄운 로컬 빌드에서 계산기를 연다(2026-10-10).
 
   python .claude/skills/webapp-testing/scripts/with_server.py \
-      --server "python3 -m http.server 4173 --bind 127.0.0.1 --directory _site" --port 4173 \
+      --server "node tests/serve.mjs 4173 astro/dist" --port 4173 \
       -- python tests/py/calc_smoke.py
 
 「가상 예시 넣기」를 눌러 첫 카드가 4,044원인지 본다. 손 입력 회귀는 tests/cost.spec.mjs 가 맡는다 —
@@ -25,8 +25,8 @@ with sync_playwright() as p:
     page = b.new_page()
     page.goto(URL)
     page.wait_for_load_state("networkidle")
-    page.click("#cc-sample")
-    first = page.locator("#cc-cards .cc-card .cc-big").first.inner_text()
+    page.click("#sample")
+    first = page.locator("#res-0 [data-per]").inner_text()
     b.close()
 
 print("첫 카드:", first)

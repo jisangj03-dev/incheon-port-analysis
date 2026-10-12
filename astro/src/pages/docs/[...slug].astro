@@ -1,0 +1,12 @@
+---
+import { getCollection, render } from "astro:content";
+import Doc from "../../layouts/Doc.astro";
+import { title, lastUpdated } from "../../lib/content";
+export async function getStaticPaths() {
+  return (await getCollection("docs")).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const t = title(entry.body ?? "") || entry.id;
+---
+<Doc title={t} path={`/docs/${entry.id}.html`} updated={lastUpdated(`docs/${entry.id}.md`)} kind="기록 문서"><Content /></Doc>

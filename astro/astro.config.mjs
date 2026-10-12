@@ -1,9 +1,33 @@
-// Astro 최소 구성 — 빌드·검사가 도는지 확인하는 자리(2026-10-10). **공개 사이트에 연결하지 않는다.**
-// Jekyll 빌드에서는 _config.yml exclude 로 빠진다. 개편(이전)은 다음 세션 판단이다.
+// 측심 사이트 — Astro 정적 생성(2026-10-12 · Jekyll 에서 이전).
+// 주소는 그대로: 기준주소 /incheon-port-analysis · 지면은 `….html`(build.format "preserve" — about.astro → about.html,
+// tools/index.astro → tools/index.html). 발행본 마크다운은 저장소 자리(reports/ · docs/)에서 직접 읽는다 — 사본을 만들지 않는다.
+// 외부 요청 0: 글꼴·지도 라이브러리·워커는 public/ 으로 복사해 같은 주소에서 낸다(scripts/sync-public.mjs).
 import { defineConfig } from "astro/config";
+import { rewriteDir } from "./src/lib/md-links.mjs";
+import { rmSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+const lab = process.env.SOUNDING_LAB === "1";
 
 export default defineConfig({
+  site: "https://jisangj03-dev.github.io",
+  base: "/incheon-port-analysis",
   output: "static",
-  // 외부 요청 0 — 글꼴·텔레메트리 없이 빌드 산출물만 쓴다.
+  trailingSlash: "ignore",
+  build: { format: "preserve", assets: "_a", inlineStylesheets: "always" }, // CSS 를 지면에 넣어 요청 하나 줄인다(첫 화면)
   devToolbar: { enabled: false },
+  integrations: [
+    {
+      // 시안·도구 시험 지면(lab/)은 SOUNDING_LAB=1 일 때만 산출물에 남긴다 — 공개 배포물에는 없다.
+      name: "sounding-lab-gate",
+      hooks: {
+        "astro:build:done": ({ dir, logger }) => {
+          // 발행본의 상대 링크(`report_07_….md` · `../docs/….md`)를 지면 주소(`.html`)로.
+          logger.info(`상대 .md 링크 ${rewriteDir(fileURLToPath(dir))}개를 .html 로 바꿨다`);
+          const p = fileURLToPath(new URL("lab", dir));
+          if (!lab && existsSync(p)) rmSync(p, { recursive: true, force: true });
+        },
+      },
+    },
+  ],
 });

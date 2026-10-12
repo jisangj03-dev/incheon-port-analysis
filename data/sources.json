@@ -1,0 +1,102 @@
+{
+  "_설명": "측심 공개 지면이 쓰는 데이터 출처 대장(기준 16 · A5). 행마다 이용허락과 확인 근거. 확인 못 한 것은 '미확인'으로 적는다 — 추측으로 채우지 않는다. 공공데이터포털 화면이 적는 것은 '이용허락범위 제한 없음'이지 공공누리 유형 번호가 아니다. 대장에 없는 지면은 빌드 검사(tests/site.spec.mjs)가 실패시킨다.",
+  "갱신": "2026-10-12",
+  "sources": [
+    {
+      "id": "ipa-empty-container",
+      "name": "인천항만공사 공컨테이너 화물 통계(수출입) API",
+      "owner": "인천항만공사 · 해양수산부",
+      "where": "공공데이터포털 apis.data.go.kr/1192000/SsopCargContnImxprt2",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」",
+      "kogl": "미확인",
+      "commercial": "허용(포털 메타 기준)",
+      "modify": "허용(포털 메타 기준)",
+      "checked": "2026-07 수집 때 포털 화면 · 유형 번호는 미확인",
+      "used_by": ["report_01_공컨테이너_물동량", "report_02_공컨테이너_비율", "report_03_공컨테이너_수출입방향", "report_04_공컨테이너_연도별추세", "report_05_컨테이너_수지", "report_06_공컨테이너_규격방향", "report_07_공컨테이너_표본외검증", "report_09_공컨테이너_시계열연장", "물동량"]
+    },
+    {
+      "id": "mof-incheon-port-stats",
+      "name": "인천지방해양수산청 월별 항만운영통계 · 인천항 물동량 공표",
+      "owner": "인천지방해양수산청",
+      "where": "incheon.mof.go.kr 게시판(menuIdx=1700) · hwpx 공표자료",
+      "license": "정부 공표자료 — 게시판 화면의 공공누리 표시",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "미확인 — 다음 수집 때 게시글의 공공누리 마크를 기록한다",
+      "used_by": ["report_02_공컨테이너_비율", "report_05_컨테이너_수지", "report_11_터미널별_처리량", "report_12_터미널별_장기창", "물동량"]
+    },
+    {
+      "id": "kcs-porttrade",
+      "name": "관세청 항구·공항별 수출입실적",
+      "owner": "관세청",
+      "where": "공공데이터포털 apis.data.go.kr/1220000/porttrade",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」",
+      "kogl": "미확인",
+      "commercial": "허용(포털 메타 기준)",
+      "modify": "허용(포털 메타 기준)",
+      "checked": "2026-08 수집 때 포털 화면",
+      "used_by": ["report_08_관세청_인천항_수출입신고"]
+    },
+    {
+      "id": "kcs-sido-item",
+      "name": "관세청 시도별 품목별 수출입실적",
+      "owner": "관세청",
+      "where": "공공데이터포털 15101641 · apis.data.go.kr/1220000/sidoitemtrade",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」",
+      "kogl": "미확인",
+      "commercial": "허용(포털 메타 기준)",
+      "modify": "허용(포털 메타 기준)",
+      "checked": "2026-10-12 포털 화면(도구탐색_20261012)",
+      "used_by": ["report_13_인천_품목별_수출입"]
+    },
+    {
+      "id": "molit-warehouse",
+      "name": "국토교통부 물류창고업 등록현황",
+      "owner": "국토교통부 · 국가물류통합정보센터",
+      "where": "공공데이터포털 15083282 · nlic.go.kr",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(집계표 화면 메타) — 행 단위 원자료의 재배포 조건은 미확인이라 상호·주소는 공개하지 않는다",
+      "kogl": "미확인",
+      "commercial": "허용(집계표 · 포털 메타 기준)",
+      "modify": "허용(집계표 · 포털 메타 기준)",
+      "checked": "2026-09-30 포털 화면",
+      "used_by": ["물류창고", "tool:warehouse-map"]
+    },
+    {
+      "id": "mois-juso",
+      "name": "행정안전부 도로명주소 검색 API(주소 정제에만 씀 · 화면에 원자료 없음)",
+      "owner": "행정안전부",
+      "where": "business.juso.go.kr",
+      "license": "API 이용약관",
+      "kogl": "해당 없음(가공 도구)",
+      "commercial": "미확인",
+      "modify": "해당 없음",
+      "checked": "2026-10-01",
+      "used_by": ["물류창고"]
+    },
+    {
+      "id": "osm-protomaps",
+      "name": "OpenStreetMap 기반 Protomaps 바탕지도(PMTiles · 인천만 추출해 내장)",
+      "owner": "OpenStreetMap 기여자 · Protomaps",
+      "where": "build.protomaps.com 일간 빌드 → Actions 가 빌드 때 인천 bbox 추출",
+      "license": "ODbL 1.0(데이터) · 표기 © OpenStreetMap · Protomaps",
+      "kogl": "해당 없음",
+      "commercial": "허용(표기 조건)",
+      "modify": "허용(ODbL — 같은 조건)",
+      "checked": "2026-10-12 · 판정 v2 주의 ⑥",
+      "used_by": ["map"]
+    },
+    {
+      "id": "ai-hero",
+      "name": "히어로 영상 — AI 생성 장면(vidIQ · Veo 3.1 · 선장님 승인)",
+      "owner": "측심(생성)",
+      "where": "astro/public/media/",
+      "license": "vidIQ 이용약관에 따른 생성물 — 화면에 「AI 생성 장면」 표기",
+      "kogl": "해당 없음",
+      "commercial": "미확인(vidIQ 약관 원문 확인은 채팅 몫)",
+      "modify": "해당 없음",
+      "checked": "2026-10-12 · 기준 19",
+      "used_by": ["home"]
+    }
+  ]
+}

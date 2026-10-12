@@ -159,9 +159,102 @@
     });
   }
 
+  /* 손익분기(2026-10-12 · 개편 기준 5) — 월 출고 건수 N 이 바뀌면 건당 비용이 어떻게 바뀌나.
+     칸마다 월 금액 = 단가 × 수량이다. 수량 칸을 비워 기본값을 쓰면:
+       출고 건수 기본값 → N 에 비례(건당 변동비) · 반품 건수 기본값 → (반품/출고 비율) × N 에 비례
+       월 1회·직접 적은 수량 → N 과 무관한 고정비.
+     N = 지금 출고 건수일 때 fixed + perShip × N 은 compute() 의 월 합계와 같다(시험이 맞댄다). */
+  function split(state) {
+    var ship = num(state.ship), ret = num(state.ret);
+    var retRate = ship && ship > 0 && ret !== null ? ret / ship : 0;
+    return BLOCKS.map(function (name, b) {
+      var rows = state.blocks[b] || [];
+      var fixed = 0, perShip = 0, filled = 0;
+      ITEMS.forEach(function (it, i) {
+        var r = rows[i] || [];
+        var mark = r[0] || "";
+        if (mark) filled += 1;
+        if (!mark || mark === "단가에 포함" || mark === "없음") return;
+        var p = num(r[1]);
+        if (p === null) return;
+        var q = num(r[2]);
+        if (q === null && it[2] === "ship") perShip += p;
+        else if (q === null && it[2] === "ret") perShip += p * retRate;
+        else {
+          if (q === null) q = defaultQty(it[2], ship, ret);
+          if (q !== null) fixed += p * q;
+        }
+      });
+      return { name: name, fixed: fixed, perShip: perShip, filled: filled };
+    });
+  }
+
+  /* 월 N건일 때 건당 비용. */
+  function perUnitAt(s, n) { return n > 0 ? s.fixed / n + s.perShip : null; }
+
+  /* 두 블록의 월 비용이 같아지는 출고 건수 — 그 위에서 어느 쪽이 싼가. 교차가 없으면(평행·음수) 빼고 돌려준다. */
+  function crossings(splits) {
+    var out = [];
+    for (var a = 0; a < splits.length; a++) {
+      for (var b = a + 1; b < splits.length; b++) {
+        var A = splits[a], B = splits[b];
+        if (!A.filled || !B.filled) continue;
+        var dv = A.perShip - B.perShip;
+        if (dv === 0) continue;
+        var n = (B.fixed - A.fixed) / dv;
+        if (!(n > 0) || !isFinite(n)) continue;
+        out.push({ a: A.name, b: B.name, n: n, cheaperAbove: dv < 0 ? A.name : B.name, cheaperBelow: dv < 0 ? B.name : A.name });
+      }
+    }
+    return out.sort(function (x, y) { return x.n - y.n; });
+  }
+
+  /* 입력값 ↔ 주소(개편 기준 8 · 서버 저장 없음). 표기는 OPTS 의 순번, 숨은 비용은 HIDDEN_OPTS 의 순번으로 줄인다. */
+  function encode(state, hidden) {
+    var o = { v: 1, s: state.ship || "", r: state.ret || "", b: [], h: [] };
+    for (var b = 0; b < BLOCKS.length; b++) {
+      var rows = state.blocks[b] || [];
+      o.b.push(ITEMS.map(function (it, i) {
+        var r = rows[i] || [];
+        return [OPTS.indexOf(r[0] || ""), r[1] || "", r[2] || ""];
+      }));
+      var h = (hidden && hidden[b]) || {};
+      o.h.push(HIDDEN.map(function (x) { return HIDDEN_OPTS.indexOf(h[x.key] || ""); }));
+    }
+    var json = JSON.stringify(o);
+    var b64 = typeof btoa === "function" ? btoa(json) : Buffer.from(json, "utf-8").toString("base64");
+    return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function decode(str) {
+    try {
+      var b64 = String(str).replace(/-/g, "+").replace(/_/g, "/");
+      var json = typeof atob === "function" ? atob(b64) : Buffer.from(b64, "base64").toString("utf-8");
+      var o = JSON.parse(json);
+      if (!o || o.v !== 1) return null;
+      var cell = function (v) { return v === null || v === undefined ? "" : String(v).replace(/[^0-9.,]/g, ""); };
+      var state = { ship: cell(o.s), ret: cell(o.r), blocks: [] };
+      var hidden = [];
+      for (var b = 0; b < BLOCKS.length; b++) {
+        var rows = (o.b && o.b[b]) || [];
+        state.blocks.push(ITEMS.map(function (it, i) {
+          var r = rows[i] || [];
+          return [OPTS[r[0]] || "", cell(r[1]), cell(r[2])];
+        }));
+        var h = {};
+        var hh = (o.h && o.h[b]) || [];
+        HIDDEN.forEach(function (x, k) { if (HIDDEN_OPTS[hh[k]]) h[x.key] = HIDDEN_OPTS[hh[k]]; });
+        hidden.push(h);
+      }
+      return { state: state, hidden: hidden };
+    } catch (e) {
+      return null;
+    }
+  }
+
   var api = {
     OPTS: OPTS, BLOCKS: BLOCKS, ITEMS: ITEMS, HIDDEN: HIDDEN, HIDDEN_OPTS: HIDDEN_OPTS, SAMPLE: SAMPLE,
-    num: num, rowAmount: rowAmount, compute: compute, questions: questions, hiddenGaps: hiddenGaps
+    num: num, rowAmount: rowAmount, compute: compute, questions: questions, hiddenGaps: hiddenGaps,
+    split: split, perUnitAt: perUnitAt, crossings: crossings, encode: encode, decode: decode
   };
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.CostCheck = api;

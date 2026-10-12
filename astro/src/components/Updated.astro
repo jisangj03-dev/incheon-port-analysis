@@ -1,0 +1,6 @@
+---
+// 「마지막 갱신일」 꼬리표 — 차트·지도·표 위젯마다 하나(기준 14 · 빌드 검사가 누락을 센다: data-updated).
+interface Props { date: string; source?: string }
+const { date, source } = Astro.props;
+---
+<span class="updated" data-updated={date}>마지막 갱신 <time datetime={date}>{date}</time>{source && <> · {source}</>}</span>

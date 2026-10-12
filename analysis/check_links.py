@@ -279,7 +279,9 @@ def permalink_of(rel_path, text):
 # **검사기가 자기 도구의 출력을 원본으로 읽으면 그 판정은 전부 잡음이다.**
 SKIP_DIRS = {".git", "_site", "_preview", "node_modules", "_og", "__pycache__"}
 
-EXCLUDE_BLOCK = re.compile(r"^exclude:\s*$\n((?:^\s*-\s*.+$\n?)+)", re.M)
+# [2026-10-12 52차] 목록 사이 주석 줄(`  # …`)을 허용한다 — 종전 식은 첫 주석에서 목록을 끊어 그 뒤 항목(astro 등)을 못 읽었고,
+#   로컬 빌드 산출물 astro/dist 를 「지면」으로 걸어 죽은 링크 861건을 냈다.
+EXCLUDE_BLOCK = re.compile(r"^exclude:\s*$\n((?:^\s*(?:-\s*.+|#.*)$\n?)+)", re.M)
 
 
 def site_exclude(site_dir):
@@ -301,6 +303,8 @@ def site_exclude(site_dir):
         return set()
     out = set()
     for line in m.group(1).splitlines():
+        if line.strip().startswith("#"):
+            continue
         v = line.strip().lstrip("-").strip().strip("'\"")
         if v:
             out.add(v.replace("\\", "/").strip("/"))
@@ -668,6 +672,8 @@ def selftest():
     check("인천이 SITES 의 유일한 지면이다", [s[0] for s in SITES], ["인천"])
     check("_config.yml 의 exclude 를 읽는다",
           "CLAUDE.md" in site_exclude(ROOT), True)
+    check("exclude 목록 사이 주석 뒤 항목도 읽는다",
+          "astro" in site_exclude(ROOT), True)
     check("exclude 된 것은 내보내는 자리에 없다",
           "/incheon-port-analysis/CLAUDE.md" in inc_known, False)
     check("인천 발행본 .html 은 known 이다",
