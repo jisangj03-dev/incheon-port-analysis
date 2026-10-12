@@ -1,0 +1,15 @@
+---
+import Persona from "../../layouts/Persona.astro";
+import { u } from "../../lib/site";
+---
+<Persona who="물류 실무자 · 채용 담당자" title="인천 물류 현황, 한 장씩" description="인천 물류창고 배치도, 인천항 컨테이너 물동량 주간 갱신, 터미널별 처리량, 품목별 수출입 — 실무자가 먼저 찾는 순서로." path="/for/pro.html">
+  <p class="lede">현장에서 먼저 묻는 것 — 어디에 창고가 몰려 있나, 이번 달 항만 물동량은, 어느 터미널이 바쁜가.</p>
+  <ul class="pl">
+    <li><a href={u("/tools/warehouse-map.html")}><strong>인천 물류창고 구·동 배치도</strong><span>개소·면적·냉동냉장 면적 · 구·동 순위</span></a></li>
+    <li><a href={u("/reports/물동량.html")}><strong>인천항 컨테이너 물동량 — 주간 갱신</strong><span>최근 12개월 · 터미널별 · 공컨 수출입</span></a></li>
+    <li><a href={u("/reports/report_12_터미널별_장기창.html")}><strong>터미널별 처리량, 39개월</strong><span>합계 한 줄이 다섯 터미널을 대표하는가</span></a></li>
+    <li><a href={u("/reports/report_13_인천_품목별_수출입.html")}><strong>인천 품목별 수출입</strong><span>어떤 품목이 어느 방향으로 인천을 지나는가</span></a></li>
+  </ul>
+  <h2>채용·지원사업 레이더</h2>
+  <p class="soon"><strong>준비 중.</strong> 인천 물류 채용·정부 지원사업을 원천 링크와 마지막 갱신일과 함께 모으는 레이더는 원천 이용허락을 확인한 뒤 연다(개편 기준 23).</p>
+</Persona>

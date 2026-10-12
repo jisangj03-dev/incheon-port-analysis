@@ -1,0 +1,33 @@
+---
+// 보고서 목록 — 종전 첫 화면(README)의 목록을 이 지면이 든다. 순서·한 줄 결론은 발행본에서 뽑는다(손으로 든 목록은 낡는다 · 사고 31).
+import Base from "../../layouts/Base.astro";
+import { getCollection } from "astro:content";
+import { title, splitTitle, conclusion, written } from "../../lib/content";
+import { u } from "../../lib/site";
+const all = (await getCollection("reports")).map((e) => ({ id: e.id, ...splitTitle(title(e.body ?? "")), concl: conclusion(e.body ?? ""), date: written(e.body ?? "") }));
+const numbered = all.filter((r) => r.no).sort((a, b) => b.id.localeCompare(a.id));
+const snapshots = all.filter((r) => !r.no);
+---
+<Base title="보고서" description={`측심 보고서 ${all.length}편 — 인천항 물동량·공컨테이너·터미널·품목별 수출입·물류창고를 공공 1차 데이터로 판정한 기록. 기준은 데이터를 받기 전에 커밋했다.`} path="/reports/">
+  <div class="wrap" style="padding-top:2.5rem">
+    <p class="eyebrow">보고서</p>
+    <h1>판정한 것, 그대로</h1>
+    <p class="lede" style="max-width:60ch">말해진 명제 하나를 골라 공공 1차 데이터로 성립하는지 판정했다. 기준은 데이터를 받기 전에 커밋했고, 못 미친 것도 FAIL 그대로 실었다.</p>
+    <h2>정리형 · 갱신</h2>
+    <ul class="rl">{snapshots.map((r) => <li><a href={u(`/reports/${r.id}.html`)}><span class="rl__t">{r.text}</span><span class="rl__c">{r.concl}</span></a></li>)}</ul>
+    <h2>판정형 편</h2>
+    <ol class="rl">{numbered.map((r) => <li><a href={u(`/reports/${r.id}.html`)}><span class="rl__no">{r.no}</span><span class="rl__t">{r.text}</span><span class="rl__c">{r.concl}</span>{r.date && <span class="rl__d">{r.date}</span>}</a></li>)}</ol>
+    <p class="muted">#10 은 편으로 안 나왔다 — 판정과 근거는 <a href={u("/docs/10_판정결과.html")}>10 판정결과</a>가 든다.</p>
+  </div>
+</Base>
+<style>
+  .rl { list-style: none; padding: 0; display: grid; gap: 0.6rem; }
+  .rl a { display: grid; grid-template-columns: 4rem 1fr; gap: 0.15rem 1rem; padding: 1rem 1.2rem; border-radius: var(--r-md); border: 1px solid var(--hair); text-decoration: none; color: var(--text); background: color-mix(in srgb, var(--hull) 55%, transparent); }
+  ul.rl a { grid-template-columns: 1fr; }
+  .rl a:hover { border-color: var(--sonar); }
+  .rl__no { grid-row: span 3; font-weight: 800; color: var(--sonar); font-size: 1.2rem; }
+  .rl__t { color: var(--ink); font-weight: 700; }
+  .rl__c { font-size: 0.9rem; color: var(--mist); }
+  .rl__d { font-size: 0.78rem; color: var(--mist); }
+  @media (max-width: 640px) { .rl a { grid-template-columns: 1fr; } .rl__no { grid-row: auto; } }
+</style>

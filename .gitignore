@@ -47,3 +47,12 @@ astro/.astro/
 test-results/
 playwright-report/
 lighthouse-results/
+
+# 측심 Astro — public/ 의 생성 몫(astro/scripts/sync-public.mjs 가 매 빌드 복사). 원본은 reports/·assets/·node_modules 다.
+astro/public/reports/
+astro/public/assets/
+astro/public/fonts/
+astro/public/vendor/
+# 지도 타일 — Actions 가 빌드 때 Protomaps 일간 빌드에서 인천만 추출한다(월 캐시). 커밋하지 않는다(월마다 12MB 가 이력에 쌓인다).
+astro/public/tiles/*.pmtiles
+lab-out/

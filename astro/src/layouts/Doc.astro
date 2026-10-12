@@ -1,0 +1,13 @@
+---
+// 문서 지면(docs/·analysis/·about) — 발행본이 아닌 기록·판정 문서. 본문은 그대로 렌더하고 그릇만 입힌다.
+import Base from "./Base.astro";
+import { BRAND } from "../lib/site";
+interface Props { title: string; description?: string; path: string; updated?: string; kind?: string }
+const { title, description, path, updated, kind = "문서" } = Astro.props;
+---
+<Base title={title} description={description ?? `${title} — ${BRAND.name}의 기록 문서. ${BRAND.description}`.slice(0, 155)} path={path}>
+  <div class="narrow" style="padding-top:2.5rem">
+    <p class="eyebrow">{kind}{updated && <> · 마지막 갱신 {updated}</>}</p>
+    <div class="doc" data-pagefind-body><slot /></div>
+  </div>
+</Base>

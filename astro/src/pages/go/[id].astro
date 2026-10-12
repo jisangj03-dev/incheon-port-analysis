@@ -1,0 +1,19 @@
+---
+// 바깥 링크 이동 지면(개편 기준 22·29) — 이 지면의 방문 수 = 그 링크의 클릭 수(Cloudflare 분석 · 쿠키 0).
+// LIVE 가 꺼진 링크는 만들지 않는다. 자동 이동은 meta refresh(스크립트 없이도) + 사람이 누를 링크.
+import Base from "../../layouts/Base.astro";
+import { OUT } from "../../lib/site";
+export function getStaticPaths() {
+  return Object.entries(OUT).filter(([, v]) => v.live && v.url).map(([id, v]) => ({ params: { id }, props: { to: v.url, label: v.label } }));
+}
+const { to, label } = Astro.props;
+const { id } = Astro.params;
+---
+<Base title={`${label}로 이동`} description={`측심에서 ${label}(으)로 이동합니다.`} path={`/go/${id}.html`} noindex>
+  <Fragment slot="head"><meta http-equiv="refresh" content={`1;url=${to}`} /></Fragment>
+  <div class="narrow" style="padding:4rem 16px">
+    <p class="eyebrow">바깥 링크</p>
+    <h1>{label}(으)로 이동합니다</h1>
+    <p>바로 넘어가지 않으면 <a href={to} rel="noopener">여기를 누르세요</a>. 측심 밖의 지면입니다.</p>
+  </div>
+</Base>

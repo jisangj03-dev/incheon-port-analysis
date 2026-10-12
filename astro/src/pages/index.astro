@@ -1,53 +1,192 @@
 ---
-// 시험 지면 — Chart.js·Observable Plot 이 저장소 안 번들(Vite)로 import 되는지 본다.
-// 값은 계산기 회귀 시험의 엑셀 가상 샘플 답(건당)이다. 실제 업체 견적이 아니다.
-const sample = [
-  { name: "지금 방식", perUnit: 4044 },
-  { name: "견적 A", perUnit: 2805 },
-  { name: "견적 B", perUnit: 2960 },
-];
+// 첫 화면 — 개편 기준 2(도구까지 1클릭 · 스크롤 0) · 12(사람별 입구 넷 · 스크롤 0) · 19(AI 생성 장면 표기) · 10(모바일 성능 90).
+// 히어로는 연출 후보 셋 중 하나로 확정하지 않았다(디자인 브리프 §6) — 지금은 ⓐ 의 뼈대: 정지 포스터 먼저, 영상은 늦게.
+// 영상·포스터 파일이 아직 저장소에 없으면(Actions 가 받아 넣는다) 측심선 그림으로 대신한다 — 없는 영상을 있는 척하지 않는다.
+import Base from "../layouts/Base.astro";
+import PortSpark from "../components/home/PortSpark.astro";
+import Updated from "../components/Updated.astro";
+import { getCollection } from "astro:content";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot, title, splitTitle, conclusion, written, lastUpdated } from "../lib/content";
+import { BRAND, PERSONAS, u } from "../lib/site";
+
+const pub = join(repoRoot(), "astro/public/media");
+const hasVideo = existsSync(join(pub, "hero-1080.mp4"));
+const hasPoster = existsSync(join(pub, "hero-poster.webp"));
+const reports = (await getCollection("reports"))
+  .map((e) => ({ id: e.id, ...splitTitle(title(e.body ?? "")), concl: conclusion(e.body ?? ""), date: written(e.body ?? "") }))
+  .sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.id.localeCompare(a.id));
+const latest = reports.filter((r) => r.no).slice(0, 3);
+const wh = JSON.parse(readFileSync(join(repoRoot(), "_data/warehouse_gu.json"), "utf-8"));
+const whUpdated = lastUpdated("_data/warehouse_gu.json");
+const r13 = reports.find((r) => r.id.startsWith("report_13"));
+const r02 = reports.find((r) => r.id.startsWith("report_02"));
+const jsonld = [{
+  "@context": "https://schema.org", "@type": "FAQPage", mainEntity: [
+    { "@type": "Question", name: "측심은 무엇을 하나요?", acceptedAnswer: { "@type": "Answer", text: "인천 물류(항만 물동량·물류창고·품목별 수출입 등)를 공공 1차 데이터로 재서 보고서로 발행하고, 원시 데이터와 재현 코드를 공개합니다. 판정 기준은 데이터를 받기 전에 커밋합니다." } },
+    { "@type": "Question", name: "3PL 견적을 어떻게 비교하나요?", acceptedAnswer: { "@type": "Answer", text: "측심의 3PL 견적 비교 계산기에 월 출고 건수와 견적서의 출고 단가·보관비·포장재·월 고정비를 넣으면 견적 셋의 건당 총비용과 손익분기(월 몇 건부터 어느 쪽이 싼가)가 나옵니다. 입력값은 서버로 가지 않습니다." } },
+  ],
+}];
 ---
-<html lang="ko">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <title>도구 시험 — 차트 번들</title>
-  </head>
-  <body>
-    <h1>차트 번들 시험(비공개)</h1>
-    <p>건당 물류비 가상 샘플 — 실제 업체 견적 아님.</p>
-    <figure>
-      <canvas id="cj" width="480" height="240" data-chart="chartjs" aria-label="Chart.js 막대"></canvas>
-      <figcaption>Chart.js</figcaption>
-    </figure>
-    <figure id="op" data-chart="plot"><figcaption>Observable Plot</figcaption></figure>
-    <script id="sample" type="application/json" set:html={JSON.stringify(sample)} />
-    <script>
-      import { Chart, BarController, BarElement, CategoryScale, LinearScale } from "chart.js";
-      import * as Plot from "@observablehq/plot";
+<Base path="/" type="website" jsonld={jsonld}>
+  <Fragment slot="head">
+    {hasPoster && <link rel="preload" as="image" href={u("/media/hero-poster.webp")} fetchpriority="high" />}
+  </Fragment>
 
-      type Row = { name: string; perUnit: number };
-      const data: Row[] = JSON.parse(document.getElementById("sample")!.textContent || "[]");
+  <section class="hero" aria-labelledby="hero-h">
+    <div class="hero__media" aria-hidden={!hasVideo}>
+      {hasPoster ? (
+        <img class="hero__poster" src={u("/media/hero-poster.webp")} alt="" width="1920" height="1080" fetchpriority="high" decoding="async" />
+      ) : (
+        <svg class="hero__fallback" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="hz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b3a52" /><stop offset=".55" stop-color="#0b1a26" /><stop offset="1" stop-color="#05090f" /></linearGradient>
+            <radialGradient id="sun" cx=".72" cy=".38" r=".5"><stop offset="0" stop-color="#ffb547" stop-opacity=".55" /><stop offset="1" stop-color="#ffb547" stop-opacity="0" /></radialGradient>
+          </defs>
+          <rect width="1600" height="900" fill="url(#hz)" /><rect width="1600" height="900" fill="url(#sun)" />
+          {Array.from({ length: 9 }, (_, k) => <path d={`M0 ${520 + k * 44} C 400 ${500 + k * 40}, 900 ${560 + k * 46}, 1600 ${515 + k * 42}`} fill="none" stroke="#3fd3e6" stroke-opacity={0.08 + k * 0.02} stroke-width="1.4" />)}
+          <path d="M1130 120v360M1112 170h18M1112 230h18M1112 290h18M1112 350h18" stroke="#3fd3e6" stroke-width="3" fill="none" stroke-opacity=".7" />
+          <path d="M1116 480h28l-6 40h-16z" fill="#3fd3e6" fill-opacity=".8" />
+        </svg>
+      )}
+      {hasVideo && (
+        <video class="hero__video" muted loop playsinline preload="none" poster={hasPoster ? u("/media/hero-poster.webp") : undefined} data-src1080={u("/media/hero-1080.mp4")} data-src720={u("/media/hero-720.mp4")} aria-hidden="true"></video>
+      )}
+      <div class="hero__veil"></div>
+      {(hasVideo || hasPoster) && <span class="ai-mark">AI 생성 장면</span>}
+    </div>
 
-      Chart.register(BarController, BarElement, CategoryScale, LinearScale);
-      const chart = new Chart(document.getElementById("cj") as HTMLCanvasElement, {
-        type: "bar",
-        data: { labels: data.map((d) => d.name), datasets: [{ label: "건당(원)", data: data.map((d) => d.perUnit) }] },
-        options: { animation: false, responsive: false },
-      });
+    <div class="wrap hero__in">
+      <p class="eyebrow">{BRAND.name} · {BRAND.tagline}</p>
+      <h1 id="hero-h">인천 물류를 공공 데이터로 잰다<span> — 그리고 내 물류비도.</span></h1>
+      <p class="hero__lede">항만 물동량·물류창고·품목별 수출입을 공공 1차 데이터로 재고, 기준은 데이터를 받기 전에 커밋합니다.</p>
 
-      const svg = Plot.plot({
-        marginLeft: 70,
-        x: { label: "건당(원)" },
-        marks: [Plot.barX(data, { x: "perUnit", y: "name" }), Plot.ruleX([0])],
-      });
-      document.getElementById("op")!.prepend(svg);
+      <nav class="who" aria-label="누구세요? 사람별 입구">
+        {PERSONAS.map((p) => (
+          <a class={`who__a who__a--${p.key}`} href={u(p.href)} data-persona={p.key}>
+            <span class="who__who">{p.who}</span>
+            <span class="who__need">{p.need}</span>
+            <span class="who__cta">{p.cta} →</span>
+          </a>
+        ))}
+      </nav>
+      <p class="hero__tool"><a class="btn btn--primary" href={u("/tools/logistics-cost.html")} data-tool-link>3PL 견적 비교 계산기 바로 열기</a> <a class="btn" href={u("/reports/")}>보고서 전체</a></p>
+    </div>
+  </section>
 
-      (window as unknown as { __charts: unknown }).__charts = {
-        chartjs: chart.data.datasets[0].data.length,
-        plotRects: svg.querySelectorAll("rect").length,
+  <section class="wrap bento" aria-label="인천 물류 지금">
+    <article class="b b--wide">
+      <PortSpark />
+      <p class="b__more"><a href={u("/reports/물동량.html")}>인천항 컨테이너 물동량 — 주간 갱신 →</a></p>
+    </article>
+    <article class="b">
+      <p class="b__k">물류창고</p>
+      <p class="b__big">{wh.total.count.toLocaleString("ko-KR")}<span>곳</span></p>
+      <p class="b__t">인천에 등록된 물류창고. 구·동별로 어디에 몰려 있는지 배치도로 본다.</p>
+      <Updated date={whUpdated} source={`자료 기준일 ${wh.basis}`} />
+      <p class="b__more"><a href={u("/tools/warehouse-map.html")}>배치도 열기 →</a></p>
+    </article>
+    {r13 && (
+      <article class="b">
+        <p class="b__k">품목별 수출입 · {r13.no}</p>
+        <p class="b__t b__t--lg">{r13.concl}</p>
+        <p class="b__more"><a href={u(`/reports/${r13.id}.html`)}>보고서 읽기 →</a></p>
+      </article>
+    )}
+    {r02 && (
+      <article class="b">
+        <p class="b__k">빈 컨테이너 · {r02.no}</p>
+        <p class="b__t b__t--lg">{r02.concl}</p>
+        <p class="b__more"><a href={u(`/reports/${r02.id}.html`)}>보고서 읽기 →</a></p>
+      </article>
+    )}
+    <article class="b b--index">
+      <p class="b__k">인천 물류 지수</p>
+      <p class="b__t"><strong>준비 중.</strong> 물동량·운임·환율·항공화물을 합친 월간 지수는 방법론을 먼저 커밋하고, 네 계열의 공개 원천이 다 확보돼야 발표합니다(개편 기준 13). 지금은 숫자가 없습니다.</p>
+    </article>
+  </section>
+
+  <section class="wrap latest" aria-labelledby="latest-h">
+    <h2 id="latest-h">최근 보고서</h2>
+    <ol class="rl">
+      {latest.map((r) => (
+        <li><a href={u(`/reports/${r.id}.html`)}><span class="rl__no">{r.no}</span><span class="rl__t">{r.text}</span><span class="rl__c">{r.concl}</span></a></li>
+      ))}
+    </ol>
+    <p><a class="btn" href={u("/reports/")}>보고서 전체 {reports.length}편</a></p>
+  </section>
+
+  <script>
+    // 히어로 영상 — 첫 화면을 그린 뒤, 움직임 줄이기·데이터 절약이 아니면 유휴 시간에 붙인다(LCP 는 포스터).
+    const v = document.querySelector<HTMLVideoElement>(".hero__video");
+    const conn = (navigator as any).connection;
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches || (conn && conn.saveData);
+    if (v && !calm) {
+      const start = () => {
+        v.src = innerWidth >= 900 ? v.dataset.src1080! : v.dataset.src720!;
+        v.play().catch(() => {});
       };
-    </script>
-  </body>
-</html>
+      addEventListener("load", () => ("requestIdleCallback" in window ? (window as any).requestIdleCallback(start, { timeout: 3000 }) : setTimeout(start, 1500)), { once: true });
+    }
+  </script>
+</Base>
+
+<style>
+  .hero { position: relative; isolation: isolate; overflow: hidden; min-height: min(92svh, 900px); display: flex; align-items: flex-end; background: var(--abyss); }
+  .hero__media { position: absolute; inset: 0; z-index: -1; }
+  .hero__poster, .hero__video, .hero__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero__veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 9, 15, 0.35) 0%, rgba(5, 9, 15, 0.2) 35%, rgba(5, 9, 15, 0.86) 78%, var(--deep) 100%); }
+  .hero .ai-mark { top: 72px; bottom: auto; }
+  .hero__in { padding-top: 6rem; padding-bottom: 2.2rem; width: 100%; }
+  .hero h1 { font-size: clamp(2rem, 5.6vw, 4.6rem); line-height: 1.08; letter-spacing: -0.035em; margin: 0.2em 0 0.35em; max-width: 16ch; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45); }
+  .hero h1 span { display: block; color: var(--sonar); }
+  .hero__lede { max-width: 52ch; color: var(--text); font-size: clamp(1rem, 1.5vw, 1.15rem); margin-bottom: 1.4rem; }
+  .who { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; max-width: 1000px; }
+  .who__a { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.85rem 1rem; border-radius: var(--r-md); text-decoration: none; color: var(--ink);
+    background: rgba(18, 40, 58, 0.62); border: 1px solid var(--hair-strong); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform 0.25s var(--ease), border-color 0.25s var(--ease); min-height: 44px; }
+  .who__a:hover { transform: translateY(-2px); border-color: var(--sonar); }
+  .who__who { font-weight: 800; font-size: 1rem; }
+  .who__need { font-size: 0.82rem; color: var(--text); line-height: 1.4; }
+  .who__cta { font-size: 0.82rem; font-weight: 700; color: var(--sonar); margin-top: 0.2rem; }
+  .who__a--seller { border-color: rgba(63, 211, 230, 0.6); }
+  .hero__tool { margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.6rem; }
+
+  .bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 2.5rem; }
+  .b { background: linear-gradient(160deg, var(--hull), color-mix(in srgb, var(--hull) 55%, var(--deep))); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 1.3rem 1.4rem; display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+  .b--wide { grid-column: span 2; }
+  .b--index { border-style: dashed; }
+  .b__k { margin: 0; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: var(--sodium); }
+  .b__big { margin: 0; font-size: clamp(2.2rem, 4.5vw, 3.4rem); font-weight: 800; color: var(--ink); letter-spacing: -0.03em; line-height: 1.1; }
+  .b__big span { font-size: 1rem; color: var(--mist); margin-left: 0.2rem; }
+  .b__t { margin: 0; color: var(--text); font-size: 0.95rem; }
+  .b__t--lg { font-size: 1.05rem; color: var(--ink); font-weight: 600; line-height: 1.5; }
+  .b__more { margin: auto 0 0; padding-top: 0.4rem; font-weight: 700; font-size: 0.92rem; }
+
+  .latest { margin-top: 3rem; }
+  .rl { list-style: none; padding: 0; margin: 0 0 1.2rem; display: grid; gap: 0.6rem; }
+  .rl a { display: grid; grid-template-columns: 4rem 1fr; gap: 0.15rem 1rem; padding: 1rem 1.2rem; border-radius: var(--r-md); border: 1px solid var(--hair); text-decoration: none; color: var(--text); background: color-mix(in srgb, var(--hull) 55%, transparent); }
+  .rl a:hover { border-color: var(--sonar); }
+  .rl__no { grid-row: span 2; font-weight: 800; color: var(--sonar); font-size: 1.2rem; }
+  .rl__t { color: var(--ink); font-weight: 700; }
+  .rl__c { font-size: 0.9rem; color: var(--mist); }
+
+  @media (max-width: 960px) {
+    .bento { grid-template-columns: 1fr 1fr; }
+    .b--wide { grid-column: 1 / -1; grid-row: auto; }
+  }
+  @media (max-width: 640px) {
+    .hero { min-height: auto; }
+    .hero__in { padding-top: 3.2rem; padding-bottom: 1.4rem; }
+    .hero h1 { font-size: 1.85rem; }
+    .hero__lede { font-size: 0.95rem; margin-bottom: 1rem; }
+    .who { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .who__a { padding: 0.6rem 0.7rem; }
+    .who__who { font-size: 0.92rem; }
+    .who__need { font-size: 0.76rem; }
+    .who__cta { font-size: 0.76rem; }
+    .bento { grid-template-columns: 1fr; }
+    .rl a { grid-template-columns: 1fr; }
+    .rl__no { grid-row: auto; }
+  }
+</style>
