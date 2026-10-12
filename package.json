@@ -37,7 +37,8 @@
     "test": "playwright test",
     "lighthouse": "node tests/lighthouse/run.mjs",
     "budget": "node tests/budget/context-budget.mjs",
-    "remotion:still": "remotion still remotion/index.ts Proof lab-out/remotion-proof.png --frame=30"
+    "remotion:still": "remotion still remotion/index.ts Proof lab-out/remotion-proof.png --frame=30",
+    "site:og": "node tests/capture/og-cards.mjs astro/dist"
   },
   "overrides": {
     "@loaders.gl/core": "4.4.5",

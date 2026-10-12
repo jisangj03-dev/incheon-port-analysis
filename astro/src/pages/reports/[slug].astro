@@ -32,7 +32,7 @@ const jsonld = [{
   url: abs(path), isAccessibleForFree: true,
 }];
 ---
-<Base title={t} description={description(body, t)} path={path} jsonld={jsonld}>
+<Base title={t} description={description(body, t)} path={path} jsonld={jsonld} ogImage={`/og/${entry.id}.jpg`}>
   <article class="rpt">
     <header class="rpt__head wrap">
       <p class="eyebrow">{kind}{date && <> · {date}</>}</p>

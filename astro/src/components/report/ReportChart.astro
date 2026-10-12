@@ -3,9 +3,9 @@
 // 새 결론을 만들지 않는다: 발행본이 쓴 정의 그대로의 값을 범위·보기만 바꿔 보인다. 차트는 Plot 을 늦게 불러 그린다.
 import Updated from "../Updated.astro";
 import { emptyDirection, sizeDirection, terminals, items, REPORT_WIDGET } from "../../lib/report-data";
-import { u } from "../../lib/site";
-interface Props { id: string }
-const { id } = Astro.props;
+import { u, abs } from "../../lib/site";
+interface Props { id: string; embed?: boolean }
+const { id, embed = false } = Astro.props;
 const w = REPORT_WIDGET[id];
 const D = !w ? null : w.kind === "direction" ? emptyDirection() : w.kind === "size" ? sizeDirection() : w.kind === "terminal" ? terminals() : items();
 const csvName = !w ? "" : { direction: "empty-direction", size: "size-direction", terminal: "terminals", item: "items" }[w.kind];
@@ -41,7 +41,15 @@ const cfg = w ? { ...w, data: D } : null;
     )}
     <p class="rc__say" aria-live="polite"></p>
     <div class="rc__plot" role="img" aria-label="선택한 보기의 차트 — 같은 내용을 위 문장이 말한다"></div>
-    <p class="rc__foot"><Updated date={D.updated} source={D.source} /> · 단위 {D.unit} · <a href={u(`/data/${csvName}.csv`)} download>이 계열 CSV 내려받기</a></p>
+    <p class="rc__foot"><Updated date={D.updated} source={D.source} /> · 단위 {D.unit} · <a href={u(`/data/${csvName}.csv`)} download>이 계열 CSV 내려받기</a>
+      {!embed && <button type="button" class="rc__embed">퍼가기</button>}</p>
+    {!embed && (
+      <div class="rc__code" hidden>
+        <label>이 차트를 내 글에 싣는 코드(복사해서 붙여 넣기)
+          <textarea readonly rows="3">{`<iframe src="${abs(`/embed/${id}.html`)}" title="측심 차트" width="100%" height="520" style="border:0" loading="lazy"></iframe>`}</textarea>
+        </label>
+      </div>
+    )}
     <script type="application/json" class="rc__data" set:html={JSON.stringify(cfg)} />
   </div>
 )}
@@ -66,6 +74,9 @@ const cfg = w ? { ...w, data: D } : null;
   .rc__plot { overflow: hidden; min-height: 60px; }
   .rc__plot :global(svg) { max-width: 100%; height: auto; }
   .rc__foot { font-size: 0.82rem; color: var(--mist); margin: 0.4rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem 0.6rem; align-items: center; }
+  .rc__embed { min-height: 32px; font: inherit; font-size: 0.82rem; font-weight: 700; border-radius: 999px; border: 1px solid var(--hair-strong); background: transparent; color: var(--sonar); padding: 0.15rem 0.7rem; cursor: pointer; }
+  .rc__code label { display: block; font-size: 0.82rem; color: var(--mist); margin-top: 0.5rem; }
+  .rc__code textarea { width: 100%; margin-top: 0.3rem; font-family: var(--mono); font-size: 0.78rem; color: var(--ink); background: var(--deep); border: 1px solid var(--hair-strong); border-radius: var(--r-sm); padding: 0.4rem; }
   .ia--todo { border: 1px dashed var(--hair-strong); border-radius: var(--r-md); padding: 1rem 1.2rem; color: var(--mist); max-width: 880px; }
   .ia--todo p { margin: 0; }
   .ia--todo strong { color: var(--sodium); }

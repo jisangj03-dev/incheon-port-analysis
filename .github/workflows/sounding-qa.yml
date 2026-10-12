@@ -61,6 +61,8 @@ jobs:
 
       - name: Playwright 브라우저
         run: npx playwright install --with-deps chromium
+      - name: 보고서 공유 카드(B6 · 1200×630 · 틀 HTML 은 지운다)
+        run: npm run site:og
       - name: Playwright 시험 (계산기 회귀 · 개편 기준 · 도구 실행 증명 · Pagefind)
         run: npx playwright test
 
