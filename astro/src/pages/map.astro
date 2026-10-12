@@ -54,7 +54,7 @@ const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v
         <li><strong>교역국 항로 아크 · 품목별 수출입</strong> — 관세청 품목·국가별 API 활용신청 뒤(선장님 손).</li>
         <li><strong>실제 입출항 기록으로 움직이는 선박</strong> — 해수부 선박입출항 API 활용신청 뒤.</li>
         <li><strong>공항화물 · 물류단지 · 보세구역 · 자유무역지역</strong> — 항공화물 축 선커밋(기준 11) 뒤 수집. 창고는 <a href={u("/tools/warehouse-map.html")}>구·동 배치도</a>에.</li>
-        <li><strong>실사 질감(위성·지형·조명)</strong> — 시안 반영 뒤. Sentinel-2·Copernicus DEM 고지 조건은 <a href={u("/docs/도구탐색_20261012.html")}>도구 탐색 표</a>.</li>
+        <li><strong>실사 질감(위성·지형·조명)</strong> — 시안 반영 뒤. 위성(Sentinel-2)·지형(Copernicus DEM)은 출처 고지 조건을 지켜 싣는다.</li>
       </ul>
     </div>
   </div>

@@ -6,6 +6,7 @@
 // 렌더 단계가 아니라 산출물 단계에서 고친다.
 import { readdirSync, readFileSync, writeFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { toRepoIfHidden } from "./public-docs.mjs";
 
 export function fixHref(url) {
   if (!url || /^[a-z]+:/i.test(url) || url.startsWith("#") || url.startsWith("//")) return url;
@@ -17,15 +18,16 @@ export function fixHref(url) {
   return out + hash;
 }
 
-export function rewriteDir(dir) {
+// here = 이 폴더의 산출물 뿌리 기준 경로. 공개 목록 밖 docs 를 가리키는 링크는 저장소 원문으로 돌린다(public-docs.mjs).
+export function rewriteDir(dir, here = "") {
   let n = 0;
   for (const name of readdirSync(dir)) {
     const p = join(dir, name);
-    if (statSync(p).isDirectory()) { n += rewriteDir(p); continue; }
+    if (statSync(p).isDirectory()) { n += rewriteDir(p, here ? `${here}/${name}` : name); continue; }
     if (!name.endsWith(".html")) continue;
     const src = readFileSync(p, "utf-8");
     const out = src.replace(/href="([^"]+)"/g, (m, h) => {
-      const f = fixHref(h);
+      const f = toRepoIfHidden(fixHref(h), here);
       if (f !== h) n++;
       return `href="${f}"`;
     });
