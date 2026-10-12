@@ -14,7 +14,9 @@ out = {"_설명": "OSM 후보(자동 생성 · places-fetch.yml). © OpenStreetM
        "queried": time.strftime("%Y-%m-%d"), "bbox": Q["bbox"], "places": []}
 for p in Q["places"]:
     rx = p["name_regex"]
-    q = f'[out:json][timeout:60];(nwr["name"~"{rx}"]({s},{w},{n},{e});nwr["name:en"~"{rx}"]({s},{w},{n},{e});nwr["name:ko"~"{rx}"]({s},{w},{n},{e}););out center tags 60;'
+    s, w, n, e = p.get("bbox", Q["bbox"])
+    kinds = "nw" if not p.get("require_area") else "wr"   # 면이어야 하면 길·점은 뺀다(1회: 「인천신항대로」 같은 길이 섞였다)
+    q = f'[out:json][timeout:60];({kinds}["name"~"{rx}"]({s},{w},{n},{e});{kinds}["name:en"~"{rx}"]({s},{w},{n},{e}););out center tags 60;'
     body = urllib.parse.urlencode({"data": q}).encode()
     for attempt in range(3):
         try:
@@ -31,6 +33,10 @@ for p in Q["places"]:
         if not c:
             continue
         t = el.get("tags", {})
+        if p.get("require_area") and not any(k in t for k in ("landuse", "industrial", "aeroway", "harbour", "building", "man_made", "amenity")):
+            continue   # 시설 태그가 없는 면(길 묶음 등)은 뺀다
+        if t.get("highway"):
+            continue
         cands.append({"osm": f'{el["type"]}/{el["id"]}', "name": t.get("name"), "name_en": t.get("name:en"),
                       "kind": {k: t[k] for k in ("landuse", "industrial", "aeroway", "amenity", "building", "harbour", "man_made", "operator") if k in t},
                       "lat": round(c["lat"], 5), "lon": round(c["lon"], 5)})
