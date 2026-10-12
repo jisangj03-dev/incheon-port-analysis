@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""발행 대기열 — **무엇이 어느 채널에 준비됐고 무엇이 안 올라갔는가.**
+r"""발행 대기열 — **무엇이 어느 채널에 준비됐고 무엇이 안 올라갔는가.**
 
 왜 있는가
 ---------
@@ -188,9 +188,18 @@ def status():
 
 # ── 검사 ────────────────────────────────────────────────────────────────────
 
-def check(net=False):
+def check(net=False, only=None, env=None):
+    """대기 중인 문안을 검사한다.
+
+    [2026-10-12 53차 · 사고 119] **클라우드 확인이면 표를 고쳐 쓰지 않는다.** 그 기계에는 본부(`본부\\채널문안`)가 없어
+    문안 파일이 「없음」으로 잡히고, 검사 결과로 상태가 옮겨진다(초안 → 준비). 운영자가 정하는 상태 전이를
+    기계 사정이 하게 된다. 그래서 클라우드에서는 **보고만** 하고 종료코드 3(환경 생략 · env_limits)을 낸다.
+    본부에 둔 문안은 「문안없음」이 아니라 「환경 생략」으로 센다. `only` = 한 행만 검사.
+    """
+    from env_limits import is_confirmed_cloud, ENV_SKIP
+    cloud = is_confirmed_cloud(env)
     rows, head, tail = read()
-    todo = [r for r in rows if r.get("상태") in ("초안", "준비", "승인대기")]
+    todo = [r for r in rows if r.get("상태") in ("초안", "준비", "승인대기") and (not only or r.get("id") == only)]
     if not todo:
         print("검사할 것이 없다 — 대기 중인 항목이 없다.")
         return 0
@@ -198,8 +207,14 @@ def check(net=False):
     script = os.path.join(HERE, "channel_post.py")
     env = dict(os.environ, PYTHONIOENCODING="utf-8")
     bad = 0
+    skipped = 0
     for r in todo:
         p = draft_path(r)
+        in_hq = not ("/" in (r.get("문안") or "") or "\\" in (r.get("문안") or ""))
+        if not p and cloud and in_hq:
+            skipped += 1
+            print("\n── %s  **환경 생략** — 문안이 본부에 있다(이 기계에 없음): %s" % (r["id"], r.get("문안")))
+            continue
         if not p:
             r["검증"] = "문안없음"
             r["갱신"] = _now()
@@ -227,8 +242,14 @@ def check(net=False):
                 r["상태"] = "초안"      # **통과했던 것이 깨지면 준비에서 내린다**
         elif r["상태"] == "초안":
             r["상태"] = "준비"
-    write(rows, head, tail)
     print("\n" + "-" * 62)
+    if cloud:
+        print("검사 %d건 · FAIL %d건 · 환경 생략 %d건. **클라우드라 대기열을 고쳐 쓰지 않았다**(사고 119)."
+              % (len(todo), bad, skipped))
+        if not net:
+            print("**링크와 카드는 안 쳤다**(`--net` 이 친다). 「무망」은 그 뜻이다.")
+        return 1 if bad else (ENV_SKIP if skipped else 0)
+    write(rows, head, tail)
     print("검사 %d건 · FAIL %d건. 대기열 갱신함." % (len(todo), bad))
     if not net:
         print("**링크와 카드는 안 쳤다**(`--net` 이 친다). 「무망」은 그 뜻이다.")
@@ -405,9 +426,23 @@ def selftest():
             chk("한 행으로 읽힌다", len(back), 1)
             chk("파이프는 갈음된다", back[0]["무엇"], "a/b")
 
+            print("── 인수시험: 클라우드에서 --check 는 표를 안 고친다 (사고 119) ──")
+            src4 = [{"id": "hq-1", "채널": "linkedin", "무엇": "본부 문안", "상태": "준비",
+                     "검증": "PASS(무망)", "문안": "없는-본부-문안.md", "주소": "", "갱신": "2026-09-24", "메모": ""}]
+            write(src4, head, tail)
+            before = io.open(QUEUE, encoding="utf-8").read()
+            import contextlib
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = check(env={"CLAUDE_CODE_REMOTE": "true"})
+            chk("클라우드: 본부 문안 없음은 환경 생략(3)", code, 3)
+            chk("클라우드: 대기열 파일이 그대로다", io.open(QUEUE, encoding="utf-8").read(), before)
+            with contextlib.redirect_stdout(io.StringIO()):
+                code = check(env={})
+            back, _, _ = read()
+            chk("운영자 기계: 문안이 없으면 문안없음으로 적는다(종전대로)", back[0]["검증"], "문안없음")
+
             print("── 인수시험: 「지금 뭐 대기 중이야」가 순서를 지키는가 ──")
             write(src, head, tail)
-            import contextlib
             buf = io.StringIO()
             with contextlib.redirect_stdout(buf):
                 status()
@@ -427,6 +462,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="채널 발행 대기열")
     ap.add_argument("--check", action="store_true", help="대기 중인 문안을 전부 검사")
     ap.add_argument("--net", action="store_true", help="검사에서 링크·카드를 실제로 친다")
+    ap.add_argument("--only", default=None, help="--check 를 이 id 한 행에만")
     ap.add_argument("--before-post", dest="pre", default=None,
                     help="누르기 직전 점검 — 중복 확인용 첫 줄과 채널 주의")
     ap.add_argument("--set", dest="rid", default=None, help="갱신할 id")
@@ -443,5 +479,5 @@ if __name__ == "__main__":
     if a.rid:
         sys.exit(setrow(a.rid, a.state, a.url, a.note, a.verify))
     if a.check:
-        sys.exit(check(a.net))
+        sys.exit(check(a.net, a.only))
     sys.exit(status())
