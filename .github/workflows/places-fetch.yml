@@ -1,0 +1,32 @@
+# 3D 지도 자리표 후보(A-6) — Overpass API(OSM · ODbL · 키 없음)에서 이름으로 찾아 data/derived/places_osm.json 에 커밋한다.
+# 이 클라우드 세션은 바깥 지도 서비스가 막혀 있어 Actions 에서 돈다(무료 연산 원칙). places.json 은 사람이 고른다.
+name: places-fetch
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/places-query.json"]
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Overpass 질의
+        run: python tools-build/places-fetch.py
+      - name: 후보 커밋
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/derived/places_osm.json
+          git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
+          git commit -m "3D 지도 자리표 후보(OSM · ODbL) — places-fetch 워크플로가 Overpass 에서 찾음"
+          git push
+          python -c "import json;d=json.load(open('data/derived/places_osm.json',encoding='utf-8'));print('\n'.join(f\"- {p['id']}: {len(p.get('candidates',[]))}\" for p in d['places']))" >> "$GITHUB_STEP_SUMMARY"

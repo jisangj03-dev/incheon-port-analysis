@@ -1,0 +1,10 @@
+{
+  "_설명": "3D 지도 자리표를 OpenStreetMap(ODbL)에서 찾는 질의(A-6 · 2026-10-12). 이 파일이 바뀐 커밋이 claude/ 브랜치에 오면 .github/workflows/places-fetch.yml 이 Overpass API 로 찾아 data/derived/places_osm.json 에 후보를 커밋한다. **자동으로 places.json 을 바꾸지 않는다** — 후보의 이름·종류를 사람이(세션이) 읽고 맞는 것만 옮긴다.",
+  "bbox": [37.25, 126.35, 37.62, 126.85],
+  "places": [
+    { "id": "신항", "want": "인천신항 컨테이너 부두(SNCT·HJIT)", "name_regex": "(SNCT|선광신컨테이너|HJIT|한진인천컨테이너|인천신항)", "tags": ["landuse=port", "industrial=port", "man_made=pier", "harbour=*", "seamark:type=harbour"] },
+    { "id": "남항", "want": "남항 컨테이너 부두(E1CT·ICT)", "name_regex": "(E1|이원|ICT|인천컨테이너터미널|남항)", "tags": ["landuse=port", "industrial=port", "man_made=pier", "harbour=*"] },
+    { "id": "국제여객부두", "want": "인천항 국제여객터미널(IPT 컨테이너 부두 옆)", "name_regex": "(국제여객터미널|International Passenger)", "tags": ["amenity=ferry_terminal", "building=*", "public_transport=station"] },
+    { "id": "인천공항", "want": "인천국제공항 화물터미널", "name_regex": "(화물터미널|Cargo Terminal|화물청사)", "tags": ["aeroway=*", "building=*", "landuse=*"] }
+  ]
+}
