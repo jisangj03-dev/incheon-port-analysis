@@ -13,54 +13,6 @@
    "want": "인천신항 컨테이너 부두(SNCT·HJIT)",
    "candidates": [
     {
-     "osm": "way/228335479",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34751,
-     "lon": 126.63202
-    },
-    {
-     "osm": "way/228335480",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34755,
-     "lon": 126.61226
-    },
-    {
-     "osm": "way/228335481",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34759,
-     "lon": 126.61598
-    },
-    {
-     "osm": "way/228335482",
-     "name": "인천신항대로892번길",
-     "name_en": "Incheonsinhang-daero 892beon-gil",
-     "kind": {},
-     "lat": 37.34974,
-     "lon": 126.61777
-    },
-    {
-     "osm": "way/228335483",
-     "name": "인천신항대로892번길",
-     "name_en": "Incheonsinhang-daero 892beon-gil",
-     "kind": {},
-     "lat": 37.34927,
-     "lon": 126.61784
-    },
-    {
-     "osm": "way/309700571",
-     "name": "인천신항바다쉼터",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.34533,
-     "lon": 126.61481
-    },
-    {
      "osm": "way/313806962",
      "name": "인천신항",
      "name_en": null,
@@ -81,46 +33,6 @@
      "lon": 126.63173
     },
     {
-     "osm": "way/367287209",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34803,
-     "lon": 126.6519
-    },
-    {
-     "osm": "way/367287210",
-     "name": "인천신항대로",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.38349,
-     "lon": 126.69582
-    },
-    {
-     "osm": "way/367287211",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.38461,
-     "lon": 126.69674
-    },
-    {
-     "osm": "way/367287212",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.3669,
-     "lon": 126.67939
-    },
-    {
-     "osm": "way/367287213",
-     "name": "인천신항대로",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.34962,
-     "lon": 126.66123
-    },
-    {
      "osm": "way/674060787",
      "name": "인천신항",
      "name_en": null,
@@ -129,718 +41,17 @@
      },
      "lat": 37.34455,
      "lon": 126.63173
-    },
-    {
-     "osm": "way/898350422",
-     "name": "인천신항대로892번길",
-     "name_en": "Incheonsinhang-daero 892beon-gil",
-     "kind": {},
-     "lat": 37.35264,
-     "lon": 126.61882
-    },
-    {
-     "osm": "way/1334397518",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34757,
-     "lon": 126.61927
-    },
-    {
-     "osm": "way/1334397519",
-     "name": "인천신항대로892번길",
-     "name_en": "Incheonsinhang-daero 892beon-gil",
-     "kind": {},
-     "lat": 37.35259,
-     "lon": 126.61781
-    },
-    {
-     "osm": "way/1334432098",
-     "name": "인천신항대로892번길",
-     "name_en": "Incheonsinhang-daero 892beon-gil",
-     "kind": {},
-     "lat": 37.35142,
-     "lon": 126.61781
-    },
-    {
-     "osm": "way/1334432099",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34759,
-     "lon": 126.6178
-    },
-    {
-     "osm": "way/1334432100",
-     "name": "인천신항대로",
-     "name_en": "Incheonsinhang-daero",
-     "kind": {},
-     "lat": 37.34751,
-     "lon": 126.64399
-    },
-    {
-     "osm": "way/1420034891",
-     "name": "인천신항교",
-     "name_en": null,
-     "kind": {
-      "man_made": "bridge"
-     },
-     "lat": 37.34961,
-     "lon": 126.66122
-    },
-    {
-     "osm": "relation/18772937",
-     "name": "인천신항 배후단지",
-     "name_en": null,
-     "kind": {
-      "landuse": "construction"
-     },
-     "lat": 37.36565,
-     "lon": 126.63135
     }
    ]
   },
   {
    "id": "남항",
-   "want": "남항 컨테이너 부두(E1CT·ICT)",
-   "candidates": [
-    {
-     "osm": "node/368685715",
-     "name": "아이원마트",
-     "name_en": "Aiwon Mart",
-     "kind": {},
-     "lat": 37.3822,
-     "lon": 126.75864
-    },
-    {
-     "osm": "node/368760831",
-     "name": "에이원치과",
-     "name_en": "Eiwon Dental Clinic",
-     "kind": {
-      "amenity": "dentist"
-     },
-     "lat": 37.50499,
-     "lon": 126.70398
-    },
-    {
-     "osm": "node/368798444",
-     "name": "이원복 내과의원",
-     "name_en": null,
-     "kind": {
-      "amenity": "doctors"
-     },
-     "lat": 37.49629,
-     "lon": 126.76461
-    },
-    {
-     "osm": "node/368909405",
-     "name": "남항주유소",
-     "name_en": "Namhang Gas Station",
-     "kind": {
-      "amenity": "fuel"
-     },
-     "lat": 37.45335,
-     "lon": 126.61583
-    },
-    {
-     "osm": "node/368909571",
-     "name": "에이원주유소",
-     "name_en": "Eiwon Gas Station",
-     "kind": {
-      "amenity": "fuel"
-     },
-     "lat": 37.5803,
-     "lon": 126.77944
-    },
-    {
-     "osm": "node/4637525995",
-     "name": "E1-LPG충전소",
-     "name_en": null,
-     "kind": {
-      "amenity": "fuel"
-     },
-     "lat": 37.51621,
-     "lon": 126.74911
-    },
-    {
-     "osm": "node/4831038690",
-     "name": "풍림아이원아파트",
-     "name_en": null,
-     "kind": {
-      "building": "yes"
-     },
-     "lat": 37.49844,
-     "lon": 126.74813
-    },
-    {
-     "osm": "node/10146118959",
-     "name": "E1 천일충전소",
-     "name_en": null,
-     "kind": {
-      "amenity": "fuel"
-     },
-     "lat": 37.57975,
-     "lon": 126.66298
-    },
-    {
-     "osm": "node/11379634126",
-     "name": "풍림아이원아파트",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.44154,
-     "lon": 126.66034
-    },
-    {
-     "osm": "node/11379634127",
-     "name": "풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.47994,
-     "lon": 126.64758
-    },
-    {
-     "osm": "node/11379634128",
-     "name": "풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.48017,
-     "lon": 126.64788
-    },
-    {
-     "osm": "node/11379634129",
-     "name": "풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.55726,
-     "lon": 126.74584
-    },
-    {
-     "osm": "node/11379634130",
-     "name": "풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.48113,
-     "lon": 126.64823
-    },
-    {
-     "osm": "node/11379635508",
-     "name": "영종풍림아이원1차",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.4957,
-     "lon": 126.48491
-    },
-    {
-     "osm": "node/11379636097",
-     "name": "송도풍림아이원4단지",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.39289,
-     "lon": 126.65644
-    },
-    {
-     "osm": "node/11379636098",
-     "name": "송도풍림아이원2단지",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.39403,
-     "lon": 126.65123
-    },
-    {
-     "osm": "node/11379636099",
-     "name": "송도풍림아이원2단지",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.39408,
-     "lon": 126.65106
-    },
-    {
-     "osm": "node/11379636100",
-     "name": "송도풍림아이원2단지",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.39468,
-     "lon": 126.65323
-    },
-    {
-     "osm": "node/11379636101",
-     "name": "송도풍림아이원1단지",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.39462,
-     "lon": 126.65368
-    },
-    {
-     "osm": "node/11379636932",
-     "name": "병무청(학익풍림아이원)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.44074,
-     "lon": 126.6567
-    },
-    {
-     "osm": "node/11379636933",
-     "name": "병무청(학익풍림아이원)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.44086,
-     "lon": 126.65597
-    },
-    {
-     "osm": "node/11379637010",
-     "name": "발산초등학교(풍림아이원)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.59132,
-     "lon": 126.69873
-    },
-    {
-     "osm": "node/11379637865",
-     "name": "남항유어선부두",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.45382,
-     "lon": 126.6143
-    },
-    {
-     "osm": "node/11379637866",
-     "name": "남항유어선부두",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.45394,
-     "lon": 126.61284
-    },
-    {
-     "osm": "node/11379638429",
-     "name": "검단오류풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.60005,
-     "lon": 126.63826
-    },
-    {
-     "osm": "node/11379638430",
-     "name": "검단오류풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.60009,
-     "lon": 126.63805
-    },
-    {
-     "osm": "node/11379638749",
-     "name": "2차풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.61317,
-     "lon": 126.66061
-    },
-    {
-     "osm": "node/11379638751",
-     "name": "1차풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.61484,
-     "lon": 126.65777
-    },
-    {
-     "osm": "node/12372982621",
-     "name": "LG사이언스파크 E14동",
-     "name_en": null,
-     "kind": {
-      "amenity": "bicycle_rental",
-      "operator": "서울시설공단"
-     },
-     "lat": 37.5635,
-     "lon": 126.83583
-    },
-    {
-     "osm": "node/12372983514",
-     "name": "LG사이언스파크 E10동",
-     "name_en": null,
-     "kind": {
-      "amenity": "bicycle_rental",
-      "operator": "서울시설공단"
-     },
-     "lat": 37.56365,
-     "lon": 126.83454
-    },
-    {
-     "osm": "node/12543730106",
-     "name": "풍림아이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.55726,
-     "lon": 126.74573
-    },
-    {
-     "osm": "node/13682025387",
-     "name": "제이원광택",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.54624,
-     "lon": 126.744
-    },
-    {
-     "osm": "node/13890054374",
-     "name": "LG사이언스파크 E14동",
-     "name_en": null,
-     "kind": {
-      "amenity": "bicycle_rental"
-     },
-     "lat": 37.5635,
-     "lon": 126.83583
-    },
-    {
-     "osm": "node/13890054378",
-     "name": "LG사이언스파크 E10동",
-     "name_en": null,
-     "kind": {
-      "amenity": "bicycle_rental"
-     },
-     "lat": 37.56365,
-     "lon": 126.83454
-    },
-    {
-     "osm": "node/13891563108",
-     "name": "에이원무빙코리아",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.60159,
-     "lon": 126.76959
-    },
-    {
-     "osm": "node/13891563933",
-     "name": "일공이사에이원",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42668,
-     "lon": 126.83522
-    },
-    {
-     "osm": "way/224157589",
-     "name": "박촌풍림아이원아파트 102동",
-     "name_en": null,
-     "kind": {
-      "building": "apartments"
-     },
-     "lat": 37.55714,
-     "lon": 126.74658
-    },
-    {
-     "osm": "way/224157604",
-     "name": "박촌풍림아이원아파트 101동",
-     "name_en": null,
-     "kind": {
-      "building": "apartments"
-     },
-     "lat": 37.55664,
-     "lon": 126.74641
-    },
-    {
-     "osm": "way/224636990",
-     "name": "박촌 풍림아이원",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.55694,
-     "lon": 126.7466
-    },
-    {
-     "osm": "way/234783998",
-     "name": "인천항(남항)",
-     "name_en": "Incheon Port(South Port)",
-     "kind": {
-      "harbour": "yes"
-     },
-     "lat": 37.44221,
-     "lon": 126.60646
-    },
-    {
-     "osm": "way/255179675",
-     "name": "하이원 리빙텔",
-     "name_en": null,
-     "kind": {
-      "building": "house"
-     },
-     "lat": 37.52971,
-     "lon": 126.84662
-    },
-    {
-     "osm": "way/267616794",
-     "name": "풍림아이원아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.49854,
-     "lon": 126.74834
-    },
-    {
-     "osm": "way/300728898",
-     "name": "월곶풍림아이원3차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.38628,
-     "lon": 126.74217
-    },
-    {
-     "osm": "way/300728899",
-     "name": "월곶풍림아이원4차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.38846,
-     "lon": 126.74342
-    },
-    {
-     "osm": "way/300728901",
-     "name": "월곶풍림아이원1차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.39061,
-     "lon": 126.73753
-    },
-    {
-     "osm": "way/300728902",
-     "name": "월곶풍림아이원2차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.39267,
-     "lon": 126.73936
-    },
-    {
-     "osm": "way/372688500",
-     "name": "송도 풍림 아이원 2단지 아파트",
-     "name_en": "Songdo Poonglim I-Want Apartment Complex 2",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.39342,
-     "lon": 126.65188
-    },
-    {
-     "osm": "way/372692795",
-     "name": "송도 풍림 아이원 1단지 아파트",
-     "name_en": "Songdo Poonglim I-Want Apartment complex 1",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.3951,
-     "lon": 126.65483
-    },
-    {
-     "osm": "way/372693024",
-     "name": "송도 풍림 아이원 3단지 아파트",
-     "name_en": "Songdo Poonglim I-Want Apartment Complex 3",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.39204,
-     "lon": 126.65318
-    },
-    {
-     "osm": "way/372693328",
-     "name": "송도 풍림 아이원 6단지 아파트",
-     "name_en": "Songdo Poonglim I-Want Apartment Complex 6",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.3903,
-     "lon": 126.65451
-    },
-    {
-     "osm": "way/372693918",
-     "name": "송도 풍림 아이원 4단지 아파트",
-     "name_en": "Songdo Poonglim I-Want Apartment Complex 4",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.39338,
-     "lon": 126.65731
-    },
-    {
-     "osm": "way/372741863",
-     "name": "이원생명과학연구원",
-     "name_en": "Eone Life Science Research Office",
-     "kind": {
-      "building": "yes"
-     },
-     "lat": 37.3727,
-     "lon": 126.63559
-    },
-    {
-     "osm": "way/468227252",
-     "name": "에이원아파트",
-     "name_en": null,
-     "kind": {
-      "building": "apartments"
-     },
-     "lat": 37.46692,
-     "lon": 126.63109
-    },
-    {
-     "osm": "way/469429088",
-     "name": "검단풍림아이원2차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.59691,
-     "lon": 126.6702
-    },
-    {
-     "osm": "way/469918056",
-     "name": "아이원캐슬",
-     "name_en": null,
-     "kind": {
-      "building": "residential"
-     },
-     "lat": 37.41711,
-     "lon": 126.7267
-    },
-    {
-     "osm": "way/469981554",
-     "name": "검단풍림아이원아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.60131,
-     "lon": 126.64974
-    },
-    {
-     "osm": "way/470130637",
-     "name": "풍림아이원4차아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.61501,
-     "lon": 126.66
-    },
-    {
-     "osm": "way/472063586",
-     "name": "학익풍림아이원아파트",
-     "name_en": "Hagik Punglim i-want apt.",
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.44132,
-     "lon": 126.65889
-    },
-    {
-     "osm": "way/474206542",
-     "name": "호수마을 풍림아이원 아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.3059,
-     "lon": 126.81826
-    },
-    {
-     "osm": "way/555364587",
-     "name": "소사풍림아이원아파트",
-     "name_en": null,
-     "kind": {
-      "landuse": "residential"
-     },
-     "lat": 37.46538,
-     "lon": 126.80134
-    }
-   ]
+   "error": "Overpass 응답 없음"
   },
   {
    "id": "국제여객부두",
-   "want": "인천항 국제여객터미널(IPT 컨테이너 부두 옆)",
+   "want": "인천항 (신)국제여객터미널 — 터미널 IPT 부두군",
    "candidates": [
-    {
-     "osm": "node/8942663438",
-     "name": "인천항국제여객터미널",
-     "name_en": "Incheon Port New International Passenger Ferry Terminal",
-     "kind": {
-      "amenity": "ferry_terminal"
-     },
-     "lat": 37.42458,
-     "lon": 126.60046
-    },
-    {
-     "osm": "node/11379548277",
-     "name": "(구)국제여객터미널",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.45241,
-     "lon": 126.59793
-    },
-    {
-     "osm": "node/11379548278",
-     "name": "(구)국제여객터미널",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.45271,
-     "lon": 126.59773
-    },
-    {
-     "osm": "node/11379634840",
-     "name": "인천항신국제여객터미널(하행)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.4238,
-     "lon": 126.60586
-    },
-    {
-     "osm": "node/11379634841",
-     "name": "인천항신국제여객터미널",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42319,
-     "lon": 126.60552
-    },
-    {
-     "osm": "node/11380484948",
-     "name": "인천항신국제여객터미널",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42316,
-     "lon": 126.60566
-    },
-    {
-     "osm": "node/11403267445",
-     "name": "인천항신국제여객터미널(하행)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42376,
-     "lon": 126.60596
-    },
-    {
-     "osm": "way/400141444",
-     "name": "구 제2국제여객터미널",
-     "name_en": null,
-     "kind": {
-      "building": "yes"
-     },
-     "lat": 37.46489,
-     "lon": 126.62516
-    },
-    {
-     "osm": "way/472456289",
-     "name": "구 제1 국제여객터미널",
-     "name_en": "Incheon Port First International Passenger Terminal",
-     "kind": {
-      "amenity": "ferry_terminal",
-      "building": "yes"
-     },
-     "lat": 37.4537,
-     "lon": 126.59639
-    },
     {
      "osm": "way/669435100",
      "name": "인천항국제여객터미널",
@@ -861,28 +72,124 @@
      },
      "lat": 37.42386,
      "lon": 126.60561
-    },
-    {
-     "osm": "relation/16762433",
-     "name": "인천항신국제여객터미널",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42318,
-     "lon": 126.60559
-    },
-    {
-     "osm": "relation/16799730",
-     "name": "인천항신국제여객터미널(하행)",
-     "name_en": null,
-     "kind": {},
-     "lat": 37.42378,
-     "lon": 126.60591
     }
    ]
   },
   {
    "id": "인천공항",
-   "error": "Overpass 응답 없음"
+   "want": "인천국제공항 화물터미널",
+   "candidates": [
+    {
+     "osm": "way/29050341",
+     "name": "화물계류장1",
+     "name_en": "Cargo Apron 1",
+     "kind": {
+      "aeroway": "apron"
+     },
+     "lat": 37.46739,
+     "lon": 126.46803
+    },
+    {
+     "osm": "way/179263796",
+     "name": "인천국제공항 화물터미널 C동",
+     "name_en": "Incheon International Airport Cargo Terminal C-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46981,
+     "lon": 126.46692
+    },
+    {
+     "osm": "way/179263797",
+     "name": "인천국제공항 대한항공운송대리점A",
+     "name_en": "Incheon International Airport Korean Air Cargo Transport Agency A",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46211,
+     "lon": 126.46719
+    },
+    {
+     "osm": "way/179263798",
+     "name": "인천국제공항 아시아나항공 화물터미널",
+     "name_en": "Incheon International Airport Asiana Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46753,
+     "lon": 126.46287
+    },
+    {
+     "osm": "way/179263800",
+     "name": "인천국제공항 화물터미널 A동",
+     "name_en": "Incheon International Airport Cargo Terminal A-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.4634,
+     "lon": 126.46957
+    },
+    {
+     "osm": "way/179263802",
+     "name": "인천국제공항 대한항공 화물터미널",
+     "name_en": "Incheon International Airpot Korean Air Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46357,
+     "lon": 126.46648
+    },
+    {
+     "osm": "way/316533232",
+     "name": "인천국제공항 화물터미널 B동",
+     "name_en": "Incheon International Airport Cargo Terminal B-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46988,
+     "lon": 126.46381
+    },
+    {
+     "osm": "way/316533243",
+     "name": "인천국제공항 대한항공 화물터미널",
+     "name_en": "Incheon International Airpot Korean Air Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46639,
+     "lon": 126.47151
+    },
+    {
+     "osm": "way/316533245",
+     "name": "AACT 제1화물터미널",
+     "name_en": "AACT 1st Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46998,
+     "lon": 126.45838
+    },
+    {
+     "osm": "way/316533300",
+     "name": "공항화물청사역",
+     "name_en": "Incheon International Airport Cargo Terminal Station",
+     "kind": {
+      "building": "train_station"
+     },
+     "lat": 37.45904,
+     "lon": 126.47745
+    },
+    {
+     "osm": "way/318875437",
+     "name": "화물계류장2",
+     "name_en": "Cargo Apron 2",
+     "kind": {
+      "aeroway": "apron"
+     },
+     "lat": 37.47505,
+     "lon": 126.4615
+    }
+   ]
   }
  ]
 }
