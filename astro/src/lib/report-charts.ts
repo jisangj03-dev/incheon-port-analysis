@@ -21,6 +21,12 @@ export function initReportCharts() {
       }),
     );
     box.querySelectorAll("select, input[type=checkbox]").forEach((el) => el.addEventListener("change", draw));
+    const eb = box.querySelector<HTMLButtonElement>(".rc__embed");
+    eb?.addEventListener("click", () => {
+      const code = box.querySelector<HTMLElement>(".rc__code")!;
+      code.hidden = !code.hidden;
+      if (!code.hidden) { const ta = code.querySelector("textarea")!; ta.focus(); ta.select(); }
+    });
     // 화면에 들어올 때 처음 그린다(첫 화면 JS 를 가볍게).
     const io = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) { io.disconnect(); draw(); } }, { rootMargin: "200px" });
     io.observe(box);
