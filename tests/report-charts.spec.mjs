@@ -56,7 +56,9 @@ test("화면: 범위·보기를 바꾸면 문장과 차트가 바뀐다 · 외�
   await page.goto("/incheon-port-analysis/reports/report_12_터미널별_장기창.html");
   const tw = page.locator(".rc[data-kind=terminal]");
   await tw.scrollIntoViewIfNeeded();
-  await expect(tw.locator(".rc__say")).toContainText("마지막 달 2026-07");
+  // 마지막 달은 박지 않는다 — 주간 루틴이 새 달을 붙이면 바뀐다(2026-08 이 붙자 2026-07 고정이 깨졌다).
+  const lastYm = read("terminals").map((r) => r["연월"]).sort().at(-1);
+  await expect(tw.locator(".rc__say")).toContainText(`마지막 달 ${lastYm}`);
   await tw.locator("button[data-view=yoy]").click();
   await expect(tw.locator(".rc__say")).toContainText("%");
   await expect(tw.locator("[data-updated]")).toHaveCount(1);
