@@ -11,7 +11,28 @@ permissions:
   contents: write
 
 jobs:
+  gate:
+    # 새 브랜치 첫 push · main 병합 push 는 경로 거르개를 그냥 통과한다(main 이 그동안 바꾼 파일이 「바뀐 파일」로 잡힌다 —
+    # 2026-10-12 #34 에서 media-fetch·live-check·places-fetch 가 한꺼번에 깨어나 같은 브랜치에 push 를 다퉜다).
+    # 설정 파일이 main 과 실제로 다를 때만 본 작업을 돌린다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: g
+        run: |
+          git fetch -q origin main
+          if git diff --quiet origin/main HEAD -- tools-build/places-query.json; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "설정 파일이 main 과 같다 — 건너뜀(새 브랜치·main 병합 push)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
   fetch:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -28,5 +49,5 @@ jobs:
           git add data/derived/places_osm.json
           git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
           git commit -m "3D 지도 자리표 후보(OSM · ODbL) — places-fetch 워크플로가 Overpass 에서 찾음"
-          git push
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
           python -c "import json;d=json.load(open('data/derived/places_osm.json',encoding='utf-8'));print('\n'.join(f\"- {p['id']}: {len(p.get('candidates',[]))}\" for p in d['places']))" >> "$GITHUB_STEP_SUMMARY"
