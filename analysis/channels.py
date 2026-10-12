@@ -119,6 +119,49 @@ CHANNELS = {
             "**수신자 주소·이름은 문안 파일에 안 넣는다**(§4.1 · 공개 저장소에 안 옮기는 것과 같은 이유).",
         ],
     },
+    # [2026-10-12 53차] 릴스 채널 둘. **수치는 세션 지식이고 공식 문서와 아직 대조하지 않았다** — 이 세션 망이
+    #   instagram.com·threads.net 도움말을 막는다. 그래서 상한은 「하드」가 아니라 WARN 으로만 쓰고(아래 「상한확인」),
+    #   다음에 공식 문서를 본 세션이 확인일·출처를 고친다.
+    "instagram": {
+        "이름": "인스타그램(릴스)",
+        "주소": "https://www.instagram.com/",
+        "확인일": "2026-10-12",
+        "출처": "[미확인] 세션 지식 — 공식 도움말 대조 전",
+        "상한확인": False,                  # 상한을 확인 못 했다 → 넘어도 FAIL 이 아니라 WARN
+        "제목": False,
+        "본문상한": 2200,                   # 캡션 상한(세션 지식)
+        "훅": 125,                          # 피드에서 「…더 보기」 앞(세션 지식)
+        "되돌릴수있나": True,               # 게시물 수정·삭제 가능
+        "자기것허용": True,
+        "캡션링크클릭": False,              # 캡션 안의 URL 은 눌리지 않는다 → 프로필 링크로
+        "링크카드": None,
+        "사람이할일": "로그인 · 영상 올리기 · 표지 고르기 · 게시 버튼",
+        "메모": [
+            "**캡션의 링크는 안 눌린다.** 측심 주소는 프로필 링크(UTM `utm_source=instagram`)로 보내고, 캡션에는 「프로필 링크」라고만 적는다.",
+            "**첫 3초가 전부다**(확장 기준 31 · 홍보 방침) — 결과를 먼저 보이고 설명은 뒤에.",
+            "영상은 `reels.yml` 이 Actions 에서 렌더한 artifact 를 쓴다. 소리 없음(Edge TTS·기본 배경음악 안 씀).",
+            "상한 수치(캡션 2,200자 · 앞 125자)는 **[미확인]** — 공식 도움말을 본 세션이 확인일과 같이 고친다.",
+        ],
+    },
+    "threads": {
+        "이름": "스레드",
+        "주소": "https://www.threads.net/",
+        "확인일": "2026-10-12",
+        "출처": "[미확인] 세션 지식 — 공식 도움말 대조 전",
+        "상한확인": False,
+        "제목": False,
+        "본문상한": 500,                    # 게시물 상한(세션 지식)
+        "훅": None,
+        "되돌릴수있나": True,
+        "자기것허용": True,
+        "링크카드": "링크 미리보기 카드가 붙는다(세션 지식 · [미확인])",
+        "사람이할일": "로그인 · 게시 버튼 · 카드 미리보기 확인",
+        "메모": [
+            "**짧다.** 상한(세션 지식 500자)을 넘으면 이어 쓰기(스레드)로 나뉜다 — 결론을 첫 글에.",
+            "링크는 UTM `utm_source=threads` 로 가른다(확장 기준 30).",
+            "상한 수치는 **[미확인]** — 공식 도움말을 본 세션이 고친다.",
+        ],
+    },
     "disquiet": {
         "이름": "디스콰이엇",
         "주소": "https://disquiet.io/",
@@ -211,8 +254,10 @@ def check_format(channel, body, title=None):
     if not body.strip():
         out.append((FAIL, "본문이 비어 있다"))
     cap = c.get("본문상한")
+    sure = c.get("상한확인", True)          # 확인 못 한 상한은 FAIL 이 아니라 WARN(53차 · 릴스 채널)
     if cap and n > cap:
-        out.append((FAIL, "본문 %d자 — 상한 %d자를 넘는다. 잘린다" % (n, cap)))
+        out.append((FAIL if sure else WARN, "본문 %d자 — 상한 %d자%s를 넘는다. 잘린다"
+                    % (n, cap, "" if sure else "([미확인] 세션 지식)")))
     elif cap and n > cap * 0.9:
         out.append((WARN, "본문 %d자 — 상한 %d자의 90%%를 넘었다" % (n, cap)))
     elif cap is None:
@@ -238,6 +283,8 @@ def check_format(channel, body, title=None):
     for u in us:
         if SHORTENER.search(u):
             out.append((FAIL, "단축 URL: %s" % u))
+    if us and c.get("캡션링크클릭") is False:
+        out.append((WARN, "이 채널은 본문 링크가 **안 눌린다** — 프로필 링크로 보내고 본문에는 「프로필 링크」라고 적는다"))
     if c.get("링크카드") and len(us) > 1 and channel.lower() == "linkedin":
         # 카드는 **마지막으로 입력된** URL 에 붙는다. 한 번에 붙여넣으면 그것이 마지막 URL 이다.
         out.append((INFO, "URL %d개 — 한 번에 붙여넣으면 카드는 **마지막** URL(%s)에 붙는다"
@@ -308,14 +355,24 @@ def selftest():
         return [l for l, _ in f]
 
     print("── 인수시험: 채널을 가리는가 ──")
-    chk("아는 채널 넷", sorted(CHANNELS),
-        ["disquiet", "email", "geeknews", "linkedin"])
+    chk("아는 채널 여섯", sorted(CHANNELS),
+        ["disquiet", "email", "geeknews", "instagram", "linkedin", "threads"])
     chk("메일은 회수가 안 된다", CHANNELS["email"]["되돌릴수있나"], False)
     chk("메일은 유예조차 없다", CHANNELS["email"]["삭제유예"], "없다")
     chk("메일은 게시 지면이 없다", CHANNELS["email"].get("게시지면"), False)
     chk("나머지 셋은 지면이 있다",
-        [CHANNELS[c].get("게시지면", True) for c in ("linkedin", "geeknews", "disquiet")],
-        [True, True, True])
+        [CHANNELS[c].get("게시지면", True) for c in ("linkedin", "geeknews", "disquiet", "instagram", "threads")],
+        [True, True, True, True, True])
+
+    print("── 인수시험: 릴스 채널(상한 [미확인]) ──")
+    f = check_format("instagram", "가" * 2300 + "\nhttps://a.b/c")
+    chk("인스타 상한은 확인 전이라 FAIL 아닌 WARN", FAIL in levels(f), False)
+    chk("인스타 상한 초과는 WARN 으로 말한다", any("2200" in m for l, m in f if l == WARN), True)
+    chk("인스타 캡션 링크는 안 눌린다고 경고", any("안 눌린다" in m for _, m in f), True)
+    f = check_format("threads", "짧은 글\nhttps://a.b/c")
+    chk("스레드 정상 문안은 FAIL 없다", FAIL in levels(f), False)
+    f = check_format("linkedin", "가" * 3100 + "\nhttps://a.b")
+    chk("확인된 상한(링크드인)은 여전히 FAIL", FAIL in levels(f), True)
     try:
         rules("브런치")
         chk("모르는 채널은 막는다", True, False)
