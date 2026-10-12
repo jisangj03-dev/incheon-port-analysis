@@ -1,0 +1,72 @@
+---
+// 보고서 ② 층 위젯 — 원시 CSV 에서 빌드 때 뽑은 계열을 직접 고르고 바꿔 본다(확장 기준 18).
+// 새 결론을 만들지 않는다: 발행본이 쓴 정의 그대로의 값을 범위·보기만 바꿔 보인다. 차트는 Plot 을 늦게 불러 그린다.
+import Updated from "../Updated.astro";
+import { emptyDirection, sizeDirection, terminals, items, REPORT_WIDGET } from "../../lib/report-data";
+import { u } from "../../lib/site";
+interface Props { id: string }
+const { id } = Astro.props;
+const w = REPORT_WIDGET[id];
+const D = !w ? null : w.kind === "direction" ? emptyDirection() : w.kind === "size" ? sizeDirection() : w.kind === "terminal" ? terminals() : items();
+const csvName = !w ? "" : { direction: "empty-direction", size: "size-direction", terminal: "terminals", item: "items" }[w.kind];
+const years = D && "series" in D ? [...new Set((D.series as any[]).map((s) => s.ym.slice(0, 4)))].sort() : [];
+const cfg = w ? { ...w, data: D } : null;
+---
+{w && D && (
+  <div class="rc" data-chart={`report-${w.kind}`} data-kind={w.kind}>
+    <div class="rc__ctrl" role="group" aria-label="보기 고르기">
+      {(w.kind === "direction" || w.kind === "size" || w.kind === "terminal") && (
+        <>
+          <label>부터 <select data-k="from">{years.map((y) => <option value={y} selected={y === (w.from || "").slice(0, 4)}>{y}</option>)}</select></label>
+          <label>까지 <select data-k="to">{years.map((y) => <option value={y} selected={y === (w.to || "").slice(0, 4)}>{y}</option>)}</select></label>
+        </>
+      )}
+      {w.kind === "direction" && (
+        <span class="rc__seg"><button type="button" data-view="teu" aria-pressed={w.view !== "ratio" ? "true" : "false"}>TEU</button><button type="button" data-view="ratio" aria-pressed={w.view === "ratio" ? "true" : "false"}>배율(수출÷수입)</button></span>
+      )}
+      {w.kind === "terminal" && (
+        <span class="rc__seg"><button type="button" data-view="v" aria-pressed="true">처리량</button><button type="button" data-view="yoy" aria-pressed="false">전년 같은 달 대비 %</button></span>
+      )}
+      {w.kind === "item" && (
+        <>
+          <label>달 <select data-k="month">{(D as any).months.map((m: string, i: number, a: string[]) => <option value={m} selected={i === a.length - 1}>{m}</option>)}</select></label>
+          <span class="rc__seg"><button type="button" data-view="exp" aria-pressed="true">수출</button><button type="button" data-view="imp" aria-pressed="false">수입</button></span>
+        </>
+      )}
+    </div>
+    {w.kind === "terminal" && (
+      <div class="rc__pick" role="group" aria-label="터미널">
+        {(D as any).names.map((n: string) => <label class="rc__chk"><input type="checkbox" data-term={n} checked /> {n}</label>)}
+      </div>
+    )}
+    <p class="rc__say" aria-live="polite"></p>
+    <div class="rc__plot" role="img" aria-label="선택한 보기의 차트 — 같은 내용을 위 문장이 말한다"></div>
+    <p class="rc__foot"><Updated date={D.updated} source={D.source} /> · 단위 {D.unit} · <a href={u(`/data/${csvName}.csv`)} download>이 계열 CSV 내려받기</a></p>
+    <script type="application/json" class="rc__data" set:html={JSON.stringify(cfg)} />
+  </div>
+)}
+{!w && (
+  <div class="ia--todo" data-interactive="todo"><p><strong>준비 중</strong> — 이 편의 숫자를 직접 고르고 바꿔 보는 차트는 아직 없다. 원시 CSV 는 저장소에 있다.</p></div>
+)}
+<script>
+  import { initReportCharts } from "../../lib/report-charts";
+  initReportCharts();
+</script>
+<style>
+  .rc { background: color-mix(in srgb, var(--hull) 70%, transparent); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 1rem 1.2rem; max-width: 980px; }
+  .rc__ctrl { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
+  .rc__ctrl label { font-size: 0.88rem; color: var(--mist); display: inline-flex; align-items: center; gap: 0.35rem; }
+  .rc select { min-height: 40px; font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--deep); border: 1px solid var(--hair-strong); border-radius: var(--r-sm); padding: 0.2rem 0.4rem; }
+  .rc__seg { display: inline-flex; border: 1px solid var(--hair-strong); border-radius: 999px; overflow: hidden; }
+  .rc__seg button { min-height: 40px; font: inherit; font-size: 0.86rem; font-weight: 700; padding: 0.3rem 0.8rem; background: transparent; color: var(--mist); border: 0; cursor: pointer; }
+  .rc__seg button[aria-pressed="true"] { background: var(--sonar); color: var(--sonar-ink); }
+  .rc__pick { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin-top: 0.6rem; }
+  .rc__chk { font-size: 0.88rem; color: var(--text); display: inline-flex; align-items: center; gap: 0.3rem; min-height: 32px; }
+  .rc__say { margin: 0.7rem 0 0.3rem; color: var(--ink); font-weight: 600; font-size: 0.98rem; }
+  .rc__plot { overflow: hidden; min-height: 60px; }
+  .rc__plot :global(svg) { max-width: 100%; height: auto; }
+  .rc__foot { font-size: 0.82rem; color: var(--mist); margin: 0.4rem 0 0; display: flex; flex-wrap: wrap; gap: 0.3rem 0.6rem; align-items: center; }
+  .ia--todo { border: 1px dashed var(--hair-strong); border-radius: var(--r-md); padding: 1rem 1.2rem; color: var(--mist); max-width: 880px; }
+  .ia--todo p { margin: 0; }
+  .ia--todo strong { color: var(--sodium); }
+</style>
