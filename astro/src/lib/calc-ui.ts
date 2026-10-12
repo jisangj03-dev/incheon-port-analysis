@@ -72,6 +72,8 @@ export function initCalc(retry = true) {
       const url = new URL(location.href);
       if (any) url.searchParams.set("s", C.encode(state, hidden)); else url.searchParams.delete("s");
       history.replaceState(null, "", url);
+      const sim = document.getElementById("simlink") as HTMLAnchorElement | null;
+      if (sim) sim.href = sim.href.split("?")[0] + (any ? `?s=${url.searchParams.get("s")}` : "");
     }, 250);
   }
 

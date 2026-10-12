@@ -20,3 +20,26 @@ export function portMonthly() {
   const series = rows.map((r) => ({ ym: r["기준연월"], v: Number(r["당월_천TEU"]), yoy: r["전년대비_당월_%"] === "" ? null : Number(r["전년대비_당월_%"]) }));
   return { series, updated: lastUpdated(rel), source: "인천지방해양수산청 월별 항만운영통계" };
 }
+
+/** 3D 지도용 — 부두군·터미널별 월별 처리량(천TEU) + 자리표(data/derived/places.json · 개략 좌표). */
+export function mapSeries() {
+  const rel = "analysis/terminal_monthly_long.csv";
+  const rows = csv(rel);
+  const places = JSON.parse(readFileSync(join(repoRoot(), "data/derived/places.json"), "utf-8")).places;
+  const months = [...new Set(rows.filter((r) => r["계층"] === "합계").map((r) => r["기준연월"]))].sort();
+  const pick = (spec: string | null) => {
+    if (!spec) return null;
+    const [layer, name] = spec.split(":");
+    return months.map((m) => {
+      const r = rows.find((x) => x["기준연월"] === m && x["계층"] === layer && (layer === "부두군" ? x["부두군"] : x["터미널"]) === name);
+      return r && r["당월_천TEU"] !== "" ? Number(r["당월_천TEU"]) : null;
+    });
+  };
+  return {
+    months,
+    places: places.map((p: any) => ({ ...p, values: pick(p.series) })),
+    updated: lastUpdated(rel),
+    placesUpdated: lastUpdated("data/derived/places.json"),
+    source: "인천지방해양수산청 월별 항만운영통계",
+  };
+}
