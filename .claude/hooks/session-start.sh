@@ -10,7 +10,10 @@ fi
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}" || exit 1
 
 fail=""
-python -m pip install -q --disable-pip-version-check -r requirements-dev.txt >/dev/null 2>&1 || fail="$fail pip"
+# PEP 668(「외부 관리 환경」) 표지가 있는 파이썬은 첫 줄을 거절한다 — 채팅의 새 컨테이너에서 실제로 났다(PR #19 댓글).
+# 이 컨테이너는 세션이 끝나면 버려지는 것이라 시스템 파이썬에 깔아도 남는 피해가 없다 → 그때만 --break-system-packages.
+pip_in() { python -m pip install -q --disable-pip-version-check "$@" -r requirements-dev.txt >/tmp/session-start-pip.log 2>&1; }
+pip_in || { grep -q "externally-managed" /tmp/session-start-pip.log && pip_in --break-system-packages; } || fail="$fail pip($(tail -1 /tmp/session-start-pip.log | cut -c1-80))"
 npm install --no-audit --no-fund --silent >/dev/null 2>&1 || fail="$fail npm"
 python analysis/install_git_hooks.py >/dev/null 2>&1 || fail="$fail git-hooks"
 
