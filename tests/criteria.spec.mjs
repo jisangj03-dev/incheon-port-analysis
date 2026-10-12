@@ -44,6 +44,7 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
       // 15 신뢰 지면 링크 · 24 새 글 받아보기 링크 — 바닥글에 하나씩
       await expect(page.locator("footer [data-trust]")).toHaveCount(1);
       await expect(page.locator("footer [data-newsletter]")).toHaveCount(1);
+      await expect(page.locator("footer [data-newsletter]")).toHaveAttribute("href", "/incheon-port-analysis/go/newsletter.html");
       // 14 차트·지도 위젯마다 갱신일
       const charts = await page.locator("[data-chart]").count();
       const chartsWithDate = await page.locator("[data-chart]:has([data-updated])").count();
@@ -85,6 +86,9 @@ test("기준 9 — sitemap.xml · robots.txt 200, 블로그 /79 링크(계산기
   expect(html).toContain(`${BASE}/go/sheet.html`);
   const go = await (await page.request.get(`${BASE}/go/sheet.html`)).text();
   expect(go).toContain("logisticsforeveryone.tistory.com/79");
+  // 기준 24 — 뉴스레터(물류로그 beehiiv · 2026-10-12 선장님 지정)
+  const nl = await (await page.request.get(`${BASE}/go/newsletter.html`)).text();
+  expect(nl).toContain("logisticslog.beehiiv.com/subscribe");
 });
 
 test("기준 16 — 보고서마다 출처 대장에 행이 있다", async () => {

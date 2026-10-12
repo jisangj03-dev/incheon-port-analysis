@@ -26,8 +26,8 @@ export const OUT: Record<string, { live: boolean; url: string; label: string }> 
   "kmong-829076": { live: false, url: "https://kmong.com/gig/829076", label: "정산·마진 시트(크몽)" },
   "kmong-824011": { live: true, url: "https://kmong.com/gig/824011", label: "광고 주간 리포트(크몽)" },
   blog: { live: true, url: "https://logisticsforeveryone.tistory.com/", label: "블로그" },
-  // 뉴스레터 — 주소가 정해지면 url 을 바꾸고 live 를 true 로. 그 전에는 블로그 구독으로 안내한다(기준 24 · 선장님 손).
-  newsletter: { live: false, url: "", label: "뉴스레터" },
+  // 뉴스레터(물류로그 · beehiiv) — 2026-10-12 선장님 지정. 클릭은 /go/newsletter.html 방문 수로 센다(기준 24·29).
+  newsletter: { live: true, url: "https://logisticslog.beehiiv.com/subscribe?utm_source=sounding&utm_medium=site&utm_campaign=footer", label: "뉴스레터(물류로그)" },
 };
 export const go = (id: string) => u(`/go/${id}.html`);
 export const newsletterHref = () => (OUT.newsletter.live ? go("newsletter") : go("blog"));
@@ -36,6 +36,7 @@ export const newsletterLabel = () => (OUT.newsletter.live ? "뉴스레터 구독
 export const NAV = [
   { href: "/reports/", label: "보고서" },
   { href: "/tools/", label: "도구" },
+  { href: "/map.html", label: "지도" },
   { href: "/data.html", label: "데이터" },
   { href: "/about.html", label: "신뢰" },
 ];
