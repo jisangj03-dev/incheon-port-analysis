@@ -5,6 +5,8 @@ import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import Updated from "../../components/Updated.astro";
 import Interactive from "../../components/report/Interactive.astro";
+import ReportChart from "../../components/report/ReportChart.astro";
+import { REPORT_WIDGET } from "../../lib/report-data";
 import { title, splitTitle, conclusion, written, firstImage, description, lastUpdated } from "../../lib/content";
 import { u, abs, BRAND } from "../../lib/site";
 
@@ -55,7 +57,7 @@ const jsonld = [{
 
     <section class="rpt__layer wrap" aria-labelledby="l2">
       <h2 id="l2" class="rpt__lh"><span>②</span> 직접 만져 보기</h2>
-      <Interactive id={entry.id} />
+      {REPORT_WIDGET[entry.id] ? <ReportChart id={entry.id} /> : <Interactive id={entry.id} />}
     </section>
 
     <section class="rpt__layer wrap" aria-labelledby="l3">
