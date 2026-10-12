@@ -55,6 +55,10 @@ jobs:
         run: bash tools-build/pmtiles.sh || echo "::warning::지도 타일 추출 실패 — 지도는 정지 이미지로 남는다"
       - name: Astro 빌드(공개판 — 시험 지면 없음) · Pagefind
         run: npm run site:build
+      - name: 보고서 공유 카드(B6) — 못 찍으면 배포하지 않는다
+        run: |
+          npx playwright install --with-deps chromium
+          npm run site:og
       - uses: actions/upload-pages-artifact@v3
         with:
           path: astro/dist
