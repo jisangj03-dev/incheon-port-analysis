@@ -5,7 +5,7 @@ name: media-fetch
 on:
   push:
     branches: ["claude/**"]
-    paths: ["media/fetch.json", ".github/workflows/media-fetch.yml"]
+    paths: ["media/fetch.json"]   # 워크플로 자체를 고친 커밋으로는 다시 받지 않는다(세션이 다시 누른 파일을 덮지 않게)
 
 permissions:
   contents: write
@@ -32,18 +32,19 @@ jobs:
       - name: 웹용으로 다시 누르기(소리 제거 · faststart · 1080/720 · 포스터)
         run: |
           cd /tmp/m
-          ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1920:-2:flags=lanczos,fps=30" -c:v libx264 -profile:v high -preset slow -crf 27 -pix_fmt yuv420p -movflags +faststart hero-1080.mp4
-          ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1280:-2:flags=lanczos,fps=30" -c:v libx264 -profile:v main -preset slow -crf 29 -pix_fmt yuv420p -movflags +faststart hero-720.mp4
+          ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1600:-2:flags=lanczos" -c:v libx264 -profile:v high -preset veryslow -tune film -crf 33 -pix_fmt yuv420p -movflags +faststart hero-1600.mp4
+          ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=960:-2:flags=lanczos" -c:v libx264 -profile:v main -preset veryslow -tune film -crf 31 -pix_fmt yuv420p -movflags +faststart hero-960.mp4
           ffmpeg -v error -y -ss 0.2 -i hero-src.mp4 -frames:v 1 -vf "scale=1920:-2:flags=lanczos" poster.png
-          cwebp -quiet -q 72 -resize 1600 0 poster.png -o hero-poster.webp
+          cwebp -quiet -q 50 -resize 1440 0 poster.png -o hero-poster.webp
+          cwebp -quiet -q 55 -resize 720 0 poster.png -o hero-poster-720.webp
           # 예산을 넘으면 한 단계 더 누른다
-          s=$(stat -c %s hero-1080.mp4); if [ "$s" -gt 2662400 ]; then ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1920:-2:flags=lanczos,fps=30" -c:v libx264 -preset slow -crf 30 -pix_fmt yuv420p -movflags +faststart hero-1080.mp4; fi
-          s=$(stat -c %s hero-720.mp4); if [ "$s" -gt 972800 ]; then ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1280:-2:flags=lanczos,fps=24" -c:v libx264 -preset slow -crf 32 -pix_fmt yuv420p -movflags +faststart hero-720.mp4; fi
+          s=$(stat -c %s hero-1600.mp4); if [ "$s" -gt 2662400 ]; then ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1920:-2:flags=lanczos,fps=30" -c:v libx264 -preset slow -crf 30 -pix_fmt yuv420p -movflags +faststart hero-1600.mp4; fi
+          s=$(stat -c %s hero-960.mp4); if [ "$s" -gt 972800 ]; then ffmpeg -v error -y -i hero-src.mp4 -an -vf "scale=1280:-2:flags=lanczos,fps=24" -c:v libx264 -preset slow -crf 32 -pix_fmt yuv420p -movflags +faststart hero-960.mp4; fi
           ls -la
       - name: 저장소에 넣기
         run: |
           mkdir -p astro/public/media
-          cp /tmp/m/hero-1080.mp4 /tmp/m/hero-720.mp4 /tmp/m/hero-poster.webp astro/public/media/
+          cp /tmp/m/hero-1600.mp4 /tmp/m/hero-960.mp4 /tmp/m/hero-poster.webp /tmp/m/hero-poster-720.webp astro/public/media/
           {
             echo "# 히어로 영상 — 출처·처리 기록(자동 생성 · media-fetch.yml)"
             echo
@@ -55,7 +56,7 @@ jobs:
             echo
             echo '| 파일 | 바이트 |'
             echo '|---|---:|'
-            for f in hero-1080.mp4 hero-720.mp4 hero-poster.webp; do echo "| $f | $(stat -c %s astro/public/media/$f) |"; done
+            for f in hero-1600.mp4 hero-960.mp4 hero-poster.webp hero-poster-720.webp; do echo "| $f | $(stat -c %s astro/public/media/$f) |"; done
           } > astro/public/media/README.md
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

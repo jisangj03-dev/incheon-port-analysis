@@ -12,7 +12,7 @@ import { repoRoot, title, splitTitle, conclusion, written, lastUpdated } from ".
 import { BRAND, PERSONAS, u } from "../lib/site";
 
 const pub = join(repoRoot(), "astro/public/media");
-const hasVideo = existsSync(join(pub, "hero-1080.mp4"));
+const hasVideo = existsSync(join(pub, "hero-1600.mp4"));
 const hasPoster = existsSync(join(pub, "hero-poster.webp"));
 const reports = (await getCollection("reports"))
   .map((e) => ({ id: e.id, ...splitTitle(title(e.body ?? "")), concl: conclusion(e.body ?? ""), date: written(e.body ?? "") }))
@@ -31,13 +31,13 @@ const jsonld = [{
 ---
 <Base path="/" type="website" jsonld={jsonld}>
   <Fragment slot="head">
-    {hasPoster && <link rel="preload" as="image" href={u("/media/hero-poster.webp")} fetchpriority="high" />}
+    {hasPoster && <link rel="preload" as="image" href={u("/media/hero-poster.webp")} imagesrcset={`${u("/media/hero-poster-720.webp")} 720w, ${u("/media/hero-poster.webp")} 1440w`} imagesizes="100vw" fetchpriority="high" />}
   </Fragment>
 
   <section class="hero" aria-labelledby="hero-h">
     <div class="hero__media" aria-hidden={!hasVideo}>
       {hasPoster ? (
-        <img class="hero__poster" src={u("/media/hero-poster.webp")} alt="" width="1920" height="1080" fetchpriority="high" decoding="async" />
+        <img class="hero__poster" src={u("/media/hero-poster.webp")} srcset={`${u("/media/hero-poster-720.webp")} 720w, ${u("/media/hero-poster.webp")} 1440w`} sizes="100vw" alt="" width="1440" height="810" fetchpriority="high" decoding="async" />
       ) : (
         <svg class="hero__fallback" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
@@ -51,7 +51,7 @@ const jsonld = [{
         </svg>
       )}
       {hasVideo && (
-        <video class="hero__video" muted loop playsinline preload="none" poster={hasPoster ? u("/media/hero-poster.webp") : undefined} data-src1080={u("/media/hero-1080.mp4")} data-src720={u("/media/hero-720.mp4")} aria-hidden="true"></video>
+        <video class="hero__video" muted loop playsinline preload="none" poster={hasPoster ? u("/media/hero-poster.webp") : undefined} data-src1080={u("/media/hero-1600.mp4")} data-src720={u("/media/hero-960.mp4")} aria-hidden="true"></video>
       )}
       <div class="hero__veil"></div>
       {(hasVideo || hasPoster) && <span class="ai-mark">AI 생성 장면</span>}
@@ -136,7 +136,7 @@ const jsonld = [{
   .hero { position: relative; isolation: isolate; overflow: hidden; min-height: min(92svh, 900px); display: flex; align-items: flex-end; background: var(--abyss); }
   .hero__media { position: absolute; inset: 0; z-index: -1; }
   .hero__poster, .hero__video, .hero__fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .hero__veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 9, 15, 0.35) 0%, rgba(5, 9, 15, 0.2) 35%, rgba(5, 9, 15, 0.86) 78%, var(--deep) 100%); }
+  .hero__veil { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5, 9, 15, 0.45) 0%, rgba(5, 9, 15, 0.32) 30%, rgba(5, 9, 15, 0.82) 70%, var(--deep) 100%), linear-gradient(90deg, rgba(5, 9, 15, 0.55) 0%, rgba(5, 9, 15, 0) 60%); }
   .hero .ai-mark { top: 72px; bottom: auto; }
   .hero__in { padding-top: 6rem; padding-bottom: 2.2rem; width: 100%; }
   .hero h1 { font-size: clamp(2rem, 5.6vw, 4.6rem); line-height: 1.08; letter-spacing: -0.035em; margin: 0.2em 0 0.35em; max-width: 16ch; text-shadow: 0 2px 30px rgba(0, 0, 0, 0.45); }
@@ -177,6 +177,8 @@ const jsonld = [{
   }
   @media (max-width: 640px) {
     .hero { min-height: auto; }
+    .hero .ai-mark { top: 10px; right: 10px; }
+    .hero__veil { background: linear-gradient(180deg, rgba(5, 9, 15, 0.55) 0%, rgba(5, 9, 15, 0.62) 45%, rgba(5, 9, 15, 0.9) 80%, var(--deep) 100%); }
     .hero__in { padding-top: 3.2rem; padding-bottom: 1.4rem; }
     .hero h1 { font-size: 1.85rem; }
     .hero__lede { font-size: 0.95rem; margin-bottom: 1rem; }
