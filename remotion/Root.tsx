@@ -1,5 +1,6 @@
 import React from "react";
 import { Composition, AbsoluteFill, useCurrentFrame, interpolate } from "remotion";
+import { Reel01 } from "./Reel01";
 
 // 시험값 — 실제 통계 아님. 실제 릴스는 data/derived 의 스냅샷을 props 로 받는다.
 const Proof: React.FC = () => {
@@ -18,5 +19,6 @@ export const Root: React.FC = () => (
   <>
     <Composition id="Proof" component={Proof} durationInFrames={60} fps={30} width={1080} height={1080} />
     <Composition id="Reel" component={Proof} durationInFrames={90} fps={30} width={1080} height={1920} />
+    <Composition id="Reel01" component={Reel01} durationInFrames={18 * 30} fps={30} width={1080} height={1920} />
   </>
 );

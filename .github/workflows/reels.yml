@@ -1,0 +1,52 @@
+# 릴스 렌더(2026-10-12) — 무료 연산 원칙: 화면 녹화·Remotion 렌더는 Actions 에서. 결과 mp4 는 artifact 로만(공개 저장소에 안 넣는다).
+# reels/*.json(장면·자막·사실 검증)이 바뀐 커밋이 claude/ 브랜치에 오면, 또는 손으로(workflow_dispatch) 돈다.
+name: reels
+
+on:
+  push:
+    branches: ["claude/**"]
+    paths: ["reels/*.json", "remotion/**", "tests/capture/record-calc.mjs"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: 한글 글꼴(자막) · Playwright 브라우저
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk >/dev/null
+          npx playwright install --with-deps chromium
+      - name: 사이트 빌드(분석 끔 — 녹화가 밖으로 요청하지 않게)
+        run: SOUNDING_NO_ANALYTICS=1 npm run site:build
+      - name: 계산기 화면 녹화
+        run: |
+          node tests/serve.mjs 4173 astro/dist &
+          sleep 2
+          node tests/capture/record-calc.mjs http://127.0.0.1:4173 remotion/public/reel-01-calc.webm
+      - name: Remotion 렌더(1080×1920 · 18초 · 소리 없음)
+        run: |
+          npx remotion browser ensure
+          mkdir -p reels-out
+          npx remotion render remotion/index.ts Reel01 reels-out/reel-01.mp4 --public-dir=remotion/public --codec=h264 --crf=22
+          npx remotion still remotion/index.ts Reel01 reels-out/reel-01-cover.png --frame=45 --public-dir=remotion/public
+          ls -la reels-out >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reels-${{ github.run_number }}
+          retention-days: 30
+          path: reels-out/

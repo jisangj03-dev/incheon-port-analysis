@@ -56,3 +56,5 @@ astro/public/vendor/
 # 지도 타일 — Actions 가 빌드 때 Protomaps 일간 빌드에서 인천만 추출한다(월 캐시). 커밋하지 않는다(월마다 12MB 가 이력에 쌓인다).
 astro/public/tiles/*.pmtiles
 lab-out/
+# 릴스 재료 녹화 — Actions(reels.yml)가 매번 다시 찍는다. 영상은 artifact 로만(공개 저장소에 안 쌓는다).
+remotion/public/*.webm
