@@ -1,6 +1,6 @@
 // 3D 지도 — maplibre(같은 주소 vendor/) + pmtiles(내장 타일) + deck.gl(interleaved:false · 판정 v2).
 // 늦게 불러온다: 누르거나, 넓은 화면에서 첫 화면이 다 그려진 뒤(기준 20 · 홈 성능 90 지키기).
-type Place = { id: string; label: string; kind: string; lon: number; lat: number; values: (number | null)[] | null };
+type Place = { id: string; label: string; kind: string; lon: number; lat: number; approx?: boolean; values: (number | null)[] | null };
 const $ = (id: string) => document.getElementById(id)!;
 
 export function initMap() {
@@ -24,7 +24,7 @@ export function initMap() {
       new ScatterplotLayer({ id: "air", data: pts.filter((p) => p.kind === "air"), getPosition: (d: any) => [d.lon, d.lat], getRadius: 1200, getFillColor: [255, 181, 71, 220] }),
       new TextLayer({
         id: "labels", data: pts, characterSet: "auto", fontFamily: "system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif", fontWeight: 700,
-        getPosition: (d: any) => [d.lon, d.lat, d.v ? d.v * 45 + 500 : 300], getText: (d: any) => (d.v !== null ? `${d.id} ${d.v}천TEU` : d.label),
+        getPosition: (d: any) => [d.lon, d.lat, d.v ? d.v * 45 + 500 : 300], getText: (d: any) => `${d.v !== null ? `${d.id} ${d.v}천TEU` : d.label}${d.approx ? " (개략 위치)" : ""}`,
         getSize: 14, getColor: [238, 245, 250], outlineWidth: 3, outlineColor: [5, 9, 15], fontSettings: { sdf: true }, updateTriggers: { getText: idx, getPosition: idx },
       }),
     ];

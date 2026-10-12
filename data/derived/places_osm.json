@@ -1,0 +1,195 @@
+{
+ "_설명": "OSM 후보(자동 생성 · places-fetch.yml). © OpenStreetMap 기여자 · ODbL. places.json 으로 옮길 때 osm_id 를 coord_source 에 적는다.",
+ "queried": "2026-10-12",
+ "bbox": [
+  37.25,
+  126.35,
+  37.62,
+  126.85
+ ],
+ "places": [
+  {
+   "id": "신항",
+   "want": "인천신항 컨테이너 부두(SNCT·HJIT)",
+   "candidates": [
+    {
+     "osm": "way/313806962",
+     "name": "인천신항",
+     "name_en": null,
+     "kind": {
+      "landuse": "construction"
+     },
+     "lat": 37.34495,
+     "lon": 126.61833
+    },
+    {
+     "osm": "way/313806963",
+     "name": "인천신항",
+     "name_en": "Incheon New Port",
+     "kind": {
+      "landuse": "harbour"
+     },
+     "lat": 37.34415,
+     "lon": 126.63173
+    },
+    {
+     "osm": "way/674060787",
+     "name": "인천신항",
+     "name_en": null,
+     "kind": {
+      "landuse": "industrial"
+     },
+     "lat": 37.34455,
+     "lon": 126.63173
+    }
+   ]
+  },
+  {
+   "id": "남항",
+   "error": "Overpass 응답 없음"
+  },
+  {
+   "id": "국제여객부두",
+   "want": "인천항 (신)국제여객터미널 — 터미널 IPT 부두군",
+   "candidates": [
+    {
+     "osm": "way/669435100",
+     "name": "인천항국제여객터미널",
+     "name_en": "Incheon Port New International Passenger Ferry Terminal",
+     "kind": {
+      "landuse": "harbour"
+     },
+     "lat": 37.42255,
+     "lon": 126.59922
+    },
+    {
+     "osm": "way/816105053",
+     "name": "인천항국제여객터미널",
+     "name_en": "Incheon Port New International Passenger Ferry Terminal",
+     "kind": {
+      "amenity": "ferry_terminal",
+      "building": "yes"
+     },
+     "lat": 37.42386,
+     "lon": 126.60561
+    }
+   ]
+  },
+  {
+   "id": "인천공항",
+   "want": "인천국제공항 화물터미널",
+   "candidates": [
+    {
+     "osm": "way/29050341",
+     "name": "화물계류장1",
+     "name_en": "Cargo Apron 1",
+     "kind": {
+      "aeroway": "apron"
+     },
+     "lat": 37.46739,
+     "lon": 126.46803
+    },
+    {
+     "osm": "way/179263796",
+     "name": "인천국제공항 화물터미널 C동",
+     "name_en": "Incheon International Airport Cargo Terminal C-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46981,
+     "lon": 126.46692
+    },
+    {
+     "osm": "way/179263797",
+     "name": "인천국제공항 대한항공운송대리점A",
+     "name_en": "Incheon International Airport Korean Air Cargo Transport Agency A",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46211,
+     "lon": 126.46719
+    },
+    {
+     "osm": "way/179263798",
+     "name": "인천국제공항 아시아나항공 화물터미널",
+     "name_en": "Incheon International Airport Asiana Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46753,
+     "lon": 126.46287
+    },
+    {
+     "osm": "way/179263800",
+     "name": "인천국제공항 화물터미널 A동",
+     "name_en": "Incheon International Airport Cargo Terminal A-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.4634,
+     "lon": 126.46957
+    },
+    {
+     "osm": "way/179263802",
+     "name": "인천국제공항 대한항공 화물터미널",
+     "name_en": "Incheon International Airpot Korean Air Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46357,
+     "lon": 126.46648
+    },
+    {
+     "osm": "way/316533232",
+     "name": "인천국제공항 화물터미널 B동",
+     "name_en": "Incheon International Airport Cargo Terminal B-Wing",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46988,
+     "lon": 126.46381
+    },
+    {
+     "osm": "way/316533243",
+     "name": "인천국제공항 대한항공 화물터미널",
+     "name_en": "Incheon International Airpot Korean Air Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46639,
+     "lon": 126.47151
+    },
+    {
+     "osm": "way/316533245",
+     "name": "AACT 제1화물터미널",
+     "name_en": "AACT 1st Cargo Terminal",
+     "kind": {
+      "building": "yes"
+     },
+     "lat": 37.46998,
+     "lon": 126.45838
+    },
+    {
+     "osm": "way/316533300",
+     "name": "공항화물청사역",
+     "name_en": "Incheon International Airport Cargo Terminal Station",
+     "kind": {
+      "building": "train_station"
+     },
+     "lat": 37.45904,
+     "lon": 126.47745
+    },
+    {
+     "osm": "way/318875437",
+     "name": "화물계류장2",
+     "name_en": "Cargo Apron 2",
+     "kind": {
+      "aeroway": "apron"
+     },
+     "lat": 37.47505,
+     "lon": 126.4615
+    }
+   ]
+  }
+ ]
+}
