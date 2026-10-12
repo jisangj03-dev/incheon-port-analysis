@@ -46,8 +46,7 @@
   },
   {
    "id": "남항",
-   "want": "남항 컨테이너 부두(E1CT·ICT)",
-   "candidates": []
+   "error": "Overpass 응답 없음"
   },
   {
    "id": "국제여객부두",
