@@ -36,6 +36,7 @@ export const newsletterLabel = () => (OUT.newsletter.live ? "뉴스레터 구독
 export const NAV = [
   { href: "/reports/", label: "보고서" },
   { href: "/tools/", label: "도구" },
+  { href: "/map.html", label: "지도" },
   { href: "/data.html", label: "데이터" },
   { href: "/about.html", label: "신뢰" },
 ];
