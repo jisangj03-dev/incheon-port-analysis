@@ -1,0 +1,105 @@
+# 예약 수집(확장 기준 14) — 공공데이터포털 원천을 달마다 받아 data/collected/ 에 쌓는다. Claude 토큰 0 · 무료 연산.
+# 키 = 저장소 시크릿 DATA_GO_KR_KEY(Decoding판). 원문은 GitHub 이 가리고, URL 인코딩 꼴은 아래 add-mask 가 가린다.
+# 끝에 산출물·요약을 다시 훑어 키 흔적이 있으면 커밋 전에 실패한다(collect.py --guard).
+# main 에 직접 쓰지 않는다 — 예약·수동 실행은 claude/collect-<시각> 브랜치를 밀고 PR 을 연다(저장소 규칙 · 머지는 사람).
+# claude/ 브랜치에서 collect.json·collect.py·이 파일이 바뀌면 그 브랜치에서 한 번 돌고 결과를 그 브랜치에 커밋한다(실행 증명).
+name: collect
+
+on:
+  schedule:
+    - cron: "23 0 16,24 * *"   # 매월 16·24일 09:23 KST — 원천 월 공표 뒤 · 지수 발표일(25일) 전
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/collect.json", "tools-build/collect.py", ".github/workflows/collect.yml"]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: collect-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    # push 로 깨어났을 때는 수집 설정이 main 과 실제로 다를 때만 돈다 — 새 브랜치 첫 push·main 병합 push 는 경로 거르개를
+    # 그냥 통과한다(2026-10-12 #34 에서 자동 커밋 워크플로 셋이 한꺼번에 깨어났다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q origin main
+          if git diff --quiet origin/main HEAD -- tools-build/collect.json tools-build/collect.py .github/workflows/collect.yml; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "수집 설정이 main 과 같다 — 건너뜀" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+  collect:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: 키 가리기(인코딩 꼴)
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          python - <<'PY'
+          import os, urllib.parse
+          k = os.environ.get("DATA_GO_KR_KEY", "").strip()
+          for s in {urllib.parse.quote(k, safe=""), urllib.parse.quote_plus(k)}:
+              if s:
+                  print(f"::add-mask::{s}")
+          print("키 있음" if k else "키 없음")
+          PY
+      - name: 자체 시험
+        run: python tools-build/collect.py --selftest
+      - name: 수집
+        id: run
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python tools-build/collect.py
+      - name: 키 흔적 검사
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python tools-build/collect.py --guard
+      - name: 커밋
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/collected
+          git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
+          if [ "$EVENT" = "push" ]; then
+            git commit -m "예약 수집 결과(실행 증명) — collect 워크플로"
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
+          else
+            b="claude/collect-$(date -u +%Y%m%d-%H%M)"
+            git switch -c "$b"
+            git commit -m "예약 수집 결과 $(date -u +%Y-%m-%d) — collect 워크플로"
+            git push -u origin "$b"
+            gh pr create --base main --head "$b" --title "예약 수집 $(date -u +%Y-%m-%d)" \
+              --body "**공개 화면 변화:** 없음(data/collected/ 만 바뀐다 · 아직 지면이 읽지 않는다). 실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+              || echo "PR 생성 실패(저장소 설정 「Actions 가 PR 을 만들 수 있음」이 꺼져 있을 수 있다) — 브랜치 $b 는 밀었다" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: 수집 실패 표시
+        if: steps.run.outcome == 'failure'
+        run: |
+          echo "모든 원천이 00 이 아닌 응답 — 요약의 명세 절을 보고 collect.json 을 고친다" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

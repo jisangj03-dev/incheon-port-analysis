@@ -1,10 +1,46 @@
 {
-  "_설명": "3D 지도의 자리표(개편 2단계). **좌표는 개략이다** — 작성자가 지도 지식으로 적은 표시용 값(±2km)이고 측량·지오코딩 값이 아니다. 화면에도 「개략 위치」로 적는다. 노트북 로컬 지오코딩(좌표 키는 노트북에서만) 또는 OSM(ODbL) 시설 면에서 뽑은 값으로 바꾸면 coord_source 를 고친다.",
+  "_설명": "3D 지도의 자리표. 장소마다 coord_source 가 출처를 든다 — OSM(ODbL) 시설 면의 중심점이거나, 못 찾은 곳은 개략(±2km · approx=true · 화면에도 그렇게 적는다). 후보 전부 = data/derived/places_osm.json(places-fetch 워크플로).",
   "갱신": "2026-10-12",
   "places": [
-    { "id": "신항", "label": "인천신항(SNCT·HJIT)", "kind": "port", "lon": 126.632, "lat": 37.342, "coord_source": "개략(작성자 표시값 ±2km)", "series": "부두군:신항" },
-    { "id": "남항", "label": "남항(E1CT·ICT)", "kind": "port", "lon": 126.607, "lat": 37.449, "coord_source": "개략(작성자 표시값 ±2km)", "series": "부두군:남항" },
-    { "id": "국제여객부두", "label": "국제여객부두(IPT)", "kind": "port", "lon": 126.632, "lat": 37.411, "coord_source": "개략(작성자 표시값 ±2km)", "series": "터미널:IPT" },
-    { "id": "인천공항", "label": "인천국제공항 화물터미널", "kind": "air", "lon": 126.452, "lat": 37.458, "coord_source": "개략(작성자 표시값 ±2km)", "series": null }
+    {
+      "id": "신항",
+      "label": "인천신항(SNCT·HJIT)",
+      "kind": "port",
+      "lon": 126.63173,
+      "lat": 37.34415,
+      "coord_source": "OSM way/313806963(인천신항 · landuse=harbour) 중심점 · © OpenStreetMap 기여자 ODbL · 2026-10-12 Overpass",
+      "series": "부두군:신항",
+      "approx": false
+    },
+    {
+      "id": "남항",
+      "label": "남항(E1CT·ICT)",
+      "kind": "port",
+      "lon": 126.607,
+      "lat": 37.449,
+      "coord_source": "개략(작성자 표시값 ±2km) — OSM 질의 2회 모두 남항 부두 면을 못 찾았다(1회 상점·길만 · 2회 시간 초과)",
+      "series": "부두군:남항",
+      "approx": true
+    },
+    {
+      "id": "국제여객부두",
+      "label": "국제여객부두(IPT)",
+      "kind": "port",
+      "lon": 126.59922,
+      "lat": 37.42255,
+      "coord_source": "OSM way/669435100(인천항국제여객터미널 · landuse=harbour) 중심점 · © OpenStreetMap 기여자 ODbL · 2026-10-12 Overpass",
+      "series": "터미널:IPT",
+      "approx": false
+    },
+    {
+      "id": "인천공항",
+      "label": "인천국제공항 화물터미널",
+      "kind": "air",
+      "lon": 126.46957,
+      "lat": 37.4634,
+      "coord_source": "OSM way/179263800(인천국제공항 화물터미널 A동 · building) 중심점 · © OpenStreetMap 기여자 ODbL · 2026-10-12 Overpass",
+      "series": null,
+      "approx": false
+    }
   ]
 }

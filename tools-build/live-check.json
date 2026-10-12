@@ -1,0 +1,8 @@
+{
+  "_설명": "공개 사이트 실물 점검(A-7 · 2026-10-12). 이 파일이 바뀐 커밋이 claude/ 브랜치에 오면 .github/workflows/live-check.yml 이 실물(jisangj03-dev.github.io)을 재고 docs/실물점검.md 를 그 브랜치에 커밋한다. 이 클라우드 세션은 실물 호스트가 막혀 있다.",
+  "base": "https://jisangj03-dev.github.io/incheon-port-analysis",
+  "pages": ["/", "/tools/logistics-cost.html", "/tools/warehouse-map.html", "/map.html", "/reports/", "/reports/report_13_인천_품목별_수출입.html", "/about.html", "/data.html", "/sitemap.xml", "/robots.txt", "/assets/js/cost-check.js", "/tools/simulate.html", "/no-such-page.html"],
+  "lighthouse": ["/", "/tools/logistics-cost.html", "/tools/warehouse-map.html", "/map.html"],
+  "range": "/tiles/incheon.pmtiles",
+  "run": 1
+}

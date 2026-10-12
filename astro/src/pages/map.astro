@@ -13,6 +13,8 @@ const last = D.months.length - 1;
 const W = 720, H = 420, bx = [126.35, 126.85], by = [37.25, 37.62];
 const px = (lon: number) => ((lon - bx[0]) / (bx[1] - bx[0])) * W;
 const py = (lat: number) => H - ((lat - by[0]) / (by[1] - by[0])) * H;
+// 「A·B는/은」 — 마지막 이름의 받침으로 조사를 고른다.
+const topic = (ps: any[]) => { const t = ps.map((p) => p.id).join("·"); const c = t.charCodeAt(t.length - 1) - 0xac00; return t + (c >= 0 && c < 11172 && c % 28 ? "은" : "는"); };
 const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v: any) => v !== null)));
 ---
 <Base title="인천 물류 3D 지도" description="인천항 부두군·터미널별 월별 컨테이너 처리량을 입체 기둥으로 — 시간축을 움직여 2023년부터 지금까지. 바탕지도는 저장소에 내장(외부 요청 0)." path="/map.html" wide>
@@ -32,7 +34,7 @@ const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v
           return (
             <g>
               {v ? <rect x={px(p.lon) - 9} y={py(p.lat) - h} width="18" height={h} rx="3" fill={p.kind === "air" ? "#ffb547" : "#3fd3e6"} opacity=".9" /> : <circle cx={px(p.lon)} cy={py(p.lat)} r="7" fill="#ffb547" />}
-              <text x={px(p.lon) + 14} y={py(p.lat) + 4} fill="#eef5fa" font-size="13" font-weight="700">{p.id}{v ? ` ${v}천TEU` : ""}</text>
+              <text x={px(p.lon) + 14} y={py(p.lat) + 4} fill="#eef5fa" font-size="13" font-weight="700">{p.id}{p.approx ? "(개략)" : ""}{v ? ` ${v}천TEU` : ""}</text>
             </g>
           );
         })}
@@ -44,7 +46,7 @@ const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v
         <input id="month" type="range" min="0" max={last} value={last} step="1" />
         <button type="button" id="play" class="btn">▶ 재생</button>
       </div>
-      <p class="mp__note"><strong>개략 위치</strong> — 기둥 자리는 표시용(±2km)이고 측량값이 아닙니다. <Updated date={D.updated} source={`${D.source} · ${D.months.length}개월`} /> <span id="attrib">바탕지도 © OpenStreetMap · Protomaps</span></p>
+      <p class="mp__note"><strong>기둥 자리</strong> — {topic(D.places.filter((p: any) => !p.approx))} OpenStreetMap 시설 면의 중심점(ODbL){D.places.some((p: any) => p.approx) && <>, <strong>{topic(D.places.filter((p: any) => p.approx))} 개략 위치(±2km · 측량값 아님)</strong></>}입니다. <Updated date={D.updated} source={`${D.source} · ${D.months.length}개월`} /> <span id="attrib">바탕지도 © OpenStreetMap · Protomaps</span></p>
     </div>
     <div class="wrap mp__more">
       <h2>이 지도에 아직 없는 것</h2>
@@ -52,7 +54,7 @@ const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v
         <li><strong>교역국 항로 아크 · 품목별 수출입</strong> — 관세청 품목·국가별 API 활용신청 뒤(선장님 손).</li>
         <li><strong>실제 입출항 기록으로 움직이는 선박</strong> — 해수부 선박입출항 API 활용신청 뒤.</li>
         <li><strong>공항화물 · 물류단지 · 보세구역 · 자유무역지역</strong> — 항공화물 축 선커밋(기준 11) 뒤 수집. 창고는 <a href={u("/tools/warehouse-map.html")}>구·동 배치도</a>에.</li>
-        <li><strong>실사 질감(위성·지형·조명)</strong> — 시안 반영 뒤. Sentinel-2·Copernicus DEM 고지 조건은 <a href={u("/docs/도구탐색_20261012.html")}>도구 탐색 표</a>.</li>
+        <li><strong>실사 질감(위성·지형·조명)</strong> — 시안 반영 뒤. 위성(Sentinel-2)·지형(Copernicus DEM)은 출처 고지 조건을 지켜 싣는다.</li>
       </ul>
     </div>
   </div>

@@ -1,0 +1,49 @@
+---
+// 공유 카드 틀(B6) — 보고서마다 1200×630. 빌드 뒤 tests/capture/og-cards.mjs 가 이 지면을 찍어 og/<id>.jpg 로 바꾸고
+// 이 HTML 은 지운다(공개 배포물에 틀이 남지 않는다). 수치를 새로 만들지 않는다 — 발행본의 제목·한 줄 결론 그대로.
+import { getCollection } from "astro:content";
+import { title, splitTitle, conclusion, lede } from "../../lib/content";
+import { u, BRAND } from "../../lib/site";
+export async function getStaticPaths() {
+  return (await getCollection("reports")).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+const { entry } = Astro.props;
+const body = entry.body ?? "";
+const { no, text } = splitTitle(title(body));
+let line = conclusion(body) || lede(body);
+if (line.length > 120) line = line.slice(0, 118) + "…";
+---
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" /><meta name="robots" content="noindex" /><title>{text}</title>
+  <link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} />
+  <style>
+    html, body { margin: 0; }
+    body { width: 1200px; height: 630px; overflow: hidden; background: #0b1a26; color: #eef5fa; font-family: "Pretendard Variable", Pretendard, "Noto Sans CJK KR", "Noto Sans KR", sans-serif; word-break: keep-all; }
+    .c { position: relative; box-sizing: border-box; width: 1200px; height: 630px; padding: 64px 72px; display: flex; flex-direction: column;
+      background: radial-gradient(circle at 88% 18%, rgba(255,181,71,.22), transparent 42%), linear-gradient(160deg, #12283a 0%, #0b1a26 55%, #05090f 100%); }
+    .lines { position: absolute; left: 0; right: 0; bottom: 0; width: 1200px; height: 190px; opacity: .55; }
+    .brand { display: flex; align-items: center; gap: 14px; font-weight: 800; font-size: 30px; }
+    .brand svg { width: 34px; height: 34px; color: #3fd3e6; }
+    .brand small { font-size: 16px; letter-spacing: .24em; color: #a3b9c9; font-weight: 600; }
+    .eb { margin-top: 44px; font-size: 24px; font-weight: 700; color: #ffb547; letter-spacing: .04em; }
+    h1 { margin: 12px 0 0; font-size: 50px; line-height: 1.22; letter-spacing: -0.03em; font-weight: 800; max-width: 1040px;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    p { margin: 22px 0 0; font-size: 25px; line-height: 1.5; color: #d5e2ec; max-width: 1020px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .foot { margin-top: auto; font-size: 19px; color: #a3b9c9; position: relative; }
+  </style>
+</head>
+<body>
+  <div class="c" data-og-ready>
+    <svg class="lines" viewBox="0 0 1200 190" preserveAspectRatio="none" aria-hidden="true">
+      {Array.from({ length: 6 }, (_, k) => <path d={`M0 ${40 + k * 26} C 300 ${20 + k * 24}, 800 ${70 + k * 28}, 1200 ${36 + k * 25}`} fill="none" stroke="#3fd3e6" stroke-opacity={0.12 + k * 0.05} stroke-width="2" />)}
+    </svg>
+    <div class="brand"><svg viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="square"><path d="M32 4v34M23 12h9M23 21h9M23 30h9M10 60h44" /></g><path fill="currentColor" d="M24 38h16l-3 18H27z" /></svg>{BRAND.name} <small>{BRAND.latin}</small></div>
+    <div class="eb">{no ? `보고서 ${no}` : "정리형 스냅샷"}</div>
+    <h1>{text}</h1>
+    {line && <p>{line}</p>}
+    <div class="foot">공공 1차 데이터로 잰다 · 기준은 데이터보다 먼저 커밋 · {BRAND.tagline}</div>
+  </div>
+</body>
+</html>

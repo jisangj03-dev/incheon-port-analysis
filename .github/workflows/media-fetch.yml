@@ -11,7 +11,28 @@ permissions:
   contents: write
 
 jobs:
+  gate:
+    # 새 브랜치 첫 push · main 병합 push 는 경로 거르개를 그냥 통과한다(main 이 그동안 바꾼 파일이 「바뀐 파일」로 잡힌다 —
+    # 2026-10-12 #34 에서 media-fetch·live-check·places-fetch 가 한꺼번에 깨어나 같은 브랜치에 push 를 다퉜다).
+    # 설정 파일이 main 과 실제로 다를 때만 본 작업을 돌린다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: g
+        run: |
+          git fetch -q origin main
+          if git diff --quiet origin/main HEAD -- media/fetch.json; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "설정 파일이 main 과 같다 — 건너뜀(새 브랜치·main 병합 push)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
   hero:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -63,5 +84,5 @@ jobs:
           git add astro/public/media
           git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
           git commit -m "히어로 영상 웹판(1080/720·포스터) — media-fetch 워크플로가 받아 다시 누름"
-          git push
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
           cat astro/public/media/README.md >> "$GITHUB_STEP_SUMMARY"

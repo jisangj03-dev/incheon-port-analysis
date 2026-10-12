@@ -2,8 +2,10 @@
 import { getCollection, render } from "astro:content";
 import Doc from "../../layouts/Doc.astro";
 import { title, lastUpdated } from "../../lib/content";
+import { isPublicDoc } from "../../lib/public-docs.mjs";
+// 독자용 방법 문서만 지면으로 — 운영 문서는 산출물에 안 넣는다(허용 목록 = lib/public-docs.mjs).
 export async function getStaticPaths() {
-  return (await getCollection("docs")).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+  return (await getCollection("docs")).filter((e) => isPublicDoc(e.id)).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
 }
 const { entry } = Astro.props;
 const { Content } = await render(entry);
