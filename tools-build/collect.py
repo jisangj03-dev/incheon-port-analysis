@@ -56,7 +56,8 @@ def scrub(text, key):
 
 
 def parse(body):
-    """data.go.kr 응답(XML·JSON) → (결과코드, 메시지, 행 목록). 태그 이름 기준(위치 인덱스 금지 · 사고 1)."""
+    """totalCount 가 있으면 parse.total 에 남긴다(페이지 넘기기 · 완결성 확인).
+    data.go.kr 응답(XML·JSON) → (결과코드, 메시지, 행 목록). 태그 이름 기준(위치 인덱스 금지 · 사고 1)."""
     b = body.strip()
     if b.startswith("{"):
         try:
@@ -73,6 +74,9 @@ def parse(body):
     rc = (re.findall(r"<resultCode>([^<]*)", b) or re.findall(r"<returnReasonCode>([^<]*)", b) or ["?"])[0]
     msg = (re.findall(r"<resultMsg>([^<]*)", b) or re.findall(r"<returnAuthMsg>([^<]*)", b) or re.findall(r"<errMsg>([^<]*)", b) or [""])[0]
     rows = []
+    tc = re.findall(r"<totalCount>(\d+)</totalCount>", b)
+    if tc:
+        parse.total = int(tc[0])
     for it in re.findall(r"<item>(.*?)</item>", b, re.S):
         rows.append({t: html.unescape(v.strip()) for t, v in re.findall(r"<(\w+)>([^<]*)</\1>", it)})
     return rc.strip(), msg.strip(), rows
@@ -96,6 +100,9 @@ def spec_hint(portal):
     return t[i:i + 1500] if i >= 0 else f"(명세 절을 못 찾음 · 페이지 {len(r.stdout)}B)"
 
 
+parse.total = None
+
+
 def run():
     key = os.environ.get("DATA_GO_KR_KEY", "").strip()
     if not key:
@@ -108,7 +115,7 @@ def run():
     mpath = OUT / "manifest.json"
     manifest = json.loads(mpath.read_text(encoding="utf-8")) if mpath.exists() else {}
     say(f"## 예약 수집 {kst:%Y-%m-%d %H:%M} KST · 창 {window[0]}~{window[-1]}")
-    say("| 원천 | 포털 | 달 | 묶음 | HTTP | 결과 | 행 |")
+    say("| 원천 | 포털 | 달 | 묶음 | HTTP | 결과 | 남긴 행/받은 행 |")
     say("|---|---|---|---|---|---|---|")
     ok_any, hints = False, {}
     for s in cfg["sources"]:
@@ -122,18 +129,31 @@ def run():
                     p[mp] = ym
                 if ek:
                     p[ek] = ev
+                parse.total = None
                 code, body = fetch(s["url"], p, key)
                 rc, msg, rows = parse(body)
+                total, pages, sha = parse.total, 1, hashlib.sha256(body.encode("utf-8"))
+                # 페이지가 있는 원천은 totalCount 까지 넘긴다 — 첫 쪽만 받고 「다 받았다」로 세지 않는다(완결성)
+                while s.get("params", {}).get("pageNo") and total and len(rows) < total and pages < 50:
+                    pages += 1
+                    p["pageNo"] = str(pages)
+                    code, more = fetch(s["url"], p, key)
+                    _, _, mrows = parse(more)
+                    sha.update(more.encode("utf-8"))
+                    if not mrows:
+                        break
+                    rows += mrows
+                raw_n = len(rows)
                 kw = s.get("keep_if_any_field_contains")
                 if kw:
                     rows = [r for r in rows if any(kw in v for v in r.values())]
-                raw_n = len(rows)
                 if s.get("aggregate"):
                     rows = aggregate(rows, s["aggregate"])
                 tag = f"{ym}{'·' + ev if ev else ''}"
                 meta[tag] = {"http": code, "resultCode": rc, "resultMsg": msg[:120], "rows": len(rows), "rows_raw": raw_n,
-                             "sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(), "fetched_kst": f"{kst:%Y-%m-%d %H:%M}"}
-                say(f"| {s['id']} | {s['portal']} | {ym} | {ev or '—'} | {code} | {rc} {msg[:40]} | {len(rows)} |")
+                             "totalCount": total, "pages": pages, "complete": (total is None or raw_n >= total),
+                             "sha256": sha.hexdigest(), "fetched_kst": f"{kst:%Y-%m-%d %H:%M}"}
+                say(f"| {s['id']} | {s['portal']} | {ym} | {ev or '—'} | {code} | {rc} {msg[:40]} | {len(rows)}/{raw_n}{'' if total is None else f' (전체 {total})'} |")
                 if rc in ("00", "0", "000", "INFO-000") and code == "200":
                     ok_any = True
                     rows_by_key[(ym, ev)] = rows
@@ -223,7 +243,10 @@ def selftest():
     ag = aggregate([{"hsCd": "-", "expDlr": "10"}, {"hsCd": "0101211000", "expDlr": "3", "statCd": "AU"}, {"hsCd": "0106191000", "expDlr": "4", "statCd": "AU"},
                     {"hsCd": "8703", "expDlr": "1,000"}], {"key": "hsCd", "prefix": 2, "sum": ["expDlr"], "keep": ["statCd"]})
     assert [(g["hsCd2"], g["expDlr"], g["n"], g["statCd"]) for g in ag] == [("-", "10", "1", ""), ("01", "7", "2", "AU"), ("87", "1000", "1", "")], ag
-    print("collect selftest OK (6)")
+    parse.total = None
+    parse("<response><header><resultCode>00</resultCode></header><body><totalCount>37</totalCount><items></items></body></response>")
+    assert parse.total == 37
+    print("collect selftest OK (7)")
     return 0
 
 

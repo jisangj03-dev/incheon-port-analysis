@@ -22,7 +22,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    # push 로 깨어났을 때는 수집 설정이 main 과 실제로 다를 때만 돈다 — 새 브랜치 첫 push·main 병합 push 는 경로 거르개를
+    # 그냥 통과한다(2026-10-12 #34 에서 자동 커밋 워크플로 셋이 한꺼번에 깨어났다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q origin main
+          if git diff --quiet origin/main HEAD -- tools-build/collect.json tools-build/collect.py .github/workflows/collect.yml; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "수집 설정이 main 과 같다 — 건너뜀" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
   collect:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -65,7 +88,7 @@ jobs:
           git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
           if [ "$EVENT" = "push" ]; then
             git commit -m "예약 수집 결과(실행 증명) — collect 워크플로"
-            git push
+            git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
           else
             b="claude/collect-$(date -u +%Y%m%d-%H%M)"
             git switch -c "$b"
