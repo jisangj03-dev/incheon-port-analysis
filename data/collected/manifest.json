@@ -1,332 +1,440 @@
 {
  "nitemtrade": {
   "202607·AU": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 95,
    "rows_raw": 2964,
-   "sha256": "c58eb747d500db0cd0c297d697c5c665ea41d251a06e2f5fef0690ad399c8db0"
+   "sha256": "c58eb747d500db0cd0c297d697c5c665ea41d251a06e2f5fef0690ad399c8db0",
+   "totalCount": null
   },
   "202607·CN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 96,
    "rows_raw": 7902,
-   "sha256": "b8faefcc22505ebbb0877770a137196b10e0b4227b76ea16ff340ca431393b12"
+   "sha256": "b8faefcc22505ebbb0877770a137196b10e0b4227b76ea16ff340ca431393b12",
+   "totalCount": null
   },
   "202607·DE": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 96,
    "rows_raw": 4163,
-   "sha256": "18f5488d4c957059b0fea85726e5515375a291cacd2565fa6c19cabcd0bdc7a9"
+   "sha256": "18f5488d4c957059b0fea85726e5515375a291cacd2565fa6c19cabcd0bdc7a9",
+   "totalCount": null
   },
   "202607·HK": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 91,
    "rows_raw": 2937,
-   "sha256": "02e28e1fd48ff8998f4206b32d0dc54f2d97981b20c6e27443c2c265aecdb5e6"
+   "sha256": "02e28e1fd48ff8998f4206b32d0dc54f2d97981b20c6e27443c2c265aecdb5e6",
+   "totalCount": null
   },
   "202607·IN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 92,
    "rows_raw": 3717,
-   "sha256": "31a15fba8ca9a8066234376dcd8a20ce654c04fa61d0d0cf3fe607d7c000b015"
+   "sha256": "31a15fba8ca9a8066234376dcd8a20ce654c04fa61d0d0cf3fe607d7c000b015",
+   "totalCount": null
   },
   "202607·JP": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 96,
    "rows_raw": 6178,
-   "sha256": "fa39dc88fbfe102a5f86e36894a5b7a2c88263f2ab12c81a02664c25eaac5a02"
+   "sha256": "fa39dc88fbfe102a5f86e36894a5b7a2c88263f2ab12c81a02664c25eaac5a02",
+   "totalCount": null
   },
   "202607·SG": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 91,
    "rows_raw": 2817,
-   "sha256": "ad6ca48e450ec6bbd1287ed72f3ef025e1f6bc867f48a894e1f4cdba37fe6e4f"
+   "sha256": "ad6ca48e450ec6bbd1287ed72f3ef025e1f6bc867f48a894e1f4cdba37fe6e4f",
+   "totalCount": null
   },
   "202607·TW": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 92,
    "rows_raw": 3781,
-   "sha256": "d2b6255324e574e12e25fc25e6b914e109bdb928b65bd81063ab35477c1ed604"
+   "sha256": "d2b6255324e574e12e25fc25e6b914e109bdb928b65bd81063ab35477c1ed604",
+   "totalCount": null
   },
   "202607·US": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 6442,
-   "sha256": "b8d61d4832232cc6b4b42084c83f00ce2301e1036c6cb4b614b0b3a0b2dcbf06"
+   "sha256": "b8d61d4832232cc6b4b42084c83f00ce2301e1036c6cb4b614b0b3a0b2dcbf06",
+   "totalCount": null
   },
   "202607·VN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 95,
    "rows_raw": 5074,
-   "sha256": "fabbf6371d882fc264b3650059e94d74ee181f4d64d4d8be0c370c5d825f45f1"
+   "sha256": "fabbf6371d882fc264b3650059e94d74ee181f4d64d4d8be0c370c5d825f45f1",
+   "totalCount": null
   },
   "202608·AU": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 95,
    "rows_raw": 2954,
-   "sha256": "762f15e9d17fe77f53d8efe1d32f0203ce46b01bcd0307567c232815d291d1c8"
+   "sha256": "762f15e9d17fe77f53d8efe1d32f0203ce46b01bcd0307567c232815d291d1c8",
+   "totalCount": null
   },
   "202608·CN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 7810,
-   "sha256": "a9bc6b87a1e5cc9beb5a032b1479f46cf2a69e2a030f831b18d29a534224ac3d"
+   "sha256": "a9bc6b87a1e5cc9beb5a032b1479f46cf2a69e2a030f831b18d29a534224ac3d",
+   "totalCount": null
   },
   "202608·DE": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 94,
    "rows_raw": 4086,
-   "sha256": "a387863a2b92aac23f179ede9634282dacff9dd75d8b476af7cd67bd78378c3d"
+   "sha256": "a387863a2b92aac23f179ede9634282dacff9dd75d8b476af7cd67bd78378c3d",
+   "totalCount": null
   },
   "202608·HK": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 92,
    "rows_raw": 2793,
-   "sha256": "6d892c2ad7e03480c765e1788f23ceebd4b46c21b301602bffdfcc8b71fc3d27"
+   "sha256": "6d892c2ad7e03480c765e1788f23ceebd4b46c21b301602bffdfcc8b71fc3d27",
+   "totalCount": null
   },
   "202608·IN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 90,
    "rows_raw": 3601,
-   "sha256": "6726089eebc66c1e1f66b03ea1f16575f65cb3c78cd9f26c6ec24a05fa85296a"
+   "sha256": "6726089eebc66c1e1f66b03ea1f16575f65cb3c78cd9f26c6ec24a05fa85296a",
+   "totalCount": null
   },
   "202608·JP": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 96,
    "rows_raw": 5975,
-   "sha256": "d0e4b425d11346968c578aec9a67255139f5573fab54d3938c291813df3ea6bc"
+   "sha256": "d0e4b425d11346968c578aec9a67255139f5573fab54d3938c291813df3ea6bc",
+   "totalCount": null
   },
   "202608·SG": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 92,
    "rows_raw": 2796,
-   "sha256": "4aace887cab62114f7f295b94dd17d47c1757e0e7441d1a38145b423800d7b47"
+   "sha256": "4aace887cab62114f7f295b94dd17d47c1757e0e7441d1a38145b423800d7b47",
+   "totalCount": null
   },
   "202608·TW": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 92,
    "rows_raw": 3733,
-   "sha256": "9c14d4039d4067dc32417bfbac52fe3a0d8d6656710b33fa62a042c2caef175c"
+   "sha256": "9c14d4039d4067dc32417bfbac52fe3a0d8d6656710b33fa62a042c2caef175c",
+   "totalCount": null
   },
   "202608·US": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 6396,
-   "sha256": "9259a88d1df71ea4a77d3ac89c53e1009a4a26b1df0e0a48d96e17c8688aee12"
+   "sha256": "9259a88d1df71ea4a77d3ac89c53e1009a4a26b1df0e0a48d96e17c8688aee12",
+   "totalCount": null
   },
   "202608·VN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 93,
    "rows_raw": 5007,
-   "sha256": "55e27855a91e41b8d5d6c127df0429e030ad08f10154f23fb20572620cb8cbc3"
+   "sha256": "55e27855a91e41b8d5d6c127df0429e030ad08f10154f23fb20572620cb8cbc3",
+   "totalCount": null
   },
   "202609·AU": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 94,
    "rows_raw": 2970,
-   "sha256": "29c5beb2cf088357b5b3d322334d2d53de6967b1b736b8329df37a2443611b26"
+   "sha256": "29c5beb2cf088357b5b3d322334d2d53de6967b1b736b8329df37a2443611b26",
+   "totalCount": null
   },
   "202609·CN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 7991,
-   "sha256": "85298e56e63df946b9798cd1ff9a01fbb15ef6c4cfb1b8c1864ad566ee3d9a73"
+   "sha256": "85298e56e63df946b9798cd1ff9a01fbb15ef6c4cfb1b8c1864ad566ee3d9a73",
+   "totalCount": null
   },
   "202609·DE": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 95,
    "rows_raw": 4143,
-   "sha256": "6525a8070f9cae3ff4c074f0efbe6b2f720074eab63c93fb44a1483aab1b46c0"
+   "sha256": "6525a8070f9cae3ff4c074f0efbe6b2f720074eab63c93fb44a1483aab1b46c0",
+   "totalCount": null
   },
   "202609·HK": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 93,
    "rows_raw": 2892,
-   "sha256": "0e3b54e5765a3bae44f0d7d3b0fa23f0df91603b87bdcb6fa368db2b8e5ec189"
+   "sha256": "0e3b54e5765a3bae44f0d7d3b0fa23f0df91603b87bdcb6fa368db2b8e5ec189",
+   "totalCount": null
   },
   "202609·IN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 94,
    "rows_raw": 3723,
-   "sha256": "078408017127a0a915115650c1c3d3ef83cbe4f9f97fac4645173c47ac2f0c5a"
+   "sha256": "078408017127a0a915115650c1c3d3ef83cbe4f9f97fac4645173c47ac2f0c5a",
+   "totalCount": null
   },
   "202609·JP": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 96,
    "rows_raw": 6120,
-   "sha256": "6867fff5d9bf7a90bcd315c49a0bea51c9ba2a51160f7bc5a382172630a969c1"
+   "sha256": "6867fff5d9bf7a90bcd315c49a0bea51c9ba2a51160f7bc5a382172630a969c1",
+   "totalCount": null
   },
   "202609·SG": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 93,
    "rows_raw": 2914,
-   "sha256": "497f1497b2c793c58794a17bde4699596f3a62ac8fb08df1bffc7491e1e8ba2a"
+   "sha256": "497f1497b2c793c58794a17bde4699596f3a62ac8fb08df1bffc7491e1e8ba2a",
+   "totalCount": null
   },
   "202609·TW": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 93,
    "rows_raw": 3719,
-   "sha256": "a451c6177aa6b9b0f1a7b1dc4bf06125870ffac2fc056b8ada647dda2aef42f4"
+   "sha256": "a451c6177aa6b9b0f1a7b1dc4bf06125870ffac2fc056b8ada647dda2aef42f4",
+   "totalCount": null
   },
   "202609·US": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 6466,
-   "sha256": "7653b23c642b157ae2f4652f019f31bc7c19458dd451fe7fdecf5c303a7923a2"
+   "sha256": "7653b23c642b157ae2f4652f019f31bc7c19458dd451fe7fdecf5c303a7923a2",
+   "totalCount": null
   },
   "202609·VN": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 94,
    "rows_raw": 4964,
-   "sha256": "22ba5c17b27ed841b9c579d5ba8ac3ca00aa65eb85dd2778cb5205b356a255ed"
+   "sha256": "22ba5c17b27ed841b9c579d5ba8ac3ca00aa65eb85dd2778cb5205b356a255ed",
+   "totalCount": null
   }
  },
  "sido-item-incheon": {
   "202607": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 97,
-   "sha256": "7972b436f7f2f0c328abe19d9074465dda8326118b3e50c4dae1dd986605f68d"
+   "sha256": "7972b436f7f2f0c328abe19d9074465dda8326118b3e50c4dae1dd986605f68d",
+   "totalCount": null
   },
   "202608": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 97,
    "rows_raw": 97,
-   "sha256": "6691ce6f658fd9b692f811f19564d9f3ada02b9280aeb4d17a748b75fce53060"
+   "sha256": "6691ce6f658fd9b692f811f19564d9f3ada02b9280aeb4d17a748b75fce53060",
+   "totalCount": null
   },
   "202609": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
    "rows": 0,
    "rows_raw": 0,
-   "sha256": "b98c8d65d9e898d0fb45b173b70c1c22cea3a866efa81bad8d8c4ddbf5e6e389"
+   "sha256": "b98c8d65d9e898d0fb45b173b70c1c22cea3a866efa81bad8d8c4ddbf5e6e389",
+   "totalCount": null
   }
  },
  "vessel-harbor": {
   "202607": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "NORMAL_SERVICE",
    "rows": 1,
-   "rows_raw": 1,
-   "sha256": "8731ca99f620a91cb9f89e97c13d5c1f666f7c7915638c054499ff084234e238"
+   "rows_raw": 30,
+   "sha256": "8731ca99f620a91cb9f89e97c13d5c1f666f7c7915638c054499ff084234e238",
+   "totalCount": 30
   },
   "202608": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "NORMAL_SERVICE",
    "rows": 1,
-   "rows_raw": 1,
-   "sha256": "a23e3fd6659b30a39555fc15c0fe5a6617755bb766c39ef8c546c747f1cf71d7"
+   "rows_raw": 30,
+   "sha256": "a23e3fd6659b30a39555fc15c0fe5a6617755bb766c39ef8c546c747f1cf71d7",
+   "totalCount": 30
   },
   "202609": {
-   "fetched_kst": "2026-10-12 15:52",
+   "complete": true,
+   "fetched_kst": "2026-10-12 15:56",
    "http": "200",
+   "pages": 1,
    "resultCode": "00",
    "resultMsg": "NORMAL_SERVICE",
    "rows": 0,
    "rows_raw": 0,
-   "sha256": "1a48459982cef6457bfa7ed89d6e7c375acee27f59f9ec2fdfde73f6c8c61285"
+   "sha256": "1a48459982cef6457bfa7ed89d6e7c375acee27f59f9ec2fdfde73f6c8c61285",
+   "totalCount": 0
   }
  }
 }
