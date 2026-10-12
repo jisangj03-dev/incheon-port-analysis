@@ -8,27 +8,69 @@
       "portal": "15059059",
       "name": "해양수산부 항만별 선박입출항실적",
       "url": "https://apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM",
-      "params": { "numOfRows": "1000", "pageNo": "1" },
-      "month_params": [],
+      "params": {
+        "numOfRows": "1000",
+        "pageNo": "1"
+      },
+      "month_params": [
+        "sym",
+        "eym"
+      ],
       "keep_if_any_field_contains": "인천",
-      "note": "요청 변수 이름은 아직 확인 전 — 결과코드가 00 이 아니면 포털 명세 절을 실행 요약에 찍는다(값·키 없이)."
+      "note": "요청 변수 sym·eym(YYYYMM) — 포털 명세(2026-10-12 실행 요약에서 확인). 응답 useYm·prtAgNm·nm(국적선·외국선 구분)·입출항 척수·총톤수. prtAgNm 에 「인천」이 든 행만 남긴다."
     },
     {
       "id": "sido-item-incheon",
       "portal": "15101641",
       "name": "관세청 시도별 품목별 수출입실적 — 인천(시도코드 28)",
       "url": "https://apis.data.go.kr/1220000/sidoitemtrade/getSidoitemtradeList",
-      "params": { "sidoCd": "28" },
-      "month_params": ["strtYymm", "endYymm"]
+      "params": {
+        "sidoCd": "28"
+      },
+      "month_params": [
+        "strtYymm",
+        "endYymm"
+      ]
     },
     {
       "id": "nitemtrade",
       "portal": "15100475",
-      "name": "관세청 품목별 국가별 수출입실적 — 국가 목록은 아래 고정(항로 아크 후보)",
+      "name": "관세청 품목별 국가별 수출입실적 — HS 2단위로 묶어 저장(10단위 원응답은 한 번에 12.5MB · 해시만 manifest 에)",
       "url": "https://apis.data.go.kr/1220000/nitemtrade/getNitemtradeList",
       "params": {},
-      "month_params": ["strtYymm", "endYymm"],
-      "each": { "cntyCd": ["CN", "US", "VN", "JP", "HK", "TW", "AU", "IN", "SG", "DE"] }
+      "month_params": [
+        "strtYymm",
+        "endYymm"
+      ],
+      "each": {
+        "cntyCd": [
+          "CN",
+          "US",
+          "VN",
+          "JP",
+          "HK",
+          "TW",
+          "AU",
+          "IN",
+          "SG",
+          "DE"
+        ]
+      },
+      "aggregate": {
+        "key": "hsCd",
+        "prefix": 2,
+        "sum": [
+          "expDlr",
+          "expWgt",
+          "impDlr",
+          "impWgt",
+          "balPayments"
+        ],
+        "keep": [
+          "statCd",
+          "statCdCntnKor1"
+        ]
+      }
     }
   ]
 }

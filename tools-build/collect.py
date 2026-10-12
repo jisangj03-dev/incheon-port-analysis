@@ -127,8 +127,11 @@ def run():
                 kw = s.get("keep_if_any_field_contains")
                 if kw:
                     rows = [r for r in rows if any(kw in v for v in r.values())]
+                raw_n = len(rows)
+                if s.get("aggregate"):
+                    rows = aggregate(rows, s["aggregate"])
                 tag = f"{ym}{'·' + ev if ev else ''}"
-                meta[tag] = {"http": code, "resultCode": rc, "resultMsg": msg[:120], "rows": len(rows),
+                meta[tag] = {"http": code, "resultCode": rc, "resultMsg": msg[:120], "rows": len(rows), "rows_raw": raw_n,
                              "sha256": hashlib.sha256(body.encode("utf-8")).hexdigest(), "fetched_kst": f"{kst:%Y-%m-%d %H:%M}"}
                 say(f"| {s['id']} | {s['portal']} | {ym} | {ev or '—'} | {code} | {rc} {msg[:40]} | {len(rows)} |")
                 if rc in ("00", "0", "000", "INFO-000") and code == "200":
@@ -143,6 +146,32 @@ def run():
         say(f"\n### {portal} — 00 이 아닌 응답(키 지움 · 앞 400자)\n```\n{body}\n```")
         say(f"포털 명세 요청 변수 절(앞 1500자):\n```\n{spec_hint(portal)}\n```")
     return 0 if ok_any else 1
+
+
+def num(v):
+    try:
+        return float(str(v).replace(",", ""))
+    except ValueError:
+        return 0.0
+
+
+def aggregate(rows, ag):
+    """key 열의 앞 prefix 자리로 묶어 sum 열을 더한다(총계 행 「-」은 그 자체로 한 묶음). keep 열은 첫 값."""
+    out = {}
+    for r in rows:
+        k = (r.get(ag["key"]) or "")[: ag["prefix"]]
+        g = out.setdefault(k, {f"{ag['key']}{ag['prefix']}": k, **{c: 0.0 for c in ag["sum"]}, **{c: "" for c in ag.get("keep", [])}, "n": 0})
+        for c in ag["sum"]:
+            g[c] += num(r.get(c, 0))
+        for c in ag.get("keep", []):
+            if g[c] in ("", "-") and r.get(c) not in (None, ""):
+                g[c] = r[c]
+        g["n"] += 1
+    for g in out.values():
+        for c in ag["sum"]:
+            g[c] = f"{g[c]:.0f}"
+        g["n"] = str(g["n"])
+    return [out[k] for k in sorted(out)]
 
 
 def write_rows(s, ek, rows_by_key):
@@ -191,7 +220,10 @@ def selftest():
     assert (rc, rows) == ("00", [{"x": "3"}])
     rc, msg, _ = parse("<OpenAPI_ServiceResponse><cmmMsgHeader><returnReasonCode>30</returnReasonCode><returnAuthMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</returnAuthMsg></cmmMsgHeader></OpenAPI_ServiceResponse>")
     assert (rc, msg) == ("30", "SERVICE_KEY_IS_NOT_REGISTERED_ERROR")
-    print("collect selftest OK (5)")
+    ag = aggregate([{"hsCd": "-", "expDlr": "10"}, {"hsCd": "0101211000", "expDlr": "3", "statCd": "AU"}, {"hsCd": "0106191000", "expDlr": "4", "statCd": "AU"},
+                    {"hsCd": "8703", "expDlr": "1,000"}], {"key": "hsCd", "prefix": 2, "sum": ["expDlr"], "keep": ["statCd"]})
+    assert [(g["hsCd2"], g["expDlr"], g["n"], g["statCd"]) for g in ag] == [("-", "10", "1", ""), ("01", "7", "2", "AU"), ("87", "1000", "1", "")], ag
+    print("collect selftest OK (6)")
     return 0
 
 
