@@ -145,6 +145,7 @@ const jsonld = [{
           <div class="cc-btns">
             <button type="button" id="share" class="primary">공유 링크 복사</button>
             <button type="button" id="copyq" hidden>업체에 물어볼 것 복사</button>
+            <a class="simlink" id="simlink" href={u("/tools/simulate.html")}>흔들어 보기(시뮬레이션) →</a>
           </div>
           <p class="cc-note" id="status" role="status"></p>
         </div>
@@ -234,6 +235,7 @@ const jsonld = [{
   .rc__big small { font-size: 0.7rem; font-weight: 600; color: var(--mist); }
   .rc__sub { margin: 0.1rem 0; font-size: 0.76rem; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.4; }
   .rc__warn { margin: 0.35rem 0 0; font-size: 0.76rem; font-weight: 650; color: var(--fail); line-height: 1.4; }
+  .simlink { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; font-size: 0.92rem; }
   .cc-flip { font-size: 0.85rem; color: var(--text); margin: 0.6rem 0 0; }
   .be { margin-top: 0.8rem; border-top: 1px solid var(--hair); padding-top: 0.4rem; }
   .be__text { font-size: 0.9rem; color: var(--ink); font-weight: 600; margin: 0.2rem 0 0.5rem; }

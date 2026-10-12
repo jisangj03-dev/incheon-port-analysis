@@ -12,7 +12,17 @@
       "commercial": "허용(포털 메타 기준)",
       "modify": "허용(포털 메타 기준)",
       "checked": "2026-07 수집 때 포털 화면 · 유형 번호는 미확인",
-      "used_by": ["report_01_공컨테이너_물동량", "report_02_공컨테이너_비율", "report_03_공컨테이너_수출입방향", "report_04_공컨테이너_연도별추세", "report_05_컨테이너_수지", "report_06_공컨테이너_규격방향", "report_07_공컨테이너_표본외검증", "report_09_공컨테이너_시계열연장", "물동량"]
+      "used_by": [
+        "report_01_공컨테이너_물동량",
+        "report_02_공컨테이너_비율",
+        "report_03_공컨테이너_수출입방향",
+        "report_04_공컨테이너_연도별추세",
+        "report_05_컨테이너_수지",
+        "report_06_공컨테이너_규격방향",
+        "report_07_공컨테이너_표본외검증",
+        "report_09_공컨테이너_시계열연장",
+        "물동량"
+      ]
     },
     {
       "id": "mof-incheon-port-stats",
@@ -24,7 +34,14 @@
       "commercial": "미확인",
       "modify": "미확인",
       "checked": "미확인 — 다음 수집 때 게시글의 공공누리 마크를 기록한다",
-      "used_by": ["report_02_공컨테이너_비율", "report_05_컨테이너_수지", "report_11_터미널별_처리량", "report_12_터미널별_장기창", "물동량"]
+      "used_by": [
+        "report_02_공컨테이너_비율",
+        "report_05_컨테이너_수지",
+        "report_11_터미널별_처리량",
+        "report_12_터미널별_장기창",
+        "물동량",
+        "map"
+      ]
     },
     {
       "id": "kcs-porttrade",
@@ -36,7 +53,9 @@
       "commercial": "허용(포털 메타 기준)",
       "modify": "허용(포털 메타 기준)",
       "checked": "2026-08 수집 때 포털 화면",
-      "used_by": ["report_08_관세청_인천항_수출입신고"]
+      "used_by": [
+        "report_08_관세청_인천항_수출입신고"
+      ]
     },
     {
       "id": "kcs-sido-item",
@@ -48,7 +67,9 @@
       "commercial": "허용(포털 메타 기준)",
       "modify": "허용(포털 메타 기준)",
       "checked": "2026-10-12 포털 화면(도구탐색_20261012)",
-      "used_by": ["report_13_인천_품목별_수출입"]
+      "used_by": [
+        "report_13_인천_품목별_수출입"
+      ]
     },
     {
       "id": "molit-warehouse",
@@ -60,7 +81,10 @@
       "commercial": "허용(집계표 · 포털 메타 기준)",
       "modify": "허용(집계표 · 포털 메타 기준)",
       "checked": "2026-09-30 포털 화면",
-      "used_by": ["물류창고", "tool:warehouse-map"]
+      "used_by": [
+        "물류창고",
+        "tool:warehouse-map"
+      ]
     },
     {
       "id": "mois-juso",
@@ -72,7 +96,9 @@
       "commercial": "미확인",
       "modify": "해당 없음",
       "checked": "2026-10-01",
-      "used_by": ["물류창고"]
+      "used_by": [
+        "물류창고"
+      ]
     },
     {
       "id": "osm-protomaps",
@@ -84,7 +110,9 @@
       "commercial": "허용(표기 조건)",
       "modify": "허용(ODbL — 같은 조건)",
       "checked": "2026-10-12 · 판정 v2 주의 ⑥",
-      "used_by": ["map"]
+      "used_by": [
+        "map"
+      ]
     },
     {
       "id": "ai-hero",
@@ -96,7 +124,9 @@
       "commercial": "미확인(vidIQ 약관 원문 확인은 채팅 몫)",
       "modify": "해당 없음",
       "checked": "2026-10-12 · 기준 19",
-      "used_by": ["home"]
+      "used_by": [
+        "home"
+      ]
     }
   ]
 }
