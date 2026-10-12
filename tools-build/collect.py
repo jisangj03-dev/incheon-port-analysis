@@ -150,9 +150,12 @@ def run():
                 if s.get("aggregate"):
                     rows = aggregate(rows, s["aggregate"])
                 tag = f"{ym}{'·' + ev if ev else ''}"
-                meta[tag] = {"http": code, "resultCode": rc, "resultMsg": msg[:120], "rows": len(rows), "rows_raw": raw_n,
-                             "totalCount": total, "pages": pages, "complete": (total is None or raw_n >= total),
-                             "sha256": sha.hexdigest(), "fetched_kst": f"{kst:%Y-%m-%d %H:%M}"}
+                entry = {"http": code, "resultCode": rc, "resultMsg": msg[:120], "rows": len(rows), "rows_raw": raw_n,
+                         "totalCount": total, "pages": pages, "complete": (total is None or raw_n >= total),
+                         "sha256": sha.hexdigest(), "fetched_kst": f"{kst:%Y-%m-%d %H:%M}"}
+                # 응답이 지난번과 같으면 그 줄을 안 건드린다 — 수집 시각만 바뀐 커밋·PR 을 만들지 않는다(#36 이 그것이었다)
+                if not same_response(meta.get(tag), entry):
+                    meta[tag] = entry
                 say(f"| {s['id']} | {s['portal']} | {ym} | {ev or '—'} | {code} | {rc} {msg[:40]} | {len(rows)}/{raw_n}{'' if total is None else f' (전체 {total})'} |")
                 if rc in ("00", "0", "000", "INFO-000") and code == "200":
                     ok_any = True
@@ -192,6 +195,13 @@ def aggregate(rows, ag):
             g[c] = f"{g[c]:.0f}"
         g["n"] = str(g["n"])
     return [out[k] for k in sorted(out)]
+
+
+def same_response(old, new):
+    """수집 시각을 빼고 같은가."""
+    if not old:
+        return False
+    return {k: v for k, v in old.items() if k != "fetched_kst"} == {k: v for k, v in new.items() if k != "fetched_kst"}
 
 
 def write_rows(s, ek, rows_by_key):
@@ -246,7 +256,9 @@ def selftest():
     parse.total = None
     parse("<response><header><resultCode>00</resultCode></header><body><totalCount>37</totalCount><items></items></body></response>")
     assert parse.total == 37
-    print("collect selftest OK (7)")
+    e = {"sha256": "a", "rows": 1, "fetched_kst": "2026-10-12 15:56"}
+    assert same_response(e, {**e, "fetched_kst": "2026-10-12 16:12"}) and not same_response(e, {**e, "sha256": "b"}) and not same_response(None, e)
+    print("collect selftest OK (8)")
     return 0
 
 
