@@ -1,0 +1,88 @@
+# 디자인 도구 판정 v3 — 기준 사이트 수치 추출(dembrandt)과 화면 비교(Playwright). 이 클라우드 세션은 바깥 사이트가 막혀 Actions 에서 돈다.
+# 경계: 봇 우회 0(dembrandt --stealth 안 씀 · 직접 띄운 크로미움에 CDP 로 붙어 하드코딩된 자동화 숨김 인자를 피함 · 정직한 UA)
+#       · 가져오는 것은 수치만(tools-build/design-tokens.mjs 가 이미지·문구·주소를 버림) · 기준 화면 캡처는 커밋 안 함(산출물 3일 보관).
+name: design-lab
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/design-lab.json"]
+
+permissions:
+  contents: write
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q origin main
+          if git diff --quiet origin/main HEAD -- tools-build/design-lab.json; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "설정이 main 과 같다 — 건너뜀" >> "$GITHUB_STEP_SUMMARY"
+          else echo "run=yes" >> "$GITHUB_OUTPUT"; fi
+  lab:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: 크로미움(비교 캡처 · CDP 호스트)
+        run: npx playwright install --with-deps chromium
+      - name: 크로미움을 직접 띄워 CDP 열기(자동화 숨김 인자 없이)
+        run: |
+          CH=$(node -e "console.log(require('@playwright/test').chromium.executablePath())")
+          "$CH" --headless=new --no-first-run --no-sandbox --remote-debugging-port=9222 --user-data-dir=/tmp/cdp about:blank >/tmp/cdp.log 2>&1 &
+          for i in $(seq 1 30); do curl -s 127.0.0.1:9222/json/version >/dev/null && break; sleep 1; done
+          curl -s 127.0.0.1:9222/json/version | head -c 300; echo
+      - name: 수치 추출
+        env:
+          BROWSER_CDP_ENDPOINT: http://127.0.0.1:9222
+        run: |
+          UA=$(node -p "require('./tools-build/design-lab.json').userAgent")
+          echo "## 기준 사이트 수치 추출(dembrandt 0.37.0)" >> "$GITHUB_STEP_SUMMARY"
+          node -e "for (const t of require('./tools-build/design-lab.json').targets) console.log(t.name + ' ' + t.url)" | while read -r name url; do
+            if npx dembrandt "$url" --json-only --user-agent "$UA" > "/tmp/raw-$name.json" 2>"/tmp/err-$name.log"; then
+              echo "### $name ($url)" >> "$GITHUB_STEP_SUMMARY"
+              node tools-build/design-tokens.mjs "/tmp/raw-$name.json" "tools-build/design-lab/$name.tokens.json" | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "### $name — 추출 실패: $(tail -3 /tmp/err-$name.log | tr '\n' ' ' | cut -c1-300)" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          done
+      - name: 화면 비교(같은 폭 나란히)
+        continue-on-error: true
+        run: |
+          OURS=$(node -p "require('./tools-build/design-lab.json').ours")
+          node -e "for (const t of require('./tools-build/design-lab.json').targets) console.log(t.name + ' ' + t.url)" | while read -r name url; do
+            node tests/capture/compare.mjs --ours "$OURS" --ref "$url" --out lab-out/compare --name "$name" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: design-compare
+          path: lab-out/compare
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: 수치만 커밋(push 일 때 · 그 브랜치에)
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools-build/design-lab/*.tokens.json 2>/dev/null || true
+          git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
+          git commit -m "기준 사이트 수치 추출 결과(색·글꼴·크기만) — design-lab 워크플로"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
