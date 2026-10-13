@@ -14,6 +14,7 @@ export function sanitize(v, key = "") {
   if (typeof v === "number" || typeof v === "boolean" || v === null) return v;
   if (typeof v === "string") {
     if (/^data:|^https?:\/\/|<[a-z]/i.test(v) || v.length > 120) return undefined;
+    if (/\.(woff2?|ttf|otf|eot|png|jpe?g|webp|gif|avif)$/i.test(v)) return undefined; // 파일 이름(글꼴·그림)도 들이지 않는다
     // 글꼴 이름은 문자열 그대로(fontFamily 류 키에서만)
     if (/font|family/i.test(key)) return v;
     return KEEP_STR.test(v.trim()) ? v.trim() : undefined;
@@ -44,10 +45,10 @@ export function summarize(clean) {
 if (process.argv[1] && process.argv[1].endsWith("design-tokens.mjs")) {
   if (process.argv.includes("--selftest")) {
     const raw = { logo: { url: "https://x/logo.svg", data: "data:image/png;base64,AAA" }, favicon: "data:x", colors: { primary: "#0A2540", list: ["rgb(1, 2, 3)", "hero headline copy here"] },
-      typography: { fontFamily: "Inter, sans-serif", sizes: ["16px", "1.25rem"], heading: { text: "Ship faster" } }, spacing: ["4px", "8px"], screenshot: "data:image/png;base64,BBB" };
+      typography: { fontFamily: "Inter, sans-serif", files: ["8c79.woff2"], sizes: ["16px", "1.25rem"], heading: { text: "Ship faster" } }, spacing: ["4px", "8px"], screenshot: "data:image/png;base64,BBB" };
     const c = sanitize(raw);
     const s = JSON.stringify(c);
-    if (/logo|favicon|data:|Ship faster|hero headline|screenshot/.test(s) || !s.includes("#0A2540") || !s.includes("Inter") || !s.includes("8px")) { console.error("FAIL", s); process.exit(1); }
+    if (/logo|favicon|data:|Ship faster|hero headline|screenshot|woff2/.test(s) || !s.includes("#0A2540") || !s.includes("Inter") || !s.includes("8px")) { console.error("FAIL", s); process.exit(1); }
     const sum = summarize(c);
     if (sum.colors.length !== 2 || sum.fonts.length !== 1) { console.error("FAIL summary", sum); process.exit(1); }
     console.log("design-tokens selftest OK (2)");

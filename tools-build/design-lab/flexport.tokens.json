@@ -905,11 +905,7 @@
     "Roboto Mono-e30379de7a9a321f",
     "Zalando Sans-c8107d83ff0d568d"
    ],
-   "fontDisplay": "swap",
-   "selfHostedFonts": [
-    "8c795b88d4cc61cb.woff2",
-    "e6b49211d05f640a.woff2"
-   ]
+   "fontDisplay": "swap"
   }
  },
  "spacing": {
