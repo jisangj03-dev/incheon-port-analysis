@@ -116,7 +116,8 @@
       "used_by": [
         "map",
         "home",
-        "follow"
+        "follow",
+        "수도권 배송 등시선"
       ]
     },
     {
@@ -205,6 +206,105 @@
       "used_by": [
         "홈 살아 있는 지도",
         "공급망 따라가기"
+      ]
+    },
+    {
+      "id": "imf-portwatch",
+      "name": "IMF PortWatch — 항만 일별 입항(선종별)·추정 수출입량 · 초크포인트 일별 통항",
+      "owner": "IMF · University of Oxford",
+      "where": "portwatch.imf.org(ArcGIS 피처 서비스 · Daily_Ports_Data · Daily_Chokepoints_Data)",
+      "license": "IMF 저작권·이용 약관(imf.org/external/terms.htm) — 자료(data) 부분은 추출 허용 · 비상업 이용 · 상업 재사용은 허락 필요(2차 정리 · 원문 대조 [미확인] → terms-check 워크플로)",
+      "kogl": "해당 없음(IMF 약관)",
+      "commercial": "허락 필요 — 이 작업실은 판매 0(커리어 사이트)이라 비상업 범위",
+      "modify": "추정·가공 표기 조건으로 허용으로 읽음 [미확인]",
+      "checked": "2026-10-14 선커밋 — 원문은 Actions 가 받아 data/collected/terms_check.json 에 남긴다",
+      "used_by": [
+        "인천항 일일 맥박",
+        "초크포인트 충격 시뮬레이터"
+      ]
+    },
+    {
+      "id": "wb-ship-density",
+      "name": "World Bank — Global Shipping Traffic Density(AIS 2015-01~2021-02 · 0.005° 격자)",
+      "owner": "World Bank(IMF 세계 해상무역 모니터링 협력)",
+      "where": "datacatalog.worldbank.org 0037580",
+      "license": "CC BY 4.0",
+      "kogl": "해당 없음(CC BY 4.0)",
+      "commercial": "허용(출처 표기)",
+      "modify": "허용(출처 표기 · 가공 표시)",
+      "checked": "2026-10-14 선커밋 — 카탈로그 메타데이터 CC BY 4.0(원문 대조는 terms-check)",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "copernicus-s2",
+      "name": "Copernicus Sentinel-2 L2A(AWS 공개 데이터 · sentinel-cogs)",
+      "owner": "ESA · 유럽연합 Copernicus",
+      "where": "registry.opendata.aws/sentinel-2-l2a-cogs · earth-search STAC",
+      "license": "Copernicus Sentinel 데이터 이용 약관 — 무료·전면 이용 허용, 「Contains modified Copernicus Sentinel data [연도]」 표기",
+      "kogl": "해당 없음",
+      "commercial": "허용",
+      "modify": "허용(가공 표기)",
+      "checked": "2026-10-14 선커밋 — 원문 대조는 terms-check",
+      "used_by": [
+        "위성으로 본 인천 묘박지"
+      ]
+    },
+    {
+      "id": "iiac-air-country",
+      "name": "인천국제공항공사 국가별 항공 통계 서비스",
+      "owner": "인천국제공항공사",
+      "where": "공공데이터포털(번호는 수집 워크플로가 찾아 적는다)",
+      "license": "공공데이터포털 이용허락범위 — 확인 전",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "2026-10-14 선장님 활용 승인 · 이용허락범위는 kogl-check 로 확인 예정",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "iiac-freighter",
+      "name": "인천국제공항공사 화물기 정기운항편 일정 정보",
+      "owner": "인천국제공항공사",
+      "where": "공공데이터포털",
+      "license": "공공데이터포털 이용허락범위 — 확인 전",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "2026-10-14 선장님 활용 승인",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "kcs-exchange",
+      "name": "관세청 관세환율 정보",
+      "owner": "관세청",
+      "where": "공공데이터포털",
+      "license": "공공데이터포털 이용허락범위 — 확인 전",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "2026-10-14 선장님 활용 승인(ECOS 대신)",
+      "used_by": [
+        "수입원가 계산기"
+      ]
+    },
+    {
+      "id": "kobc-kcci",
+      "name": "한국해양진흥공사 KCCI(한국형 컨테이너 운임지수)",
+      "owner": "한국해양진흥공사",
+      "where": "kobc.or.kr",
+      "license": "이용 조건 확인 전 — 확인되기 전에는 지면에 싣지 않는다",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "2026-10-14 선커밋(조건 미확인 → 2차 보류)",
+      "used_by": [
+        "운임 파도"
       ]
     }
   ]
