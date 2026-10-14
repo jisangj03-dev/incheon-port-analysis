@@ -203,7 +203,18 @@ const TRIP = {
     };
     // 이름표 — 경위도 자리 + 화면 px 비킴(단계별 보이기는 CSS)
     const tags = [...document.querySelectorAll<HTMLElement>(".trip__labels .f-tag")];
-    const place = (f: FlowMap) => { for (const t of tags) { const [lon, lat] = t.dataset.ll!.split(",").map(Number), s = f.screen(lon, lat); t.style.transform = `translate3d(${(s[0] + Number(t.dataset.dx)).toFixed(1)}px,${(s[1] + Number(t.dataset.dy)).toFixed(1)}px,0)`; } };
+    // 화면 가장자리에서 잘리지 않게 안쪽으로 붙잡는다(폭은 한 번 잰다 · 화면 크기가 바뀌면 다시)
+    const tw = new Map<HTMLElement, number[]>();
+    addEventListener("resize", () => tw.clear());
+    const place = (f: FlowMap) => {
+      for (const t of tags) {
+        const [lon, lat] = t.dataset.ll!.split(",").map(Number), s = f.screen(lon, lat);
+        if (!tw.has(t)) tw.set(t, [t.offsetWidth, t.offsetHeight]);
+        const [w, h] = tw.get(t)!;
+        const x = Math.max(6, Math.min(f.W - w - 6, s[0] + Number(t.dataset.dx))), y = Math.max(6, Math.min(f.H - h - 6, s[1] + Number(t.dataset.dy)));
+        t.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+      }
+    };
 
     const boot = async () => {
       const D = await fetch((window as any).__fmsrc).then((r) => r.json());

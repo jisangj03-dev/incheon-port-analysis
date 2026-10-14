@@ -350,7 +350,7 @@ export class FlowMap {
     this.running = true; this.last = performance.now();
     const loop = (now: number) => {
       if (!this.running) return;
-      const dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
+      const dt = Math.min(0.25, (now - this.last) / 1000); this.last = now; // 느린 기기에서도 한 달 = 7초(장면이 드물면 한 걸음이 크다)
       this.step(dt); if (this.o.camStep) this.o.camStep(this, dt); else this.camStep(dt); this.draw();
       this.raf = requestAnimationFrame(loop);
     };

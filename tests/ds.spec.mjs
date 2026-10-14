@@ -109,9 +109,10 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   const shot = () => page.locator("#fm").screenshot();
   const s1 = await shot(); await page.waitForTimeout(600); const s2 = await shot();
   expect(Buffer.compare(s1, s2), "캔버스가 움직이지 않는다").not.toBe(0);
-  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초)
+  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초 — 느린 시험 기계에서 장면 수가 적어도 판정이 같게 시계를 한 달 앞으로 민다)
   const ym = await page.locator("#fm-ym").innerText();
-  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 12_000 });
+  await page.evaluate(() => { window.__fm.t += 7; });
+  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 5_000 });
   // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
   await page.locator("[data-view=incheon]").click();
   await expect.poll(async () => (await st()).zoom, { timeout: 8_000 }).toBeGreaterThan(8);
