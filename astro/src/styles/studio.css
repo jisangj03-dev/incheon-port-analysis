@@ -1,0 +1,140 @@
+/* 측심 디자인 시스템 「해도(海圖)」 — 2026-10-14 · 정본 = docs/측심_디자인시스템_20261014.md.
+   지금은 lab/ 시안 지면(Studio 레이아웃)만 쓴다. 공개 지면(global.css)은 공개 전환 PR(정체성 §5-4)에서 갈아 끼운다.
+   원칙: 종이 위 먹 한 색 + 신호색 하나 · 상자 대신 여백과 가는 줄 · 한 화면 한 메시지 · 숫자는 크게, 꾸밈은 작게. */
+
+:root {
+  /* 색 — 해도 종이 · 먹 · 신호(인천을 지나는 길에만) · 바다(나머지 데이터) */
+  --s-paper: #f5f2eb;
+  --s-paper-2: #ebe6da;     /* 물 · 두 번째 면 */
+  --s-ink: #191714;         /* 본문 · 제목 — 종이 대비 16:1 */
+  --s-ink-2: #4a463f;       /* 보조 글 — 8.4:1 */
+  --s-ink-3: #6b655b;       /* 캡션·축 — 5.2:1 */
+  --s-rule: #d6cfc1;        /* 가는 줄 */
+  --s-signal: #b3361e;      /* 신호 한 색 — 인천 강조에만 · 5.4:1 */
+  --s-sea: #5d7a86;         /* 다른 계열 데이터 */
+  --s-sea-2: #a8bbc1;
+  /* 글자용 짝 색 — 선·면 색 sea · sea-2 는 종이 대비 4.09 · 1.78 이라 글자에 못 쓴다(채팅 검수 ② · 4.5:1). 선 끝 라벨은 이것으로. */
+  --s-sea-t: #3f5964;       /* 6.65:1 */
+  --s-sea-2-t: #5a6f78;     /* 4.72:1 */
+
+  /* 글꼴 — 한글은 Pretendard(저장소 내장 · 외부 요청 0) · 숫자는 표 정렬 */
+  --s-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+  --s-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* 제목 글꼴 — 토큰 하나로 바꾼다(2026-10-14 확정: 제목 명조 · 본문 고딕). 고딕 단독으로 되돌리려면 아래 한 줄을 var(--s-font) 로. */
+  --s-font-serif: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --s-font-head: var(--s-font-serif);
+  --s-head-track: -0.015em;  /* 명조는 자간을 덜 좁힌다(고딕일 때 −0.03em) */
+
+  /* 크기 단계 — 1.333(완전4도) · 본문 17 */
+  --s-t-cap: 13px;
+  --s-t-sm: 15px;
+  --s-t-body: 17px;
+  --s-t-lead: 21px;
+  --s-t-h3: 26px;
+  --s-t-h2: clamp(28px, 3.4vw, 36px);
+  --s-t-h1: clamp(36px, 5.6vw, 60px);
+  --s-t-num: clamp(56px, 9vw, 112px); /* 큰 숫자 하나 */
+
+  /* 여백 — 4 기반 */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 64px; --s-9: 96px; --s-10: 144px;
+  --s-measure: 36rem;   /* 글 한 줄 폭(한글 약 34자) */
+  --s-wide: 1160px;
+  --s-gutter: clamp(16px, 4vw, 48px);
+  --s-radius: 2px;      /* 거의 직각 — 해도 · 표 */
+  --s-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: light;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body.studio {
+  margin: 0; background: var(--s-paper); color: var(--s-ink); font-family: var(--s-font);
+  font-size: var(--s-t-body); line-height: 1.75; word-break: keep-all; overflow-wrap: anywhere; -webkit-font-smoothing: antialiased;
+  font-feature-settings: "tnum" 1;
+}
+.studio a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: var(--s-rule); }
+.studio a:hover { text-decoration-color: var(--s-ink); }
+.studio :focus-visible { outline: 2px solid var(--s-signal); outline-offset: 3px; }
+.studio h1, .studio h2, .studio h3 { color: var(--s-ink); margin: 0; font-family: var(--s-font-head); font-weight: 700; letter-spacing: var(--s-head-track); line-height: 1.22; text-wrap: balance; }
+.studio h1 { font-size: var(--s-t-h1); letter-spacing: calc(var(--s-head-track) - 0.005em); line-height: 1.2; }
+/* 작은 머리(꼬리표처럼 쓰는 h2.s-cap)는 본문 고딕 그대로 */
+.studio h2.s-cap { font-family: var(--s-font); letter-spacing: 0; }
+/* 비교용 — ?type=sans 면 고딕 단독(토큰만 바꾼다) */
+html[data-type="sans"] { --s-font-head: var(--s-font); --s-head-track: -0.03em; }
+.studio h2 { font-size: var(--s-t-h2); }
+.studio h3 { font-size: var(--s-t-h3); }
+.studio p { margin: 0 0 var(--s-4); }
+.studio [hidden] { display: none !important; }
+
+.s-wrap { max-width: var(--s-wide); margin: 0 auto; padding: 0 var(--s-gutter); }
+.s-prose { max-width: var(--s-measure); }
+.studio h1.s-prose { max-width: 15em; }
+.s-lead { font-size: var(--s-t-lead); line-height: 1.6; color: var(--s-ink-2); }
+.s-cap { font-size: var(--s-t-cap); color: var(--s-ink-3); line-height: 1.5; }
+.s-num { font-size: var(--s-t-num); font-weight: 650; letter-spacing: -0.05em; line-height: 1; }
+.s-signal { color: var(--s-signal); }
+.s-rule { border: 0; border-top: 1px solid var(--s-rule); margin: 0; }
+
+/* 한 화면 한 메시지 — 장면 */
+.s-scene { min-height: min(72vh, 760px); display: grid; align-content: center; padding: var(--s-9) 0; border-top: 1px solid var(--s-rule); }
+.s-scene:first-of-type { border-top: 0; }
+
+/* 머리 · 바닥 — 글자만, 상자 없음 */
+.s-mast { display: flex; align-items: baseline; gap: var(--s-5); padding-top: var(--s-5); padding-bottom: var(--s-5); }
+.s-mark { font-family: var(--s-font-head); font-weight: 700; font-size: 21px; letter-spacing: -0.02em; text-decoration: none; }
+.s-mark small { font-weight: 500; font-size: var(--s-t-sm); color: var(--s-ink-3); margin-left: var(--s-2); letter-spacing: 0; }
+.s-nav { margin-left: auto; display: flex; gap: var(--s-5); font-size: var(--s-t-sm); }
+.s-nav a { text-decoration: none; color: var(--s-ink-2); padding: var(--s-2) 0; }
+.s-nav a[aria-current="page"] { color: var(--s-ink); box-shadow: inset 0 -2px 0 var(--s-signal); }
+.s-foot { padding-top: var(--s-7); padding-bottom: var(--s-8); font-size: var(--s-t-cap); color: var(--s-ink-3); }
+@media (max-width: 560px) { .s-mark small { display: none; } .s-nav { gap: var(--s-3); font-size: 14px; } }
+
+/* 목록 — 번호 + 가는 줄(카드 상자 대신) */
+.s-index { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.s-index > li { display: grid; grid-template-columns: 3.5rem 1fr; gap: var(--s-4); padding: var(--s-5) 0; border-top: 1px solid var(--s-rule); counter-increment: s; }
+.s-index > li::before { content: counter(s, decimal-leading-zero); font-size: var(--s-t-sm); color: var(--s-ink-3); padding-top: 0.45em; }
+.s-index h3 { font-size: var(--s-t-h3); }
+.s-index p { color: var(--s-ink-2); margin: var(--s-2) 0 0; }
+
+/* 단추 — 먹 한 색, 꾸밈 없음 */
+.s-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 var(--s-5); border-radius: var(--s-radius);
+  border: 1px solid var(--s-ink); background: var(--s-ink); color: var(--s-paper); font: inherit; font-weight: 650; font-size: var(--s-t-sm); cursor: pointer; text-decoration: none; }
+.studio a.s-btn { color: var(--s-paper); text-decoration: none; }
+.s-btn--ghost, .studio a.s-btn--ghost { background: transparent; color: var(--s-ink); }
+.s-input { min-height: 44px; font: inherit; font-size: 16px; color: var(--s-ink); background: transparent; border: 0; border-bottom: 1px solid var(--s-ink); border-radius: 0; padding: var(--s-2) 0; width: 100%; }
+
+/* 표 — 가로줄만 */
+.s-table { border-collapse: collapse; width: 100%; font-size: var(--s-t-sm); }
+.s-table th, .s-table td { padding: var(--s-3) var(--s-2); border-bottom: 1px solid var(--s-rule); text-align: left; }
+.s-table th { font-weight: 600; color: var(--s-ink-3); }
+.s-table .num { text-align: right; }
+
+/* 만든 사람 노트 3줄 */
+.s-maker { display: grid; grid-template-columns: 5rem 1fr; gap: var(--s-2) var(--s-4); font-size: var(--s-t-sm); color: var(--s-ink-2); margin: 0; }
+.s-maker dt { color: var(--s-ink-3); }
+.s-maker dd { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+/* ── 장면 부품(2026-10-14 확장) ───────────────────────────── */
+.s-scene__head { margin-bottom: var(--s-6); }
+.s-scene__head h2 { margin: var(--s-2) 0 var(--s-3); }
+.s-unit { font-size: 0.24em; font-weight: 600; letter-spacing: 0; margin-left: 12px; color: var(--s-ink-2); }
+/* 차트 신뢰 꼬리 — 갱신일 · 출처 · CSV 한 줄(OWID 원리) */
+.s-trust { font-size: var(--s-t-cap); color: var(--s-ink-3); line-height: 1.5; margin: var(--s-3) 0 0; }
+.s-trust a { color: var(--s-ink-2); }
+/* 수심 표기처럼 — 작은 기울임 숫자 */
+.s-sounding { font-style: italic; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--s-ink-2); }
+.s-sounding small { font-style: normal; font-size: 0.72em; color: var(--s-ink-3); margin-left: 2px; }
+/* 노트 — 단계 표지(○ ◐ ●) · 상자 없음 · 가는 줄 */
+.s-stages { display: flex; gap: var(--s-5); flex-wrap: wrap; margin: 0 0 var(--s-4); }
+.s-stages b { font-weight: 400; color: var(--s-ink-2); }
+.s-notes { list-style: none; margin: 0; padding: 0; }
+.s-notes li { display: grid; grid-template-columns: 1.75rem 1fr auto; gap: var(--s-3); align-items: baseline; padding: var(--s-4) 0; border-top: 1px solid var(--s-rule); }
+.s-notes__stage b { font-weight: 400; color: var(--s-ink-2); }
+.s-notes li[data-stage="초안"] .s-notes__stage b { color: var(--s-signal); }
+.s-notes a { text-decoration: none; font-family: var(--s-font-head); font-size: var(--s-t-lead); font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
+.s-notes a:hover { text-decoration: underline; text-decoration-color: var(--s-rule); }
+.s-notes__date { font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 560px) { .s-notes li { grid-template-columns: 1.5rem 1fr; } .s-notes__date { grid-column: 2; white-space: normal; } }

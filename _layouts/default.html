@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: 'ko' }}">
+<head>{%- include head.html -%}</head>
+<body{% if page.url == '/' %} class="home"{% endif %}>
+  <!-- 이 레이아웃이 왜 있나 [2026-09-06]. 발행본 아홉 편이 GitHub Pages 기본 테마(primer)로
+       나가고 있었다 — 헤더가 저장소 이름, 본문은 GitHub README 결. 측심(sounding.higgsfield.app)에서
+       보고서를 누르면 마감이 그 자리에서 떨어진다(실물 스크린샷). 발행본 마크다운은 한 글자도
+       건드리지 않는다(지침 §3-11) — 그릇만 바꾼다. 스타일 = assets/css/vidimus.css.
+       front matter 가 없는 발행본에도 이 레이아웃이 입혀진다(GitHub Pages 기본 플러그인
+       jekyll-default-layout · 실측 근거 = docs/렌더_기준선.md). -->
+  <a class="skip" href="#main">본문으로 건너뛰기</a>
+  {%- include masthead.html -%}
+  <main id="main" tabindex="-1" data-root="{{ '/' | relative_url }}">
+    <article class="doc">
+      {{ content }}
+    </article>
+    <!-- 차례. 스크립트가 본문의 h2 로 채운다(절이 셋 이상일 때만) · 넓은 화면(≥1280px)에서만 보인다. -->
+    <aside class="toc" aria-label="이 지면의 차례" hidden></aside>
+  </main>
+  {%- include footer.html -%}
+  <!-- 옆으로 흐르는 표·코드 블록은 키보드로도 흘러야 한다 — axe `scrollable-region-focusable`
+       (2026-09-06 모바일 실측 · 발행본 표가 열보다 넓을 때 · 2026-09-07 README 의 저장소 트리 `pre` 도 같은 결함).
+       실제로 흐르는 것에만 tabindex 를 준다. JS 가 없으면 그대로 보이고 마우스·손가락으로는 여전히 흐른다. -->
+  <script>
+    (function () {
+      var t = document.querySelectorAll(".doc table, .doc pre");
+      function mark(el) {
+        var scrolls = el.scrollWidth > el.clientWidth + 1;
+        if (scrolls) el.setAttribute("tabindex", "0"); else el.removeAttribute("tabindex");
+        el.classList.toggle("is-scroll", scrolls);
+        el.classList.toggle("at-end", !scrolls || el.scrollLeft + el.clientWidth >= el.scrollWidth - 2);
+      }
+      for (var i = 0; i < t.length; i++) {
+        mark(t[i]);
+        t[i].addEventListener("scroll", (function (el) { return function () { mark(el); }; })(t[i]), { passive: true });
+      }
+      // 창이 돌아가면(휴대폰 가로·세로) 흐름 여부가 바뀐다.
+      window.addEventListener("resize", function () { for (var i = 0; i < t.length; i++) mark(t[i]); });
+    })();
+  </script>
+  <!-- 보고서 제목의 편 번호를 눈썹줄로. 발행본 H1 은 「보고서 #01 — 제목」(#01~#03) 과 「#04 제목」(#04~) 두 꼴이다(실측).
+       마크다운은 안 건드리고, 스크립트가 앞의 번호를 <span> 으로 감싸 CSS 가 작은 강조색 줄로 올린다.
+       <title>·og:title 은 서버가 내는 원문 그대로다. JS 가 없으면 원문 H1 이 그대로 보인다. -->
+  <script>
+    (function () {
+      if (!/\/reports\/report_\d+/.test(location.pathname)) return;
+      var h1 = document.querySelector(".doc h1");
+      if (!h1 || h1.children.length) return;
+      var m = h1.textContent.match(/^\s*(?:보고서\s*)?(#\d+)\s*(?:[—–-]\s*)?(.+)$/);
+      if (!m) return;
+      h1.textContent = "";
+      var eb = document.createElement("span");
+      eb.className = "h1__eyebrow";
+      eb.textContent = "보고서 " + m[1];
+      var tt = document.createElement("span");
+      tt.className = "h1__title";
+      tt.textContent = m[2].trim();
+      h1.appendChild(eb);
+      h1.appendChild(tt);
+    })();
+  </script>
+  <!-- 표의 이름과 머리 방향 — 발행본 표는 kramdown 이 caption·scope 없이 낸다(STATUS 미해결 「마크다운 표에 이름도 scope 도 없다」).
+       바로 앞 문단이 「표 N.」 으로 시작하면 그것을 표의 이름으로 잇고, 머리 행의 칸에 scope="col" 을 준다.
+       속성을 붙였다는 것이 낭독을 확인했다는 뜻은 아니다 — 낭독기로 들어 본 사람은 아직 없다. -->
+  <script>
+    (function () {
+      var tables = document.querySelectorAll(".doc table");
+      for (var i = 0; i < tables.length; i++) {
+        var t = tables[i];
+        var ths = t.querySelectorAll("thead th");
+        for (var k = 0; k < ths.length; k++) if (!ths[k].getAttribute("scope")) ths[k].setAttribute("scope", "col");
+        // 표가 래퍼 안에 있으면(미리보기 렌더러가 그렇다) 앞 형제가 없다 — 본문 직속까지 올라가 찾는다.
+        var node = t;
+        while (node && !node.previousElementSibling && node.parentElement && !node.parentElement.classList.contains("doc")) node = node.parentElement;
+        var prev = node ? node.previousElementSibling : null;
+        if (prev && /^(P|H[3-6])$/.test(prev.tagName) && /^\s*표\s*\d+[.．]/.test(prev.textContent)) {
+          if (!prev.id) prev.id = "table-" + (i + 1) + "-name";
+          if (!t.getAttribute("aria-labelledby") && !t.getAttribute("aria-label")) t.setAttribute("aria-labelledby", prev.id);
+        }
+      }
+    })();
+  </script>
+  <!-- 숫자 열은 오른쪽 정렬. 발행본 표의 정렬은 마크다운 기본(왼쪽)이라 자릿수가 안 맞는다.
+       열의 몸통 칸 6할 이상이 수(쉼표·소수점·%·±·배·TEU·p 허용)이면 그 열 전체(머리 포함)에 .num 을 준다. -->
+  <script>
+    (function () {
+      var NUM = /^[+\-−–]?\s*[\d,]+(\.\d+)?\s*(%|%p|배|TEU|천TEU|p|건|개월|개)?\s*$/;
+      var tables = document.querySelectorAll(".doc table");
+      for (var t = 0; t < tables.length; t++) {
+        var rows = tables[t].querySelectorAll("tbody tr");
+        if (!rows.length) continue;
+        var ncol = rows[0].children.length;
+        for (var c = 0; c < ncol; c++) {
+          var n = 0, tot = 0;
+          for (var r = 0; r < rows.length; r++) {
+            var cell = rows[r].children[c];
+            if (!cell) continue;
+            var s = cell.textContent.replace(/\s+/g, " ").trim();
+            if (!s || s === "—" || s === "-") continue;
+            tot++;
+            if (NUM.test(s)) n++;
+          }
+          if (tot && n / tot >= 0.6) {
+            var all = tables[t].querySelectorAll("tr");
+            for (var k = 0; k < all.length; k++) {
+              var cc = all[k].children[c];
+              if (cc) cc.classList.add("num");
+            }
+          }
+        }
+      }
+    })();
+  </script>
+  <!-- 보고서 지면의 길 — 차례(오른쪽 · 현재 절 강조) · 이전/다음 편 · 상단 바의 「보고서」 현재 표시.
+       이전/다음 편은 목록을 여기 들지 않고 **첫 화면을 읽어서** 만든다 — 손으로 든 목록은 편이 늘 때마다 낡는다(사고 31).
+       실물은 kramdown 이 h2 에 id 를 주고, 미리보기는 안 주므로 없으면 스크립트가 만든다. -->
+  <script>
+    (function () {
+      var isReport = /\/reports\/report_\d+/.test(location.pathname);
+      var main = document.getElementById("main");
+      var root = (main && main.getAttribute("data-root")) || "/";
+      var doc = document.querySelector(".doc");
+      if (!doc) return;
+
+      if (isReport) {
+        // 선택자를 문자열 결합으로 만들지 않는다 — 속성 이름 뒤에 등호와 따옴표가 붙은 리터럴은 링크 검사기가 링크로 읽는다(실측 · 이 주석도 그래서 풀어 썼다).
+        var links0 = document.querySelectorAll(".mast__nav a"), cur = null;
+        for (var j = 0; j < links0.length; j++) if (links0[j].getAttribute("href") === root) cur = links0[j];
+        if (cur) cur.setAttribute("aria-current", "page");
+      }
+
+      // h2 에 id — 실물은 kramdown 이 주고 미리보기는 안 준다. 첫 화면의 「보고서 목록」 링크가 #보고서 를 가리킨다.
+      var h2s = Array.prototype.slice.call(doc.querySelectorAll("h2"));
+      var used = {};
+      h2s.forEach(function (h, i) {
+        if (!h.id) {
+          var id = h.textContent.trim().toLowerCase().replace(/[^\w\uac00-\ud7a3]+/g, "-").replace(/^-+|-+$/g, "") || "s" + i;
+          while (used[id] || document.getElementById(id)) id += "-1";
+          h.id = id;
+        }
+        used[h.id] = true;
+      });
+      // 차례
+      var toc = document.querySelector(".toc");
+      if (toc && isReport && h2s.length >= 3) {
+        var ol = document.createElement("ol");
+        h2s.forEach(function (h) {
+          var li = document.createElement("li"), a = document.createElement("a");
+          a.href = "#" + h.id;
+          a.textContent = h.textContent.trim();
+          li.appendChild(a);
+          ol.appendChild(li);
+        });
+        var cap = document.createElement("p");
+        cap.className = "toc__cap";
+        cap.textContent = "차례";
+        toc.appendChild(cap);
+        toc.appendChild(ol);
+        toc.hidden = false;
+        // 좁은 화면용 접힌 차례 — 머리 정보 목록(작성일·분석 대상·한 줄 결론) 뒤, 첫 절 앞.
+        var det = document.createElement("details");
+        det.className = "toc-m";
+        var sum = document.createElement("summary");
+        sum.textContent = "이 편의 차례";
+        det.appendChild(sum);
+        det.appendChild(ol.cloneNode(true));
+        var meta = doc.querySelector("ul + hr") || h2s[0];
+        if (meta) meta.parentNode.insertBefore(det, meta);
+        var links = ol.querySelectorAll("a");
+        var setCur = function (id) {
+          for (var i = 0; i < links.length; i++) {
+            var on = links[i].getAttribute("href") === "#" + id;
+            links[i].classList.toggle("is-cur", on);
+            if (on) links[i].setAttribute("aria-current", "true"); else links[i].removeAttribute("aria-current");
+          }
+        };
+        var pick = function () {
+          var best = null;
+          h2s.forEach(function (h) { if (h.getBoundingClientRect().top <= 120) best = h; });
+          setCur(best ? best.id : "");
+        };
+        window.addEventListener("scroll", pick, { passive: true });
+        pick();
+      }
+
+      // 이전 · 다음 편 — 첫 화면의 목록을 읽는다
+      if (isReport && window.fetch) {
+        fetch(root, { credentials: "same-origin" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (html) {
+          if (!html) return;
+          var d = new DOMParser().parseFromString(html, "text/html");
+          var as = Array.prototype.slice.call(d.querySelectorAll('a[href*="reports/report_"]'));
+          if (as.length < 2) return;
+          var me = (location.pathname.match(/report_(\d+)_/) || [])[1];
+          var idx = -1;
+          var items = as.map(function (a, i) {
+            var n = (a.getAttribute("href").match(/report_(\d+)_/) || [])[1];
+            if (n === me) idx = i;
+            var num = a.querySelector("strong");
+            return { href: a.getAttribute("href"), num: num ? num.textContent.trim() : "#" + n,
+                     title: a.textContent.replace(num ? num.textContent : "", "").trim() };
+          });
+          if (idx < 0) return;
+          var abs = function (href) { return /^(https?:)?\//.test(href) ? href : root + href; };
+          var nav = document.createElement("nav");
+          nav.className = "pager";
+          nav.setAttribute("aria-label", "이전 · 다음 편");
+          var mk = function (it, kind, label) {
+            var a = document.createElement("a");
+            a.className = "pager__" + kind;
+            a.href = abs(it.href);
+            var l = document.createElement("span"); l.className = "pager__label"; l.textContent = label;
+            var t = document.createElement("span"); t.className = "pager__title";
+            var s = document.createElement("strong"); s.textContent = it.num;
+            t.appendChild(s); t.appendChild(document.createTextNode(" " + it.title));
+            a.appendChild(l); a.appendChild(t);
+            return a;
+          };
+          if (idx > 0) nav.appendChild(mk(items[idx - 1], "prev", "이전 편"));
+          if (idx < items.length - 1) nav.appendChild(mk(items[idx + 1], "next", "다음 편"));
+          if (nav.childNodes.length) doc.appendChild(nav);
+        }).catch(function () {});
+      }
+    })();
+  </script>
+  <!-- 긴 표의 머리 행을 바 아래에 띄운다(몸통 8행 이상). 머리가 화면 위로 나가고 표 끝이 아직 아래에 있을 때만 보인다.
+       복제본은 낭독기에서 숨기고(aria-hidden), 열 너비는 원본 칸에서 베끼며, 원본의 가로 스크롤을 따라간다. -->
+  <script>
+    (function () {
+      var NAV = 56;
+      var tables = Array.prototype.filter.call(document.querySelectorAll(".doc table"), function (t) {
+        return t.tHead && t.tBodies[0] && t.tBodies[0].rows.length >= 8;
+      });
+      if (!tables.length) return;
+      var floats = tables.map(function (t) {
+        var box = document.createElement("div");
+        box.className = "thead-float";
+        box.setAttribute("aria-hidden", "true");
+        box.hidden = true;
+        var clone = document.createElement("table");
+        clone.className = t.className.replace(/\bis-scroll\b|\bat-end\b|\brv\b|\bis-in\b/g, "");
+        clone.appendChild(t.tHead.cloneNode(true));
+        box.appendChild(clone);
+        document.body.appendChild(box);
+        return { t: t, box: box, clone: clone };
+      });
+      function place(f) {
+        var r = f.t.getBoundingClientRect();
+        var head = f.t.tHead.getBoundingClientRect();
+        var show = head.top < NAV && r.bottom > NAV + head.height + 8;
+        if (!show) { f.box.hidden = true; return; }
+        var src = f.t.tHead.rows[0].cells, dst = f.clone.tHead.rows[0].cells;
+        var total = 0;
+        for (var i = 0; i < src.length && i < dst.length; i++) {
+          var w = src[i].getBoundingClientRect().width;
+          dst[i].style.width = w + "px"; dst[i].style.minWidth = w + "px"; dst[i].style.maxWidth = w + "px";
+          total += w;
+        }
+        f.clone.style.width = total + "px";
+        f.clone.style.marginLeft = (-f.t.scrollLeft) + "px";
+        f.box.style.left = r.left + "px";
+        f.box.style.width = r.width + "px";
+        f.box.hidden = false;
+      }
+      function all() { floats.forEach(place); }
+      window.addEventListener("scroll", all, { passive: true });
+      window.addEventListener("resize", all);
+      tables.forEach(function (t, i) { t.addEventListener("scroll", function () { place(floats[i]); }, { passive: true }); });
+      all();
+    })();
+  </script>
+  <!-- 리빌. 보고서 행·그림·표·인용이 스크롤에 맞춰 떠오른다(애플 지면의 문법).
+       JS 가 없거나 IntersectionObserver 가 없거나 감속 모션이면 그냥 보인다 — CSS 가 html.js 에만 건다. -->
+  <script>
+    (function () {
+      if (!("IntersectionObserver" in window)) return;
+      var sel = ".doc img, .doc table, .doc blockquote";
+      var rows = [];
+      try { rows = document.querySelectorAll(".home .doc li:has(> a[href*='reports/report_'])"); } catch (e) {}
+      var els = Array.prototype.slice.call(document.querySelectorAll(sel)).concat(Array.prototype.slice.call(rows));
+      if (!els.length) return;
+      document.documentElement.classList.add("js");
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); }
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
+      Array.prototype.forEach.call(rows, function (r, i) { r.style.transitionDelay = Math.min(i * 45, 360) + "ms"; });
+      els.forEach(function (el) { el.classList.add("rv"); io.observe(el); });
+    })();
+  </script>
+</body>
+</html>

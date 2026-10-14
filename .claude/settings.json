@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "permissions": {
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git filter-branch*)",
+      "Bash(git filter-repo*)",
+      "Bash(higgsfield website repo-access*)",
+      "PowerShell(git push --force*)",
+      "PowerShell(git push -f*)",
+      "PowerShell(higgsfield website repo-access*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/hook_stopline.py\" || { rc=$?; echo \"[훅 오류] hook_stopline 종료 $rc — 검사가 돌지 않았다\" >&2; exit 1; }",
+            "timeout": 120,
+            "statusMessage": "정지선 검사"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"",
+            "timeout": 300,
+            "statusMessage": "클라우드 세션 준비(pip·npm·git 훅)"
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --show || { rc=$?; echo \"[훅 오류] session_snapshot --show 종료 $rc — 검사가 돌지 않았다\" >&2; exit 1; }",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --prompt || { rc=$?; echo \"[훅 오류] session_snapshot --prompt 종료 $rc — 검사가 돌지 않았다\" >&2; exit 1; }",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --stop || { rc=$?; echo \"[훅 오류] session_snapshot --stop 종료 $rc — 검사가 돌지 않았다\" >&2; exit 1; }",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/analysis/session_snapshot.py\" --end || { rc=$?; echo \"[훅 오류] session_snapshot --end 종료 $rc — 검사가 돌지 않았다\" >&2; exit 1; }",
+            "timeout": 30,
+            "statusMessage": "세션 스냅샷"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "ponytail@ponytail": true,
+    "agent-skills@addy-agent-skills": true
+  },
+  "extraKnownMarketplaces": {
+    "ponytail": {
+      "source": {
+        "source": "directory",
+        "path": "C:\\Users\\user\\tools\\ponytail"
+      }
+    },
+    "addy-agent-skills": {
+      "source": {
+        "source": "directory",
+        "path": "C:\\Users\\user\\tools\\agent-skills"
+      }
+    }
+  }
+}

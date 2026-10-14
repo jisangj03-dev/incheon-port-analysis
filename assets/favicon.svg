@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="측심">
+<!--
+  파비콘. 측심(sounding.higgsfield.app)의 기호 — 눈금 매긴 줄에 달린 추(sounding lead). 같은 기하다
+  (측심 저장소 app/public/assets/brand/mark.svg). [2026-09-07 운영자 선언] 브랜드가 측심 하나로 합쳐졌다.
+  이것도 장식이고 아무 수치도 주장하지 않는다. 색은 CSS 변수를 못 쓰므로 prefers-color-scheme 을 안에 둔다.
+-->
+<style>
+  .l { stroke: #0F2A3D; }
+  .w { fill: #1F7A8C; }
+  @media (prefers-color-scheme: dark) {
+    .l { stroke: #EAF0F3; }
+    .w { fill: #3FA3B6; }
+  }
+</style>
+<g class="l" fill="none" stroke-width="4" stroke-linecap="square">
+  <path d="M32 4v34M24 12h8M24 21h8M24 30h8M12 60h40"/>
+</g>
+<path class="w" d="M25 38h14l-3 18h-8z"/>
+</svg>

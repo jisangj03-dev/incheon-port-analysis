@@ -1,0 +1,24 @@
+---
+// 바깥 링크 이동 지면(개편 기준 22·29) — 이 지면의 방문 수 = 그 링크의 클릭 수(Cloudflare 분석 · 쿠키 0).
+// LIVE 가 꺼진 링크(크몽 판매 동선 · 2026-10-14 걷음)는 주소만 살리고 첫 화면으로 돌려보낸다(기존 주소 유지).
+import Base from "../../layouts/Base.astro";
+import Redirect from "../../layouts/Redirect.astro";
+import { OUT } from "../../lib/site";
+export function getStaticPaths() {
+  return Object.entries(OUT).filter(([, v]) => v.url).map(([id, v]) => ({ params: { id }, props: { to: v.url, label: v.label, live: v.live } }));
+}
+const { to, label, live } = Astro.props;
+const { id } = Astro.params;
+---
+{live ? (
+<Base title={`${label}로 이동`} description={`측심에서 ${label}(으)로 이동합니다.`} path={`/go/${id}.html`} noindex studio>
+  <Fragment slot="head"><meta http-equiv="refresh" content={`1;url=${to}`} /></Fragment>
+  <div class="s-wrap" style="padding-top:64px;padding-bottom:64px">
+    <p class="s-cap">바깥 링크</p>
+    <h1 class="s-prose">{label}(으)로 이동합니다</h1>
+    <p class="s-lead s-prose">바로 넘어가지 않으면 <a href={to} rel="noopener">여기를 누르세요</a>. 측심 밖의 지면입니다.</p>
+  </div>
+</Base>
+) : (
+<Redirect path={`/go/${id}.html`} to="/" label="첫 화면" why="이 링크는 더 이상 쓰지 않습니다." />
+)}

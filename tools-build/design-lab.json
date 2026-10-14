@@ -1,0 +1,78 @@
+{
+  "_설명": "디자인 도구 판정 v3 시험 추출(2026-10-14). 이 파일이 바뀐 claude/ 브랜치 push(설정이 main 과 다를 때만)와 수동 실행 때 .github/workflows/design-lab.yml 이 돈다. 공개 페이지 첫 화면 하나에서 색·글꼴·크기·여백 수치만 뽑는다(dembrandt · 우회 기능 끔 · 정직한 UA). 기준 화면 캡처는 커밋하지 않고 Actions 산출물(3일 보관)로만. [2026-10-14 디자인 위임] 기준 사이트 8곳으로 늘림 — 원리·수치만, 이미지·문구·코드 복제 금지.",
+  "userAgent": "Mozilla/5.0 (X11; Linux x86_64) sounding-design-lab/1.0 (+https://github.com/jisangj03-dev/incheon-port-analysis) — public-page style values only",
+  "ours": "https://jisangj03-dev.github.io/incheon-port-analysis/",
+  "targets": [
+    {
+      "name": "ncase",
+      "url": "https://ncase.me/"
+    },
+    {
+      "name": "ciechanowski",
+      "url": "https://ciechanow.ski/"
+    },
+    {
+      "name": "pudding",
+      "url": "https://pudding.cool/"
+    },
+    {
+      "name": "owid",
+      "url": "https://ourworldindata.org/"
+    },
+    {
+      "name": "shipmap",
+      "url": "https://www.shipmap.org/"
+    },
+    {
+      "name": "joshwcomeau",
+      "url": "https://www.joshwcomeau.com/"
+    },
+    {
+      "name": "toss",
+      "url": "https://toss.im/"
+    },
+    {
+      "name": "stripe-press",
+      "url": "https://press.stripe.com/"
+    }
+  ],
+  "extract": false,
+  "pairs": [
+    {
+      "name": "home-vs-stripe-press",
+      "ours": "/",
+      "ref": "https://press.stripe.com/"
+    },
+    {
+      "name": "type-serif-vs-sans",
+      "ours": "/",
+      "ref": "/?type=sans"
+    },
+    {
+      "name": "beer-vs-ncase",
+      "ours": "/sim/beer-game.html",
+      "ref": "https://ncase.me/"
+    },
+    {
+      "name": "beer-vs-ciechanowski",
+      "ours": "/sim/beer-game.html",
+      "ref": "https://ciechanow.ski/"
+    },
+    {
+      "name": "map-vs-shipmap",
+      "ours": "/map.html",
+      "ref": "https://www.shipmap.org/"
+    },
+    {
+      "name": "note-vs-maggieappleton",
+      "ours": "/notes/port-yoy.html",
+      "ref": "https://maggieappleton.com/garden"
+    },
+    {
+      "name": "note-vs-owid",
+      "ours": "/notes/port-yoy.html",
+      "ref": "https://ourworldindata.org/grapher/co2-emissions-per-capita"
+    }
+  ],
+  "_pairs_설명": "왼쪽 = 공개 전환 빌드(로컬 · 2026-10-14 공개 주소로) · 오른쪽 = 기준(밖 주소 또는 '/'로 시작하면 같은 로컬 빌드 — 글꼴 두 안 비교용). 1440·390 첫 화면 + 전체 페이지(--full)."
+}

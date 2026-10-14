@@ -1,0 +1,76 @@
+{
+  "_설명": "예약 수집(확장 기준 14 · 2026-10-12). .github/workflows/collect.yml 이 매월 16·24일(UTC 00:23)과 수동 실행, 그리고 이 파일이 바뀐 claude/ 브랜치 push 때 돈다. 키 = 저장소 시크릿 DATA_GO_KR_KEY(Decoding판) — 로그·산출물·PR 에 안 찍는다. 받기만 한다 — 판정은 각 선커밋 문서가 한다. 결과 = data/collected/<id>.csv(요청한 달을 맨 앞 열에 박는다) · data/collected/manifest.json(달마다 HTTP·결과코드·행 수·응답 SHA-256).",
+  "window_months": 3,
+  "lag_months": 1,
+  "sources": [
+    {
+      "id": "vessel-harbor",
+      "portal": "15059059",
+      "name": "해양수산부 항만별 선박입출항실적",
+      "url": "https://apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM",
+      "params": {
+        "numOfRows": "1000",
+        "pageNo": "1"
+      },
+      "month_params": [
+        "sym",
+        "eym"
+      ],
+      "keep_if_any_field_contains": "인천",
+      "note": "요청 변수 sym·eym(YYYYMM) — 포털 명세(2026-10-12 실행 요약에서 확인). 응답 useYm·prtAgNm·nm(국적선·외국선 구분)·입출항 척수·총톤수. prtAgNm 에 「인천」이 든 행만 남긴다."
+    },
+    {
+      "id": "sido-item-incheon",
+      "portal": "15101641",
+      "name": "관세청 시도별 품목별 수출입실적 — 인천(시도코드 28)",
+      "url": "https://apis.data.go.kr/1220000/sidoitemtrade/getSidoitemtradeList",
+      "params": {
+        "sidoCd": "28"
+      },
+      "month_params": [
+        "strtYymm",
+        "endYymm"
+      ]
+    },
+    {
+      "id": "nitemtrade",
+      "portal": "15100475",
+      "name": "관세청 품목별 국가별 수출입실적 — HS 2단위로 묶어 저장(10단위 원응답은 한 번에 12.5MB · 해시만 manifest 에)",
+      "url": "https://apis.data.go.kr/1220000/nitemtrade/getNitemtradeList",
+      "params": {},
+      "month_params": [
+        "strtYymm",
+        "endYymm"
+      ],
+      "each": {
+        "cntyCd": [
+          "CN",
+          "US",
+          "VN",
+          "JP",
+          "HK",
+          "TW",
+          "AU",
+          "IN",
+          "SG",
+          "DE"
+        ]
+      },
+      "aggregate": {
+        "key": "hsCd",
+        "prefix": 2,
+        "sum": [
+          "expDlr",
+          "expWgt",
+          "impDlr",
+          "impWgt",
+          "balPayments"
+        ],
+        "keep": [
+          "statCd",
+          "statCdCntnKor1"
+        ]
+      }
+    }
+  ]
+}

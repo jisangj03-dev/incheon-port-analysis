@@ -1,0 +1,28 @@
+---
+// 노트(구조 넷 ③) — 날짜를 박은 기록 전부. 단계(초안 · 갱신 중 · 정본)와 날짜는 콘텐츠 목록(data/rooms.json)과 git 기록에서 자동.
+// 종전 보고서 목록(/reports/)은 이 지면으로 돌려보낸다 — 보고서 본문 주소는 그대로.
+import Studio from "../layouts/Studio.astro";
+import NoteList from "../components/scene/NoteList.astro";
+import { room } from "../lib/rooms";
+import { u } from "../lib/site";
+const R = room("notes");
+---
+<Studio title="노트 — 측심" description={R.lead} current="notes" path="/notes.html">
+  <article class="s-wrap hub" data-content="notes">
+    <p class="s-cap">노트</p>
+    <h1 class="s-prose">{R.title}</h1>
+    <p class="s-lead s-prose">{R.lead}</p>
+    {(R.items || []).length > 0 && <ol class="s-index">{R.items!.map((r) => <li><div><h2 class="h3"><a href={u(r.href)}>{r.title}</a></h2><p>{r.lead}</p></div></li>)}</ol>}
+    <section class="all">
+      <h2 class="s-cap">모든 노트</h2>
+      <NoteList />
+    </section>
+  </article>
+</Studio>
+<style>
+  .hub { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+  .hub h1 { margin: var(--s-3) 0 var(--s-4); }
+  .hub .s-index { margin-top: var(--s-7); }
+  .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
+  .all { margin-top: var(--s-8); }
+</style>

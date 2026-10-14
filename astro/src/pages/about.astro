@@ -1,0 +1,65 @@
+---
+// 소개(구조 넷 ④ · 정체성 §5-4 공개 전환) — 누가 · 왜 · 어떻게 재나 · 연락. 실명·소속·자격·기고·연락처는 data/profile.json 한 곳에서.
+// 신뢰 여섯(방법론 · 출처 · 오류 신고 · 자문 아님 · AI 표기 · 사이트 이름)은 종전 신뢰 지면에서 이어받는다. 주소 /about.html 유지.
+import Studio from "../layouts/Studio.astro";
+import Contact from "../components/scene/Contact.astro";
+import { getEntry, render } from "astro:content";
+import { BRAND, u, REPO, ISSUES } from "../lib/site";
+import { profile, aiMark } from "../lib/profile";
+const P = profile();
+const about = await getEntry("root", "about");
+const { Content } = about ? await render(about) : { Content: null };
+const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: `${BRAND.name} — 소개`, mainEntity: {
+  "@type": "Person", name: P.name, affiliation: { "@type": "CollegeOrUniversity", name: P.affiliation },
+  hasCredential: P.credentials.map((q) => ({ "@type": "EducationalOccupationalCredential", name: q })),
+  ...(P.contact.linkedin ? { sameAs: [P.contact.linkedin] } : {}) } }];
+---
+<Studio title={`소개 — ${P.name}`} description={`${P.name}(${P.affiliation})의 SCM 작업실 측심 — 누가 왜 만드는지, 숫자를 어떻게 재는지, 어디로 연락하면 되는지.`} current="about" path="/about.html" jsonld={jsonld}>
+  <article class="s-wrap ab" data-content="about">
+    <p class="s-cap">소개</p>
+    <h1 class="s-prose">{P.name}</h1>
+    <p class="s-lead s-prose">{P.affiliation} · {P.role}. 수도권 공급망이 인천을 어떻게 지나가는지, 공공 1차 데이터를 움직여 보여 주는 작업실 <b>{BRAND.name}</b>을 만듭니다.</p>
+    <dl class="ab-facts">
+      <div><dt>자격</dt><dd>{P.credentials.map((q, i) => <>{i ? " · " : ""}<span class="q">{q}</span></>)}</dd></div>
+      {P.writing.length > 0 && <div><dt>기고</dt><dd>{P.writing.map((w, i) => <>{i ? " · " : ""}{w.url ? <a href={w.url} rel="noopener">{w.title}</a> : w.title} <span class="s-cap">{w.when}</span></>)}</dd></div>}
+    </dl>
+    <Contact />
+    <p class="s-cap s-prose">틀린 숫자·깨진 링크는 <a href={ISSUES}>저장소 이슈</a>로 알려 주셔도 됩니다. 오류는 지우지 않고 고친 자리에 정정 표기로 남깁니다.</p>
+
+    <section class="ab-sec" id="method"><h2>숫자를 어떻게 재나</h2>
+      <ol class="s-index">
+        <li id="sources"><div><h3>공공 1차 데이터만</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
+        <li><div><h3>기준을 먼저 적는다</h3><p>판정하는 글은 데이터를 받기 전에 판정 기준을 문서로 커밋합니다. 못 미친 것도 못 미쳤다고 냅니다.</p></div></li>
+        <li><div><h3>불리한 숫자도 같은 화면에</h3><p>지도와 노트는 편마다 인천이 약한 반대 지표를 하나 이상 같이 둡니다.</p></div></li>
+        <li><div><h3>코드는 전부 공개</h3><p>수집·계산·차트·검사 코드는 <a href={REPO}>저장소</a>에 있습니다. 화면의 숫자는 그 코드가 데이터 파일에서 만든 것뿐입니다.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="ab-sec" id="ai"><h2>AI 표기</h2>
+      <p class="s-prose">이 작업실은 AI가 정리하고 사람이 검수해 냅니다. AI가 만든 산출물마다 <b>「{aiMark()}」</b>를 붙입니다 — 검수를 실제로 한 것에만 붙입니다. 지도·차트는 AI가 그린 그림이 아니라 공개 데이터를 코드로 그린 것입니다. 어떻게 돌아가는지는 <a href={u("/notes/ai-ops.html")}>AI 운영실 1쪽</a>에 숫자로 적었습니다.</p>
+    </section>
+
+    <section class="ab-sec" id="not-advice"><h2>자문이 아닙니다</h2>
+      <p class="s-prose">이 사이트의 내용은 공공 데이터를 정리한 <strong>정보</strong>이며 <strong>법률·세무·관세 자문이 아닙니다.</strong> 원산지·FTA·관세에 관한 글도 일반 정보이고, 개별 거래의 판단은 관세사·세무사 등 자격자에게 확인하셔야 합니다.</p>
+    </section>
+
+    <section class="ab-sec" id="name"><h2>측심(測深)</h2>
+      <p class="s-prose">배가 눈금 매긴 줄에 추를 달아 내려 바닥까지의 깊이를 재는 일. 인천 물류의 공공 데이터에 줄 하나를 내려 눈금을 읽습니다.</p>
+    </section>
+
+    {Content && (<details class="ab-doc"><summary>이 저장소에 대하여 — 운영 원칙 전문</summary><div class="doc"><Content /></div></details>)}
+  </article>
+</Studio>
+<style>
+  .ab { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+  .ab h1 { margin: var(--s-3) 0 var(--s-4); }
+  .ab-facts { margin: var(--s-5) 0 0; display: grid; gap: var(--s-2); max-width: var(--s-measure); }
+  .ab-facts div { display: grid; grid-template-columns: 3.5rem 1fr; gap: var(--s-3); }
+  .ab-facts dt { color: var(--s-ink-3); }
+  .ab-facts dd { margin: 0; }
+  .q { white-space: nowrap; }
+  .ab-sec { margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--s-rule); max-width: 46rem; }
+  .ab-sec h2 { margin-bottom: var(--s-4); }
+  .ab-doc { margin-top: var(--s-8); max-width: var(--s-measure); border-top: 1px solid var(--s-rule); padding-top: var(--s-5); }
+  .ab-doc summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+</style>
