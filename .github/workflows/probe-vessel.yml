@@ -20,7 +20,7 @@ jobs:
           import os, urllib.request, urllib.parse, collections, xml.etree.ElementTree as ET
           key = os.environ["KEY"]
           base = "https://apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM"
-          for ym in ("202608", "202508", "202301", "202001"):
+          for ym in ("202608", "201501"):
               q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym}, safe="%")
               try:
                   raw = urllib.request.urlopen(f"{base}?{q}", timeout=60).read().decode("utf-8", "replace")
@@ -29,5 +29,8 @@ jobs:
                   print(ym, "오류", type(ex).__name__); continue
               items = [{c.tag: (c.text or "") for c in it} for it in root.iter("item")]
               print(ym, "행", len(items), "열", sorted(items[0].keys()) if items else [], "totalCount", root.findtext(".//totalCount"))
-              print(" 항만·선종:", [(i.get("prtAgNm"), i.get("nm"), i.get("etrVsslCo")) for i in items])
+              print(" 항만:", [i.get("prtAgNm") for i in items])
+              for it in root.iter("item"):
+                  if it.findtext("prtAgNm") in ("인천", "부산") and ym == "202608":
+                      print(" ---", it.findtext("prtAgNm"), "XML:", ET.tostring(it, encoding="unicode")[:1500])
           PY
