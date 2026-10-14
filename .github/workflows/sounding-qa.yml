@@ -77,6 +77,11 @@ jobs:
             -- python tests/py/calc_smoke.py
       - name: 계산기 계산식 검사(엑셀 가상 샘플 · 금액 상수 0)
         run: python analysis/check_cost_tool.py
+      - name: 예측 원장 덧붙이기만(정체성 전환 §3-4 F1) · 예측 계산 시험
+        run: |
+          git fetch -q origin main
+          python tools-build/check_ledger.py
+          python analysis/forecast_teu.py --selftest
 
       - name: Lighthouse 13.5.0 (홈·계산기·배치도 · 모바일)
         run: |
