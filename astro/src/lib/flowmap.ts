@@ -227,7 +227,8 @@ export class FlowMap {
     for (let g = 0; g < this.arrive.length; g++) this.arrive[g] *= Math.exp(-dt * 3);
   }
   private grow() { const n = this.pr.length * 2, a = new Int32Array(n), b = new Float32Array(n), c = new Float32Array(n); a.set(this.pr); b.set(this.pt); c.set(this.pj); this.pr = a; this.pt = b; this.pj = c; }
-  monthAt() { const n = this.D.flows.months.length; return ((((n - 1) + Math.floor(this.t / this.o.monthSec)) % n) + n) % n; }
+  /** 지난 열두 달만 돈다(마지막 달에서 시작 → 열한 달 전 → … → 마지막 달) — 오래된 달로 건너뛰어 보이지 않게 */
+  monthAt() { const n = this.D.flows.months.length, k = Math.min(12, n), base = n - k; return base + ((((k - 1) + Math.floor(this.t / this.o.monthSec)) % k) + k) % k; }
   /** 처음에 점을 미리 깔아 둔다(빈 화면에서 시작하지 않게) — 지난 시간을 거꾸로 채운다 */
   warm(sec: number) { const t0 = this.t; this.t -= sec; const cb = this.o.onMonth; this.o.onMonth = undefined; for (let s = 0; s < sec; s += 1 / 15) this.step(1 / 15); this.t = t0; this.month = this.monthAt(); this.o.onMonth = cb; }
 

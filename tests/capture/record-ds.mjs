@@ -23,7 +23,7 @@ async function sweep(p, sel, values, each) { for (const v of values) { await p.l
 
 const FACES = {
   // 홈(2026-10-14 판정 뒤): 살아 있는 지도 — 정지 해도 → 흐름이 돈다(아시아) → 스스로 인천·수도권으로 날아든다 → 관문 숫자 판 → 끌어서 돌린다 → 같이 푸는 질문
-  home: { gif: [1.5, 14], path: "/", run: async (p, V) => {
+  home: { gif: [6, 13], path: "/", run: async (p, V) => {
     await wait(p, 800);
     if (V.mobile) await p.touchscreen.tap(V.w / 2, V.h - 140); // 좁은 화면은 만지면 움직인다
     await p.waitForSelector("#live-stage[data-ready='1']", { timeout: 20_000 });
@@ -37,7 +37,7 @@ const FACES = {
     await glide(p, q, 2500); await wait(p, 1500);
   } },
   // 맥주 게임: 막대를 잠깐 → 「직접 해 보기」 소매를 맡아 36주를 빠른 주문으로 → 내 점수 · 공유 카드
-  beer: { gif: [5.5, 15], path: "/sim/beer-game.html", run: async (p) => {
+  beer: { gif: [9, 24], path: "/sim/beer-game.html", run: async (p) => {
     await p.waitForSelector("#wave[data-ready]"); await wait(p, 1000);
     await sweep(p, "#beta", [0.34, 0.15, 0, 0.5, 1, 0.34], 380);
     await p.click(".try-cta a"); await wait(p, 900);
@@ -63,7 +63,7 @@ const FACES = {
   } },
   // 노트: 단계·날짜 → 막대 차트 → 자라려면 → 이어지는 노트
   // 공급망 따라가기: 단계마다 내려가며 그림이 바뀐다
-  follow: { gif: [2, 16], path: "/map/follow.html", run: async (p, V) => {
+  follow: { gif: [2, 28], path: "/map/follow.html", run: async (p, V) => {
     await wait(p, 900);
     if (V.mobile) await p.touchscreen.tap(V.w / 2, 120);
     else await p.mouse.wheel(0, 2);
@@ -102,7 +102,7 @@ for (const [face, F] of Object.entries(FACES)) for (const V of VIEWS) {
   const ctx = await browser.newContext({ viewport: { width: V.w, height: V.h }, isMobile: V.mobile, hasTouch: V.mobile, deviceScaleFactor: 1, recordVideo: { dir, size: { width: V.w, height: V.h } } });
   const page = await ctx.newPage();
   const ext = [];
-  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => { ext.push(r.request().url()); return r.abort(); });
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => { if (!/cloudflareinsights\.com$/.test(new URL(r.request().url()).hostname)) ext.push(r.request().url()); return r.abort(); }); // Cloudflare 비콘은 허용된 하나(막고 세지 않는다)
   const t0 = Date.now();
   let err = null;
   try {
@@ -128,13 +128,13 @@ for (const [face, F] of Object.entries(FACES)) for (const V of VIEWS) {
       frames.push(png);
     }
   }
-  // 움직임이 보이는 GIF — GitHub 화면이 바로 튼다(채팅 검수 · 10/14 판정 뒤). 10fps · 폭 ≤ 480 · 팔레트 두 번 거르기
+  // 움직임이 보이는 GIF — GitHub 화면이 바로 튼다(채팅 검수 · 10/14 판정 뒤). 8fps · 폭 ≤ 480 · 팔레트 두 번 거르기
   let gif = null;
   if (webm && F.gif) {
     mkdirSync(join(out, "gif"), { recursive: true });
     gif = join(out, "gif", `${face}-${V.name}.gif`);
     const [ss, len] = F.gif, wpx = Math.min(480, V.w);
-    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", String(ss), "-t", String(len), "-i", mp4, "-vf", `fps=10,scale=${wpx}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, gif]);
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", String(ss), "-t", String(len), "-i", mp4, "-vf", `fps=8,scale=${wpx}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`, gif]);
   }
   report.push({ face, view: V.name, frames, gif, seconds: Math.round((Date.now() - t0) / 1000), mp4: webm ? mp4 : null, external: ext.length, err });
   console.log(`${face} ${V.name} · ${Math.round((Date.now() - t0) / 1000)}초 · ${webm ? mp4 : "녹화 없음"} · 외부 요청 ${ext.length}${err ? ` · 오류 ${err}` : ""}`);
