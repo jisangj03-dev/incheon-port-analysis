@@ -64,7 +64,32 @@ def chaikin(coords, n=2):
     return coords
 
 
-def contours(lats, lons, z, levels_m):
+def dp(pts, tol):
+    """Douglas–Peucker(반복형) — 선 무게를 줄인다."""
+    import math
+    if len(pts) < 3 or tol <= 0:
+        return pts
+    keep = [False] * len(pts); keep[0] = keep[-1] = True
+    stack = [(0, len(pts) - 1)]
+    while stack:
+        a, b = stack.pop()
+        (x1, y1), (x2, y2) = pts[a], pts[b]
+        dx, dy = x2 - x1, y2 - y1; L = math.hypot(dx, dy) or 1e-12
+        best, bi = -1, -1
+        for i in range(a + 1, b):
+            d = abs(dy * pts[i][0] - dx * pts[i][1] + x2 * y1 - y2 * x1) / L
+            if d > best: best, bi = d, i
+        if best > tol:
+            keep[bi] = True; stack += [(a, bi), (bi, b)]
+    return [p for p, k in zip(pts, keep) if k]
+
+
+def extent(seg):
+    xs, ys = [p[0] for p in seg], [p[1] for p in seg]
+    return ((max(xs) - min(xs)) ** 2 + (max(ys) - min(ys)) ** 2) ** 0.5
+
+
+def contours(lats, lons, z, levels_m, min_extent=0.0, tol=0.0):
     import numpy as np
     import matplotlib
     matplotlib.use("Agg")
@@ -77,7 +102,10 @@ def contours(lats, lons, z, levels_m):
         for seg in cs.allsegs[0]:
             if len(seg) < 4:
                 continue
-            coords = [[round(float(x), 5), round(float(y), 5)] for x, y in chaikin([[float(x), float(y)] for x, y in seg])]
+            raw = [[float(x), float(y)] for x, y in seg]
+            if extent(raw) < min_extent:  # 작은 섬·웅덩이 등선은 버린다(해도 바탕을 낙서처럼 만든다)
+                continue
+            coords = [[round(x, 5), round(y, 5)] for x, y in chaikin(dp(raw, tol))]
             feats.append({"type": "Feature", "properties": {"depth": d, "kind": "coast" if d == 0 else "contour"},
                           "geometry": {"type": "LineString", "coordinates": coords}})
         plt.close("all")
@@ -135,11 +163,11 @@ def main():
         json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         return 0
     lats, lons, z = parse_grid(pick["text"], pick["var"])
-    feats = contours(lats, lons, z, cfg["levels_m"])
+    feats = contours(lats, lons, z, cfg["levels_m"], cfg.get("min_extent_deg", 0.0), cfg.get("simplify_deg", 0.0))
     res = round((lats[-1] - lats[0]) / max(1, len(lats) - 1) * 3600, 1)
     meta.update({"status": "contours", "smoothing": "chaikin x2 (보기용)", "source": pick["url"], "title": pick.get("title"), "institution": pick.get("institution"),
                  "license": pick["license"], "grid": [len(lats), len(lons)], "resolution_arcsec": res,
-                 "levels_m": cfg["levels_m"], "features": len(feats)})
+                 "levels_m": cfg["levels_m"], "min_extent_deg": cfg.get("min_extent_deg"), "simplify_deg": cfg.get("simplify_deg"), "features": len(feats)})
     gj = {"type": "FeatureCollection", "source": pick["url"], "license": pick["license"], "retrieved": today, "features": feats}
     json.dump(gj, open(os.path.join(ROOT, cfg["out"]), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     json.dump(meta, open(os.path.join(ROOT, cfg["meta"]), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -157,7 +185,8 @@ def selftest():
     assert lats == [37.0, 37.1] and lons == [126.0, 126.1] and z[1][0] == -20
     sm = chaikin([[0, 0], [1, 0], [1, 1]], 1)
     assert sm[0] == [0, 0] and sm[-1] == [1, 1] and len(sm) == 6, sm
-    print("selftest 5/5 ok")
+    assert len(dp([[0, 0], [1, 0.00001], [2, 0]], 0.001)) == 2 and extent([[0, 0], [0.03, 0.04]]) == 0.05
+    print("selftest 6/6 ok")
     return 0
 
 
