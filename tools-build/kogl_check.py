@@ -14,7 +14,10 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) sounding-kogl-check/1.0 (+https://github.c
 
 # 원천 → 공공데이터포털 데이터 번호(알면) 또는 검색어(모르면 검색 결과에서 번호를 찾는다)
 SOURCES = {
-    "ipa-empty-container": {"q": "공컨테이너", "want": ["공컨테이너"]},
+    # 대장의 API = apis.data.go.kr/1192000/SsopCargContnImxprt2(1192000 = 해양수산부 기관 번호). 검색 첫 결과는 「합성데이터」라 틀렸다 —
+    # 후보 둘을 다 읽고, API 이름(SsopCargContnImxprt)이 화면에 적힌 쪽을 대장에 쓴다.
+    "ipa-empty-container": {"q": "공컨테이너 수출입", "want": ["해양수산부", "공컨테이너"]},
+    "ipa-empty-container@15157693": {"id": "15157693"},
     "kcs-porttrade": {"q": "관세청 항구공항별 수출입실적", "want": ["항구"]},
     "kcs-sido-item": {"id": "15101641"},
     "molit-warehouse": {"id": "15083282"},
@@ -94,7 +97,7 @@ def main():
                     url = f"https://www.data.go.kr/data/{did}/{kind}.do"
                     st, h = get(url)
                     if st == 200 and "이용허락" in h:
-                        rec.update({"url": url, "status": st}, **parse(h)); break
+                        rec.update({"url": url, "status": st, "api_names": sorted(set(re.findall(r"Ssop[A-Za-z0-9]+", h)))[:5]}, **parse(h)); break
                     rec.update({"url": url, "status": st})
         out["sources"][sid] = rec
         print(sid, json.dumps({k: rec.get(k) for k in ("status", "data_id", "license_text", "kogl_type")}, ensure_ascii=False))
