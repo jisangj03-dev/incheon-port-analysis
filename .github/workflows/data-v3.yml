@@ -87,6 +87,7 @@ jobs:
           ls -la data/collected/v3 data/derived astro/public/media/s2 2>/dev/null | head -60
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 tools-build/v3/choke_derive.py || echo "초크포인트 파생 실패 — 지난 파일 유지"
           git add data/collected/v3 data/derived astro/public/media/s2 2>/dev/null || true
           git diff --cached --quiet && { echo "바뀐 것 없음" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
           if [ "$EVENT" = "schedule" ]; then

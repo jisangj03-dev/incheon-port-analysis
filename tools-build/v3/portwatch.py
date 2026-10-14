@@ -108,7 +108,7 @@ def main():
         df = next((f for f in f2 if f.lower() in ("date", "day")), None)
         nf = next((f for f in f2 if f.lower() in ("portname", "name", "chokepoint")), None)
         kf = [f for f in f2 if f.lower().startswith(("n_", "capacity")) or f in (df, nf)]
-        rows2 = query_all(svc2, lid2, f"{df} >= DATE '2024-01-01'" if df else "1=1", ",".join(kf) or "*", f"{df} ASC" if df else None)
+        rows2 = query_all(svc2, lid2, f"{df} >= DATE '2023-01-01'" if df else "1=1", ",".join(kf) or "*", f"{df} ASC" if df else None)
         by2 = {}
         for r in rows2: by2.setdefault(r.get(nf), []).append({k: (day(v) if k == df else v) for k, v in r.items() if k not in (nf, "ObjectId", "OBJECTID")})
         ck["chokepoints"] = by2

@@ -111,7 +111,27 @@ def fx_weeks(since="2024-01-07"):
     say("관세환율", len(out), "주", out[0]["from"] if out else "", "~", out[-1]["from"] if out else "")
 
 
+def nation_months(n=12):
+    """관세청 국가별 수출입실적(전국 · 승인됨) — 최근 n 달, 달마다 한 번(초크포인트 충격). 금액 = 달러."""
+    url = "https://apis.data.go.kr/1220000/nationtrade/getNationtradeList"
+    last = (datetime.date.today().replace(day=1) - datetime.timedelta(days=45)).replace(day=1)
+    months, d = [], last
+    for _ in range(n): months.append(d.strftime("%Y%m")); d = (d - datetime.timedelta(days=1)).replace(day=1)
+    out = {}
+    for ym in sorted(months):
+        for k in range(4):
+            st, b = get(url, {"serviceKey": KEY, "strtYymm": ym, "endYymm": ym}, timeout=40, tries=2)
+            rc, msg, rows = parse(scrub(b))
+            if rows: break
+            time.sleep(3 * (k + 1))
+        if not rows: say("빈 달", ym); continue
+        out[ym] = [{"c": r.get("statCd"), "name": r.get("statCdCntnKor1"), "exp": float(r.get("expDlr") or 0), "imp": float(r.get("impDlr") or 0)} for r in rows if r.get("statCd") and r.get("statCd") != "-"]
+    if len(out) < n * 0.9: say("국가별", len(out), "/", n, "달만 — 덮어쓰지 않는다"); return
+    write("data/collected/v3/nation_months.json", {"source": "관세청 국가별 수출입실적(공공데이터포털 · 1220000/nationtrade) · 전국 · 달러", "fetched": datetime.date.today().isoformat(), "months": out})
+    say("국가별", len(out), "달")
+
+
 if __name__ == "__main__":
     # 탐색(probe)은 새 API 를 붙일 때만 — 예약 실행에서는 포털 화면을 긁지 않는다(Actions 에서 느려 40분 한도에 걸렸다 · 2026-10-14)
     if "--probe" in sys.argv or "--probe-only" in sys.argv: probe()
-    if "--probe-only" not in sys.argv: sido_years(); fx_weeks()
+    if "--probe-only" not in sys.argv: sido_years(); fx_weeks(); nation_months()

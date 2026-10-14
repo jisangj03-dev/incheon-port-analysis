@@ -52,6 +52,13 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: D.weeks.map((w: any[]) => Object.fromEntries([["적용개시일", w[0]], ...D.currencies.map((c: string, i: number) => [`${c}_원`, w[i + 1]])])),
       note: `${D.source} · JPY 는 1엔당 · 계산 tools-build/v3/fx_derive.py · 참고용 · 자문 아님` };
   },
+  // 초크포인트 충격 — 길목 × 주(통항) · 길목 × 나라(교역)
+  chokepoint: () => {
+    const D = J("data/derived/chokepoints.json");
+    const rows: Record<string, unknown>[] = [];
+    for (const p of D.points) { for (const [w, v] of p.weeks) rows.push({ 길목: p.ko, 구분: "통항(주 평균 · 척/일)", 주_또는_나라: w, 값: v }); for (const t of p.top) rows.push({ 길목: p.ko, 구분: "교역(전국 · 12달 · 백만 달러)", 주_또는_나라: t.name, 값: t.musd }); }
+    return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 경유 표 = 선커밋 §5 · 계산 tools-build/v3/choke_derive.py` };
+  },
   // 품목 트리맵 레이스 — 해 × HS 2단위(인천 소재 기업 · 백만 달러)
   "trade-race": () => {
     const D = J("data/derived/trade_race.json");
