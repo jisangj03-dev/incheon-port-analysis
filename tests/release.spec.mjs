@@ -7,7 +7,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, posix } from "node:path";
 
 const DIST = "astro/dist", BASE = "/incheon-port-analysis";
-const LAB = !!process.env.SOUNDING_LAB;
+// lab 빌드 여부는 산출물로 판단한다 — CI 는 빌드에만 SOUNDING_LAB=1 을 주고 시험 프로세스에는 안 준다
+const LAB = !!process.env.SOUNDING_LAB || existsSync("astro/dist/lab");
 const walk = (d) => readdirSync(d).flatMap((n) => { const p = join(d, n); return statSync(p).isDirectory() ? walk(p) : [p]; });
 const ALL = existsSync(DIST) ? walk(DIST).map((p) => p.slice(DIST.length + 1).split("\\").join("/")) : [];
 const PUBLIC = ALL.filter((f) => !f.startsWith("lab/") && !f.startsWith("pagefind/"));
