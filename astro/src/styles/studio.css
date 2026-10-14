@@ -104,3 +104,26 @@ body.studio {
 .s-maker dd { margin: 0; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; } }
+
+/* ── 장면 부품(2026-10-14 확장) ───────────────────────────── */
+.s-scene__head { margin-bottom: var(--s-6); }
+.s-scene__head h2 { margin: var(--s-2) 0 var(--s-3); }
+.s-unit { font-size: 0.24em; font-weight: 600; letter-spacing: 0; margin-left: 12px; color: var(--s-ink-2); }
+/* 차트 신뢰 꼬리 — 갱신일 · 출처 · CSV 한 줄(OWID 원리) */
+.s-trust { font-size: var(--s-t-cap); color: var(--s-ink-3); line-height: 1.5; margin: var(--s-3) 0 0; }
+.s-trust a { color: var(--s-ink-2); }
+/* 수심 표기처럼 — 작은 기울임 숫자 */
+.s-sounding { font-style: italic; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--s-ink-2); }
+.s-sounding small { font-style: normal; font-size: 0.72em; color: var(--s-ink-3); margin-left: 2px; }
+/* 노트 — 단계 표지(○ ◐ ●) · 상자 없음 · 가는 줄 */
+.s-stages { display: flex; gap: var(--s-5); flex-wrap: wrap; margin: 0 0 var(--s-4); }
+.s-stages b { font-weight: 400; color: var(--s-ink-2); }
+.s-notes { list-style: none; margin: 0; padding: 0; }
+.s-notes li { display: grid; grid-template-columns: 1.75rem 1fr auto; gap: var(--s-3); align-items: baseline; padding: var(--s-4) 0; border-top: 1px solid var(--s-rule); }
+.s-notes__stage b { font-weight: 400; color: var(--s-ink-2); }
+.s-notes li[data-stage="초안"] .s-notes__stage b { color: var(--s-signal); }
+.s-notes a { text-decoration: none; font-size: var(--s-t-lead); font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
+.s-notes a:hover { text-decoration: underline; text-decoration-color: var(--s-rule); }
+.s-notes__date { font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 560px) { .s-notes li { grid-template-columns: 1.5rem 1fr; } .s-notes__date { grid-column: 2; white-space: normal; } }

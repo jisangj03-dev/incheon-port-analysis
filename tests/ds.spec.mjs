@@ -5,9 +5,9 @@ import { readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis/lab/ds";
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
-for (const f of ["index", "beer", "map"]) {
+for (const f of ["index", "beer", "map", "note"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
     const r = check(readFileSync(`astro/dist/lab/ds/${f}.html`, "utf-8"), DATA);
     expect(r.bad).toEqual([]);
@@ -19,7 +19,7 @@ for (const f of ["index", "beer", "map"]) {
     if (info.project.name === "iphone-13") await page.setViewportSize({ width: 360, height: 720 });
     await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
-    if (f !== "index") for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
+    if (f === "beer" || f === "map") for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
     expect(ext).toEqual([]);
     expect(errors).toEqual([]);
   });
@@ -78,4 +78,34 @@ test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 �
   expect(await page.locator("#wave polyline").last().getAttribute("points")).not.toBe(before.pts);
   const text = await page.locator("main, body").first().innerText();
   for (const w of ["씨앗", "증폭비", "seed", "β", "alpha", "beta"]) expect(text, `개발 용어 「${w}」`).not.toContain(w);
+});
+
+// 차트 신뢰(OWID 원리) — 차트가 있는 지면마다 갱신일·출처·CSV 꼬리가 있고, CSV 는 실제로 내려온다
+test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, request }) => {
+  for (const f of ["index", "beer", "map", "note"]) {
+    await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
+    const t = page.locator(".s-trust");
+    expect(await t.count(), `${f} 신뢰 꼬리`).toBeGreaterThan(0);
+    await expect(t.first().locator("[data-updated]")).toHaveCount(1);
+    const href = await t.first().locator("a[download]").getAttribute("href");
+    expect(href, `${f} CSV 고리`).toBeTruthy();
+    if (href !== "#") { const r = await request.get(href); expect(r.status(), `${f} CSV`).toBe(200); expect(await r.text()).toContain("# 측심"); }
+  }
+});
+
+// 홈 — 스크롤을 따라 주홍 선이 그려지고, 달 막대를 옮기면 큰 숫자가 바뀐다 · 방·노트는 콘텐츠 목록에서 자동
+test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async ({ page }) => {
+  await page.goto(`${B}/index.html`, { waitUntil: "networkidle" });
+  const off = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById("route")).strokeDashoffset));
+  const a = await off();
+  await page.evaluate(() => { const h = document.querySelector(".hero"); scrollTo(0, h.offsetHeight - innerHeight); });
+  await page.waitForTimeout(200);
+  expect(await off(), "끝까지 내리면 선이 다 그려진다").toBeLessThan(a);
+  const v = await page.locator("#now-v").innerText();
+  await page.locator("#now-m").fill("0");
+  await expect(page.locator("#now-v")).not.toHaveText(v);
+  const rooms = JSON.parse(readFileSync("data/rooms.json", "utf-8"));
+  await expect(page.locator(".s-index > li")).toHaveCount(rooms.rooms.length);
+  expect(await page.locator(".s-notes li").count()).toBeGreaterThan(0);
+  expect(await page.locator(".s-notes li[data-stage]").first().getAttribute("data-stage")).toMatch(/^(초안|갱신 중|정본)$/);
 });

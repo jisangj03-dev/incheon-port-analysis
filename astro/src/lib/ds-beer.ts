@@ -30,6 +30,14 @@ function run(R: Rules, B: any) {
     render($("wave"), R, g, ymax);
   };
   slider.addEventListener("input", draw);
+  // CSV — 지금 화면에 그린 계열을 그 자리에서 파일로(서버 0 · 외부 요청 0)
+  document.querySelector("[data-csv-client]")?.addEventListener("click", (e) => {
+    const a = e.currentTarget as HTMLAnchorElement, beta = Number(slider.value), g = sim(beta);
+    const head = ["주", "소비자_수요", ...R.stages.map((s: any) => `${s.label}_주문`), "오는중_반영"];
+    const rows = g.demand.slice(0, g.week).map((d: number, i: number) => [i + 1, d, ...g.stages.map((st: any) => st.hist.order[i]), beta].join(","));
+    const body = `# 측심 · 맥주 게임 모의 실험(실측 아님) · 규칙 Sterman(1989) · data/sim/beer-game.json\n${head.join(",")}\n${rows.join("\n")}\n`;
+    a.href = URL.createObjectURL(new Blob(["\uFEFF" + body], { type: "text/csv;charset=utf-8" }));
+  });
   // 그림은 칸의 실제 픽셀 폭으로 그린다(비율 고정 SVG 는 좁은 화면에서 납작해지고 넓은 화면에서 가운데로 몰린다)
   new ResizeObserver(() => draw()).observe($("wave"));
   draw();

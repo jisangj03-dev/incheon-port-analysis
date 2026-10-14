@@ -1,97 +1,182 @@
 ---
-// 시안 ① 새 홈 — 구조 넷(지도·시뮬레이션·노트·소개) · 한 화면 한 메시지 · 숫자는 데이터 파일에서만(정체성 §2-1).
+// 시안 ① 새 홈 — 「해도」 한 장 위로 신항→수도권 주홍 선이 스크롤을 따라 그려진다(pudding·Reuters 의 스크롤 이야기 원리).
+// 방·노트는 콘텐츠 목록 하나(data/rooms.json)에서 자동 배치. 숫자는 데이터 파일에서만(정체성 §2-1).
 // 실명·소속·연락처는 자리표시(정체성 §5-4 공개 전환 PR 에서 채운다). lab/ 전용 — 공개 배포물에는 없다.
 import Studio from "../../../layouts/Studio.astro";
-import { getCollection } from "astro:content";
-import { portMonthly } from "../../../lib/data";
-import { title, written, lastUpdated } from "../../../lib/content";
+import Scene from "../../../components/scene/Scene.astro";
+import Trust from "../../../components/scene/Trust.astro";
+import NoteList from "../../../components/scene/NoteList.astro";
+import { portMonthly, mapSeries } from "../../../lib/data";
+import { rooms, route } from "../../../lib/rooms";
+import { repoRoot } from "../../../lib/content";
 import { u } from "../../../lib/site";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 const P = portMonthly();
 const S = P.series;
 const last = S[S.length - 1];
-// 한 줄 그림 — 월별 처리량(빌드 때 SVG · 외부 요청 0 · 범례 없이 끝점에 직접 이름)
-const W = 1000, H = 260, pad = 8;
+const R = rooms();
+const RT = route();
+
+// ── 해도 한 장(빌드 때 SVG · 외부 요청 0) ── 경위도 사각 투영(위도 37.44° 에서 cos 보정)
+const M = mapSeries();
+const places = M.places.map((p: any) => ({ id: p.id, kind: p.kind, lon: p.lon, lat: p.lat, v: p.values ? p.values[p.values.length - 1] : null }));
+const bf = join(repoRoot(), "data/derived/bathy_incheon.geojson");
+const bathy = existsSync(bf) ? JSON.parse(readFileSync(bf, "utf-8")) : null;
+const BB = [126.32, 37.22, 127.04, 37.66]; // 서·남·동·북 — 신항·인천공항·서울이 다 들어오게
+const CW = 1000, k = Math.cos((37.44 * Math.PI) / 180);
+const CH = Math.round((CW * (BB[3] - BB[1])) / ((BB[2] - BB[0]) * k));
+const px = (lon: number) => ((lon - BB[0]) / (BB[2] - BB[0])) * CW;
+const py = (lat: number) => ((BB[3] - lat) / (BB[3] - BB[1])) * CH;
+const line = (c: number[][]) => c.map(([x, y], i) => `${i ? "L" : "M"}${px(x).toFixed(1)},${py(y).toFixed(1)}`).join("");
+const contours = bathy ? bathy.features.filter((f: any) => f.properties.kind === "contour").map((f: any) => ({ d: line(f.geometry.coordinates), depth: f.properties.depth })) : [];
+const coast = bathy ? bathy.features.filter((f: any) => f.properties.kind === "coast").map((f: any) => line(f.geometry.coordinates)) : [];
+const from = places.find((p: any) => p.id === RT.from)!;
+const [x0, y0, x1, y1] = [px(from.lon), py(from.lat), px(RT.to.lon), py(RT.to.lat)];
+// 완만한 곡선 하나 — 개념선(실제 경로 아님)
+const cx = (x0 + x1) / 2 - (y1 - y0) * 0.18, cy = (y0 + y1) / 2 + (x1 - x0) * 0.12;
+const routeD = `M${x0.toFixed(1)},${y0.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${x1.toFixed(1)},${y1.toFixed(1)}`;
+const vmax = Math.max(...places.map((p: any) => p.v || 0));
+// 가장자리 눈금(5′)
+const ticks = { lat: [] as number[], lon: [] as number[] };
+for (let m = Math.ceil(BB[1] * 12) * 5; m <= BB[3] * 60; m += 5) ticks.lat.push(m / 60);
+for (let m = Math.ceil(BB[0] * 12) * 5; m <= BB[2] * 60; m += 5) ticks.lon.push(m / 60);
+const dm = (deg: number) => { const d = Math.floor(deg + 1e-9), mm = Math.round((deg - d) * 60); return `${d}°${String(mm).padStart(2, "0")}′`; };
+
+// ── 숫자 장면(달 막대로 앞뒤로 움직인다) ──
+const W = 1000, H = 220, pad = 10;
 const vs = S.map((s) => s.v), lo = Math.min(...vs), hi = Math.max(...vs);
-const x = (i: number) => pad + (i * (W - 2 * pad)) / (S.length - 1);
-const y = (v: number) => H - pad - ((v - lo) * (H - 2 * pad)) / (hi - lo || 1);
-const path = S.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.v).toFixed(1)}`).join("");
-// 눈금 대신 가장 높은 달·낮은 달 두 점에만 값을 단다(축·격자 최소 · 끝점·극점에 직접 이름)
+const sx = (i: number) => pad + (i * (W - 2 * pad)) / (S.length - 1);
+const sy = (v: number) => H - pad - ((v - lo) * (H - 2 * pad)) / (hi - lo || 1);
+const spark = S.map((s, i) => `${i ? "L" : "M"}${sx(i).toFixed(1)},${sy(s.v).toFixed(1)}`).join("");
 const iHi = vs.indexOf(hi), iLo = vs.indexOf(lo);
-const pct = (i: number) => `${((x(i) / W) * 100).toFixed(2)}%`;
-const reports = (await getCollection("reports"))
-  .map((r) => ({ id: r.id, t: title(r.body ?? ""), d: written(r.body ?? "") || lastUpdated(`reports/${r.id}.md`) }))
-  .filter((r) => r.t && r.d)
-  .sort((a, b) => (a.d < b.d ? 1 : -1))
-  .slice(0, 3);
+const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
+const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
 ---
 <Studio title="측심 — SCM 작업실(시안)" current="home">
-  <div class="s-wrap" data-content="ds-home">
-    <section class="s-scene hero">
-      <h1 class="s-prose"><span class="s-signal">인천</span>을 지나는 물건의 길을, 공공 1차 데이터로 잽니다.</h1>
-      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉의 SCM 작업실입니다. 항만·공항·창고를 잇는 수도권 공급망을 실제 숫자로 움직여 보여 줍니다.</p>
-    </section>
+  <div class="hero" data-content="ds-home-hero">
+    <div class="hero__stick">
+      <div class="s-wrap hero__text">
+        <h1 class="s-prose"><span class="s-signal">인천</span>을 지나는 물건의 길을, 공공 1차 데이터로 잽니다.</h1>
+        <p class="s-lead s-prose">〈운영자 실명〉의 SCM 작업실입니다. 항만·공항·창고를 잇는 수도권 공급망을 실제 숫자로 움직여 보여 줍니다.</p>
+      </div>
+      <figure class="chart" aria-label="인천 앞바다 해도 — 신항에서 서울 쪽으로 긋는 개념선">
+        <svg viewBox={`0 0 ${CW} ${CH}`} preserveAspectRatio="xMidYMid meet" role="img">
+          {contours.map((c: any) => <path d={c.d} class="ct" />)}
+          {coast.map((d: string) => <path d={d} class="cs" />)}
+          <path d={routeD} class="route" id="route" pathLength="1" />
+          {places.map((p: any) => (
+            <g class="pl">
+              <circle cx={px(p.lon)} cy={py(p.lat)} r={p.v ? 3 + 9 * Math.sqrt(p.v / vmax) : 3} class:list={[{ top: p.v === vmax }]} />
+              <text x={px(p.lon) + 14} y={py(p.lat) + 4}>{p.id}{p.v != null && <tspan class="snd" dx="6">{p.v}</tspan>}</text>
+            </g>
+          ))}
+          <circle cx={x1} cy={y1} r="4" class="to" />
+          <text x={x1 + 10} y={y1 + 4} class="to-l">{RT.to.label}</text>
+          {ticks.lat.map((t) => <g class="tk" data-furniture><line x1="0" x2="8" y1={py(t)} y2={py(t)} /><text x="12" y={py(t) + 3}>{dm(t)}N</text></g>)}
+          {ticks.lon.map((t) => <g class="tk" data-furniture><line y1={CH} y2={CH - 8} x1={px(t)} x2={px(t)} /><text x={px(t) + 3} y={CH - 12}>{dm(t)}E</text></g>)}
+        </svg>
+        <figcaption class="s-wrap s-cap">주홍 선은 신항에서 {RT.to.label} 쪽으로 긋는 개념선입니다 — 실제 운송 경로가 아닙니다. 숫자는 {M.months[M.months.length - 1]} 컨테이너 처리량(천TEU).</figcaption>
+      </figure>
+    </div>
+  </div>
 
-    <section class="s-scene" aria-labelledby="h-now">
-      <h2 class="s-cap now-h" id="h-now">{last.ym} 한 달 동안 인천항으로 드나든 컨테이너</h2>
-      <p class="s-num">{last.v}<span class="unit">천TEU</span></p>
-      {last.yoy !== null && (
-        <p class="s-lead s-prose">작년 같은 달보다 <strong class={last.yoy < 0 ? "s-signal" : ""}>{last.yoy > 0 ? "+" : last.yoy < 0 ? "−" : ""}{Math.abs(last.yoy)}%</strong>. 주장에 불리한 숫자도 같은 자리에 둡니다.</p>
-      )}
-      <figure class="spark" aria-label={`${S[0].ym}부터 ${last.ym}까지 월별 처리량`}>
+  <div class="s-wrap" data-content="ds-home">
+    <Scene kind="num" id="now">
+      <h2 class="s-cap now-h"><span id="now-ym">{last.ym}</span> 한 달 동안 인천항으로 드나든 컨테이너</h2>
+      <p class="s-num"><span id="now-v">{last.v}</span><span class="s-unit">천TEU</span></p>
+      <p class="s-lead s-prose">작년 같은 달보다 <strong id="now-yoy" class={last.yoy !== null && last.yoy < 0 ? "s-signal" : ""}>{last.yoy === null ? "—" : `${last.yoy > 0 ? "+" : last.yoy < 0 ? "−" : ""}${Math.abs(last.yoy)}%`}</strong>. 주장에 불리한 숫자도 같은 자리에 둡니다.</p>
+      <figure class="spark">
         <div class="spark-box">
-          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img">
-            <path d={path} fill="none" stroke="var(--s-ink-2)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
-            <circle cx={x(S.length - 1)} cy={y(last.v)} r="5" fill="var(--s-signal)" />
+          <div class="spark-in">
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${S[0].ym}부터 ${last.ym}까지 월별 처리량`}>
+            <path d={spark} fill="none" stroke="var(--s-ink-2)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+            <line id="now-rule" x1={sx(S.length - 1)} x2={sx(S.length - 1)} y1="0" y2={H} stroke="var(--s-rule)" vector-effect="non-scaling-stroke" />
           </svg>
+          <span id="now-dot" class="dot" style={`left:${pct(S.length - 1)};top:${((sy(last.v) / H) * 100).toFixed(2)}%`}></span>
+          </div>
           <span class="mark hi" style={`left:${pct(iHi)}`}>가장 많은 달 {S[iHi].ym} · {hi}</span>
           <span class="mark lo" style={`left:${pct(iLo)}`}>가장 적은 달 {S[iLo].ym} · {lo}</span>
         </div>
-        <figcaption class="s-cap">{S[0].ym} — {last.ym} · 월별 · 천TEU · {P.source}</figcaption>
+        <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
+        <Trust updated={P.updated} source={P.source} csv={u("/lab/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU" />
       </figure>
-    </section>
+      <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
+    </Scene>
 
-    <section class="s-scene" aria-labelledby="h-rooms">
-      <h2 id="h-rooms" class="s-prose">네 개의 방</h2>
-      <ol class="s-index" style="margin-top:32px">
-        <li><div><h3><a href={u("/lab/ds/map.html")}>지도</a></h3><p>항만·공항·물류센터를 잇는 수도권 공급망을 한 장에.</p></div></li>
-        <li><div><h3><a href={u("/lab/ds/beer.html")}>시뮬레이션</a></h3><p>맥주 게임 — 주문 하나가 공장까지 얼마나 출렁이는지 직접 겪어 봅니다.</p></div></li>
-        <li><div><h3><a href="#notes">노트</a></h3><p>날짜를 박은 짧은 기록. 틀린 것은 지우지 않고 고쳐 적습니다.</p></div></li>
-        <li><div><h3><a href="#about">소개</a></h3><p>누가 왜 만드는지, 어디로 연락하면 되는지.</p></div></li>
+    <Scene kind="text" title="네 개의 방">
+      <ol class="s-index">
+        {R.map((r) => <li><div><h3><a href={r.href.startsWith("#") ? r.href : u(r.href)}>{r.title}</a></h3><p>{r.lead}</p></div></li>)}
       </ol>
-    </section>
+    </Scene>
 
-    <section class="s-scene" id="notes" aria-labelledby="h-notes">
-      <h2 id="h-notes">노트</h2>
-      <ul class="notes">
-        {reports.map((r) => (
-          <li><time>{r.d}</time><a href={u(`/reports/${r.id}.html`)}>{r.t}</a></li>
-        ))}
-      </ul>
-    </section>
+    <Scene kind="note" id="notes" title="노트" lead="심은 날과 고친 날을 박아 둡니다. 초안에서 정본으로 자랍니다.">
+      <NoteList limit={6} />
+    </Scene>
 
-    <section class="s-scene" id="about" aria-labelledby="h-about">
-      <h2 id="h-about">소개</h2>
-      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉 · 〈소속〉. 〈자격〉 · 〈기고〉.</p>
+    <Scene kind="text" id="about" title="소개">
+      <p class="s-lead s-prose">〈운영자 실명〉 · 〈소속〉. 〈자격〉 · 〈기고〉.</p>
       <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다.</p>
       <p class="contact"><a class="s-btn" href="#about">LinkedIn 〈자리표시〉</a> <a class="s-btn s-btn--ghost" href="#about">메일 〈자리표시〉</a></p>
-    </section>
+    </Scene>
   </div>
+  <script>
+    // ① 스크롤을 따라 주홍 선이 그려진다(움직임 줄이기 설정이면 처음부터 다 그린 채)
+    const hero = document.querySelector(".hero") as HTMLElement, path = document.getElementById("route") as unknown as SVGPathElement;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const draw = () => {
+      const r = hero.getBoundingClientRect(), span = Math.max(1, hero.offsetHeight - innerHeight);
+      const t = reduce ? 1 : Math.min(1, Math.max(0, (-r.top + innerHeight * 0.15) / span));
+      path.style.strokeDashoffset = String(1 - t);
+      hero.dataset.progress = t.toFixed(2);
+    };
+    addEventListener("scroll", draw, { passive: true }); addEventListener("resize", draw); draw();
+    // ② 달 막대 — 큰 숫자·전년 대비·점이 같이 움직인다
+    const D = JSON.parse(document.getElementById("now-data")!.textContent || "[]");
+    const m = document.getElementById("now-m") as HTMLInputElement, $ = (id: string) => document.getElementById(id)!;
+    m.addEventListener("input", () => {
+      const s = D[Number(m.value)];
+      $("now-ym").textContent = s.ym; $("now-v").textContent = String(s.v);
+      const y = $("now-yoy"); y.textContent = s.yoy === null ? "—" : `${s.yoy > 0 ? "+" : s.yoy < 0 ? "−" : ""}${Math.abs(s.yoy)}%`; y.className = s.yoy !== null && s.yoy < 0 ? "s-signal" : "";
+      const dot = $("now-dot"); dot.style.left = `${(s.x / 10).toFixed(2)}%`; dot.style.top = `${((s.y / 220) * 100).toFixed(2)}%`;
+      $("now-rule").setAttribute("x1", String(s.x)); $("now-rule").setAttribute("x2", String(s.x));
+    });
+  </script>
 </Studio>
 <style>
-  .hero h1 { font-size: clamp(40px, 6.4vw, 76px); }
-  .unit { font-size: 0.24em; font-weight: 600; letter-spacing: 0; margin-left: 12px; color: var(--s-ink-2); }
-  .spark { margin: 48px 0 0; }
+  .hero { height: 190vh; position: relative; }
+  .hero__stick { position: sticky; top: 0; height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+  .hero__text { padding-top: var(--s-6); position: relative; z-index: 1; }
+  .hero h1 { font-size: clamp(34px, 5.2vw, 68px); }
+  .hero .s-lead { margin-top: var(--s-4); }
+  .chart { margin: 0; position: relative; min-height: 0; display: grid; grid-template-rows: 1fr auto; }
+  .chart svg { width: 100%; height: 100%; min-height: 0; display: block; }
+  .chart figcaption { padding-bottom: var(--s-4); }
+  .ct { fill: none; stroke: #d3cab8; stroke-width: 0.8; vector-effect: non-scaling-stroke; }
+  .cs { fill: none; stroke: #9e9583; stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .route { fill: none; stroke: var(--s-signal); stroke-width: 3; stroke-linecap: round; vector-effect: non-scaling-stroke; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .pl circle { fill: var(--s-ink); fill-opacity: 0.85; stroke: var(--s-paper); stroke-width: 1.5; }
+  .pl circle.top { fill: var(--s-signal); }
+  .pl text, .to-l { font: 600 15px var(--s-font); fill: var(--s-ink); paint-order: stroke; stroke: var(--s-paper); stroke-width: 4px; }
+  .pl .snd { font-style: italic; font-weight: 500; fill: var(--s-ink-2); }
+  .to { fill: var(--s-paper); stroke: var(--s-signal); stroke-width: 2; }
+  .tk line { stroke: var(--s-ink-2); }
+  .tk text { font: 400 11px var(--s-font); fill: var(--s-ink-3); }
   .now-h { font-weight: 400; letter-spacing: 0; margin-bottom: var(--s-3); }
+  .spark { margin: 48px 0 0; }
   .spark-box { position: relative; padding: 28px 0; }
+  .spark-in { position: relative; }
   .spark svg { display: block; width: 100%; height: 180px; }
+  .dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--s-signal); }
   .mark { position: absolute; transform: translateX(-50%); font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; line-height: 1; }
   .mark.hi { top: 0; } .mark.lo { bottom: 0; }
-  @media (max-width: 560px) { .spark svg { height: 120px; } .mark { transform: none; left: 0 !important; } .mark.hi { top: 4px; } }
-  .notes { list-style: none; padding: 0; margin: 32px 0 0; }
-  .notes li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--s-rule); }
-  .notes time { color: var(--s-ink-3); font-size: var(--s-t-sm); padding-top: 0.2em; }
-  .notes a { text-decoration: none; font-size: var(--s-t-lead); font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
+  .scrub { display: grid; gap: var(--s-1); margin-top: var(--s-4); }
+  .scrub input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
   .contact { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
-  @media (max-width: 560px) { .notes li { grid-template-columns: 1fr; gap: 4px; } }
+  @media (max-width: 560px) {
+    .hero { height: 170vh; }
+    .spark svg { height: 120px; } .mark { transform: none; left: 0 !important; } .mark.hi { top: 4px; }
+    .pl text, .to-l { font-size: 22px; } .tk text { font-size: 16px; }
+  }
 </style>

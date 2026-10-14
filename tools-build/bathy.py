@@ -5,7 +5,7 @@ Actions(bathy.yml)에서만 돈다. 순서:
   ② 맞는 것 중 첫째의 부분 격자(.csv)를 받아 등심선(수심 m)을 만든다(matplotlib contour).
   ③ 결과 + 출처·라이선스 원문·해상도·받은 날을 data/derived/ 에 쓴다. 맞는 것이 없으면 meta 만(status=coast-only).
 검색 결과(ID 목록)는 요약에 남긴다 — 더 고운 격자를 찾으면 bathy.json candidates 에 올린다.
-  python tools-build/bathy.py [--selftest]
+  python tools-build/bathy.py [--selftest] [--search]   (--search = 데이터셋 목록 검색까지 · 요청이 많다)
 """
 import csv, io, json, os, re, sys, urllib.request, urllib.error, datetime
 
@@ -88,7 +88,7 @@ def main():
     cfg = json.load(open(os.path.join(ROOT, "tools-build/bathy.json"), encoding="utf-8"))
     w, s, e, n = cfg["bbox"]
     tried, found = [], []
-    for srv in cfg["servers"]:
+    for srv in (cfg["servers"] if "--search" in sys.argv else []):
         for q in cfg.get("search", []):
             try:
                 j = json.loads(get(f"{srv}/search/index.json?page=1&itemsPerPage=50&searchFor={q}"))
@@ -120,10 +120,19 @@ def main():
     today = datetime.date.today().isoformat()
     meta = {"retrieved": today, "bbox": cfg["bbox"], "tried": tried, "search": found[:60]}
     if not pick:
+        # 앞서 받은 좋은 결과가 있으면 지우지 않는다 — 실패는 last_attempt 에만 적는다(2026-10-14 두 번째 실행이 403 으로 meta 를 덮어 써 지면과 어긋났다)
+        mp = os.path.join(ROOT, cfg["meta"])
+        prev = json.load(open(mp, encoding="utf-8")) if os.path.exists(mp) else {}
+        attempt = {"retrieved": today, "tried": tried, "why": "라이선스 문구가 accept 에 맞는 격자를 받지 못했다"}
+        if prev.get("status") == "contours" and os.path.exists(os.path.join(ROOT, cfg["out"])):
+            prev["last_attempt"] = attempt
+            json.dump(prev, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+            print("이번 받기 실패 — 앞선 등심선을 그대로 둔다"); print(json.dumps(attempt, ensure_ascii=False)[:2000])
+            return 0
         meta["status"] = "coast-only"
-        meta["why"] = "라이선스 문구가 accept 에 맞는 격자를 받지 못했다 — 등심선을 만들지 않는다"
+        meta["why"] = attempt["why"] + " — 등심선을 만들지 않는다"
         print(json.dumps(meta, ensure_ascii=False, indent=1)[:3000])
-        json.dump(meta, open(os.path.join(ROOT, cfg["meta"]), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        json.dump(meta, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         return 0
     lats, lons, z = parse_grid(pick["text"], pick["var"])
     feats = contours(lats, lons, z, cfg["levels_m"])

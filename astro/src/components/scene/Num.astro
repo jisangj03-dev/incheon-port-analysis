@@ -1,0 +1,8 @@
+---
+// 숫자 표기 — 결론 숫자 하나를 크게(장면의 주인공). sounding 이면 해도 수심 표기처럼 작은 기울임(지도·본문 안).
+interface Props { v: string | number; unit?: string; sounding?: boolean; signal?: boolean }
+const { v, unit, sounding = false, signal = false } = Astro.props;
+---
+{sounding
+  ? <i class="s-sounding">{v}{unit && <small>{unit}</small>}</i>
+  : <p class:list={["s-num", { "s-signal": signal }]}>{v}{unit && <span class="s-unit">{unit}</span>}</p>}

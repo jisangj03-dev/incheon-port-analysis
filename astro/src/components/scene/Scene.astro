@@ -1,0 +1,16 @@
+---
+// 장면 — 한 화면 한 메시지. kind 로 지도·시뮬레이션·노트·숫자 장면을 가르고, 머리(작은 꼬리표 + 제목 + 한 줄)는 같은 꼴.
+// 새 콘텐츠는 이 틀에 그림(슬롯) 하나를 꽂는다. 상자 없음 — 장면 사이는 가는 줄.
+interface Props { kind: "map" | "sim" | "note" | "num" | "text"; cap?: string; title?: string; lead?: string; id?: string; wide?: boolean }
+const { kind, cap, title, lead, id, wide = false } = Astro.props;
+---
+<section class:list={["s-scene", `s-scene--${kind}`, { "s-scene--wide": wide }]} id={id} data-scene={kind}>
+  {(cap || title || lead) && (
+    <header class="s-scene__head">
+      {cap && <p class="s-cap">{cap}</p>}
+      {title && <h2 class="s-prose">{title}</h2>}
+      {lead && <p class="s-lead s-prose">{lead}</p>}
+    </header>
+  )}
+  <slot />
+</section>
