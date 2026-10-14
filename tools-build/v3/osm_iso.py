@@ -15,6 +15,11 @@ INCHEON = (126.35, 37.30, 126.80, 37.66)
 SPEED = {"motorway": 90, "trunk": 70, "primary": 60, "secondary": 50, "tertiary": 40, "unclassified": 25, "residential": 25,
          "motorway_link": 50, "trunk_link": 50, "primary_link": 40, "secondary_link": 35, "tertiary_link": 30, "service": 15, "living_street": 10}
 LIMIT_MIN = 200
+# 도착 분을 표로 내는 수도권 도시(시청·대표 지점 부근 · 개략) — 칸 값을 읽는다(그 칸 안 가장 빠른 길)
+CITIES = {"서울시청": (126.978, 37.566), "강남역": (127.028, 37.498), "부천": (126.783, 37.503), "김포": (126.716, 37.615), "고양 일산": (126.770, 37.658),
+          "파주": (126.780, 37.760), "의정부": (127.033, 37.738), "남양주": (127.216, 37.636), "하남": (127.215, 37.539), "성남 분당": (127.120, 37.382),
+          "수원": (127.029, 37.264), "안산": (126.831, 37.322), "시흥": (126.803, 37.380), "용인 기흥": (127.115, 37.275), "화성 동탄": (127.074, 37.201),
+          "이천": (127.443, 37.272), "평택": (127.112, 36.992), "광주(경기)": (127.255, 37.429)}
 
 
 def load(pbf):
@@ -104,12 +109,19 @@ def main():
         grid = np.where(grid < 255, grid, np.minimum(nb, 255))
         g8 = np.clip(np.round(grid), 0, 255).astype("uint8")
         reach = {f"{h}h": int((g8 <= 60 * h).sum()) for h in (1, 2, 3)}
-        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "b64": base64.b64encode(g8.tobytes()).decode()})
+        city = {}
+        for nm, (x, y) in CITIES.items():
+            ix, iy = int((x - BBOX[0]) / STEP), int((BBOX[3] - y) / STEP)
+            win = g8[max(0, iy - 1): iy + 2, max(0, ix - 1): ix + 2]
+            v = int(win.min()) if win.size else 255
+            city[nm] = v if v < 255 else None
+        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "b64": base64.b64encode(g8.tobytes()).decode()})
         say(o["name"], reach, f"붙임 {snap_km:.2f}km")
     write("data/derived/isochrones.json", {
         "_설명": "인천 물류단지·관문에서 수도권 칸(0.01°)마다 가장 빠른 도착 분. 도로 등급별 자유 흐름 속도 가정 — 혼잡·신호·상하차 미반영. 255 = 길 없음/200분 넘음.",
         "source": "OpenStreetMap 기여자(ODbL 1.0) · Geofabrik south-korea 추출", "made": datetime.date.today().isoformat(),
-        "bbox": BBOX, "step": STEP, "w": W, "h": H, "speeds_kmh": SPEED, "limit_min": LIMIT_MIN, "origins": out})
+        "bbox": BBOX, "step": STEP, "w": W, "h": H, "speeds_kmh": SPEED, "limit_min": LIMIT_MIN,
+        "cities": {k: list(v) for k, v in CITIES.items()}, "origins": out})
     return 0
 
 
