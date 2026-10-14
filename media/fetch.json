@@ -1,8 +1,0 @@
-{
-  "_설명": "히어로 영상 받아 웹용으로 다시 누르기(2026-10-12). 이 파일이 바뀌어 claude/ 브랜치에 푸시되면 .github/workflows/media-fetch.yml 이 받아서 astro/public/media/ 에 커밋한다(이 클라우드 세션은 영상 호스트가 막혀 있다 · 무료 연산 원칙).",
-  "hero": {
-    "url": "https://videogen.vidiq.com/daab0688-3147-4ebf-a230-a99a99b2cf3f/4fb9f5a6-595f-45eb-9301-cf4953af3b9d_1e1e0016-9f4b-4e06-b940-cb6a37a0fc4e_bf2daf8b-f3ab-46be-920f-bd21e3107334.mp4",
-    "what": "노을 인천항 항공 8초 1080p · vidIQ(Veo 3.1) · 선장님 승인 · AI 생성 장면",
-    "budget_kb": { "hero-1080.mp4": 2600, "hero-720.mp4": 950, "hero-poster.webp": 120 }
-  }
-}
