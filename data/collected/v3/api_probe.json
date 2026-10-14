@@ -1,0 +1,31 @@
+{
+ "checked": "2026-10-14",
+ "key_present": true,
+ "apis": {
+  "iiac-air-country": {
+   "search": "인천국제공항공사 국가별 항공 통계",
+   "search_status": "<urlopen error timed out>",
+   "candidates": []
+  },
+  "iiac-freighter": {
+   "search": "인천국제공항공사 화물기 정기운항편",
+   "search_status": "<urlopen error timed out>",
+   "candidates": []
+  },
+  "kcs-exchange": {
+   "search": "관세청 관세환율",
+   "search_status": "<urlopen error timed out>",
+   "candidates": []
+  },
+  "kcs-customs-office": {
+   "search": "관세청 세관별 수출입실적",
+   "search_status": "<urlopen error timed out>",
+   "candidates": []
+  },
+  "mof-cargo-item": {
+   "search": "해양수산부 품목별 화물처리",
+   "search_status": "<urlopen error timed out>",
+   "candidates": []
+  }
+ }
+}
