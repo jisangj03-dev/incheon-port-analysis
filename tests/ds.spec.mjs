@@ -105,21 +105,20 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 20_000 });
   const st = () => page.evaluate(() => ({ N: window.__fm.N, t: window.__fm.t, zoom: window.__fm.cam.zoom }));
   await expect.poll(async () => (await st()).N, { message: "흐르는 점이 있다" }).toBeGreaterThan(50);
-  // 그림이 실제로 바뀐다(두 장면의 픽셀이 다르다)
-  // 요소 캡처는 「안정될 때까지」 장면을 기다린다 — CI(소프트웨어 렌더 · 병렬)에서는 장면이 몇 초에 하나라 시간 초과(QA 115). 영역을 바로 찍는다.
-  const box = await page.locator("#fm").boundingBox();
-  const shot = () => page.screenshot({ clip: box, timeout: 20_000 });
-  const s1 = await shot(); await page.waitForTimeout(2500); const s2 = await shot();
-  expect(Buffer.compare(s1, s2), "캔버스가 움직이지 않는다").not.toBe(0);
-  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초 — 느린 시험 기계에서 장면 수가 적어도 판정이 같게 시계를 한 달 앞으로 민다)
+  // 그림이 실제로 바뀐다(두 장면의 픽셀이 다르다) — CI(소프트웨어 렌더 · 병렬)에서는 화면 합성기가 수십 초 장면을 못 내 캡처가 시간 초과했다(QA 115·118).
+  // 그래서 화면 캡처 대신 캔버스 픽셀을 직접 읽고, 지도 시계를 손으로 한 걸음 민다(그리기 함수는 실제 것 그대로).
+  const px = () => page.evaluate(() => document.getElementById("fm").toDataURL());
+  const tick = (sec) => page.evaluate((s) => { const f = window.__fm; f.step(s); f.o.camStep ? f.o.camStep(f, s) : f.camStep(s); f.draw(); }, sec);
+  const s1 = await px(); await tick(0.4); const s2 = await px();
+  expect(s1 === s2, "캔버스가 움직이지 않는다").toBe(false);
+  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초 — 시계를 한 달 앞으로 민다)
   const ym = await page.locator("#fm-ym").innerText();
-  await page.evaluate(() => { window.__fm.t += 7; });
-  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 20_000 }); // 한 장면이 와야 바뀐다 — CI 에서는 몇 초
-  // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
+  await page.evaluate(() => { window.__fm.t += 7; }); await tick(0.05);
+  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 10_000 });
+  // 인천·수도권 보기 → 가까이 날아간다(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
   await page.locator("[data-view=incheon]").click();
-  await page.evaluate(() => { window.__fm.t += 4; }); // 비행 3.2초를 지도 시계로 넘긴다 — 한 장면만 그려지면 도착(CI 는 장면 간격이 2초 넘게 벌어져 25초로도 못 기다렸다 · QA 116)
-  // 비행은 지도 시계(장면마다 많아야 0.25초)로 3.2초 — 소프트웨어 렌더 + 병렬 시험 부하에서는 벽시계로 10초 넘게 걸린다(2026-10-14 실측)
-  await expect.poll(async () => (await st()).zoom, { timeout: 25_000 }).toBeGreaterThan(8);
+  await page.evaluate(() => { window.__fm.t += 4; }); await tick(0.05);
+  await expect.poll(async () => (await st()).zoom, { timeout: 10_000 }).toBeGreaterThan(8);
   await page.locator("#fm-gates").click();
   await expect(page.locator("#fm-panel")).toBeVisible();
   await expect(page.locator("#fm-p-dl")).toContainText("인천공항");
