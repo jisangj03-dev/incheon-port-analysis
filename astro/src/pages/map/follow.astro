@@ -124,9 +124,22 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
     const fig = document.getElementById("follow-map") as HTMLElement;
     // 왼쪽 여백 비율(pad.l 0.42)은 글 기둥 자리 — 좁은 화면은 위쪽 지도만 쓰므로 부품 기본값을 쓴다
     const refit = initHaedo(fig);
-    // 단계가 바뀌면 그 단계 꼬리표까지 넣어 이름표를 다시 놓는다(겹침 0)
-    const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting && story.dataset.step !== (e.target as HTMLElement).dataset.s) { story.dataset.step = (e.target as HTMLElement).dataset.s!; refit(); } }, { rootMargin: "-45% 0px -45% 0px" });
-    for (const s of document.querySelectorAll(".st")) io.observe(s);
+    // 단계 = 화면 한가운데 줄이 걸친 단계 — 스크롤마다 직접 센다(한 프레임에 한 번).
+    // [2026-10-14] IntersectionObserver 로 하던 때 느린 CI 에서 크게 건너뛴 스크롤의 콜백이 늦거나 빠져 단계가 안 넘어갔다.
+    // 단계가 바뀌면 그 단계 꼬리표까지 넣어 이름표를 다시 놓는다(겹침 0).
+    const steps = [...document.querySelectorAll<HTMLElement>(".st[data-s]")];
+    let raf = 0;
+    const pick = () => {
+      raf = 0;
+      const mid = innerHeight / 2;
+      let cur = steps.find((el) => { const r = el.getBoundingClientRect(); return r.top <= mid && r.bottom > mid; });
+      if (!cur) cur = steps[0].getBoundingClientRect().top > mid ? steps[0] : steps[steps.length - 1];
+      const id = cur.dataset.s!;
+      if (story.dataset.step !== id) { story.dataset.step = id; refit(); }
+    };
+    addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(pick); }, { passive: true });
+    addEventListener("resize", () => { if (!raf) raf = requestAnimationFrame(pick); });
+    pick();
   </script>
 </Studio>
 <style>
