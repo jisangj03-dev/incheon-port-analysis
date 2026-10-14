@@ -1,8 +1,39 @@
 {
-  "_설명": "디자인 도구 판정 v3 시험 추출(2026-10-14). 이 파일이 바뀐 claude/ 브랜치 push(설정이 main 과 다를 때만)와 수동 실행 때 .github/workflows/design-lab.yml 이 돈다. 공개 페이지 첫 화면 하나에서 색·글꼴·크기·여백 수치만 뽑는다(dembrandt · 우회 기능 끔 · 정직한 UA). 기준 화면 캡처는 커밋하지 않고 Actions 산출물(3일 보관)로만.",
+  "_설명": "디자인 도구 판정 v3 시험 추출(2026-10-14). 이 파일이 바뀐 claude/ 브랜치 push(설정이 main 과 다를 때만)와 수동 실행 때 .github/workflows/design-lab.yml 이 돈다. 공개 페이지 첫 화면 하나에서 색·글꼴·크기·여백 수치만 뽑는다(dembrandt · 우회 기능 끔 · 정직한 UA). 기준 화면 캡처는 커밋하지 않고 Actions 산출물(3일 보관)로만. [2026-10-14 디자인 위임] 기준 사이트 8곳으로 늘림 — 원리·수치만, 이미지·문구·코드 복제 금지.",
   "userAgent": "Mozilla/5.0 (X11; Linux x86_64) sounding-design-lab/1.0 (+https://github.com/jisangj03-dev/incheon-port-analysis) — public-page style values only",
   "ours": "https://jisangj03-dev.github.io/incheon-port-analysis/",
   "targets": [
-    { "name": "flexport", "url": "https://www.flexport.com/" }
+    {
+      "name": "ncase",
+      "url": "https://ncase.me/"
+    },
+    {
+      "name": "ciechanowski",
+      "url": "https://ciechanow.ski/"
+    },
+    {
+      "name": "pudding",
+      "url": "https://pudding.cool/"
+    },
+    {
+      "name": "owid",
+      "url": "https://ourworldindata.org/"
+    },
+    {
+      "name": "shipmap",
+      "url": "https://www.shipmap.org/"
+    },
+    {
+      "name": "joshwcomeau",
+      "url": "https://www.joshwcomeau.com/"
+    },
+    {
+      "name": "toss",
+      "url": "https://toss.im/"
+    },
+    {
+      "name": "stripe-press",
+      "url": "https://press.stripe.com/"
+    }
   ]
 }
