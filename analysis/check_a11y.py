@@ -181,11 +181,14 @@ def pages():
     (사고 71 — 검사기가 자기 도구의 출력을 원본으로 읽으면 그 판정은 전부 잡음이다).
     """
     WATCH = ("_includes", "_layouts")
+    # 남의 패키지·빌드 산출물은 우리 지면이 아니다 — node_modules README 1383건이 경고를 채웠다(2026-10-14 · 사고 71 과 같은 종류)
+    SKIP = ("node_modules", "dist")
     out = []
     for dirpath, dirnames, files in os.walk(SITE):
         dirnames[:] = [d for d in dirnames
                        if not d.startswith(".")
-                       and (not d.startswith("_") or d in WATCH)]
+                       and (not d.startswith("_") or d in WATCH)
+                       and d not in SKIP]
         here = os.path.basename(dirpath)
         for f in files:
             if f.endswith(".md") or (f.endswith(".html") and here in WATCH):

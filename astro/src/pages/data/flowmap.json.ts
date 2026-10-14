@@ -18,7 +18,11 @@ export function GET() {
   const dp = join(repoRoot(), "data/derived/ship_density.json");
   if (existsSync(dp)) {
     const S = JSON.parse(readFileSync(dp, "utf-8")), b = Buffer.from(S.b64, "base64"), pts: number[] = [];
-    for (let r = 0; r < S.h; r++) for (let c = 0; c < S.w; c++) { const v = b[r * S.w + c]; if (v >= 40) pts.push(Math.round((S.bbox[0] + (c + 0.5) * S.step) * 1000) / 1000, Math.round((S.bbox[3] - (r + 0.5) * S.step) * 1000) / 1000, v); }
+    // 받는 쪽이 세기 순 위 3200 칸만 그린다 — 보내는 것도 거기까지(2026-10-14: 0 아닌 칸 전부를 보내 이 파일이 3MB 였다)
+    const cells: [number, number, number][] = [];
+    for (let r = 0; r < S.h; r++) for (let c = 0; c < S.w; c++) { const v = b[r * S.w + c]; if (v >= 40) cells.push([r, c, v]); }
+    cells.sort((a, z) => z[2] - a[2]);
+    for (const [r, c, v] of cells.slice(0, 3200)) pts.push(Math.round((S.bbox[0] + (c + 0.5) * S.step) * 1000) / 1000, Math.round((S.bbox[3] - (r + 0.5) * S.step) * 1000) / 1000, v);
     density = { pts, period: S.period, source: S.source };
   }
   const body = { world: W.rings, density, near: { bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], land, road, ct }, flows: F,

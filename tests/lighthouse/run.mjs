@@ -13,6 +13,12 @@ const base = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
 // [2026-10-14 공개 전환] 구조 넷 지면 전부 + 남이 링크한 계산기 — 출고 검사 「모바일 성능 90↑ · 접근성」의 축.
 const PAGES = [
   ["home", "/incheon-port-analysis/"],
+  ["tools", "/incheon-port-analysis/tools/"],
+  ["port-pulse", "/incheon-port-analysis/tools/port-pulse.html"],
+  ["delivery-reach", "/incheon-port-analysis/tools/delivery-reach.html"],
+  ["trade-race", "/incheon-port-analysis/tools/trade-race.html"],
+  ["import-cost", "/incheon-port-analysis/tools/import-cost.html"],
+  ["anchorage", "/incheon-port-analysis/tools/anchorage.html"],
   ["map", "/incheon-port-analysis/map.html"],
   ["follow", "/incheon-port-analysis/map/follow.html"],
   ["vessels", "/incheon-port-analysis/map/vessels.html"],
@@ -65,7 +71,9 @@ function diagnose(url) {
 const RUNS = Math.max(1, Number(process.env.LH_RUNS || 3));
 const rows = [];
 let bad = 0;
-for (const [name, path] of PAGES) {
+// LH_ONLY=이름,이름 — 그 지면만(새 지면을 다룰 때 · 출고 검사는 전부)
+const ONLY = (process.env.LH_ONLY || "").split(",").filter(Boolean);
+for (const [name, path] of PAGES.filter(([n]) => !ONLY.length || ONLY.includes(n))) {
   const reps = [];
   let fail = "";
   for (let k = 0; k < RUNS; k++) {

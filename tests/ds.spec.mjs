@@ -115,7 +115,8 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 5_000 });
   // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
   await page.locator("[data-view=incheon]").click();
-  await expect.poll(async () => (await st()).zoom, { timeout: 8_000 }).toBeGreaterThan(8);
+  // 비행은 지도 시계(장면마다 많아야 0.25초)로 3.2초 — 소프트웨어 렌더 + 병렬 시험 부하에서는 초당 몇 장면이라 벽시계로 10초 넘게 걸린다(2026-10-14 실측 · 단독 실행은 통과)
+  await expect.poll(async () => (await st()).zoom, { timeout: 25_000 }).toBeGreaterThan(8);
   await page.locator("#fm-gates").click();
   await expect(page.locator("#fm-panel")).toBeVisible();
   await expect(page.locator("#fm-p-dl")).toContainText("인천공항");

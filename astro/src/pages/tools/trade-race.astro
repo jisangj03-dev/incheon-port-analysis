@@ -5,7 +5,7 @@ import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
 import { u } from "../../lib/site";
 import { sourceLine } from "../../lib/sources";
-import { squarify, groupOf, GROUPS } from "../../lib/treemap-race";
+import { squarify, groupOf, GROUPS, inkOn } from "../../lib/treemap-race";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
@@ -31,7 +31,7 @@ const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
     <div slot="answer" class="race">
       <p class="race__y"><b id="race-y">{L.y}</b> <span id="race-k">수출</span> <i id="race-total">{L.exp_total.toLocaleString("ko-KR")}</i><small>백만 달러</small></p>
       <div class="race__box" id="race-box" role="img" aria-label={`${L.y}년 인천 소재 기업 수출 품목 구성`}>
-        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c}`}>{r.w > 90 && r.h > 50 && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
+        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{r.w > 90 && r.h > 50 && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
       </div>
       <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}</p>
     </div>
@@ -81,10 +81,10 @@ const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
   .race__box { position: relative; height: min(58vh, 560px); background: var(--s-paper); overflow: hidden; }
   .race__box :global(.tm-pre), .race__box :global(.tm-tile) { position: absolute; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 6px 8px; overflow: hidden; color: #fff; font: 600 13px/1.25 var(--s-font); text-align: left; border: 0; }
   .race__box :global(.tm-tile) { left: 0; top: 0; transition: transform 0.85s cubic-bezier(.3,.7,.2,1), width 0.85s cubic-bezier(.3,.7,.2,1), height 0.85s cubic-bezier(.3,.7,.2,1), opacity 0.5s; cursor: pointer; }
-  .race__box :global(.tm-tile.is-light), .race__box :global(.tm-pre) { color: #191714; }
   .race__box :global(.tm-tile b), .race__box :global(.tm-pre b) { font-weight: 650; max-width: 100%; }
-  .race__box :global(.tm-tile i), .race__box :global(.tm-pre i) { font-style: normal; font-weight: 500; font-variant-numeric: tabular-nums; opacity: 0.85; }
-  .race__box :global(.tm-tile:not(.is-light) i), .race__box :global(.tm-tile:not(.is-light) b) { color: #fff; }
+  .race__box :global(.tm-tile i), .race__box :global(.tm-pre i) { font-style: normal; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .race__box :global(.tm-tile i), .race__box :global(.tm-pre i) { opacity: 1; }
+  .race__box :global(.tm-tile:disabled) { cursor: default; }
   .race__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: var(--s-3) 0 0; font-size: 12.5px; color: var(--s-ink-2); }
   .race__legend i { display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; }
   .race__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }

@@ -22,13 +22,14 @@ def landed(goods, freight, insurance, incoterm, fx, duty_pct, vat_pct=10, inland
 
 def derive(src):
     W = src["weeks"]
-    now, ago = W[-1], W[-53] if len(W) >= 53 else W[0]
+    AGO = 52  # 견줄 주 = 52주 전(1년 전 같은 무렵)
+    now, ago = W[-1], W[-1 - AGO] if len(W) > AGO else W[0]
     a = landed(EX["goods"], 0, 0, "CIF", ago["USD"], EX["duty_pct"]); b = landed(EX["goods"], 0, 0, "CIF", now["USD"], EX["duty_pct"])
     hi = max(W, key=lambda w: w["USD"]); lo = min(W, key=lambda w: w["USD"])
     return {"_설명": "관세청 관세환율(수입 · 주간 · 원/통화 1단위, JPY 는 1엔) + 첫 화면 예시 계산(1만 달러 CIF · 관세 8% · 부가세 10%). 참고용 · 자문 아님.",
             "source": src["source"], "fetched": src["fetched"], "asof": now["from"], "currencies": CUR,
             "weeks": [[w["from"]] + [w.get(c) for c in CUR] for w in W],
-            "example": {**EX, "now": {"week": now["from"], "fx": now["USD"], **b}, "ago": {"week": ago["from"], "fx": ago["USD"], **a},
+            "example": {**EX, "ago_weeks": AGO, "now": {"week": now["from"], "fx": now["USD"], **b}, "ago": {"week": ago["from"], "fx": ago["USD"], **a},
                         "diff": b["landed"] - a["landed"], "pct": round(100 * (b["landed"] - a["landed"]) / a["landed"], 1)},
             "usd_hi": {"week": hi["from"], "fx": hi["USD"]}, "usd_lo": {"week": lo["from"], "fx": lo["USD"]}}
 

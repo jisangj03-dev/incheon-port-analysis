@@ -37,12 +37,15 @@ export const GROUPS: { id: string; label: string; from: number; to: number; c: s
   { id: "chem", label: "화학·플라스틱·고무", from: 28, to: 40, c: "#7ea0ad" },
   { id: "light", label: "가죽·목재·종이·섬유·신발", from: 41, to: 67, c: "#c2a98a" },
   { id: "stone", label: "석재·유리·귀금속", from: 68, to: 71, c: "#b7aa95" },
-  { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#6f7d86" },
+  { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#5f6c75" },
   { id: "mach", label: "기계(84)", from: 84, to: 84, c: "#4f6a78" },
   { id: "elec", label: "전기전자(85)", from: 85, to: 85, c: "#b3361e" },
   { id: "trans", label: "수송기기", from: 86, to: 89, c: "#5d7a86" },
   { id: "prec", label: "정밀·광학·기타", from: 90, to: 99, c: "#a08c7a" },
 ];
+/** 칸 색 위 글자 — 밝기로 고른다(어두운 칸에 검은 글자가 명암비 4.5 를 못 넘었다 · 2026-10-14 Lighthouse) */
+export const inkOn = (hex: string) => { const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
+  const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.0587) ? "#fff" : "#191714"; };
 export const groupOf = (hs: string) => { const n = Number(hs); return GROUPS.find((g) => n >= g.from && n <= g.to) || GROUPS[GROUPS.length - 1]; };
 
 export type RaceOpts = { top: number; onYear?: (y: Year, i: number) => void; onPick?: (hs: string) => void };
@@ -81,10 +84,13 @@ export class TreemapRace {
         el!.style.transform = `translate(${r.x.toFixed(1)}px,${r.y.toFixed(1)}px)`;
         el!.style.width = `${Math.max(0, r.w - 2).toFixed(1)}px`; el!.style.height = `${Math.max(0, r.h - 2).toFixed(1)}px`;
       });
-      const big = r.w > 84 && r.h > 40, mid = r.w > 46 && r.h > 26;
-      el.innerHTML = big ? `<b>${it.name}</b><i>${share.toFixed(1)}%</i>` : mid ? `<i>${share.toFixed(0)}%</i>` : "";
-      el.setAttribute("aria-label", `${it.name} ${share.toFixed(1)}%`);
-      el.classList.toggle("is-light", it.hs !== "85");
+      const big = r.w > 84 && r.h > 40, mid = r.w > 46 && r.h > 26, tiny = r.w < 24 || r.h < 24;
+      // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
+      el.innerHTML = big ? `<b>${it.name}</b> <i>${share.toFixed(1)}%</i>` : mid ? `<i>${share.toFixed(1)}%</i>` : "";
+      if (big) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
+      el.title = `${it.name} ${share.toFixed(1)}%`;
+      el.disabled = tiny;
+      el.style.color = inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c);
     });
     for (const [hs, el] of this.tiles) if (!live.has(hs)) { el.style.opacity = "0"; el.style.width = el.style.height = "0px"; }
   }

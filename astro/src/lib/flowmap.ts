@@ -145,9 +145,11 @@ export class FlowMap {
     this.nR = data.near.land.map(tm); this.rdR = data.near.road.map(tm); this.ctR = data.near.ct.map(tm);
     // 밀도 칸 — 가벼운 판은 세기 순으로 앞쪽만(그리는 점 수 상한)
     if (data.density?.pts?.length) {
-      const P = data.density.pts, n = P.length / 3, cap = o.lite ? 2600 : 7000, idx = Array.from({ length: n }, (_, i) => i).sort((a, b) => P[b * 3 + 2] - P[a * 3 + 2]).slice(0, cap);
+      // 세기 순으로 자르고(위 3200 · 가벼운 판 1400) 묶음(세기 넷)별로 이어 둔다 — 한 장면에 한 번만 훑는다(2026-10-14: 7000점 × 네 번 훑기가 소프트웨어 렌더에서 초당 1장면)
+      const P = data.density.pts, n = P.length / 3, cap = o.lite ? 1400 : 3200, idx = Array.from({ length: n }, (_, i) => i).sort((a, b) => P[b * 3 + 2] - P[a * 3 + 2]).slice(0, cap);
+      idx.sort((a, b) => FlowMap.dBucket(P[a * 3 + 2]) - FlowMap.dBucket(P[b * 3 + 2]));
       this.dX = new Float32Array(idx.length); this.dY = new Float32Array(idx.length); this.dV = new Uint8Array(idx.length); this.dPh = new Float32Array(idx.length);
-      idx.forEach((i, k) => { this.dX[k] = mx(P[i * 3]); this.dY[k] = my(P[i * 3 + 1]); this.dV[k] = P[i * 3 + 2]; this.dPh[k] = ((P[i * 3] * 97.3 + P[i * 3 + 1] * 51.7) % 1 + 1) % 1; });
+      idx.forEach((i, k) => { this.dX[k] = mx(P[i * 3]); this.dY[k] = my(P[i * 3 + 1]); this.dV[k] = FlowMap.dBucket(P[i * 3 + 2]); this.dPh[k] = 0; });
     }
     // 관문 — 바다 셋(부두군) + 하늘 하나
     for (const g of F.sea_gates) this.gates.push({ id: g.id, lon: g.lon, lat: g.lat, kind: "sea" });
@@ -269,16 +271,16 @@ export class FlowMap {
     }
     // 선박 밀도 「빛줄기」(세계은행 2015~2021 누적) — 세기 넷으로 나눠 한 번씩 칠하고, 칸마다 다른 위상으로 천천히 숨 쉰다(움직이는 배가 아니다)
     if (this.dX.length) {
-      const now = performance.now() / 1000, sz = near ? 2.6 : 1.7;
-      for (const [lo, hi, a] of [[1, 90, 0.10], [90, 150, 0.18], [150, 205, 0.30], [205, 256, 0.46]] as const) {
-        ctx.beginPath();
-        for (let k = 0; k < this.dX.length; k++) {
-          const v = this.dV[k]; if (v < lo || v >= hi) continue;
-          P(this.dX[k], this.dY[k], 0, o); if (o[0] < -4 || o[0] > W + 4 || o[1] < -4 || o[1] > H + 4) continue;
-          const s2 = sz * (0.85 + 0.3 * Math.sin(now * 1.3 + this.dPh[k] * 6.283));
-          ctx.rect(o[0] - s2 / 2, o[1] - s2 / 2, s2, s2);
+      const now = performance.now() / 1000, sz = near ? 2.6 : 1.7, A = [0.10, 0.18, 0.30, 0.46];
+      let b = -1;
+      for (let k = 0; k <= this.dX.length; k++) {
+        const v = k < this.dX.length ? this.dV[k] : -2;
+        if (v !== b) { // 묶음이 바뀌면 칠한다 — 묶음마다 다른 위상으로 천천히 숨 쉰다(움직이는 배가 아니다)
+          if (b >= 0) { ctx.fillStyle = `rgba(52,84,98,${(A[b] * (0.82 + 0.18 * Math.sin(now * 1.1 + b * 1.7))).toFixed(3)})`; ctx.fill(); }
+          if (v < 0) break; b = v; ctx.beginPath();
         }
-        ctx.fillStyle = `rgba(52,84,98,${a})`; ctx.fill();
+        P(this.dX[k], this.dY[k], 0, o); if (o[0] < -4 || o[0] > W + 4 || o[1] < -4 || o[1] > H + 4) continue;
+        ctx.rect(o[0] - sz / 2, o[1] - sz / 2, sz, sz);
       }
     }
     // 길(옅게) — 먼 길은 나라마다 한 줄(신항·공항만), 가까운 길은 목적지마다
@@ -345,6 +347,8 @@ export class FlowMap {
   screen(lon: number, lat: number) { return projector(this.cam, this.W, this.H).fn(mx(lon), my(lat)); }
 
   // ── 카메라 ──
+  /** 밀도 값(0~255) → 세기 묶음 0~3 */
+  static dBucket(v: number) { return v < 90 ? 0 : v < 150 ? 1 : v < 205 ? 2 : 3; }
   flyTo(to: Cam, dur = 3.2) { this.tour = { from: { ...this.cam }, to: { ...to }, t0: this.t, dur }; }
   private camStep(dt: number) {
     if (this.tour) {

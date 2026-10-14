@@ -62,8 +62,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       {L.teu && <><dt>인천항 컨테이너</dt><dd>{F.sea_gates.map((g: any) => `${g.id} ${L.teu[g.id]}`).join(" · ")}<small>천TEU</small></dd></>}
       <dt>전국 대비</dt><dd>수입 {L.imp_share_pct}% · 수출 {L.exp_share_pct}%</dd>
     </dl>
+    {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)} title={t.q}>{t.title} →</a></li>)}</ul></>}
     <p class="s-cap">나라 비중(전국 · {F.partner_months[0]}~{F.partner_months[F.partner_months.length - 1]} · 10개국 안)</p>
-    {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)}><b>{t.title}</b><span>{t.q}</span></a></li>)}</ul></>}
     <ol class="live__bars">
       {F.partners.slice(0, 6).map((p: any) => <li><span>{p.name}</span><i style={`--w:${p.imp_pct}%`}></i><b>수입 {p.imp_pct}%</b></li>)}
     </ol>
@@ -270,13 +270,14 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__ctl { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; max-width: 52%; }
   .live__ctl .s-btn { background: rgba(245, 242, 235, 0.88); min-height: 40px; padding: 0 14px; font-size: 14px; }
   .live__panel { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); top: 50%; transform: translateY(-50%); z-index: 3; width: min(340px, calc(100% - 32px));
-    background: var(--s-paper); border-top: 2px solid var(--s-signal); padding: 18px 20px 16px; box-shadow: 0 12px 40px rgba(25, 23, 20, 0.14); }
+    background: var(--s-paper); border-top: 2px solid var(--s-signal); padding: 18px 20px 16px; box-shadow: 0 12px 40px rgba(25, 23, 20, 0.14);
+    max-height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain; } /* 도구 목록이 붙어 판이 길어졌다 — 무대 밖으로 잘리지 않게 */
+  .live__panel h2 { font-size: 13px; font-weight: 600; letter-spacing: 0; margin: 0 40px 0 0; line-height: 1.4; }
   .live__x { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; border: 0; background: none; font-size: 22px; cursor: pointer; color: var(--s-ink-2); }
   .live__dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 14px; font-variant-numeric: tabular-nums; }
   .live__dl dt { color: var(--s-ink-2); font-size: 13px; } .live__dl dd { margin: 0; font-size: 14px; } .live__dl small { color: var(--s-ink-3); margin-left: 4px; }
-  .live__tools { list-style: none; padding: 0; margin: 4px 0 14px; display: grid; gap: 6px; }
-  .live__tools a { display: grid; gap: 1px; min-height: 44px; padding: 6px 0; border-bottom: 1px solid var(--s-rule); text-decoration: none; }
-  .live__tools b { color: var(--s-signal); font-size: 14px; } .live__tools span { color: var(--s-ink-2); font-size: 13px; }
+  .live__tools { list-style: none; padding: 0; margin: 4px 0 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .live__tools a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border: 1px solid var(--s-rule); text-decoration: none; color: var(--s-signal); font-size: 13.5px; font-weight: 600; background: var(--s-paper); }
   .live__bars { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 4px; font-size: 13px; }
   .live__bars li { display: grid; grid-template-columns: 4.5em 1fr auto; align-items: center; gap: 8px; }
   .live__bars i { display: block; height: 6px; width: var(--w); background: var(--s-signal); border-radius: 1px; }

@@ -23,8 +23,8 @@ const seoul = O.cities["서울시청"];
     limits="혼잡·신호·상하차·통행 제한(화물차)을 반영하지 않아 실제보다 짧게 나온다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다.">
     <div slot="answer" class="reach">
       <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
-        <p class="reach__t"><b id="reach-min">180</b><span>분 안</span></p>
-        <p class="reach__legend">{STEPS.map((b) => <span><i style={`background:rgba(${b.c.join(",")},${b.a})`}></i>{b.max}</span>)}<span>분</span></p>
+        <p class="reach__t" data-furniture><b id="reach-min">180</b><span>분 안</span></p>
+        <p class="reach__legend" data-furniture>{STEPS.map((b) => <span><i style={`background:rgba(${b.c.join(",")},${b.a})`}></i>{b.max}</span>)}<span>분</span></p>
       </div>
       <ol class="reach__list" id="reach-list" aria-label="수도권 도시까지 도착 분">
         {rows.map(([n, m]) => <li data-city={n}><span>{n}</span><b>{m ?? "—"}</b><small>분</small></li>)}
@@ -32,13 +32,13 @@ const seoul = O.cities["서울시청"];
     </div>
     <div slot="controls" class="reach__ctl">
       <label>출발지 <select id="reach-o" class="s-input">{I.origins.map((o: any, i: number) => <option value={i} selected={o === O}>{o.name}{o.kind === "관문" ? " (관문)" : ""}</option>)}</select></label>
-      <div class="seg" role="group" aria-label="도로 사정 가정">{[[1, "자유 흐름"], [1.5, "×1.5 가정"], [2, "×2 가정"]].map(([k, l]) => <button type="button" class={k === 1 ? "s-btn" : "s-btn s-btn--ghost"} data-k={k} aria-pressed={k === 1 ? "true" : "false"}>{l}</button>)}</div>
+      <div class="seg" role="group" aria-label="도로 사정 가정" data-furniture>{[[1, "자유 흐름"], [1.5, "×1.5 가정"], [2, "×2 가정"]].map(([k, l]) => <button type="button" class={k === 1 ? "s-btn" : "s-btn s-btn--ghost"} data-k={k} aria-pressed={k === 1 ? "true" : "false"}>{l}</button>)}</div>
       <button type="button" class="s-btn s-btn--ghost" id="reach-play">다시 번지기</button>
       <label class="reach__slider">문턱 <input id="reach-t" type="range" min="0" max="180" step="5" value="180" aria-label="도착 분 문턱" /></label>
-      <p class="s-cap reach__note">「×1.5·×2 가정」은 막히는 시간대를 어림하려고 모든 길의 시간을 같은 배율로 늘린 것입니다 — 실측 혼잡 자료가 아닙니다.</p>
+      <p class="s-cap reach__note" data-furniture>「×1.5·×2 가정」은 막히는 시간대를 어림하려고 모든 길의 시간을 같은 배율로 늘린 것입니다 — 실측 혼잡 자료가 아닙니다.</p>
     </div>
   </ToolShell>
-  <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/flowmap.json") })}></script>
+  <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/reach-geo.json") })}></script>
   <script>
     import { ReachMap } from "../../lib/reach-map";
     const M = JSON.parse(document.getElementById("reach-meta")!.textContent!);

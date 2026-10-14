@@ -25,7 +25,7 @@ const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
 <Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 관세환율(주간)로 같은 물건의 수입 원가(과세가격·관세·부가세)를 주마다 다시 계산한다. 참고용 · 자문 아님." current="tools" lateFonts>
   <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
     q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
-    lead={`같은 1만 달러(CIF) 물건을 이번 주 관세환율로 들이면 원가 ${won(E.now.landed)}원 — 52주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
+    lead={`같은 1만 달러(CIF) 물건을 이번 주 관세환율로 들이면 원가 ${won(E.now.landed)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
     updated={D.fetched} source={sourceLine("kcs-exchange")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
     how="관세청 관세환율(수입 · 주마다 고시)을 받아, 과세가격 = CIF 가격 × 관세환율(원 단위 반올림) · 관세 = 과세가격 × 관세율 · 부가가치세 = (과세가격 + 관세) × 10% 로 계산했다(관세·부가세는 원 미만 버림). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
     limits="개별소비세·교육세·주세·통관 수수료·FTA 협정세율·감면은 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. 운임지수는 이용 조건을 원문으로 확인하지 못해 싣지 않았다(운임은 직접 넣는다). 실제 납부액은 수입신고 때 세관이 정한다.">
@@ -41,7 +41,7 @@ const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
           <circle cx={X(iNow).toFixed(1)} cy={Y(us[iNow]).toFixed(1)} r="5" class="now" />
           <circle id="cs-dot" cx={X(iAgo).toFixed(1)} cy={Y(us[iAgo]).toFixed(1)} r="6" class="dot" />
         </svg>
-        <figcaption class="s-cap">관세환율(수입) 원/달러 · 주마다 · 이번 주 {day(D.asof)} {E.now.fx}원 · 52주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
+        <figcaption class="s-cap">관세환율(수입) 원/달러 · 주마다 · 이번 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
       </figure>
     </div>
     <div slot="controls" class="cost__ctl">
@@ -114,12 +114,13 @@ const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
   .cost__ctl { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
   .cost__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); }
   .cost__form label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
-  .cost__form input, .cost__form select { min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); font-variant-numeric: tabular-nums; }
+  .cost__form label { min-width: 0; }
+  .cost__form input, .cost__form select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); font-variant-numeric: tabular-nums; }
   .cost__wk { grid-column: 1 / -1; } .cost__wk input { padding: 0; accent-color: var(--s-signal); border: 0; }
   .cost__tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
   .cost__tbl th, .cost__tbl td { padding: 8px 6px; border-bottom: 1px solid var(--s-rule); text-align: right; font-weight: 500; }
   .cost__tbl th:first-child, .cost__tbl tbody th { text-align: left; color: var(--s-ink-2); }
   .cost__tbl thead th { font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .cost__tbl :global(tr.sum) td, .cost__tbl :global(tr.sum) th { font-weight: 700; color: var(--s-ink); border-bottom: 2px solid #191714; }
-  @media (max-width: 820px) { .cost__ctl { grid-template-columns: 1fr; } }
+  @media (max-width: 820px) { .cost__ctl { grid-template-columns: 1fr; } .cost__tbl { font-size: 14px; } .cost__tbl th, .cost__tbl td { padding: 7px 3px; } }
 </style>
