@@ -35,5 +35,23 @@
       "name": "stripe-press",
       "url": "https://press.stripe.com/"
     }
+  ],
+  "extract": false,
+  "pairs": [
+    {
+      "name": "home-vs-stripe-press",
+      "ours": "/lab/ds/index.html",
+      "ref": "https://press.stripe.com/"
+    },
+    {
+      "name": "beer-vs-ncase",
+      "ours": "/lab/ds/beer.html",
+      "ref": "https://ncase.me/"
+    },
+    {
+      "name": "map-vs-shipmap",
+      "ours": "/lab/ds/map.html",
+      "ref": "https://www.shipmap.org/"
+    }
   ]
 }
