@@ -79,6 +79,20 @@ jobs:
               echo "### $name — 추출 실패: $(tail -3 /tmp/err-$name.log | tr '\n' ' ' | cut -c1-300)" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
+      - name: 우리 면 조작 녹화(폰 판정용 · 390 세로·1440 가로 · 면마다 15초 안팎 mp4) + 첫 화면 PNG
+        if: hashFiles('tools-build/design-lab.json') != ''
+        run: |
+          set -o pipefail
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          node tests/capture/record-ds.mjs --out lab-out/ours | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: 우리 면 녹화 보관(기준 사이트 없음 · 14일)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-ours
+          path: lab-out/ours
+          retention-days: 14
+          if-no-files-found: warn
       - name: 화면 비교(같은 폭 나란히)
         continue-on-error: true
         run: |
