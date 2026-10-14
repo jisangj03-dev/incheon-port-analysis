@@ -28,7 +28,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   </div>
   <div id="ds-map" class="ds-map" role="img" aria-label={`인천 지도 — ${places.map((p) => p.id).join(", ")}`}></div>
   <div class="s-wrap" data-content="ds-map-foot">
-    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일){bathy && bmeta ? ` · 등심선 ${bmeta.title || bmeta.source}(${bmeta.institution || "출처 기관"} · ${bmeta.retrieved} 받음 · 격자 약 ${bmeta.resolution_arcsec}″ — 항해용 아님)` : " · 등심선 없음(수심 자료 라이선스 확인 전)"} · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
+    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일){bathy && bmeta ? ` · 등심선 ${bmeta.institution || ""} ${(String(bmeta.title || "").match(/(ETOPO[\w ]*?\d|GEBCO_?\d+|SRTM\w*)/) || [bmeta.source])[0]}(격자 ${bmeta.resolution_arcsec}″ · ${bmeta.retrieved} 받음 · 선을 부드럽게 다듬음 · 항해용 아님)` : " · 등심선 없음(수심 자료 라이선스 확인 전)"} · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
     <dl class="s-maker" data-maker-note style="margin-top:32px;max-width:46rem">
       <dt>왜</dt><dd data-note="why">인천을 지나는 화물이 어느 문으로 드나드는지, 표보다 먼저 자리로 보이게 하려고.</dd>
       <dt>어떻게</dt><dd data-note="how">공표 월별 처리량을 시설 면 중심점 위에 원 넓이로 얹었다. 바탕은 땅·물·해안선만 남겼다.</dd>

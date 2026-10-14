@@ -7,15 +7,23 @@ Actions(bathy.yml)에서만 돈다. 순서:
 검색 결과(ID 목록)는 요약에 남긴다 — 더 고운 격자를 찾으면 bathy.json candidates 에 올린다.
   python tools-build/bathy.py [--selftest]
 """
-import csv, io, json, os, re, sys, urllib.request, datetime
+import csv, io, json, os, re, sys, urllib.request, urllib.error, datetime
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-def get(url, timeout=60):
+def get(url, timeout=60, tries=3):
+    """503(서버 바쁨)은 잠깐 쉬고 다시 — 첫 실행에서 coastwatch 가 503 을 냈다(2026-10-14)."""
+    import time
     req = urllib.request.Request(url, headers={"User-Agent": "sounding-bathy/1 (+github actions)"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8", "replace")
+    for k in range(tries):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as ex:
+            if ex.code != 503 or k == tries - 1:
+                raise
+            time.sleep(5 * (k + 1))
 
 
 def das_attr(das, name):
@@ -45,6 +53,17 @@ def parse_grid(text, var):
     return lats, lons, z
 
 
+def chaikin(coords, n=2):
+    """모서리 깎기 두 번 — 격자 계단을 부드럽게(끝점 유지). 보기용이다 — 항해용 아님."""
+    for _ in range(n):
+        out = [coords[0]]
+        for (x0, y0), (x1, y1) in zip(coords, coords[1:]):
+            out += [[0.75 * x0 + 0.25 * x1, 0.75 * y0 + 0.25 * y1], [0.25 * x0 + 0.75 * x1, 0.25 * y0 + 0.75 * y1]]
+        out.append(coords[-1])
+        coords = out
+    return coords
+
+
 def contours(lats, lons, z, levels_m):
     import numpy as np
     import matplotlib
@@ -58,7 +77,7 @@ def contours(lats, lons, z, levels_m):
         for seg in cs.allsegs[0]:
             if len(seg) < 4:
                 continue
-            coords = [[round(float(x), 5), round(float(y), 5)] for x, y in seg]
+            coords = [[round(float(x), 5), round(float(y), 5)] for x, y in chaikin([[float(x), float(y)] for x, y in seg])]
             feats.append({"type": "Feature", "properties": {"depth": d, "kind": "coast" if d == 0 else "contour"},
                           "geometry": {"type": "LineString", "coordinates": coords}})
         plt.close("all")
@@ -109,7 +128,7 @@ def main():
     lats, lons, z = parse_grid(pick["text"], pick["var"])
     feats = contours(lats, lons, z, cfg["levels_m"])
     res = round((lats[-1] - lats[0]) / max(1, len(lats) - 1) * 3600, 1)
-    meta.update({"status": "contours", "source": pick["url"], "title": pick.get("title"), "institution": pick.get("institution"),
+    meta.update({"status": "contours", "smoothing": "chaikin x2 (보기용)", "source": pick["url"], "title": pick.get("title"), "institution": pick.get("institution"),
                  "license": pick["license"], "grid": [len(lats), len(lons)], "resolution_arcsec": res,
                  "levels_m": cfg["levels_m"], "features": len(feats)})
     gj = {"type": "FeatureCollection", "source": pick["url"], "license": pick["license"], "retrieved": today, "features": feats}
@@ -127,7 +146,9 @@ def selftest():
     assert not accepted("All rights reserved", ["public domain"])
     lats, lons, z = parse_grid("latitude,longitude,z\ndegrees_north,degrees_east,m\n37.0,126.0,-10\n37.0,126.1,5\n37.1,126.0,-20\n37.1,126.1,1\n", "z")
     assert lats == [37.0, 37.1] and lons == [126.0, 126.1] and z[1][0] == -20
-    print("selftest 4/4 ok")
+    sm = chaikin([[0, 0], [1, 0], [1, 1]], 1)
+    assert sm[0] == [0, 0] and sm[-1] == [1, 1] and len(sm) == 6, sm
+    print("selftest 5/5 ok")
     return 0
 
 

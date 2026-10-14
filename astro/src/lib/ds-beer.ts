@@ -38,7 +38,7 @@ function run(R: Rules, B: any) {
 
 // 선 다섯 — 수요(점선 · 먹 3) · 소매·도매·유통(바다 농도) · 공장(신호 한 색). 범례 상자 없이 끝점에 직접 이름.
 function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
-  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 220 : 300, L = 2, Rt = W < 600 ? 52 : 72, T = 12, Bt = 28, n = g.week;
+  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 300, L = 2, Rt = W < 600 ? 52 : 72, T = 12, Bt = 28, n = g.week;
   const fs = W < 600 ? 12 : 15;
   const x = (i: number) => L + (i * (W - L - Rt)) / Math.max(1, n - 1);
   const y = (v: number) => H - Bt - (v * (H - T - Bt)) / ymax;
