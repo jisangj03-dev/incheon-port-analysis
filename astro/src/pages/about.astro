@@ -38,7 +38,7 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
       <dl class="cv">
         {P.education && P.education.length > 0 && <div><dt>학업</dt><dd>{P.education.map((e) => <p><b>{e.school}</b> {e.major} <span class="s-cap">{e.status}</span></p>)}</dd></div>}
         <div><dt>자격</dt><dd><ul class="cv-q">{P.credentials.map((q) => <li>{q}</li>)}</ul>{P.credentials_note && <p class="s-cap">{P.credentials_note}</p>}</dd></div>
-        {P.writing.length > 0 && <div><dt>기고</dt><dd>{P.writing.map((w) => <p>{w.url ? <a href={w.url} rel="noopener">{w.title}</a> : w.title} <span class="s-cap">{w.when}</span></p>)}</dd></div>}
+        {P.writing.length > 0 && <div><dt>기고</dt><dd>{P.writing.map((w) => <p>{w.outlet && <>{w.outlet} 기고 </>}{w.url ? <a href={w.url} rel="noopener">「{w.title}」</a> : `「${w.title}」`} <span class="s-cap">{w.when}</span></p>)}</dd></div>}
         <div><dt>하는 일</dt><dd><p>공공 1차 데이터 수집·검증 · 물동량·교역 분석 · 수요예측 · 공급망 시뮬레이션 · 지도·차트 · AI 로 돌리는 분석 운영</p></dd></div>
       </dl>
     </section>

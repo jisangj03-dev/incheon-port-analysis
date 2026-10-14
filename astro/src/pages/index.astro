@@ -79,7 +79,7 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
     </Scene>
 
     <Scene kind="text" id="about" title="소개">
-      <p class="s-lead s-prose">{PF.name} · {PF.affiliation}. {PF.credentials.join(" · ")}{PF.writing.length > 0 && ` · ${PF.writing.map((w) => w.title).join(" · ")}`}.</p>
+      <p class="s-lead s-prose">{PF.name} · {PF.affiliation}. {PF.credentials.join(" · ")}{PF.writing.length > 0 && <> · {PF.writing.map((w) => w.url ? <a href={w.url} rel="noopener">{w.outlet ? `${w.outlet} 기고` : w.title}</a> : (w.outlet ? `${w.outlet} 기고` : w.title))}</>}.</p>
       <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다. <a href={u("/about.html")}>소개 더 보기</a></p>
       <Contact />
     </Scene>
