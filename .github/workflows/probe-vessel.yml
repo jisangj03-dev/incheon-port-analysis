@@ -1,0 +1,33 @@
+# 선박 입출항 원천 구조 확인(2026-10-14 · 정체성 §3-3 착수 조건) — 응답의 항만·선종 이름과 개수만 찍는다. 키는 찍지 않는다.
+name: probe-vessel
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 원천 구조(키 없이 요약만)
+        env:
+          KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os, json, urllib.request, urllib.parse, collections
+          key = os.environ["KEY"]
+          base = "https://apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM"
+          for ym in ("202608", "202508"):
+              q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym, "type": "json"}, safe="%")
+              try:
+                  raw = urllib.request.urlopen(f"{base}?{q}", timeout=60).read().decode("utf-8", "replace")
+              except Exception as ex:
+                  print(ym, "오류", type(ex).__name__); continue
+              try:
+                  j = json.loads(raw); items = j["response"]["body"]["items"]["item"]
+              except Exception:
+                  print(ym, "json 아님 — 앞 200자(키 없음 확인용 아님):", raw[:200].replace(key, "***")); continue
+              items = items if isinstance(items, list) else [items]
+              print(ym, "행", len(items), "열", sorted(items[0].keys()) if items else [])
+              print(" 항만·선종:", collections.Counter((i.get("prtAgNm"), i.get("nm")) for i in items).most_common(40))
+          PY
