@@ -207,7 +207,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       `<dt>전국 대비</dt><dd>수입 ${m.imp_share_pct}% · 수출 ${m.exp_share_pct}%</dd>`;
   };
   const openPanel = (open: boolean) => { $("fm-panel").hidden = !open; $("fm-gates").setAttribute("aria-expanded", String(open)); };
-  $("fm-gates").addEventListener("click", () => openPanel($("fm-panel").hidden));
+  $("fm-gates").addEventListener("click", () => openPanel($("fm-panel").hidden === true));
   $("fm-x").addEventListener("click", () => openPanel(false));
   addEventListener("keydown", (e) => { if (e.key === "Escape") openPanel(false); });
 
