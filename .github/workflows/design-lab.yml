@@ -83,12 +83,15 @@ jobs:
         continue-on-error: true
         run: |
           # pairs 가 있으면 시안 면(로컬 빌드) ↔ 기준 사이트, 없으면 공개 실물 ↔ 각 대상
+          # 한 쌍이 실패해도 나머지는 찍고, 실패는 요약에 적는다(tee 가 종료 코드를 삼키지 않게 pipefail)
+          set -o pipefail
           node -e "
             const d=require('./tools-build/design-lab.json');
             const L='http://127.0.0.1:4173/incheon-port-analysis';
             const rows=(d.pairs&&d.pairs.length)?d.pairs.map(p=>[p.name,L+p.ours,p.ref]):d.targets.map(t=>[t.name,d.ours,t.url]);
             for (const r of rows) console.log(r.join(' '));" | while read -r name ours ref; do
-            node tests/capture/compare.mjs --ours "$ours" --ref "$ref" --out lab-out/compare --name "$name" | tee -a "$GITHUB_STEP_SUMMARY"
+            node tests/capture/compare.mjs --ours "$ours" --ref "$ref" --out lab-out/compare --name "$name" | tee -a "$GITHUB_STEP_SUMMARY" \
+              || echo "### $name — 캡처 실패(작업 로그 참조)" | tee -a "$GITHUB_STEP_SUMMARY"
           done
       - uses: actions/upload-artifact@v4
         with:

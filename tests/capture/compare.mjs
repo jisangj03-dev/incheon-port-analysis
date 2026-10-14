@@ -37,7 +37,9 @@ for (const w of widths) {
     .map((s) => `<figure style="margin:0;width:${w}px"><figcaption style="height:40px;line-height:40px;padding:0 8px">${s.label} · ${w}px · ${s.status ?? s.err ?? "?"}</figcaption>${s.b64 ? `<img src="data:image/png;base64,${s.b64}" style="display:block;width:${w}px">` : "<p>찍지 못함</p>"}</figure>`)
     .join("")}</body>`);
   const file = join(out, `${name}-${w}.png`);
-  await page.screenshot({ path: file, fullPage: true });
+  // 큰 data: 이미지가 다 풀리기 전에 찍으면 「Unable to capture screenshot」이 난다(2026-10-14 run 38514859590) — 풀림을 기다리고 한 번 더 찍는다
+  await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 15_000 });
+  await page.screenshot({ path: file, fullPage: true }).catch(() => page.waitForTimeout(1000).then(() => page.screenshot({ path: file, fullPage: true })));
   await page.close();
   report.push({ width: w, file, shots: shots.map(({ b64, ...r }) => r) });
 }
