@@ -117,6 +117,7 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 20_000 }); // 한 장면이 와야 바뀐다 — CI 에서는 몇 초
   // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
   await page.locator("[data-view=incheon]").click();
+  await page.evaluate(() => { window.__fm.t += 4; }); // 비행 3.2초를 지도 시계로 넘긴다 — 한 장면만 그려지면 도착(CI 는 장면 간격이 2초 넘게 벌어져 25초로도 못 기다렸다 · QA 116)
   // 비행은 지도 시계(장면마다 많아야 0.25초)로 3.2초 — 소프트웨어 렌더 + 병렬 시험 부하에서는 벽시계로 10초 넘게 걸린다(2026-10-14 실측)
   await expect.poll(async () => (await st()).zoom, { timeout: 25_000 }).toBeGreaterThan(8);
   await page.locator("#fm-gates").click();
