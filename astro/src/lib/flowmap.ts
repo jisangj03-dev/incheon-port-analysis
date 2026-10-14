@@ -38,6 +38,8 @@ type Data = {
   world: number[][];
   near: { bbox: number[]; land: number[][]; road: number[][]; ct: number[][] };
   flows: any;
+  /** 세계은행 선박 밀도(2015~2021 누적) — 칸 중심 경위도·세기(1~255) · 없으면 층을 안 그린다 */
+  density?: { pts: number[]; period: string } | null;
 };
 type Leg = { pts: Float32Array; n: number; dur: number };
 const DT = 1 / 30; // 경로 표본 간격(초)
@@ -130,6 +132,7 @@ export class FlowMap {
   arrive: Float32Array = new Float32Array(8); // 관문별 최근 도착(고리 반짝임)
   tour: { from: Cam; to: Cam; t0: number; dur: number } | null = null;
   touring = false; tourStep = 0; tourT = 0; views: Record<string, Cam> = VIEWS;
+  private dX = new Float32Array(0); private dY = new Float32Array(0); private dV = new Uint8Array(0); private dPh = new Float32Array(0);
   private wR: { r: number[]; bb: number[] }[] = []; private nR: number[][] = []; private rdR: number[][] = []; private ctR: number[][] = [];
 
   constructor(cv: HTMLCanvasElement, data: Data, o: Opts, cam: Cam) {
@@ -140,6 +143,12 @@ export class FlowMap {
     const tm = (r: number[]) => { const o: number[] = []; for (let i = 0; i < r.length; i += 2) o.push(mx(r[i]), my(r[i + 1])); return o; };
     this.wR = data.world.map((r) => { const m = tm(r); let a = 9, b = 9, c = -9, d = -9; for (let i = 0; i < m.length; i += 2) { a = Math.min(a, m[i]); c = Math.max(c, m[i]); b = Math.min(b, m[i + 1]); d = Math.max(d, m[i + 1]); } return { r: m, bb: [a, b, c, d] }; });
     this.nR = data.near.land.map(tm); this.rdR = data.near.road.map(tm); this.ctR = data.near.ct.map(tm);
+    // 밀도 칸 — 가벼운 판은 세기 순으로 앞쪽만(그리는 점 수 상한)
+    if (data.density?.pts?.length) {
+      const P = data.density.pts, n = P.length / 3, cap = o.lite ? 2600 : 7000, idx = Array.from({ length: n }, (_, i) => i).sort((a, b) => P[b * 3 + 2] - P[a * 3 + 2]).slice(0, cap);
+      this.dX = new Float32Array(idx.length); this.dY = new Float32Array(idx.length); this.dV = new Uint8Array(idx.length); this.dPh = new Float32Array(idx.length);
+      idx.forEach((i, k) => { this.dX[k] = mx(P[i * 3]); this.dY[k] = my(P[i * 3 + 1]); this.dV[k] = P[i * 3 + 2]; this.dPh[k] = ((P[i * 3] * 97.3 + P[i * 3 + 1] * 51.7) % 1 + 1) % 1; });
+    }
     // 관문 — 바다 셋(부두군) + 하늘 하나
     for (const g of F.sea_gates) this.gates.push({ id: g.id, lon: g.lon, lat: g.lat, kind: "sea" });
     this.gates.push({ id: F.air_gate.id, lon: F.air_gate.lon, lat: F.air_gate.lat, kind: "air" });
@@ -257,6 +266,20 @@ export class FlowMap {
       ctx.beginPath(); for (const r of this.nR) ringPath(r, true); ctx.fillStyle = "#e7dfcc"; ctx.fill();
       ctx.lineWidth = 0.7; ctx.strokeStyle = "#ddd4bf"; ctx.beginPath(); for (const r of this.ctR) ringPath(r, false); ctx.stroke();
       ctx.lineWidth = 1; ctx.strokeStyle = "#d3c7ad"; ctx.beginPath(); for (const r of this.rdR) ringPath(r, false); ctx.stroke();
+    }
+    // 선박 밀도 「빛줄기」(세계은행 2015~2021 누적) — 세기 넷으로 나눠 한 번씩 칠하고, 칸마다 다른 위상으로 천천히 숨 쉰다(움직이는 배가 아니다)
+    if (this.dX.length) {
+      const now = performance.now() / 1000, sz = near ? 2.6 : 1.7;
+      for (const [lo, hi, a] of [[1, 90, 0.10], [90, 150, 0.18], [150, 205, 0.30], [205, 256, 0.46]] as const) {
+        ctx.beginPath();
+        for (let k = 0; k < this.dX.length; k++) {
+          const v = this.dV[k]; if (v < lo || v >= hi) continue;
+          P(this.dX[k], this.dY[k], 0, o); if (o[0] < -4 || o[0] > W + 4 || o[1] < -4 || o[1] > H + 4) continue;
+          const s2 = sz * (0.85 + 0.3 * Math.sin(now * 1.3 + this.dPh[k] * 6.283));
+          ctx.rect(o[0] - s2 / 2, o[1] - s2 / 2, s2, s2);
+        }
+        ctx.fillStyle = `rgba(52,84,98,${a})`; ctx.fill();
+      }
     }
     // 길(옅게) — 먼 길은 나라마다 한 줄(신항·공항만), 가까운 길은 목적지마다
     ctx.lineWidth = 1; ctx.strokeStyle = "rgba(25,23,20,0.10)"; ctx.beginPath();

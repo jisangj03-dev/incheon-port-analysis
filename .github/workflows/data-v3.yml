@@ -46,7 +46,7 @@ jobs:
             portwatch) python portwatch.py && python pulse_derive.py ;;
             density) python ship_density.py ;;
             osm) python osm_iso.py ;;
-            apis) python kr_apis.py && python race_derive.py ;;
+            apis) python kr_apis.py && python race_derive.py && python fx_derive.py ;;
             s2) python s2_anchorage.py --months 12 ;;
           esac 2>&1 | tee /tmp/log.txt
           echo "## ${{ matrix.job }}" >> "$GITHUB_STEP_SUMMARY"; tail -40 /tmp/log.txt >> "$GITHUB_STEP_SUMMARY"

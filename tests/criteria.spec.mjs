@@ -65,7 +65,7 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
 test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · 크몽·셀러 입구 0", async ({ page }) => {
   await watch(page);
   await page.goto(`${BASE}/`);
-  await expect(page.locator("header.s-mast nav a")).toHaveText(["지도", "시뮬레이션", "노트", "소개"]);
+  await expect(page.locator("header.s-mast nav a")).toHaveText(["지도", "도구", "노트", "소개"]);
   const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
   const vh = page.viewportSize().height;
   const lead = page.locator(".live__who");
@@ -81,7 +81,7 @@ test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · �
 });
 
 test("기존 주소 유지 — 옛 목록·입구·크몽 주소는 살아 있고 새 자리로 넘긴다", async ({ page }) => {
-  const MOVED = { "/reports/": "/notes.html", "/tools/": "/sim/", "/for/pro.html": "/", "/for/press.html": "/", "/for/student.html": "/", "/go/kmong-829076.html": "/", "/go/kmong-824011.html": "/" };
+  const MOVED = { "/reports/": "/notes.html", "/for/pro.html": "/", "/for/press.html": "/", "/for/student.html": "/", "/go/kmong-829076.html": "/", "/go/kmong-824011.html": "/" };
   for (const [from, to] of Object.entries(MOVED)) {
     const html = await (await page.request.get(`${BASE}${from}`)).text();
     expect(html, from).toContain(`url=${BASE}${to}"`);

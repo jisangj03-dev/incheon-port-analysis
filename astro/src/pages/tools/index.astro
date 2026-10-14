@@ -1,5 +1,32 @@
 ---
-// 옛 셀러 도구 목록(/tools/) — 정체성 전환(2026-10-14)으로 셀러 입구를 뺐다. 계산기 주소(/tools/logistics-cost.html 등)는 그대로 열린다(§3-6).
-import Redirect from "../../layouts/Redirect.astro";
+// 도구(구조 넷 ② · 2026-10-14 선장님 최종 위임 — 「시뮬레이션」 자리를 실무 도구가 받는다) — 실무 질문 하나 = 도구 하나.
+// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기(/tools/logistics-cost.html 등)는 주소만 열려 있다(메뉴 밖).
+// [바뀐 것] 종전 이 주소는 /sim/ 으로 돌려보내는 리디렉트였다 — 발행 주소를 바꾸지 않고 내용을 도구 목록으로 채웠다.
+import Studio from "../../layouts/Studio.astro";
+import { room } from "../../lib/rooms";
+import { u } from "../../lib/site";
+const R = room("tools"), S = room("sim");
 ---
-<Redirect path="/tools/" to="/sim/" label="시뮬레이션" why="도구 목록은 시뮬레이션 지면으로 옮겼습니다 — 계산기 주소는 그대로입니다." />
+<Studio title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
+  <article class="s-wrap hub" data-content="tools">
+    <p class="s-cap">도구</p>
+    <h1 class="s-prose">{R.title}</h1>
+    <p class="s-lead s-prose">{R.lead} 모든 도구는 공공 1차 데이터로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
+    <ol class="s-index">
+      {(R.items || []).map((r: any) => <li><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
+    </ol>
+    <section class="aux">
+      <h2 class="s-cap">보조 · {S.title}</h2>
+      <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
+    </section>
+  </article>
+</Studio>
+<style>
+  .hub { padding-top: var(--s-8); padding-bottom: var(--s-6); }
+  .hub h1 { margin: var(--s-3) 0 var(--s-4); }
+  .hub .s-index { margin-top: var(--s-7); }
+  .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
+  .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
+  .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }
+  .aux a { min-height: 44px; display: inline-flex; align-items: center; }
+</style>

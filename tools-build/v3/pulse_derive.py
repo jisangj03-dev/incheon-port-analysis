@@ -12,6 +12,25 @@ TYPES = [("container", "컨테이너"), ("dry_bulk", "건화물"), ("general_car
 KO = {"Incheon": "인천", "Busan": "부산", "Pyeongtaek": "평택"}
 RECENT, BASE, THR = 7, 91, 10.0
 KEEP = 365
+MOF = os.path.join(ROOT, "data/derived/vessel_replay.json")
+MOF_NAME = {"Incheon": "인천", "Busan": "부산", "Pyeongtaek": "평택.당진"}
+ODD = 25.0  # 해수부 대조 문턱 — PortWatch 월합 ÷ 해수부 외항 입항이 최근 6달 비율 중앙값에서 25% 넘게 벗어난 달. 데이터를 본 뒤 정했다(선커밋 §4 덧붙임)
+
+
+def mof_check(name, days):
+    """해양수산부 항만별 외항선 입항(월 · 공식 통계)과 PortWatch 월합을 견준다 — 원천의 수집 변동을 잡는다(2026-10-14: 인천 2026-03·04 급감 · 평택 2026-05~ 배증이 해수부에는 없었다)."""
+    if not os.path.exists(MOF): return None
+    V = json.load(open(MOF, encoding="utf-8")); ser = V["ocean_arrivals"].get(MOF_NAME.get(name, ""))
+    if not ser: return None
+    mof = dict(zip(V["months"], ser)); pw = {}
+    for x in days: pw[x["d"][:7]] = pw.get(x["d"][:7], 0) + x["calls"]
+    full = {m for m in pw if sum(1 for x in days if x["d"][:7] == m) >= 28}
+    rows = [{"ym": m, "pw": pw[m], "mof": mof[m], "ratio": round(pw[m] / mof[m], 3)} for m in sorted(full) if mof.get(m)]
+    if len(rows) < 6: return None
+    # 기준 = 최근 6개 온전한 달의 비율 중앙값 — 「평소」 판정이 쓰는 지금 구간의 수집 수준(지난 구간 전체 중앙값은 평택처럼 수준이 바뀐 항만에서 엉뚱한 쪽을 기준으로 삼았다)
+    rs = sorted(r["ratio"] for r in rows[-6:]); med = rs[len(rs) // 2]
+    for r in rows: r["odd"] = abs(r["ratio"] / med - 1) * 100 > ODD
+    return {"median_ratio": med, "threshold_pct": ODD, "months": rows, "odd": [r["ym"] for r in rows if r["odd"]], "mof_source": "해양수산부 항만별 선박입출항실적(외항 · 월)"}
 
 
 def series(rows):
@@ -47,7 +66,7 @@ def derive(src, qual):
         if name not in KO: continue
         s = series(rows)
         if not s: continue
-        ports[name] = {"ko": KO[name], "judge": judge(s), "days": s[-KEEP:]}
+        ports[name] = {"ko": KO[name], "judge": judge(s), "check": mof_check(name, s), "days": s[-KEEP:]}
     inc = ports.get("Incheon")
     if not inc or not inc["judge"]: return None
     return {"_설명": "IMF PortWatch 일별 입항(AIS 기반 추정) — 인천·부산·평택. 「평소」 = 최근 7일 ÷ 그 앞 91일(선커밋 §4). 교역량은 모델 추정치(톤).",

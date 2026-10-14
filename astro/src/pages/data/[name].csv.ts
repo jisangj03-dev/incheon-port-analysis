@@ -34,6 +34,36 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       인천_수입_전국비중_pct: m.imp_share_pct, 인천_수출_전국비중_pct: m.exp_share_pct, 신항_천TEU: m.teu?.["신항"] ?? "", 남항_천TEU: m.teu?.["남항"] ?? "", 국제여객부두_천TEU: m.teu?.["국제여객부두"] ?? "" })),
       note: `관세청 항구·공항별 수출입실적 · 인천지방해양수산청 항만운영통계 · 계산 tools-build/flows_derive.py · ${F.made}` };
   },
+  // 위성으로 본 묘박지 — 달마다 고른 장면 · 배 어림
+  anchorage: () => {
+    const S = J("data/derived/s2_anchorage.json");
+    return { rows: S.frames.map((f: any) => ({ 날짜: f.date, 장면: f.scene, 타일구름_pct: f.tile_cloud_pct, 창구름_pct: f.aoi_cloud_pct, 배_어림: f.ships_seen, 신뢰낮음: f.low_confidence ? 1 : 0 })),
+      note: `Contains modified Copernicus Sentinel data · ${S.method} · 계산 tools-build/v3/s2_anchorage.py · ${S.made}` };
+  },
+  // 인천항 일일 맥박 — 항만 × 날(입항 척수 · 선종별 · 추정 교역량 톤)
+  "port-pulse": () => {
+    const D = J("data/derived/port_pulse.json");
+    return { rows: Object.values(D.ports).flatMap((p: any) => p.days.map((x: any) => ({ 항만: p.ko, 날짜: x.d, 입항_척: x.calls, ...Object.fromEntries(D.types.map((t: any) => [`${t.ko}_척`, x[t.id]])), 추정수입_톤: x.imp, 추정수출_톤: x.exp }))),
+      note: `IMF PortWatch(AIS 기반 추정 · 비상업 이용) · ${D.asof} 기준 · 평소 = 직전 91일 · 계산 tools-build/v3/pulse_derive.py` };
+  },
+  // 환율 파도 · 수입원가 — 주 × 통화(관세청 관세환율 · 수입)
+  "import-cost": () => {
+    const D = J("data/derived/import_cost.json");
+    return { rows: D.weeks.map((w: any[]) => Object.fromEntries([["적용개시일", w[0]], ...D.currencies.map((c: string, i: number) => [`${c}_원`, w[i + 1]])])),
+      note: `${D.source} · JPY 는 1엔당 · 계산 tools-build/v3/fx_derive.py · 참고용 · 자문 아님` };
+  },
+  // 품목 트리맵 레이스 — 해 × HS 2단위(인천 소재 기업 · 백만 달러)
+  "trade-race": () => {
+    const D = J("data/derived/trade_race.json");
+    return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
+      note: `${D.source} · 사업장 소재지(인천) 기준 · 계산 tools-build/v3/race_derive.py` };
+  },
+  // 수도권 배송 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
+  "delivery-reach": () => {
+    const I = J("data/derived/isochrones.json");
+    return { rows: I.origins.flatMap((o: any) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 도착_분: m ?? "" }))),
+      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정 · 혼잡 미반영 · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
+  },
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);
@@ -52,8 +82,9 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   },
 };
 
+// 원천 파일이 아직 없는 표(수집 워크플로가 만들 것)는 빼고 낸다 — 없는 파일로 빌드가 깨지지 않게
 export function getStaticPaths() {
-  return Object.keys(DATA).map((name) => ({ params: { name } }));
+  return Object.keys(DATA).filter((name) => { try { DATA[name](); return true; } catch { return false; } }).map((name) => ({ params: { name } }));
 }
 
 const cell = (v: unknown) => { const s = v === null || v === undefined ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };

@@ -10,11 +10,14 @@ import { u } from "../../lib/site";
 import { profile } from "../../lib/profile";
 import { sourceLine } from "../../lib/sources";
 import Contact from "../scene/Contact.astro";
+import { room } from "../../lib/rooms";
 import Trust from "../scene/Trust.astro";
 
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
 const PF = profile();
+// 관문 → 실무 도구(rooms.json tools 방 · gate 칸이 있는 것만) — 관문을 누르면 이어지는 도구
+const TOOLS = ((room("tools")?.items || []) as any[]).filter((t) => t.gate);
 const L = F.months[F.months.length - 1];
 
 // ── 정지 그림(같은 카메라 · 그림 파일로 따로 · lib/home-poster.ts) — 인천 고리는 HTML 로 얹어 CSS 로만 숨 쉰다(SVG 안 움직임은 주 스레드를 쓴다)
@@ -42,7 +45,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <p class="live__ym"><span id="fm-ym">{L.ym}</span> <span class="live__unit">인천 관문을 지난 수출입</span></p>
     <p class="live__total"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span></p>
     <p class="live__split"><span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></p>
-    <p class="live__legend">월 통계를 흐름으로 그린 것 — 실시간 위치가 아닙니다 · <span id="fm-unit">점 하나 ≈ 1억 달러</span></p>
+    <p class="live__legend">월 통계를 흐름으로 그린 것 — 실시간 위치가 아닙니다 · <span id="fm-unit">점 하나 ≈ 1억 달러</span><span id="fm-dens" hidden> · 옅은 푸른 결 = 세계은행 선박 밀도(2015~2021 누적)</span></p>
   </div>
   <div class="live__ctl" role="group" aria-label="지도 보기">
     <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
@@ -60,6 +63,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       <dt>전국 대비</dt><dd>수입 {L.imp_share_pct}% · 수출 {L.exp_share_pct}%</dd>
     </dl>
     <p class="s-cap">나라 비중(전국 · {F.partner_months[0]}~{F.partner_months[F.partner_months.length - 1]} · 10개국 안)</p>
+    {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)}><b>{t.title}</b><span>{t.q}</span></a></li>)}</ul></>}
     <ol class="live__bars">
       {F.partners.slice(0, 6).map((p: any) => <li><span>{p.name}</span><i style={`--w:${p.imp_pct}%`}></i><b>수입 {p.imp_pct}%</b></li>)}
     </ol>
@@ -67,7 +71,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   </div>
 
   <div class="s-wrap live__foot">
-    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 나라 비중은 전국 기준을 두 관문에 같은 비율로 나눴고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘 다 <b>가정</b>입니다. 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
+    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 나라 비중은 전국 기준을 두 관문에 같은 비율로 나눴고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘 다 <b>가정</b>입니다. 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
   </div>
   <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>
@@ -129,6 +133,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   async function boot() {
     const D = await fetch((window as any).__fmsrc).then((r) => r.json());
     (window as any).__fmdata = D;
+    if (D.density) document.getElementById("fm-dens")!.hidden = false;
     const F = D.flows;
     const unit = lite ? 1 : 0.4;
     const views = cv.clientWidth < 760 || cv.clientWidth / cv.clientHeight < 1.1 ? VIEWS_M : VIEWS;
@@ -269,6 +274,9 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__x { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; border: 0; background: none; font-size: 22px; cursor: pointer; color: var(--s-ink-2); }
   .live__dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 14px; font-variant-numeric: tabular-nums; }
   .live__dl dt { color: var(--s-ink-2); font-size: 13px; } .live__dl dd { margin: 0; font-size: 14px; } .live__dl small { color: var(--s-ink-3); margin-left: 4px; }
+  .live__tools { list-style: none; padding: 0; margin: 4px 0 14px; display: grid; gap: 6px; }
+  .live__tools a { display: grid; gap: 1px; min-height: 44px; padding: 6px 0; border-bottom: 1px solid var(--s-rule); text-decoration: none; }
+  .live__tools b { color: var(--s-signal); font-size: 14px; } .live__tools span { color: var(--s-ink-2); font-size: 13px; }
   .live__bars { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 4px; font-size: 13px; }
   .live__bars li { display: grid; grid-template-columns: 4.5em 1fr auto; align-items: center; gap: 8px; }
   .live__bars i { display: block; height: 6px; width: var(--w); background: var(--s-signal); border-radius: 1px; }
