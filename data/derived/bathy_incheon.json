@@ -9,102 +9,43 @@
  "tried": [
   {
    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
-   "error": "HTTP Error 503: "
+   "error": "HTTP Error 403: "
+  },
+  {
+   "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
+   "error": "HTTP Error 403: "
+  },
+  {
+   "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus",
+   "error": "HTTP Error 403: "
   },
   {
    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/etopo180",
-   "error": "HTTP Error 503: "
+   "error": "HTTP Error 403: "
   },
   {
    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
-   "error": "HTTP Error 404: "
+   "error": "HTTP Error 403: "
+  },
+  {
+   "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
+   "error": "HTTP Error 403: "
+  },
+  {
+   "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/srtm15plus",
+   "error": "HTTP Error 403: "
   },
   {
    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/etopo180",
-   "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
-   "institution": "NOAA NGDC",
-   "title": "Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
-   "accepted": true
+   "error": "HTTP Error 403: "
   }
  ],
  "search": [
-  "https://coastwatch.pfeg.noaa.gov/erddap · ETOPO_2022_v1_15s · ETOPO_2022_v1_15s",
-  "https://coastwatch.pfeg.noaa.gov/erddap · ETOPO_2022_v1_15s_Lon0360 · ETOPO_2022_v1_15s, Lon0360",
-  "https://coastwatch.pfeg.noaa.gov/erddap · etopo180 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · etopo360 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude 0 to 360), (Ice Sheet Surface)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopoSeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO (US West Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopo22SeafloorGradient_Atlantic · Estimated Seafloor Depth Gradients: ETOPO-22 (US Atlantic Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopo22SeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO-22 (US West Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · GEBCO_2020 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
-  "https://coastwatch.pfeg.noaa.gov/erddap · GEBCO_2020_Lon0360 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals, Lon0360",
-  "https://coastwatch.pfeg.noaa.gov/erddap · srtm15plus · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
-  "https://coastwatch.pfeg.noaa.gov/erddap · srtm30plus · SRTM30_PLUS Estimated Topography, 30 seconds, Global, v11",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_d374_30ba_3613 · ETOPO Global Topography and Bathymetry. ETOPO1 Bed g gmt4 (ETOPO1_Bed_g.int), 0.016666668°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_8ee6_e652_1983 · ETOPO Global Topography and Bathymetry. ETOPO1 Ice g gmt4 (ETOPO1_Ice_g.int), 0.016666668°",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_bedrock · ETOPO1 Global Surface Relief: Bedrock",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_bedrock_lon360 · ETOPO1 Global Surface Relief: Bedrock, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_ice · ETOPO1 Global Surface Relief: Ice Surface",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_ice_lon360 · ETOPO1 Global Surface Relief: Ice Surface, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo5 · ETOPO5 Global Surface Relief",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo5_lon180 · ETOPO5 Global Surface Relief, Lon+/-180",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo180 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
-  "https://upwell.pfeg.noaa.gov/erddap · erdEtopoSeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO (US West Coast)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_91bc_1651_cd5d · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_0ca0_5960_4a1a · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_eee4_d57f_de51 · British Columbia, Canada Tsunami Forecast Grids for MOST Model",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_d6e2_0c5b_7c4c · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_6b8b_152b_0d69 · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c73f_4ea1_092c · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_95e8_6a6d_e070 · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_40dc_3927_f620 · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_1ad6_1a0a_5221 · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_4be8_724d_bc40 · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_a60c_31d7_712e · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_4e62_6ad9_218e · British Columbia, Canada Tsunami Forecast Grids for MOST Model (BritishColumbia B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_958f_7e24_cc14 · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK A), 0.01°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_426e_5fd1_20bf · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_5617_d2d2_48f1 · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c617_09ef_7c63 · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_53a1_8f39_320e · British Columbia, Canada Tsunami Forecast Grids for MOST Model (BritishColumbia A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_067d_fc5c_ae4b · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_2791_7ae2_0cb7 · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_1e8a_ad1b_86f8 · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_9abf_2a28_dd9e · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_f834_575a_0ca7 · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK A), 0.033333335°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_8128_0f22_61b4 · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK B), 0.0033333334°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_681e_d222_ecae · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK C), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c71a_e2d5_c731 · British Columbia 3 arc-second Bathymetric Digital Elevation Model (british columbia 3 msl 2013), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_ab94_d3bf_2a16 · Wake Island Coastal Digital Elevation Model (wake island 13 mhw 2009), 9.259259E-5°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_3a14_d50b_70dc · Wake Island Coastal Digital Elevation Model (wake island 3 mhw 2009), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_bbd9_21a7_0755 · Adak, Alaska Coastal Digital Elevation Model (adak 1 mhw 2009), 2.7777778E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · GEBCO_2020 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
-  "https://upwell.pfeg.noaa.gov/erddap · GEBCO_2020_Lon0360 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_28c7_6c52_679a · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_bba0_890c_823f · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_5386_5610_ad54 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_abea_d38a_7819 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA C)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm15plus · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_93ec_b953_6845 · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda B)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm30plus · SRTM30_PLUS Estimated Topography, 30 seconds, Global, v11",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_96ed_b118_e5e1 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA B)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm15plus_Lon0360 · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1, Lon0360"
+  "https://coastwatch.pfeg.noaa.gov/erddap · 검색 실패 etopo: HTTP Error 403: ",
+  "https://coastwatch.pfeg.noaa.gov/erddap · 검색 실패 gebco: HTTP Error 403: ",
+  "https://upwell.pfeg.noaa.gov/erddap · 검색 실패 etopo: HTTP Error 403: ",
+  "https://upwell.pfeg.noaa.gov/erddap · 검색 실패 gebco: HTTP Error 403: "
  ],
- "status": "contours",
- "source": "https://upwell.pfeg.noaa.gov/erddap/griddap/etopo180",
- "title": "Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
- "institution": "NOAA NGDC",
- "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
- "grid": [
-  35,
-  49
- ],
- "resolution_arcsec": 60.0,
- "levels_m": [
-  5,
-  10,
-  20,
-  30,
-  50
- ],
- "features": 43
+ "status": "coast-only",
+ "why": "라이선스 문구가 accept 에 맞는 격자를 받지 못했다 — 등심선을 만들지 않는다"
 }
