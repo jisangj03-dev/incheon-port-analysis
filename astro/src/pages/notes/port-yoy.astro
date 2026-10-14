@@ -1,11 +1,11 @@
 ---
 // 시안 ④ 노트 한 장 — 자라는 노트(디지털 가든 원리: 단계 · 심은 날/고친 날 · 이어지는 노트 · 되짚는 노트).
 // 단계·연결은 콘텐츠 목록(data/rooms.json)이 들고, 날짜는 git 기록에서 자동. 숫자는 데이터 파일에서만(정체성 §2-1).
-import Studio from "../../../layouts/Studio.astro";
-import Trust from "../../../components/scene/Trust.astro";
-import { notes, STAGES } from "../../../lib/rooms";
-import { portMonthly } from "../../../lib/data";
-import { u } from "../../../lib/site";
+import Studio from "../../layouts/Studio.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { notes, STAGES } from "../../lib/rooms";
+import { portMonthly } from "../../lib/data";
+import { u } from "../../lib/site";
 
 const N = notes();
 const me = N.find((n) => n.id === "note-port-yoy")!;

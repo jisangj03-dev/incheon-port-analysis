@@ -1,15 +1,15 @@
 ---
 // 공급망 따라가기(정체성 §3-2) — 전기기기(HS 85) 하나가 해외에서 인천을 거쳐 수도권으로. 해도는 멈춰 있고(첫 화면 = 정지 그림) 스크롤이 단계를 넘긴다.
 // 숫자 = data/derived/supply_hs85.json(tools-build/supply_derive.py 가 원천 CSV 에서 계산) · 원천 없는 구간은 「이 구간 데이터 없음」(S1).
-import Studio from "../../../layouts/Studio.astro";
-import Haedo from "../../../components/scene/Haedo.astro";
-import Trust from "../../../components/scene/Trust.astro";
-import { mapSeries } from "../../../lib/data";
-import { route } from "../../../lib/rooms";
-import { u } from "../../../lib/site";
-import { curve, px, py } from "../../../lib/haedo-geo";
-import { sourceLine } from "../../../lib/sources";
-import { lastUpdated, repoRoot } from "../../../lib/content";
+import Studio from "../../layouts/Studio.astro";
+import Haedo from "../../components/scene/Haedo.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { mapSeries } from "../../lib/data";
+import { route } from "../../lib/rooms";
+import { u } from "../../lib/site";
+import { curve, px, py } from "../../lib/haedo-geo";
+import { sourceLine } from "../../lib/sources";
+import { lastUpdated, repoRoot } from "../../lib/content";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -118,7 +118,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
     </div>
   </div>
   <script>
-    import { initHaedo } from "../../../lib/haedo";
+    import { initHaedo } from "../../lib/haedo";
     const story = document.querySelector(".story") as HTMLElement;
     const fig = document.getElementById("follow-map") as HTMLElement;
     // 왼쪽 여백 비율(pad.l 0.42)은 글 기둥 자리 — 좁은 화면은 위쪽 지도만 쓰므로 부품 기본값을 쓴다

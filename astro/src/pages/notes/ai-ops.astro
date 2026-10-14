@@ -1,11 +1,11 @@
 ---
 // AI 운영실 공개 사례 1쪽(정체성 §3-5) — 이 작업실이 실제로 어떻게 돌아가는지. 숫자 = data/derived/ops_stats.json(이 저장소 main 의 git 기록 · 집계 명령 표기).
 // O1 내부 노출 0: 사람 이름(운영자 제외)·경로·과제 번호·결재 내용·키·계정 없음 — 수치 요약만.
-import Studio from "../../../layouts/Studio.astro";
-import Trust from "../../../components/scene/Trust.astro";
-import { u } from "../../../lib/site";
-import { sourceLine } from "../../../lib/sources";
-import { lastUpdated, repoRoot } from "../../../lib/content";
+import Studio from "../../layouts/Studio.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { lastUpdated, repoRoot } from "../../lib/content";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

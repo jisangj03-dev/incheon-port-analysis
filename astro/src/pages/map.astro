@@ -1,82 +1,82 @@
 ---
-// 인천 물류 3D 지도(개편 2단계 · 기준 20) — 바탕 = 저장소에 내장한 PMTiles(인천만 · Actions 가 빌드 때 추출) · 실행 중 API 키 0 · 외부 요청 0.
-// 첫 화면은 정지 그림(빌드 때 SVG)이고, 3D(maplibre + deck.gl · 약 2MB)는 늦게 붙는다. 시간축 = 월별 처리량(실제 공표값).
-// 시각 마감(위성 질감·HDRI·후보정)은 시안 뒤 — 지금은 구조·데이터·컴포넌트다. 공개 전 선장님 「진짜 같다」(기준 21).
-import Base from "../layouts/Base.astro";
-import Updated from "../components/Updated.astro";
+// 시안 ③ 지도 한 면 — maplibre 실제 렌더(내장 PMTiles · 외부 요청 0) · 셰입맵급 절제(땅·물·해안선 + 장소 넷).
+// 숫자 = analysis/terminal_monthly_long.csv 마지막 달(정체성 §2-1) · 자리 = data/derived/places.json. lab/ 전용.
+import Studio from "../layouts/Studio.astro";
 import { mapSeries } from "../lib/data";
 import { u } from "../lib/site";
-
+import Trust from "../components/scene/Trust.astro";
+import { route } from "../lib/rooms";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../lib/content";
 const D = mapSeries();
-const last = D.months.length - 1;
-// 정지 그림 — 경위도를 단순 투영해 기둥으로(지도 타일 없이도 뜬다).
-const W = 720, H = 420, bx = [126.35, 126.85], by = [37.25, 37.62];
-const px = (lon: number) => ((lon - bx[0]) / (bx[1] - bx[0])) * W;
-const py = (lat: number) => H - ((lat - by[0]) / (by[1] - by[0])) * H;
-// 「A·B는/은」 — 마지막 이름의 받침으로 조사를 고른다.
-const topic = (ps: any[]) => { const t = ps.map((p) => p.id).join("·"); const c = t.charCodeAt(t.length - 1) - 0xac00; return t + (c >= 0 && c < 11172 && c % 28 ? "은" : "는"); };
-const vmax = Math.max(...D.places.flatMap((p: any) => (p.values || []).filter((v: any) => v !== null)));
+// 등심선(있을 때만) — bathy 워크플로가 라이선스 확인 뒤 만든 파일. 없으면 해안선만(채팅 경계)
+const bf = join(repoRoot(), "data/derived/bathy_incheon.geojson"), bm = join(repoRoot(), "data/derived/bathy_incheon.json");
+const bathy = existsSync(bf) ? JSON.parse(readFileSync(bf, "utf-8")) : null;
+const bmeta = existsSync(bm) ? JSON.parse(readFileSync(bm, "utf-8")) : null;
+const lastYm = D.months[D.months.length - 1];
+type DP = { id: string; label: string; kind: string; lon: number; lat: number; approx: boolean; v: number | null; values: (number | null)[] | null };
+const places: DP[] = D.places.map((p: any) => ({ id: p.id, label: p.label, kind: p.kind, lon: p.lon, lat: p.lat, approx: !!p.approx, v: p.values ? p.values[p.values.length - 1] : null, values: p.values || null }));
+const RT = route();
+// 내장 타일 범위(캡션용) — 손으로 적지 않고 설정 파일에서
+const TB = String(JSON.parse(readFileSync(join(repoRoot(), "tools-build/pmtiles.json"), "utf-8")).bbox).split(",").map(Number);
+const top = [...places].filter((p) => p.v != null).sort((a, b) => (b.v as number) - (a.v as number))[0];
+const sea = places.filter((p) => p.kind === "port").length, air = places.filter((p) => p.kind === "air").length;
 ---
-<Base title="인천 물류 3D 지도" description="인천항 부두군·터미널별 월별 컨테이너 처리량을 입체 기둥으로 — 시간축을 움직여 2023년부터 지금까지. 바탕지도는 저장소에 내장(외부 요청 0)." path="/map.html" wide>
-  <div class="mp">
-    <div class="wrap mp__head">
-      <p class="eyebrow">지도 · 시안 전 구조판</p>
-      <h1>인천 물류, 입체로</h1>
-      <p class="lede">부두군별 월 처리량(천TEU)을 기둥 높이로. 시간축을 움직이면 {D.months[0]}부터 {D.months[last]}까지 바뀌는 모양을 봅니다.</p>
-    </div>
-    <div class="mp__stage" data-chart="map3d">
-      <svg class="mp__still" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`정지 그림 — ${D.months[last]} 부두군별 처리량`}>
-        <rect width={W} height={H} fill="#05090f" />
-        {Array.from({ length: 8 }, (_, k) => <line x1="0" x2={W} y1={(k + 1) * (H / 9)} y2={(k + 1) * (H / 9)} stroke="rgba(63,211,230,.08)" />)}
-        {D.places.map((p: any) => {
-          const v = p.values ? p.values[last] : null;
-          const h = v ? (v / vmax) * 150 : 0;
-          return (
-            <g>
-              {v ? <rect x={px(p.lon) - 9} y={py(p.lat) - h} width="18" height={h} rx="3" fill={p.kind === "air" ? "#ffb547" : "#3fd3e6"} opacity=".9" /> : <circle cx={px(p.lon)} cy={py(p.lat)} r="7" fill="#ffb547" />}
-              <text x={px(p.lon) + 14} y={py(p.lat) + 4} fill="#eef5fa" font-size="13" font-weight="700">{p.id}{p.approx ? "(개략)" : ""}{v ? ` ${v}천TEU` : ""}</text>
-            </g>
-          );
-        })}
-      </svg>
-      <div id="map" class="mp__map" hidden></div>
-      <div class="mp__ctrl">
-        <button type="button" id="open3d" class="btn btn--primary">3D 지도 열기</button>
-        <label for="month" class="mp__lab">월 <strong id="month-out">{D.months[last]}</strong></label>
-        <input id="month" type="range" min="0" max={last} value={last} step="1" />
-        <button type="button" id="play" class="btn">▶ 재생</button>
-      </div>
-      <p class="mp__note"><strong>기둥 자리</strong> — {topic(D.places.filter((p: any) => !p.approx))} OpenStreetMap 시설 면의 중심점(ODbL){D.places.some((p: any) => p.approx) && <>, <strong>{topic(D.places.filter((p: any) => p.approx))} 개략 위치(±2km · 측량값 아님)</strong></>}입니다. <Updated date={D.updated} source={`${D.source} · ${D.months.length}개월`} /> <span id="attrib">바탕지도 © OpenStreetMap · Protomaps</span></p>
-    </div>
-    <div class="wrap mp__more">
-      <h2>이 지도에 아직 없는 것</h2>
-      <ul>
-        <li><strong>교역국 항로 아크 · 품목별 수출입</strong> — 관세청 품목·국가별 API 활용신청 뒤(선장님 손).</li>
-        <li><strong>실제 입출항 기록으로 움직이는 선박</strong> — 해수부 선박입출항 API 활용신청 뒤.</li>
-        <li><strong>공항화물 · 물류단지 · 보세구역 · 자유무역지역</strong> — 항공화물 축 선커밋(기준 11) 뒤 수집. 창고는 <a href={u("/tools/warehouse-map.html")}>구·동 배치도</a>에.</li>
-        <li><strong>실사 질감(위성·지형·조명)</strong> — 시안 반영 뒤. 위성(Sentinel-2)·지형(Copernicus DEM)은 출처 고지 조건을 지켜 싣는다.</li>
-      </ul>
+<Studio title="지도 — 측심(시안)" current="map">
+  <div class="s-wrap" data-content="ds-map">
+    <section class="head">
+      <p class="s-cap">지도 · 인천 · {lastYm}</p>
+      <h1 class="s-prose">바다 문 {sea}곳, 하늘 문 {air}곳.</h1>
+      <p class="s-lead s-prose">점 크기는 그 달 컨테이너 처리량입니다. {lastYm} 가장 큰 문은 <span class="s-signal">{top.id}</span>({top.v}천TEU). 달이 흐르면 점이 숨 쉬듯 커졌다 작아집니다.</p>
+    </section>
+  </div>
+  <div class="ds-map-wrap">
+    <div id="ds-map" class="ds-map" role="img" aria-label={`인천 지도 — ${places.map((p) => p.id).join(", ")}`}></div>
+    <div class="ds-time s-wrap">
+      <button type="button" id="ds-play" class="s-btn s-btn--ghost" aria-pressed="false">멈춤</button>
+      <label class="ds-time__l"><span id="ds-ym" class="ds-ym">{lastYm}</span><input id="ds-m" type="range" min="0" max={D.months.length - 1} value={D.months.length - 1} step="1" aria-label="달 고르기" /></label>
     </div>
   </div>
-  <script type="application/json" id="map-data" set:html={JSON.stringify({ months: D.months, places: D.places })} />
+  <div class="s-wrap" data-content="ds-map-foot">
+    <p class="s-cap">흐름선은 신항·남항·국제여객부두에서 {RT.to.label} 쪽으로 긋는 <b>개념선</b>입니다 — 굵기만 그 달 처리량이고, 길은 실제 운송 경로가 아닙니다. 공항은 컨테이너 통계가 없어 선이 없습니다. 내장 지도 타일은 동경 {TB[0]}°~{TB[2]}° 라, 그 서쪽은 바다색으로만 칠했고(작은 섬은 안 보임) 동쪽(서울 쪽)은 땅색 종이입니다.</p>
+    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일){bathy && bmeta ? ` · 등심선 ${bmeta.institution || ""} ${(String(bmeta.title || "").match(/(ETOPO\w*|GEBCO_?\d+|SRTM\w*)/) || [bmeta.source])[0].replace(/_/g, " ")}(격자 ${bmeta.resolution_arcsec}″ · ${bmeta.retrieved} 받음 · 선을 부드럽게 다듬음 · 항해용 아님)` : " · 등심선 없음(수심 자료 라이선스 확인 전)"} · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
+    <Trust updated={D.updated} source={D.source} csv={u("/lab/data/map-places.csv")} csvName="incheon-map-places.csv" note={`${lastYm} · 천TEU`} />
+    <dl class="s-maker" data-maker-note style="margin-top:32px;max-width:46rem">
+      <dt>왜</dt><dd data-note="why">인천을 지나는 화물이 어느 문으로 드나드는지, 표보다 먼저 자리로 보이게 하려고.</dd>
+      <dt>어떻게</dt><dd data-note="how">공표 월별 처리량을 시설 면 중심점 위에 원 넓이로 얹었다. 바탕은 땅·물·해안선만 남겼다.</dd>
+      <dt>한계</dt><dd data-note="limits">점은 문이지 길이 아니다 — 문에서 수도권 어디로 가는지는 아직 데이터가 없다.</dd>
+    </dl>
+    <p class="s-cap" data-ai-mark style="margin-top:24px">AI 정리 · 검수 전</p>
+  </div>
+  <script type="application/json" id="ds-map-data" set:html={JSON.stringify(places)}></script>
+  <script type="application/json" id="ds-map-months" set:html={JSON.stringify({ months: D.months, to: RT.to })}></script>
+  <script type="application/json" id="ds-bathy" set:html={JSON.stringify(bathy ? { features: bathy.features } : null)}></script>
   <script define:vars={{ ml: u("/vendor/maplibre/maplibre-gl.mjs"), worker: u("/vendor/maplibre/maplibre-gl-worker.mjs"), css: u("/vendor/maplibre/maplibre-gl.css"), tiles: u("/tiles/incheon.pmtiles") }}>
     window.__mapcfg = { ml, worker, css, tiles };
   </script>
   <script>
-    import { initMap } from "../lib/map-ui";
-    initMap();
+    import { initDsMap } from "../lib/ds-map";
+    initDsMap();
   </script>
-</Base>
+</Studio>
 <style>
-  .mp__head { padding-top: 2rem; }
-  .mp__head h1 { margin-top: 0.2em; }
-  .mp__stage { position: relative; max-width: 1200px; margin: 1rem auto 0; padding: 0 var(--gutter); }
-  .mp__still, .mp__map { width: 100%; aspect-ratio: 12 / 7; border-radius: var(--r-lg); display: block; border: 1px solid var(--hair); background: #05090f; }
-  .mp__map { height: auto; overflow: hidden; }
-  .mp__ctrl { display: flex; flex-wrap: wrap; gap: 0.6rem 1rem; align-items: center; margin-top: 0.8rem; }
-  .mp__ctrl input[type="range"] { flex: 1 1 220px; accent-color: var(--sonar); min-height: 44px; }
-  .mp__lab { font-size: 0.9rem; color: var(--mist); }
-  .mp__lab strong { color: var(--sodium); font-variant-numeric: tabular-nums; }
-  .mp__note { font-size: 0.82rem; color: var(--mist); margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; }
-  .mp__more { margin-top: 2rem; max-width: 820px; }
+  .head { padding: var(--s-7) 0 var(--s-5); }
+  .head h1 { margin: var(--s-3) 0 var(--s-4); }
+  .ds-map-wrap { position: relative; }
+  .ds-time { display: flex; align-items: center; gap: var(--s-4); margin-top: var(--s-3); margin-bottom: var(--s-4); }
+  .ds-time__l { flex: 1; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: var(--s-4); }
+  .ds-ym { font-style: italic; font-variant-numeric: tabular-nums; color: var(--s-ink-2); min-width: 5.5em; }
+  .ds-time input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
+  .ds-map { height: clamp(420px, calc(100svh - 460px), 720px); background: var(--s-paper); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); margin-bottom: var(--s-4); }
+  :global(.ds-label) { font: 500 13px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); pointer-events: none; }
+  :global(.ds-label b) { display: block; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+  /* 데이터 숫자 = 해도 수심 표기처럼 작은 기울임 · 상자 없음 */
+  :global(.ds-label i) { font-style: italic; font-weight: 500; font-size: 15px; letter-spacing: 0; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  :global(.ds-label i small) { font-size: 11px; font-style: normal; color: var(--s-ink-3); margin-left: 2px; }
+  :global(.ds-label em) { display: block; font-style: normal; color: var(--s-ink-3); font-size: 11px; }
+  :global(.ds-depth) { font: italic 400 10px/1 var(--s-font); color: #9a917f; pointer-events: none; text-shadow: 0 0 2px var(--s-paper), 0 0 2px var(--s-paper); }
+  /* 가장자리 위경도 눈금 — 종이 해도의 테두리 눈금자(분 단위 흑백 막대) */
+  :global(.ds-grat) { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  :global(.ds-grat text) { font: 400 10px var(--s-font); fill: var(--s-ink-3); }
 </style>

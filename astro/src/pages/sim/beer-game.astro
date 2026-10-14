@@ -1,11 +1,11 @@
 ---
 // 시안 ② 맥주 게임에 디자인 시스템 「해도」를 입힌 판 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
 // lab/ 전용. 숫자는 규칙 파일에서만(정체성 §2-1).
-import Studio from "../../../layouts/Studio.astro";
-import { u } from "../../../lib/site";
-import R from "../../../../../data/sim/beer-game.json";
-import Trust from "../../../components/scene/Trust.astro";
-import { lastUpdated } from "../../../lib/content";
+import Studio from "../../layouts/Studio.astro";
+import { u } from "../../lib/site";
+import R from "../../../../data/sim/beer-game.json";
+import Trust from "../../components/scene/Trust.astro";
+import { lastUpdated } from "../../lib/content";
 const RU = lastUpdated("data/sim/beer-game.json");
 const S = R.stages.length;
 ---
@@ -83,8 +83,8 @@ const S = R.stages.length;
   <script is:inline defer src={u("/assets/js/beer-game.js")}></script>
   <script type="application/json" id="beer-rules" set:html={JSON.stringify(R)}></script>
   <script>
-    import { initBeer } from "../../../lib/beer-ui";
-    import { initDsBeer } from "../../../lib/ds-beer";
+    import { initBeer } from "../../lib/beer-ui";
+    import { initDsBeer } from "../../lib/ds-beer";
     initDsBeer();
     initBeer();
   </script>
