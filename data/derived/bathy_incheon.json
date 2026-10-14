@@ -74,13 +74,11 @@
  ],
  "resolution_arcsec": 15.0,
  "levels_m": [
-  5,
   10,
   20,
-  30,
   50
  ],
- "features": 393,
+ "features": 69,
  "last_attempt": {
   "retrieved": "2026-10-14",
   "tried": [
@@ -118,5 +116,8 @@
    }
   ],
   "why": "라이선스 문구가 accept 에 맞는 격자를 받지 못했다"
- }
+ },
+ "min_extent_deg": 0.02,
+ "simplify_deg": 0.0006,
+ "refined": "393줄 → 69줄(같은 자료를 다시 거름 · --refine)"
 }

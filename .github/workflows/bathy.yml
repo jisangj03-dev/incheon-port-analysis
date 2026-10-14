@@ -23,15 +23,17 @@ jobs:
         with:
           python-version: "3.13"
       - run: python -m pip install -q numpy matplotlib pmtiles mapbox-vector-tile
-      - name: 지도 타일 캐시(sounding-qa 와 같은 열쇠 · 육지 실루엣용)
-        uses: actions/cache@v4
-        with:
-          path: astro/public/tiles
-          key: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-${{ github.run_id }}
-          restore-keys: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-
-      - name: 육지 실루엣(땅 면 · 큰 길 — OpenStreetMap · ODbL)
+      - name: 홈 실루엣용 작은 타일(신항~서울 · z10 이하 · /tmp · 배포 안 함 — 공개 타일 파일은 그대로)
         run: |
-          bash tools-build/pmtiles.sh || echo "::warning::타일 추출 실패 — 육지 실루엣 없이"
+          ver=$(python3 -c "import json;print(json.load(open('tools-build/pmtiles.json'))['go_pmtiles'])")
+          curl -fsSL "https://github.com/protomaps/go-pmtiles/releases/download/v${ver}/go-pmtiles_${ver}_Linux_x86_64.tar.gz" | tar -xz -C /tmp
+          build=$(curl -fsSL https://build-metadata.protomaps.dev/builds.json | python3 -c "import json,sys;b=json.load(sys.stdin);print(sorted(x['key'] for x in b)[-1])")
+          /tmp/pmtiles extract "https://build.protomaps.com/${build}" /tmp/home.pmtiles --bbox=126.30,37.20,127.10,37.72 --maxzoom=10 \
+            || echo "::warning::홈 실루엣 타일 추출 실패"
+      - name: 육지 실루엣(땅 면 · 고속도로 — OpenStreetMap · ODbL)
+        env:
+          HOME_TILES: /tmp/home.pmtiles
+        run: |
           python tools-build/roads.py --selftest
           python tools-build/roads.py | tee -a "$GITHUB_STEP_SUMMARY"
       - run: python tools-build/bathy.py --selftest

@@ -45,8 +45,8 @@
     },
     {
       "name": "type-serif-vs-sans",
-      "ours": "/lab/ds/index.html?type=serif",
-      "ref": "/lab/ds/index.html"
+      "ours": "/lab/ds/index.html",
+      "ref": "/lab/ds/index.html?type=sans"
     },
     {
       "name": "beer-vs-ncase",

@@ -2,18 +2,19 @@
 
 Actions(bathy.yml)에서 돈다(타일은 Actions 캐시에만 있다). 결과 data/derived/land_incheon.geojson:
   · kind=land  — earth 층 면(채우기 전용 · 해안선은 면의 가장자리)
-  · kind=road  — roads 층 highway·major_road(고속도로·간선) 선
+  · kind=road  — roads 층 highway(고속도로) 선
 OpenStreetMap 에서 나온 데이터베이스라 ODbL 1.0 — 파일 머리와 지면 캡션에 출처를 적는다.
   python tools-build/roads.py [--selftest]
 """
 import gzip, json, math, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TILES = os.path.join(ROOT, "astro/public/tiles/incheon.pmtiles")
+# 홈 실루엣은 서울까지 닿아야 해서 배포 타일(동경 126.85°까지)이 아니라 Actions 가 /tmp 에 따로 받는 작은 타일(z10 이하 · 배포 안 함)을 읽는다
+TILES = os.environ.get("HOME_TILES") or os.path.join(ROOT, "astro/public/tiles/incheon.pmtiles")
 OUT = os.path.join(ROOT, "data/derived/land_incheon.geojson")
-BBOX = (126.32, 37.22, 127.06, 37.70)  # 서·남·동·북 — 홈 해도(신항~서울)
+BBOX = (126.30, 37.20, 127.10, 37.72)  # 서·남·동·북 — 홈 해도(신항~서울)
 Z = 10
-TOL = 0.0008  # 단순화 허용치(도 · 약 80m)
+TOL = 0.0012  # 단순화 허용치(도 · 약 120m) — 실루엣이라 이 정도면 된다
 
 
 def lon2x(lon, z): return (lon + 180) / 360 * 2 ** z
@@ -26,6 +27,11 @@ def dp(pts, tol):
     """Douglas–Peucker(반복형)."""
     if len(pts) < 3:
         return pts
+    if pts[0] == pts[-1] and len(pts) > 3:
+        # 닫힌 고리는 시작점과 끝점이 같아 기준선 길이가 0 — 그대로 두면 고리 전체가 점 둘로 무너진다(2026-10-14 실측).
+        # 시작점에서 가장 먼 점에서 둘로 잘라 따로 줄인다.
+        k = max(range(len(pts)), key=lambda i: (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2)
+        return dp(pts[:k + 1], tol) + dp(pts[k:], tol)[1:]
     keep = [False] * len(pts); keep[0] = keep[-1] = True
     stack = [(0, len(pts) - 1)]
     while stack:
@@ -79,7 +85,7 @@ def main():
                     ext = lay.get("extent", 4096)
                     for ft in lay["features"]:
                         props = ft.get("properties", {})
-                        if name == "roads" and props.get("kind") not in ("highway", "major_road"): continue
+                        if name == "roads" and props.get("kind") != "highway": continue  # 고속도로만 — 실루엣
                         for ring in rings(ft["geometry"]):
                             pts = dp([to_lonlat(tx, ty, p[0], p[1], ext) for p in ring], TOL)
                             if len(pts) < 2: continue
@@ -98,7 +104,9 @@ def selftest():
     assert s[0] == [0, 0] and s[-1] == [4, 0] and [1, 0.0001] not in s and [3, 5] in s, s
     lon, lat = to_lonlat(int(lon2x(126.5, Z)), int(lat2y(37.4, Z)), 0, 4096, 4096)
     assert abs(lon - x2lon(int(lon2x(126.5, Z)), Z)) < 1e-5 and 37.3 < lat < 37.5, (lon, lat)
-    print("selftest 2/2 ok"); return 0
+    ring = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+    assert len(dp(ring, 0.01)) == 5, dp(ring, 0.01)
+    print("selftest 3/3 ok"); return 0
 
 
 if __name__ == "__main__":

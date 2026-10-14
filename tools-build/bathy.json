@@ -46,7 +46,7 @@
   ],
   "out": "data/derived/bathy_incheon.geojson",
   "meta": "data/derived/bathy_incheon.json",
-  "min_extent_deg": 0.03,
+  "min_extent_deg": 0.02,
   "simplify_deg": 0.0006,
   "_정리": "2026-10-14 채팅: 등심선이 빽빽해 낙서 같다 → 5·30m 를 빼 간격을 넓히고, 대각 길이 0.03°(약 3km) 미만인 작은 섬 등선은 버리고, Douglas–Peucker 로 단순화한 뒤 다듬는다."
 }

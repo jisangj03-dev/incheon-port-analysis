@@ -5,7 +5,7 @@ import { readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis/lab/ds";
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
 for (const f of ["index", "beer", "map", "note"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
@@ -34,7 +34,7 @@ test("지도 면: 바탕·점이 실제로 그려졌다(픽셀 판정)", async (
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
   const st = await page.evaluate(() => window.__dsmap);
   expect(st.errors).toEqual([]);
-  expect(await page.locator(".ds-label").count()).toBe(st.places);
+  expect(await page.locator(".ds-label").count(), "장소 넷 + 흐름선 끝(서울)").toBeGreaterThanOrEqual(st.places);
   if (tiles) expect(st.base, "타일이 있는데 바탕 원천을 못 읽었다").toBe(true);
   mkdirSync("lab-out", { recursive: true });
   const shot = await page.locator("#ds-map").screenshot({ path: `lab-out/ds-map-${info.project.name}.png` });
@@ -108,4 +108,20 @@ test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async
   await expect(page.locator(".s-index > li")).toHaveCount(rooms.rooms.length);
   expect(await page.locator(".s-notes li").count()).toBeGreaterThan(0);
   expect(await page.locator(".s-notes li[data-stage]").first().getAttribute("data-stage")).toMatch(/^(초안|갱신 중|정본)$/);
+});
+
+// 지도 움직임 — 달 막대를 옮기면 달·점 숫자가 바뀌고, 그대로 두면 달이 흐른다(움직임 줄이기 설정이 아닐 때)
+test("지도: 달 막대 · 자동으로 흐르는 달 · 흐름선은 개념선이라고 적었다", async ({ page }) => {
+  await page.goto(`${B}/map.html`, { waitUntil: "networkidle" });
+  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
+  await page.locator("#ds-m").fill("0");
+  const ym0 = await page.locator("#ds-ym").innerText();
+  const v0 = await page.locator('[data-v="신항"]').innerText();
+  await page.locator("#ds-m").fill(String(await page.locator("#ds-m").getAttribute("max")));
+  await expect(page.locator("#ds-ym")).not.toHaveText(ym0);
+  await expect(page.locator('[data-v="신항"]')).not.toHaveText(v0);
+  await page.click("#ds-play");
+  const a = await page.getAttribute("#ds-map", "data-month");
+  await expect.poll(() => page.getAttribute("#ds-map", "data-month"), { timeout: 5_000 }).not.toBe(a);
+  await expect(page.locator("[data-content='ds-map-foot']")).toContainText("개념선");
 });

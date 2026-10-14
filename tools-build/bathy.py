@@ -5,7 +5,9 @@ Actions(bathy.yml)에서만 돈다. 순서:
   ② 맞는 것 중 첫째의 부분 격자(.csv)를 받아 등심선(수심 m)을 만든다(matplotlib contour).
   ③ 결과 + 출처·라이선스 원문·해상도·받은 날을 data/derived/ 에 쓴다. 맞는 것이 없으면 meta 만(status=coast-only).
 검색 결과(ID 목록)는 요약에 남긴다 — 더 고운 격자를 찾으면 bathy.json candidates 에 올린다.
-  python tools-build/bathy.py [--selftest] [--search]   (--search = 데이터셋 목록 검색까지 · 요청이 많다)
+  python tools-build/bathy.py [--selftest] [--search] [--refine]
+    --search = 데이터셋 목록 검색까지(요청이 많다)
+    --refine = 받지 않고, 이미 받은 등심선 파일을 bathy.json 의 levels_m·min_extent_deg·simplify_deg 로 다시 거른다(같은 자료 · 변환만)
 """
 import csv, io, json, os, re, sys, urllib.request, urllib.error, datetime
 
@@ -69,6 +71,11 @@ def dp(pts, tol):
     import math
     if len(pts) < 3 or tol <= 0:
         return pts
+    if pts[0] == pts[-1] and len(pts) > 3:
+        # 닫힌 고리는 시작점과 끝점이 같아 기준선 길이가 0 — 그대로 두면 고리 전체가 점 둘로 무너진다(2026-10-14 실측).
+        # 시작점에서 가장 먼 점에서 둘로 잘라 따로 줄인다.
+        k = max(range(len(pts)), key=lambda i: (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2)
+        return dp(pts[:k + 1], tol) + dp(pts[k:], tol)[1:]
     keep = [False] * len(pts); keep[0] = keep[-1] = True
     stack = [(0, len(pts) - 1)]
     while stack:
@@ -175,6 +182,31 @@ def main():
     return 0
 
 
+def refine():
+    """이미 받은 등심선을 설정대로 다시 거른다 — 서버가 403 을 내도 정리는 할 수 있게(2026-10-14)."""
+    cfg = json.load(open(os.path.join(ROOT, "tools-build/bathy.json"), encoding="utf-8"))
+    gp, mp = os.path.join(ROOT, cfg["out"]), os.path.join(ROOT, cfg["meta"])
+    g = json.load(open(gp, encoding="utf-8")); m = json.load(open(mp, encoding="utf-8"))
+    keep_levels = set([0] + list(cfg["levels_m"]))
+    me, tol = cfg.get("min_extent_deg", 0.0), cfg.get("simplify_deg", 0.0)
+    out = []
+    for f in g["features"]:
+        d, c = f["properties"]["depth"], f["geometry"]["coordinates"]
+        if d not in keep_levels or extent(c) < (me if d else me / 2):
+            continue
+        c = [[round(x, 5), round(y, 5)] for x, y in dp(c, tol)]
+        if len(c) >= 3:
+            out.append({**f, "geometry": {"type": "LineString", "coordinates": c}})
+    before = len(g["features"])
+    g["features"] = out
+    json.dump(g, open(gp, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    m.update({"levels_m": cfg["levels_m"], "min_extent_deg": me, "simplify_deg": tol, "features": len(out),
+              "refined": f"{before}줄 → {len(out)}줄(같은 자료를 다시 거름 · --refine)"})
+    json.dump(m, open(mp, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(m["refined"], os.path.getsize(gp), "bytes")
+    return 0
+
+
 def selftest():
     das = 'Attributes {\n NC_GLOBAL {\n    String license "The data may be used and redistributed for free but is not intended\nfor legal use";\n    String title "ETOPO";\n  }\n}'
     lic = das_attr(das, "license")
@@ -186,9 +218,11 @@ def selftest():
     sm = chaikin([[0, 0], [1, 0], [1, 1]], 1)
     assert sm[0] == [0, 0] and sm[-1] == [1, 1] and len(sm) == 6, sm
     assert len(dp([[0, 0], [1, 0.00001], [2, 0]], 0.001)) == 2 and extent([[0, 0], [0.03, 0.04]]) == 0.05
-    print("selftest 6/6 ok")
+    ring = [[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]
+    assert len(dp(ring, 0.01)) == 5, dp(ring, 0.01)
+    print("selftest 7/7 ok")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(selftest() if "--selftest" in sys.argv else main())
+    sys.exit(selftest() if "--selftest" in sys.argv else refine() if "--refine" in sys.argv else main())
