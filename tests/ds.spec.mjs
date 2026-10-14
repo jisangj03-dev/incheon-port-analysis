@@ -99,8 +99,8 @@ test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async
   const off = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById("route")).strokeDashoffset));
   const a = await off();
   await page.evaluate(() => { const h = document.querySelector(".hero"); scrollTo(0, h.offsetHeight - innerHeight); });
-  await page.waitForTimeout(200);
-  expect(await off(), "끝까지 내리면 선이 다 그려진다").toBeLessThan(a);
+  // 등심선이 많아 스크롤 처리가 늦을 수 있다 — 정해진 시간 대신 조건이 설 때까지 기다린다
+  await expect.poll(off, { message: "끝까지 내리면 선이 다 그려진다", timeout: 10_000 }).toBeLessThan(a);
   const v = await page.locator("#now-v").innerText();
   await page.locator("#now-m").fill("0");
   await expect(page.locator("#now-v")).not.toHaveText(v);
