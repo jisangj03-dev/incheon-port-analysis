@@ -22,7 +22,8 @@ const norm = (s) => { const v = Number(String(s).replace(/,/g, "")); return Numb
 
 export function numbersIn(text) {
   const t = text.replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ");
-  return [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map((m) => m[0]).filter((n) => !/^(19|20)\d{2}$/.test(n));
+  // 천 단위 쉼표는 세 자리 묶음일 때만 — 「M1,302.6」 같은 CSV 칸 구분을 한 숫자로 붙이지 않는다
+  return [...t.matchAll(/\d{1,3}(?:,\d{3})+(?:\.\d+)?(?!\d)|\d+(?:\.\d+)?/g)].map((m) => m[0]).filter((n) => !/^(19|20)\d{2}$/.test(n));
 }
 
 // 지면 머리·바닥글(공통 틀)은 빼고 콘텐츠 본문만 본다 — data-sim/data-content 표지부터 그 뒤 첫 <script 앞까지.
@@ -35,7 +36,8 @@ export function contentOf(html) {
 
 export function check(html, dataTexts) {
   html = contentOf(html);
-  const allowed = new Set(dataTexts.flatMap((t) => numbersIn(t).map(norm)));
+  // 데이터 파일은 CSV 쉼표를 칸 구분으로도 읽는다(「M1,302.6」 → 302.6) — 천 단위 묶음으로 읽은 것과 둘 다 허용
+  const allowed = new Set(dataTexts.flatMap((t) => [...numbersIn(t), ...numbersIn(t.replace(/,/g, " "))].map(norm)));
   const found = numbersIn(visibleText(html));
   const bad = [...new Set(found.map(norm).filter((n) => !allowed.has(n)))];
   return { checked: found.length, bad };
@@ -47,8 +49,9 @@ if (process.argv[1] && process.argv[1].endsWith("check-data-numbers.mjs")) {
     const ok = check("<h1>36주</h1><p>재고 0.5 · 35(3) · 2026-10-14 · 1989</p><script>var x=999</script>", data);
     const ng = check('<footer>2,000</footer><div data-sim="x"><p>재고 12상자</p></div><script></script>', data);
     const fu = check('<div data-content="x"><g class="tk" data-furniture><text>127°00′E</text></g><p>재고 77상자</p></div>', data);
-    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77") { console.error("FAIL selftest", ok, ng, fu); process.exit(1); }
-    console.log("check-data-numbers selftest OK (3)");
+    const csv = check('<div data-sim="x"><td>302.6</td><td>1,302</td></div>', ["a,M1,302.6\nb,\"1,302\""]);
+    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77" || csv.bad.length) { console.error("FAIL selftest", ok, ng, fu, csv); process.exit(1); }
+    console.log("check-data-numbers selftest OK (4)");
     process.exit(0);
   }
   const [html, ...files] = process.argv.slice(2);
