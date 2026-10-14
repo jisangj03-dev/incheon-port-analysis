@@ -3,7 +3,7 @@
 type Place = { id: string; label: string; kind: string; lon: number; lat: number; approx?: boolean; v: number | null };
 const $ = (id: string) => document.getElementById(id)!;
 
-const C = { paper: "#f5f2eb", water: "#e3ded2", coast: "#b9b1a1", ink: "#191714", signal: "#b3361e", sea: "#5d7a86" };
+const C = { paper: "#f5f2eb", water: "#e3ded2", coast: "#b9b1a1", contour: "#cdc4b1", ink: "#191714", signal: "#b3361e", sea: "#5d7a86" };
 
 export async function initDsMap() {
   const cfg = (window as any).__mapcfg;
@@ -50,7 +50,7 @@ export async function initDsMap() {
     for (const p of P) {
       const el = document.createElement("div");
       el.className = "ds-label";
-      el.innerHTML = `<b>${p.id}</b>${p.v != null ? `<span>${p.v}천TEU</span>` : `<span>${p.kind === "air" ? "항공" : ""}</span>`}${p.approx ? "<em>개략 위치</em>" : ""}`;
+      el.innerHTML = `<b>${p.id}</b>${p.v != null ? `<i>${p.v}<small>천TEU</small></i>` : `<em>${p.kind === "air" ? "항공 · 컨테이너 아님" : ""}</em>`}${p.approx ? "<em>개략 위치</em>" : ""}`;
       // 가까운 이웃이 동쪽에 있으면 이름을 왼쪽에 단다 — 겹침 방지
       const left = P.some((q) => q !== p && Math.abs(q.lat - p.lat) < 0.04 && Math.abs(q.lon - p.lon) < 0.04 && q.lon > p.lon);
       const r = (p.v ? 10 + 22 * Math.sqrt(p.v / vmax) : 12);
@@ -58,10 +58,72 @@ export async function initDsMap() {
       new ml.Marker({ element: el, anchor: left ? "right" : "left", offset: [left ? -r : r, 0] }).setLngLat([p.lon, p.lat]).addTo(map);
     }
   });
+  // 등심선(라이선스 확인된 것만 지면에 박힌다) — 아주 옅은 선 + 몇 군데에만 기울임 수심 숫자
+  const bathy = JSON.parse(document.getElementById("ds-bathy")?.textContent || "null");
+  if (bathy) map.once("style.load", () => {
+    map.addSource("bathy", { type: "geojson", data: { type: "FeatureCollection", features: bathy.features } });
+    const below = map.getLayer("dots") ? "dots" : undefined;
+    map.addLayer({ id: "contour", type: "line", source: "bathy", filter: ["==", ["get", "kind"], "contour"],
+      paint: { "line-color": C.contour, "line-width": ["interpolate", ["linear"], ["get", "depth"], 5, 0.5, 50, 0.9], "line-opacity": 0.9 } }, below);
+    // 타일이 없을 때만 등심선 0m 를 해안선으로 쓴다
+    if (!has) map.addLayer({ id: "coast0", type: "line", source: "bathy", filter: ["==", ["get", "kind"], "coast"], paint: { "line-color": C.coast, "line-width": 0.7 } }, below);
+    depthLabels(ml, map, bathy.features);
+  });
+  graticule(map);
   // 다 그린 뒤(idle) 상태를 적는다 — 시험이 이것을 기다렸다가 화면 픽셀을 잰다
   map.once("idle", () => {
     const base = has && map.isSourceLoaded("protomaps");
     (window as any).__dsmap = { tiles: has, base, places: P.length, errors: errs };
     $("ds-map").dataset.ready = base ? "tiles" : has ? "tiles-failed" : "no-tiles";
   });
+}
+
+// 등심선 수심 숫자 — 긴 선의 가운데 한 곳에만(해도처럼 드문드문) · HTML 표지(글리프 서버 없이)
+function depthLabels(ml: any, map: any, feats: any[]) {
+  const long = feats.filter((f) => f.properties.kind === "contour" && f.geometry.coordinates.length > 24)
+    .sort((a, b) => b.geometry.coordinates.length - a.geometry.coordinates.length);
+  const seen: Record<number, number> = {};
+  for (const f of long) {
+    const d = f.properties.depth;
+    if ((seen[d] = (seen[d] || 0) + 1) > 2) continue;
+    const c = f.geometry.coordinates[Math.floor(f.geometry.coordinates.length / 2)];
+    const el = document.createElement("div");
+    el.className = "ds-depth";
+    el.textContent = String(d);
+    new ml.Marker({ element: el }).setLngLat(c).addTo(map);
+  }
+}
+
+// 가장자리 위경도 눈금 — 분(′) 단위 흑백 막대 + 5′ 마다 숫자(종이 해도 테두리). 움직일 때마다 다시 그린다.
+function graticule(map: any) {
+  const host = map.getContainer() as HTMLElement;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("class", "ds-grat");
+  host.append(svg);
+  const T = 5; // 막대 두께
+  const draw = () => {
+    const w = host.clientWidth, h = host.clientHeight, b = map.getBounds();
+    const span = b.getNorth() - b.getSouth();
+    const step = span > 0.6 ? 5 : span > 0.25 ? 2 : 1; // 분
+    const lab = step * 5;
+    let out = `<rect x="0.5" y="0.5" width="${w - 1}" height="${h - 1}" fill="none" stroke="var(--s-ink-2)" stroke-width="1"/>`;
+    const fmt = (deg: number, pos: string, neg: string) => { const a = Math.abs(deg), d = Math.floor(a + 1e-9), m = Math.round((a - d) * 60); return `${d}°${String(m).padStart(2, "0")}′${deg >= 0 ? pos : neg}`; };
+    for (let m = Math.floor(b.getSouth() * 60 / step) * step; m <= b.getNorth() * 60; m += step) {
+      const y0 = map.project([b.getWest(), m / 60]).y, y1 = map.project([b.getWest(), (m + step) / 60]).y;
+      const dark = Math.round(m / step) % 2 === 0;
+      for (const x of [0, w - T]) out += `<rect x="${x}" y="${Math.min(y0, y1)}" width="${T}" height="${Math.abs(y1 - y0)}" fill="${dark ? "var(--s-ink-2)" : "var(--s-paper)"}" stroke="var(--s-ink-2)" stroke-width="0.5"/>`;
+      if (m % lab === 0 && y0 > 14 && y0 < h - 6) out += `<text x="${T + 4}" y="${y0 + 3}">${fmt(m / 60, "N", "S")}</text>`;
+    }
+    for (let m = Math.floor(b.getWest() * 60 / step) * step; m <= b.getEast() * 60; m += step) {
+      const x0 = map.project([m / 60, b.getSouth()]).x, x1 = map.project([(m + step) / 60, b.getSouth()]).x;
+      const dark = Math.round(m / step) % 2 === 0;
+      for (const y of [0, h - T]) out += `<rect x="${Math.min(x0, x1)}" y="${y}" width="${Math.abs(x1 - x0)}" height="${T}" fill="${dark ? "var(--s-ink-2)" : "var(--s-paper)"}" stroke="var(--s-ink-2)" stroke-width="0.5"/>`;
+      if (m % lab === 0 && x0 > 40 && x0 < w - 70) out += `<text x="${x0 + 3}" y="${h - T - 4}">${fmt(m / 60, "E", "W")}</text>`;
+    }
+    svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+    svg.innerHTML = out;
+  };
+  map.on("move", draw);
+  map.on("resize", draw);
+  draw();
 }

@@ -4,7 +4,14 @@
 import Studio from "../../../layouts/Studio.astro";
 import { mapSeries } from "../../../lib/data";
 import { u } from "../../../lib/site";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../../lib/content";
 const D = mapSeries();
+// 등심선(있을 때만) — bathy 워크플로가 라이선스 확인 뒤 만든 파일. 없으면 해안선만(채팅 경계)
+const bf = join(repoRoot(), "data/derived/bathy_incheon.geojson"), bm = join(repoRoot(), "data/derived/bathy_incheon.json");
+const bathy = existsSync(bf) ? JSON.parse(readFileSync(bf, "utf-8")) : null;
+const bmeta = existsSync(bm) ? JSON.parse(readFileSync(bm, "utf-8")) : null;
 const lastYm = D.months[D.months.length - 1];
 type DP = { id: string; label: string; kind: string; lon: number; lat: number; approx: boolean; v: number | null };
 const places: DP[] = D.places.map((p: any) => ({ id: p.id, label: p.label, kind: p.kind, lon: p.lon, lat: p.lat, approx: !!p.approx, v: p.values ? p.values[p.values.length - 1] : null }));
@@ -21,7 +28,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   </div>
   <div id="ds-map" class="ds-map" role="img" aria-label={`인천 지도 — ${places.map((p) => p.id).join(", ")}`}></div>
   <div class="s-wrap" data-content="ds-map-foot">
-    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일) · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
+    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일){bathy && bmeta ? ` · 등심선 ${bmeta.title || bmeta.source}(${bmeta.institution || "출처 기관"} · ${bmeta.retrieved} 받음 · 격자 약 ${bmeta.resolution_arcsec}″ — 항해용 아님)` : " · 등심선 없음(수심 자료 라이선스 확인 전)"} · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
     <dl class="s-maker" data-maker-note style="margin-top:32px;max-width:46rem">
       <dt>왜</dt><dd data-note="why">인천을 지나는 화물이 어느 문으로 드나드는지, 표보다 먼저 자리로 보이게 하려고.</dd>
       <dt>어떻게</dt><dd data-note="how">공표 월별 처리량을 시설 면 중심점 위에 원 넓이로 얹었다. 바탕은 땅·물·해안선만 남겼다.</dd>
@@ -30,6 +37,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
     <p class="s-cap" data-ai-mark style="margin-top:24px">AI 정리 · 검수 전</p>
   </div>
   <script type="application/json" id="ds-map-data" set:html={JSON.stringify(places)}></script>
+  <script type="application/json" id="ds-bathy" set:html={JSON.stringify(bathy ? { features: bathy.features } : null)}></script>
   <script define:vars={{ ml: u("/vendor/maplibre/maplibre-gl.mjs"), worker: u("/vendor/maplibre/maplibre-gl-worker.mjs"), css: u("/vendor/maplibre/maplibre-gl.css"), tiles: u("/tiles/incheon.pmtiles") }}>
     window.__mapcfg = { ml, worker, css, tiles };
   </script>
@@ -42,8 +50,14 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   .head { padding: var(--s-7) 0 var(--s-5); }
   .head h1 { margin: var(--s-3) 0 var(--s-4); }
   .ds-map { height: clamp(420px, calc(100svh - 400px), 720px); background: var(--s-paper); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); margin-bottom: var(--s-4); }
-  :global(.ds-label) { font: 600 13px/1.25 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper); pointer-events: none; }
-  :global(.ds-label b) { display: block; font-size: 15px; letter-spacing: -0.02em; }
-  :global(.ds-label span) { color: var(--s-ink-2); font-weight: 500; }
+  :global(.ds-label) { font: 500 13px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); pointer-events: none; }
+  :global(.ds-label b) { display: block; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
+  /* 데이터 숫자 = 해도 수심 표기처럼 작은 기울임 · 상자 없음 */
+  :global(.ds-label i) { font-style: italic; font-weight: 500; font-size: 15px; letter-spacing: 0; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  :global(.ds-label i small) { font-size: 11px; font-style: normal; color: var(--s-ink-3); margin-left: 2px; }
   :global(.ds-label em) { display: block; font-style: normal; color: var(--s-ink-3); font-size: 11px; }
+  :global(.ds-depth) { font: italic 400 10px/1 var(--s-font); color: #9a917f; pointer-events: none; text-shadow: 0 0 2px var(--s-paper), 0 0 2px var(--s-paper); }
+  /* 가장자리 위경도 눈금 — 종이 해도의 테두리 눈금자(분 단위 흑백 막대) */
+  :global(.ds-grat) { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  :global(.ds-grat text) { font: 400 10px var(--s-font); fill: var(--s-ink-3); }
 </style>
