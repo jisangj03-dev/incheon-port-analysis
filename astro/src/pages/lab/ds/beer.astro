@@ -1,0 +1,93 @@
+---
+// 시안 ② 맥주 게임에 디자인 시스템 「해도」를 입힌 판 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
+// lab/ 전용. 숫자는 규칙 파일에서만(정체성 §2-1).
+import Studio from "../../../layouts/Studio.astro";
+import { u } from "../../../lib/site";
+import R from "../../../../../data/sim/beer-game.json";
+const S = R.stages.length;
+---
+<Studio title="맥주 게임 — 측심(시안)" current="sim">
+  <div class="s-wrap ds-beer" data-sim="ds-beer">
+    <section class="intro">
+      <p class="s-cap">시뮬레이션 · 맥주 게임</p>
+      <h1 class="s-prose">주문을 조금만 흔들어도, 공장은 크게 흔들립니다.</h1>
+      <p class="s-lead s-prose">{R.stages.map((s) => s.label).join(" · ")} {S}단계 중 하나를 맡아 {R.weeks}주 동안 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다.</p>
+    </section>
+
+    <section id="setup" class="setup" aria-label="판 고르기">
+      <label>맡을 단계<select id="role" class="s-input">{R.stages.map((s, i) => <option value={i}>{s.label}</option>)}</select></label>
+      <label>소비자 수요<select id="demand" class="s-input"><option value="step">계단(원 규칙)</option><option value="random">무작위(씨앗 고정)</option></select></label>
+      <label>씨앗<input id="seed" class="s-input" inputmode="numeric" autocomplete="off" value="1" /></label>
+      <button type="button" id="start" class="s-btn">시작</button>
+    </section>
+
+    <section id="play" hidden aria-labelledby="h-play">
+      <h2 id="h-play"><span id="who"></span> <span class="s-cap" id="wk"></span></h2>
+      <dl class="stats">
+        <div><dt>재고</dt><dd id="inv"></dd></div>
+        <div><dt>밀린 주문</dt><dd id="bk"></dd></div>
+        <div><dt>지난주 들어온 주문</dt><dd id="inc"></dd></div>
+        <div><dt>아직 못 받은 것</dt><dd id="oo"></dd></div>
+      </dl>
+      <form id="f" class="ord">
+        <label for="order">이번 주 주문(상자)</label>
+        <input id="order" class="s-input big" inputmode="numeric" autocomplete="off" required />
+        <button type="submit" class="s-btn">주문</button>
+      </form>
+      <p id="say" class="s-cap" aria-live="polite"></p>
+    </section>
+
+    <section id="result" hidden aria-labelledby="h-out" data-chart="beer-game">
+      <h2 id="h-out" class="s-prose">결과</h2>
+      <p id="verdict" class="s-lead s-prose" aria-live="polite"></p>
+      <div id="chart" class="chart" role="img" aria-label="주별 주문 — 소비자 수요와 네 단계"></div>
+      <table class="s-table">
+        <thead><tr><th scope="col">단계</th><th scope="col" class="num">주문 증폭비</th><th scope="col" class="num">비용</th><th scope="col" class="num">최대 밀린 주문</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="s-cap">주문 증폭비 = 그 단계 주문의 분산 ÷ 소비자 수요의 분산.</p>
+      <p class="again"><button type="button" id="copy" class="s-btn s-btn--ghost">결과 주소 복사</button> <button type="button" id="again" class="s-btn s-btn--ghost">다시 하기</button></p>
+    </section>
+
+    <section class="maker" aria-label="만든 사람 노트">
+      <hr class="s-rule" />
+      <dl class="s-maker" data-maker-note>
+        <dt>왜</dt><dd data-note="why">{R.notes.why}</dd>
+        <dt>어떻게</dt><dd data-note="how">{R.notes.how} 원 규칙: <a href={R.source.doi}>{R.source.cite}</a></dd>
+        <dt>한계</dt><dd data-note="limits">{R.notes.limits}</dd>
+      </dl>
+      <p class="s-cap" data-ai-mark style="margin-top:16px">{R.aiMark}</p>
+    </section>
+  </div>
+  <script is:inline defer src={u("/assets/js/beer-game.js")}></script>
+  <script type="application/json" id="beer-rules" set:html={JSON.stringify(R)}></script>
+  <script>
+    import { initBeer } from "../../../lib/beer-ui";
+    initBeer();
+  </script>
+</Studio>
+<style>
+  /* beer-ui 의 차트가 쓰는 옛 변수 이름을 해도 토큰으로 잇는다 — 수요 점선(먹 3) · 소매 먹 · 도매·유통 바다 · 공장 신호 */
+  .ds-beer { --mist: var(--s-ink-3); --sonar: var(--s-ink); --pass: var(--s-sea); --sodium: var(--s-sea-2); --fail: var(--s-signal); --hair-strong: var(--s-rule); --text: var(--s-ink-2); }
+  .intro { padding: var(--s-9) 0 var(--s-7); }
+  .intro h1 { margin: var(--s-3) 0 var(--s-5); }
+  .setup { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: var(--s-5); align-items: end; padding: var(--s-6) 0; border-top: 1px solid var(--s-rule); }
+  .setup label { display: grid; gap: var(--s-1); font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  #play, #result { padding: var(--s-6) 0; border-top: 1px solid var(--s-rule); }
+  #play h2 { font-size: var(--s-t-h3); }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); margin: var(--s-6) 0; }
+  .stats div { padding: 0 var(--s-4); border-left: 1px solid var(--s-rule); }
+  .stats div:first-child { padding-left: 0; border-left: 0; }
+  .stats dt { font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .stats dd { margin: var(--s-1) 0 0; font-size: clamp(36px, 5vw, 56px); font-weight: 650; letter-spacing: -0.04em; line-height: 1.1; }
+  .ord { display: grid; grid-template-columns: minmax(0, 16rem) auto; gap: var(--s-4); align-items: end; }
+  .ord label { grid-column: 1 / -1; font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .big { font-size: 28px; font-weight: 650; }
+  .chart { margin: var(--s-6) 0; }
+  .chart :global(svg) { width: 100%; height: auto; display: block; }
+  :global(#rows tr.me th) { color: var(--s-signal); }
+  .again { display: flex; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-5); }
+  .maker { padding: var(--s-8) 0 0; max-width: 46rem; }
+  .maker .s-maker { margin-top: var(--s-5); }
+  @media (max-width: 720px) { .setup { grid-template-columns: 1fr 1fr; } .stats { grid-template-columns: 1fr 1fr; row-gap: var(--s-5); } .stats div:nth-child(3) { padding-left: 0; border-left: 0; } }
+</style>

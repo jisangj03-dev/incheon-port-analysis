@@ -1,0 +1,86 @@
+---
+// 시안 ① 새 홈 — 구조 넷(지도·시뮬레이션·노트·소개) · 한 화면 한 메시지 · 숫자는 데이터 파일에서만(정체성 §2-1).
+// 실명·소속·연락처는 자리표시(정체성 §5-4 공개 전환 PR 에서 채운다). lab/ 전용 — 공개 배포물에는 없다.
+import Studio from "../../../layouts/Studio.astro";
+import { getCollection } from "astro:content";
+import { portMonthly } from "../../../lib/data";
+import { title, written, lastUpdated } from "../../../lib/content";
+import { u } from "../../../lib/site";
+
+const P = portMonthly();
+const S = P.series;
+const last = S[S.length - 1];
+// 한 줄 그림 — 월별 처리량(빌드 때 SVG · 외부 요청 0 · 범례 없이 끝점에 직접 이름)
+const W = 1000, H = 260, pad = 8;
+const vs = S.map((s) => s.v), lo = Math.min(...vs), hi = Math.max(...vs);
+const x = (i: number) => pad + (i * (W - 2 * pad)) / (S.length - 1);
+const y = (v: number) => H - pad - ((v - lo) * (H - 2 * pad)) / (hi - lo || 1);
+const path = S.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.v).toFixed(1)}`).join("");
+const reports = (await getCollection("reports"))
+  .map((r) => ({ id: r.id, t: title(r.body ?? ""), d: written(r.body ?? "") || lastUpdated(`reports/${r.id}.md`) }))
+  .filter((r) => r.t && r.d)
+  .sort((a, b) => (a.d < b.d ? 1 : -1))
+  .slice(0, 3);
+---
+<Studio title="측심 — SCM 작업실(시안)" current="home">
+  <div class="s-wrap" data-content="ds-home">
+    <section class="s-scene hero">
+      <h1 class="s-prose">수도권으로 들어오는 물건의 길은 <span class="s-signal">인천</span>을 지납니다.</h1>
+      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉의 SCM 작업실 — 그 길을 공공 1차 데이터로 움직여 보여 줍니다.</p>
+    </section>
+
+    <section class="s-scene" aria-labelledby="h-now">
+      <p class="s-cap" id="h-now">인천항 컨테이너 · {last.ym}</p>
+      <p class="s-num">{last.v}<span class="unit">천TEU</span></p>
+      {last.yoy !== null && (
+        <p class="s-lead s-prose">작년 같은 달보다 <strong class={last.yoy < 0 ? "s-signal" : ""}>{last.yoy > 0 ? "+" : last.yoy < 0 ? "−" : ""}{Math.abs(last.yoy)}%</strong>. 주장에 불리한 숫자도 같은 자리에 둡니다.</p>
+      )}
+      <figure class="spark" aria-label={`${S[0].ym}부터 ${last.ym}까지 월별 처리량`}>
+        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img">
+          <path d={path} fill="none" stroke="var(--s-ink-2)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+          <circle cx={x(S.length - 1)} cy={y(last.v)} r="5" fill="var(--s-signal)" />
+        </svg>
+        <figcaption class="s-cap">{S[0].ym} — {last.ym} · 월별 · {P.source}</figcaption>
+      </figure>
+    </section>
+
+    <section class="s-scene" aria-labelledby="h-rooms">
+      <h2 id="h-rooms" class="s-prose">네 개의 방</h2>
+      <ol class="s-index" style="margin-top:32px">
+        <li><div><h3><a href={u("/lab/ds/map.html")}>지도</a></h3><p>항만·공항·물류센터를 잇는 수도권 공급망을 한 장에.</p></div></li>
+        <li><div><h3><a href={u("/lab/ds/beer.html")}>시뮬레이션</a></h3><p>맥주 게임 — 주문 하나가 공장까지 얼마나 출렁이는지 직접 겪어 봅니다.</p></div></li>
+        <li><div><h3><a href="#notes">노트</a></h3><p>날짜를 박은 짧은 기록. 틀린 것은 지우지 않고 고쳐 적습니다.</p></div></li>
+        <li><div><h3><a href="#about">소개</a></h3><p>누가 왜 만드는지, 어디로 연락하면 되는지.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="s-scene" id="notes" aria-labelledby="h-notes">
+      <h2 id="h-notes">노트</h2>
+      <ul class="notes">
+        {reports.map((r) => (
+          <li><time>{r.d}</time><a href={u(`/reports/${r.id}.html`)}>{r.t}</a></li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="s-scene" id="about" aria-labelledby="h-about">
+      <h2 id="h-about">소개</h2>
+      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉 · 〈소속〉. 〈자격〉 · 〈기고〉.</p>
+      <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다.</p>
+      <p class="contact"><a class="s-btn" href="#about">LinkedIn 〈자리표시〉</a> <a class="s-btn s-btn--ghost" href="#about">메일 〈자리표시〉</a></p>
+    </section>
+  </div>
+</Studio>
+<style>
+  .hero h1 { font-size: clamp(40px, 6.4vw, 76px); }
+  .unit { font-size: 0.24em; font-weight: 600; letter-spacing: 0; margin-left: 12px; color: var(--s-ink-2); }
+  .spark { margin: 48px 0 0; }
+  .spark svg { display: block; width: 100%; height: 180px; }
+  @media (max-width: 560px) { .spark svg { height: 120px; } }
+  .notes { list-style: none; padding: 0; margin: 32px 0 0; }
+  .notes li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--s-rule); }
+  .notes time { color: var(--s-ink-3); font-size: var(--s-t-sm); padding-top: 0.2em; }
+  .notes a { text-decoration: none; font-size: var(--s-t-lead); font-weight: 600; letter-spacing: -0.02em; line-height: 1.45; }
+  .contact { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  @media (max-width: 560px) { .notes li { grid-template-columns: 1fr; gap: 4px; } }
+</style>

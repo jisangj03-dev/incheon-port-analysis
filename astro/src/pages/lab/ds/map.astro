@@ -1,0 +1,49 @@
+---
+// 시안 ③ 지도 한 면 — maplibre 실제 렌더(내장 PMTiles · 외부 요청 0) · 셰입맵급 절제(땅·물·해안선 + 장소 넷).
+// 숫자 = analysis/terminal_monthly_long.csv 마지막 달(정체성 §2-1) · 자리 = data/derived/places.json. lab/ 전용.
+import Studio from "../../../layouts/Studio.astro";
+import { mapSeries } from "../../../lib/data";
+import { u } from "../../../lib/site";
+const D = mapSeries();
+const lastYm = D.months[D.months.length - 1];
+type DP = { id: string; label: string; kind: string; lon: number; lat: number; approx: boolean; v: number | null };
+const places: DP[] = D.places.map((p: any) => ({ id: p.id, label: p.label, kind: p.kind, lon: p.lon, lat: p.lat, approx: !!p.approx, v: p.values ? p.values[p.values.length - 1] : null }));
+const top = [...places].filter((p) => p.v != null).sort((a, b) => (b.v as number) - (a.v as number))[0];
+const sea = places.filter((p) => p.kind === "port").length, air = places.filter((p) => p.kind === "air").length;
+---
+<Studio title="지도 — 측심(시안)" current="map">
+  <div class="s-wrap" data-content="ds-map">
+    <section class="head">
+      <p class="s-cap">지도 · 인천 · {lastYm}</p>
+      <h1 class="s-prose">바다 문 {sea}곳, 하늘 문 {air}곳.</h1>
+      <p class="s-lead s-prose">점 크기는 {lastYm} 컨테이너 처리량입니다. 가장 큰 문은 <span class="s-signal">{top.id}</span>({top.v}천TEU).</p>
+    </section>
+  </div>
+  <div id="ds-map" class="ds-map" role="img" aria-label={`인천 지도 — ${places.map((p) => p.id).join(", ")}`}></div>
+  <div class="s-wrap" data-content="ds-map-foot">
+    <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일) · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
+    <dl class="s-maker" data-maker-note style="margin-top:32px;max-width:46rem">
+      <dt>왜</dt><dd data-note="why">인천을 지나는 화물이 어느 문으로 드나드는지, 표보다 먼저 자리로 보이게 하려고.</dd>
+      <dt>어떻게</dt><dd data-note="how">공표 월별 처리량을 시설 면 중심점 위에 원 넓이로 얹었다. 바탕은 땅·물·해안선만 남겼다.</dd>
+      <dt>한계</dt><dd data-note="limits">점은 문이지 길이 아니다 — 문에서 수도권 어디로 가는지는 아직 데이터가 없다.</dd>
+    </dl>
+    <p class="s-cap" data-ai-mark>AI 정리 · 검수 전</p>
+  </div>
+  <script type="application/json" id="ds-map-data" set:html={JSON.stringify(places)}></script>
+  <script define:vars={{ ml: u("/vendor/maplibre/maplibre-gl.mjs"), worker: u("/vendor/maplibre/maplibre-gl-worker.mjs"), css: u("/vendor/maplibre/maplibre-gl.css"), tiles: u("/tiles/incheon.pmtiles") }}>
+    window.__mapcfg = { ml, worker, css, tiles };
+  </script>
+  <script>
+    import { initDsMap } from "../../../lib/ds-map";
+    initDsMap();
+  </script>
+</Studio>
+<style>
+  .head { padding: var(--s-8) 0 var(--s-6); }
+  .head h1 { margin: var(--s-3) 0 var(--s-4); }
+  .ds-map { height: min(72vh, 720px); min-height: 420px; background: var(--s-paper); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); margin-bottom: var(--s-4); }
+  :global(.ds-label) { font: 600 13px/1.25 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper); pointer-events: none; }
+  :global(.ds-label b) { display: block; font-size: 15px; letter-spacing: -0.02em; }
+  :global(.ds-label span) { color: var(--s-ink-2); font-weight: 500; }
+  :global(.ds-label em) { display: block; font-style: normal; color: var(--s-ink-3); font-size: 11px; }
+</style>
