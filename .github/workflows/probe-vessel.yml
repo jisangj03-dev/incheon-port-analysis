@@ -2,6 +2,9 @@
 name: probe-vessel
 on:
   workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: [".github/workflows/probe-vessel.yml"]   # 수동 실행은 main 에 있어야 해서, 이 파일이 바뀐 push 로 한 번 돈다
 permissions:
   contents: read
 jobs:
