@@ -1,6 +1,6 @@
 // 출고 검사(2026-10-14 정체성 §5-4 공개 전환 · 선장님 위임 「스스로 거르는 출고 검사」) — 공개 빌드(astro/dist)를 파일로 전부 훑는다.
 // 화면을 띄워 재는 것(외부 요청·넘침·오류)은 criteria.spec · ds.spec 이 지면마다 한다. 여기는 빌드 산출물 전체에 대한 판정이다.
-//  ① 깨진 내부 링크 0 ② 외부 자원 0(Cloudflare 분석 자리는 비어 있다) ③ 개인 주소·전화·학번·메일 원문 0
+//  ① 깨진 내부 링크 0 ② 외부 자원 0 — Cloudflare 분석 비콘 하나만(2026-10-14 채팅이 코드를 줬다 · 그 밖은 0) ③ 개인 주소·전화·학번·메일 원문 0
 //  ④ AI 표기 = 「AI 정리 · 〈실명〉 검수」 ⑤ 자문 아님 고지가 모든 지면에 ⑥ 공공 데이터 차트의 출처 줄에 공공누리 유형 ⑦ 자산 출처 목록 밖 파일 0
 import { test, expect } from "@playwright/test";
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
@@ -50,12 +50,15 @@ test("① 깨진 내부 링크 0 — 모든 지면의 href·src 가 빌드 안�
 
 test("② 외부 자원 0 — 스크립트·스타일·그림·글꼴·틀을 밖에서 받지 않는다", () => {
   const bad = [];
+  // 허용 = Cloudflare 분석 비콘 스크립트 하나(site.ts CF_BEACON) — 지면마다 많아야 한 번 · 다른 바깥 자원은 0
+  const CF = /^<script type='module' src='https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js' data-cf-beacon=/;
   for (const f of HTML) {
     const html = read(f);
+    if ((html.match(/cloudflareinsights/g) || []).length > 1) bad.push(`${f}: Cloudflare 비콘이 두 번 이상`);
+    for (const m of html.matchAll(/<script type='module' src='https:\/\/static\.cloudflareinsights[^>]*>/g)) if (!CF.test(m[0])) bad.push(`${f}: Cloudflare 비콘 모양이 다르다`);
     for (const m of html.matchAll(/<(script|img|iframe|video|audio|source|embed)\b[^>]*\ssrc="(https?:)?\/\/[^"]+"/g)) bad.push(`${f}: ${m[0].slice(0, 120)}`);
     for (const m of html.matchAll(/<link\b[^>]*rel="(?:stylesheet|preload|modulepreload|preconnect|dns-prefetch|icon|manifest)"[^>]*href="(https?:)?\/\/[^"]+"/g)) bad.push(`${f}: ${m[0].slice(0, 120)}`);
     for (const m of html.matchAll(/url\(\s*['"]?(https?:)?\/\/[^)]+\)/g)) bad.push(`${f}: ${m[0].slice(0, 120)}`);
-    if (/cloudflareinsights/.test(html)) bad.push(`${f}: Cloudflare 분석 — 토큰을 받기 전에는 자리만 비워 둔다`);
   }
   expect(bad).toEqual([]);
 });

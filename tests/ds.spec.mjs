@@ -16,7 +16,7 @@ for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"])
   });
   test(`화면 ${f}: 외부 요청 0 · 360px 넘침 0 · 오류 0`, async ({ page }, info) => {
     const ext = [], errors = [];
-    await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => { ext.push(r.request().url()); return r.abort(); });
+    await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => { if (!/cloudflareinsights\.com$/.test(new URL(r.request().url()).hostname)) ext.push(r.request().url()); return r.abort(); });
     page.on("pageerror", (e) => errors.push(String(e)));
     if (info.project.name === "iphone-13") await page.setViewportSize({ width: 360, height: 720 });
     await page.goto(at(f), { waitUntil: "networkidle" });
