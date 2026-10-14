@@ -48,7 +48,7 @@ body.studio {
 .studio a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; text-decoration-color: var(--s-rule); }
 .studio a:hover { text-decoration-color: var(--s-ink); }
 .studio :focus-visible { outline: 2px solid var(--s-signal); outline-offset: 3px; }
-.studio h1, .studio h2, .studio h3 { color: var(--s-ink); margin: 0; font-weight: 700; letter-spacing: -0.03em; line-height: 1.22; }
+.studio h1, .studio h2, .studio h3 { color: var(--s-ink); margin: 0; font-weight: 700; letter-spacing: -0.03em; line-height: 1.22; text-wrap: balance; }
 .studio h1 { font-size: var(--s-t-h1); letter-spacing: -0.04em; line-height: 1.15; }
 .studio h2 { font-size: var(--s-t-h2); }
 .studio h3 { font-size: var(--s-t-h3); }

@@ -27,7 +27,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
       <dt>어떻게</dt><dd data-note="how">공표 월별 처리량을 시설 면 중심점 위에 원 넓이로 얹었다. 바탕은 땅·물·해안선만 남겼다.</dd>
       <dt>한계</dt><dd data-note="limits">점은 문이지 길이 아니다 — 문에서 수도권 어디로 가는지는 아직 데이터가 없다.</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>AI 정리 · 검수 전</p>
+    <p class="s-cap" data-ai-mark style="margin-top:24px">AI 정리 · 검수 전</p>
   </div>
   <script type="application/json" id="ds-map-data" set:html={JSON.stringify(places)}></script>
   <script define:vars={{ ml: u("/vendor/maplibre/maplibre-gl.mjs"), worker: u("/vendor/maplibre/maplibre-gl-worker.mjs"), css: u("/vendor/maplibre/maplibre-gl.css"), tiles: u("/tiles/incheon.pmtiles") }}>
@@ -39,9 +39,9 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   </script>
 </Studio>
 <style>
-  .head { padding: var(--s-8) 0 var(--s-6); }
+  .head { padding: var(--s-7) 0 var(--s-5); }
   .head h1 { margin: var(--s-3) 0 var(--s-4); }
-  .ds-map { height: min(72vh, 720px); min-height: 420px; background: var(--s-paper); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); margin-bottom: var(--s-4); }
+  .ds-map { height: clamp(420px, calc(100svh - 400px), 720px); background: var(--s-paper); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); margin-bottom: var(--s-4); }
   :global(.ds-label) { font: 600 13px/1.25 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper); pointer-events: none; }
   :global(.ds-label b) { display: block; font-size: 15px; letter-spacing: -0.02em; }
   :global(.ds-label span) { color: var(--s-ink-2); font-weight: 500; }
