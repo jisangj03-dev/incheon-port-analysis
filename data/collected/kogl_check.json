@@ -3,24 +3,12 @@
  "command": "python tools-build/kogl_check.py",
  "sources": {
   "ipa-empty-container": {
-   "search": "공컨테이너",
+   "search": "공컨테이너 수출입",
    "search_status": 200,
    "candidates": [
     [
      "15148930",
      "인천항만공사_ 공컨테이너 화물 처리량 집계 패턴 합성데이터"
-    ],
-    [
-     "15090120",
-     "여수광양항만공사_광양항 컨테이너 차량 운송실적(공적컨구분)"
-    ],
-    [
-     "15133132",
-     "해양수산부_해운항만물류정보_공컨환적할인정보"
-    ],
-    [
-     "15153898",
-     "한국철도공사_철도운영정보_ 컨테이너 규격"
     ],
     [
      "15157693",
@@ -31,11 +19,18 @@
      "해양수산부_외내항 컨테이너 처리실적 통계정보"
     ]
    ],
-   "data_id": "15148930",
-   "url": "https://www.data.go.kr/data/15148930/fileData.do",
+   "data_id": null
+  },
+  "ipa-empty-container@15157693": {
+   "search": null,
+   "search_status": null,
+   "candidates": [],
+   "data_id": "15157693",
+   "url": "https://www.data.go.kr/data/15157693/openapi.do",
    "status": 200,
-   "title": "인천항만공사_공컨테이너 화물 처리량 집계 패턴 합성데이터_20251231 | 공공데이터포털",
-   "license_text": "이용허락범위 제한 없음 이 페이지의 구성 데이터 상세 오픈API 정보 표",
+   "api_names": [],
+   "title": "인천항만공사_인천항 공컨테이너 화물 통계정보 조회 서비스 | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
    "kogl_type": null,
    "evidence": []
   },
@@ -51,6 +46,7 @@
    "data_id": "15101636",
    "url": "https://www.data.go.kr/data/15101636/openapi.do",
    "status": 200,
+   "api_names": [],
    "title": "관세청_항구 공항별 수출입실적(GW) | 공공데이터포털",
    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
    "kogl_type": null,
@@ -63,6 +59,7 @@
    "data_id": "15101641",
    "url": "https://www.data.go.kr/data/15101641/openapi.do",
    "status": 200,
+   "api_names": [],
    "title": "관세청_시도별 품목별 수출입실적(GW) | 공공데이터포털",
    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
    "kogl_type": null,
@@ -75,6 +72,7 @@
    "data_id": "15083282",
    "url": "https://www.data.go.kr/data/15083282/fileData.do",
    "status": 200,
+   "api_names": [],
    "title": "국토교통부_물류창고업등록정보_20250701 | 공공데이터포털",
    "license_text": "이용허락범위 제한 없음 추천데이터 목록으로 돌아가기 관련기관 행정안전부",
    "kogl_type": null,
@@ -92,6 +90,7 @@
    "data_id": "15100475",
    "url": "https://www.data.go.kr/data/15100475/openapi.do",
    "status": 200,
+   "api_names": [],
    "title": "관세청_품목별 국가별 수출입실적(GW) | 공공데이터포털",
    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
    "kogl_type": null,
@@ -104,6 +103,9 @@
    "data_id": "15059059",
    "url": "https://www.data.go.kr/data/15059059/openapi.do",
    "status": 200,
+   "api_names": [
+    "SsopVsslEtryndHarbor2"
+   ],
    "title": "해양수산부_항만별 선박입출항실적 통계정보 | 공공데이터포털",
    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
    "kogl_type": null,
