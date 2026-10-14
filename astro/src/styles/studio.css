@@ -127,3 +127,9 @@ body.studio {
 .s-notes__date { font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 560px) { .s-notes li { grid-template-columns: 1.5rem 1fr; } .s-notes__date { grid-column: 2; white-space: normal; } }
+
+/* 글꼴 두 안 — B: 제목 명조 + 본문 고딕(?type=serif). 명조는 자간을 덜 좁힌다(획이 이미 가늘고 넓다). 숫자·본문·캡션은 고딕 그대로. */
+html[data-type="serif"] .studio h1, html[data-type="serif"] .studio h2:not(.s-cap), html[data-type="serif"] .studio h3, html[data-type="serif"] .s-notes a {
+  font-family: "Noto Serif KR", "Nanum Myeongjo", serif; font-weight: 700; letter-spacing: -0.015em;
+}
+html[data-type="serif"] .studio h1 { letter-spacing: -0.02em; line-height: 1.22; }

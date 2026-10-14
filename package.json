@@ -48,5 +48,8 @@
     "@loaders.gl/worker-utils": "4.4.5",
     "@loaders.gl/images": "4.4.5",
     "@modelcontextprotocol/sdk": "1.31.0"
+  },
+  "dependencies": {
+    "@fontsource/noto-serif-kr": "5.3.1"
   }
 }

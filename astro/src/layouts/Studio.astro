@@ -20,6 +20,13 @@ const NAV = [
   <meta name="robots" content="noindex" />
   <title>{title}</title>
   <link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} />
+  {/* 글꼴 두 안(선장님 판정용) — 기본 = 고딕 단독(Pretendard) · ?type=serif = 제목 명조(Noto Serif KR 700) + 본문 고딕. 명조 CSS 는 그 안일 때만 붙인다. */}
+  <script is:inline define:vars={{ serifCss: u("/fonts/noto-serif-kr/noto-serif-kr-700.css") }}>
+    if (new URLSearchParams(location.search).get("type") === "serif") {
+      document.documentElement.dataset.type = "serif";
+      const l = document.createElement("link"); l.rel = "stylesheet"; l.href = serifCss; document.head.append(l);
+    }
+  </script>
 </head>
 <body class="studio">
   <header class="s-wrap s-mast">

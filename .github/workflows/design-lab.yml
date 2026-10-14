@@ -88,7 +88,7 @@ jobs:
           node -e "
             const d=require('./tools-build/design-lab.json');
             const L='http://127.0.0.1:4173/incheon-port-analysis';
-            const rows=(d.pairs&&d.pairs.length)?d.pairs.map(p=>[p.name,L+p.ours,p.ref]):d.targets.map(t=>[t.name,d.ours,t.url]);
+            const rows=(d.pairs&&d.pairs.length)?d.pairs.map(p=>[p.name,L+p.ours,p.ref.startsWith('/')?L+p.ref:p.ref]):d.targets.map(t=>[t.name,d.ours,t.url]);
             for (const r of rows) console.log(r.join(' '));" | while read -r name ours ref; do
             node tests/capture/compare.mjs --ours "$ours" --ref "$ref" --out lab-out/compare --name "$name" --full | tee -a "$GITHUB_STEP_SUMMARY" \
               || echo "### $name — 캡처 실패(작업 로그 참조)" | tee -a "$GITHUB_STEP_SUMMARY"

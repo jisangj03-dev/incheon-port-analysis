@@ -23,7 +23,9 @@ async function compose(w, shots, file) {
   const h = Math.max(...shots.map((s) => s.h || 0), 200);
   const page = await browser.newPage({ viewport: { width: w * 2 + 24, height: h + 40 } });
   await page.setContent(`<body style="margin:0;background:#222;color:#eee;font:13px system-ui;display:flex;gap:24px;align-items:flex-start">${shots
-    .map((s) => `<figure style="margin:0;width:${w}px"><figcaption style="height:40px;line-height:40px;padding:0 8px">${s.label} · ${w}px · ${s.status ?? s.err ?? "?"}${s.cut ? ` · 위 ${FULL_MAX}px 까지` : ""}</figcaption>${s.b64 ? `<img src="data:image/png;base64,${s.b64}" style="display:block;width:${w}px">` : "<p>찍지 못함</p>"}</figure>`)
+    .map((s) => `<figure style="margin:0;width:${w}px"><figcaption style="height:40px;line-height:40px;padding:0 8px">${s.label} · ${w}px · ${s.status ?? s.err ?? "?"}${s.cut ? ` · 위 ${FULL_MAX}px 까지` : ""}</figcaption>${
+      s.parts ? `<div style="width:${w}px;height:${s.h}px;overflow:hidden">${s.parts.map((p) => `<div style="overflow:hidden;width:${w}px"><img src="data:image/png;base64,${p.b64}" style="display:block;width:${w}px;margin-top:${p.skip ? -p.skip : 0}px"></div>`).join("")}</div>`
+      : s.b64 ? `<img src="data:image/png;base64,${s.b64}" style="display:block;width:${w}px">` : "<p>찍지 못함</p>"}</figure>`)
     .join("")}</body>`);
   // 큰 data: 이미지가 다 풀리기 전에 찍으면 「Unable to capture screenshot」이 난다(2026-10-14 run 38514859590) — 풀림을 기다리고 한 번 더 찍는다
   await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 30_000 });
@@ -47,21 +49,22 @@ for (const w of widths) {
     const buf = await page.screenshot({ fullPage: false }).catch(() => null);
     shots.push({ label, url, status, err, h, b64: buf ? buf.toString("base64") : null });
     if (full && !err) {
-      // fullPage 옵션은 찍는 순간에만 창을 늘려 WebGL 지도가 빈 면으로 찍힌다(2026-10-14 로컬 실측).
-      // 그래서 창을 문서 높이로 먼저 늘리고, 다시 그려질 시간을 준 뒤 보이는 만큼을 찍는다.
-      // 창 높이에 따라 자라는 칸(지도 = 100svh 기준)이 있어 한 번 늘린 뒤 다시 재고, 더 길어졌으면 한 번 더 늘린다
-      const measure = () => page.evaluate(() => Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0)).catch(() => h);
-      let docH = await measure(), fh = h;
-      for (let k = 0; k < 3; k++) {
-        const want = Math.min(Math.max(docH, h), FULL_MAX);
-        if (want === fh && k) break;
-        fh = want;
-        await page.setViewportSize({ width: w, height: fh });
-        await page.waitForTimeout(2000);
-        docH = await measure();
+      // 전체 페이지 = 한 화면씩 내려가며 찍어 세로로 잇는다(창 크기를 바꾸지 않는다).
+      //  · fullPage 옵션은 찍는 순간만 창을 늘려 WebGL 지도가 빈 면으로 찍혔다(2026-10-14 로컬 실측)
+      //  · 창을 문서 높이로 늘리면 vh 로 정한 장면(스크롤 홈 190vh)이 같이 늘어 끝없이 길어진다
+      //  · 스크롤로 움직이는 장면(주홍 선)은 내려가는 동안의 상태가 그대로 찍힌다
+      const docH = Math.min(await page.evaluate(() => document.documentElement.scrollHeight).catch(() => h), FULL_MAX);
+      const parts = [];
+      for (let y = 0; y < docH; y += h) {
+        await page.evaluate((yy) => scrollTo(0, yy), y);
+        await page.waitForTimeout(500);
+        const at = await page.evaluate(() => scrollY);
+        const fb = await page.screenshot({ fullPage: false }).catch(() => null);
+        if (fb) parts.push({ b64: fb.toString("base64"), skip: y - at }); // 끝 화면은 덜 내려가므로 겹친 만큼 잘라 낸다
+        if (at < y) break;
       }
-      const fb = await page.screenshot({ fullPage: false }).catch(() => null);
-      fulls.push({ label, url, status, err, h: fh, cut: docH > FULL_MAX, b64: fb ? fb.toString("base64") : null });
+      const real = await page.evaluate(() => document.documentElement.scrollHeight).catch(() => docH);
+      fulls.push({ label, url, status, err, h: Math.min(real, FULL_MAX), cut: real > FULL_MAX, parts });
     }
     await ctx.close();
   }
