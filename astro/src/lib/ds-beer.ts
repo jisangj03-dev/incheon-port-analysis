@@ -60,6 +60,9 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
   if (!svg) {
     svg = document.createElementNS(NS, "svg") as SVGSVGElement;
     svg.setAttribute("role", "img");
+    // 그림 설명은 그림(svg)에 — 감싼 div 의 aria-label 은 역할 없는 요소라 금지 속성이다(접근성 검사)
+    svg.setAttribute("aria-label", host.getAttribute("aria-label") || host.dataset.label || "주별 주문 그림");
+    if (host.hasAttribute("aria-label")) { host.dataset.label = host.getAttribute("aria-label")!; host.removeAttribute("aria-label"); }
     host.append(svg);
   }
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
@@ -83,7 +86,10 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
       .map(
         (s, k) =>
           `<polyline fill="none" stroke="${s.c}" stroke-width="${s.w}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${s.v.map((v: number, i: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>` +
-          `<text x="${W - Rt + 8}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${s.c}">${s.label}</text>`,
+          `<text x="${W - Rt + 8}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${textColor(s.c)}">${s.label}</text>`,
       )
       .join("");
 }
+
+/** 선 색 → 글자 색(종이 대비 4.5:1 이상 · 채팅 검수 ②) */
+export const textColor = (c: string) => c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : c === "var(--s-sea)" ? "var(--s-sea-t)" : c;

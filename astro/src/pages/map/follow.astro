@@ -123,8 +123,9 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
     const story = document.querySelector(".story") as HTMLElement;
     const fig = document.getElementById("follow-map") as HTMLElement;
     // 왼쪽 여백 비율(pad.l 0.42)은 글 기둥 자리 — 좁은 화면은 위쪽 지도만 쓰므로 부품 기본값을 쓴다
-    initHaedo(fig);
-    const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting) story.dataset.step = (e.target as HTMLElement).dataset.s!; }, { rootMargin: "-45% 0px -45% 0px" });
+    const refit = initHaedo(fig);
+    // 단계가 바뀌면 그 단계 꼬리표까지 넣어 이름표를 다시 놓는다(겹침 0)
+    const io = new IntersectionObserver((es) => { for (const e of es) if (e.isIntersecting && story.dataset.step !== (e.target as HTMLElement).dataset.s) { story.dataset.step = (e.target as HTMLElement).dataset.s!; refit(); } }, { rootMargin: "-45% 0px -45% 0px" });
     for (const s of document.querySelectorAll(".st")) io.observe(s);
   </script>
 </Studio>

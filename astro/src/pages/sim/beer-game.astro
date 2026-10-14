@@ -17,7 +17,7 @@ const S = R.stages.length;
       <h1 id="h-wave" class="s-prose">오는 중인 물건을 잊으면, 공장이 흔들립니다.</h1>
       <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 막대를 움직여 보세요.</p>
       <figure class="wave-fig">
-        <div id="wave" class="wave" aria-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
+        <div id="wave" class="wave" data-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
         <figcaption class="readout">
           <label class="beta" for="beta">
             <span>주문할 때 아직 오는 중인 물건을 셈에 넣는 정도 <b id="beta-out"></b></span>
@@ -56,7 +56,7 @@ const S = R.stages.length;
         <button type="submit" class="s-btn">주문</button>
       </form>
       <p id="say" class="s-cap" aria-live="polite"></p>
-      <div id="live" class="live" aria-label="지금까지 들어온 주문과 내 주문"></div>
+      <div id="live" class="live"></div>
     </section>
 
     <section id="result" hidden aria-labelledby="h-out" data-chart="beer-game">

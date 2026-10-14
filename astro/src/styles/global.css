@@ -68,7 +68,7 @@ blockquote { margin: 1.2em 0; padding: 0.2em 1.1em; border-left: 3px solid var(-
 .narrow { max-width: 760px; margin: 0 auto; padding: 0 var(--gutter); }
 
 /* 머리 = studio.css 의 .s-mast · .s-nav · .s-mark(해도). 바닥 = 아래 격자 */
-.foot { margin-top: var(--s-8, 64px); }
+.foot { margin-top: var(--s-8, 64px); content-visibility: auto; contain-intrinsic-size: auto 260px; } /* 바닥글은 보일 때 조판(첫 그림 가볍게) */
 .foot__grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 1.5rem; margin-top: 1.25rem; }
 .foot__who { color: var(--text); max-width: 34rem; }
 .foot__links { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.35rem; font-size: 0.92rem; }

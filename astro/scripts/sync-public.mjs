@@ -36,10 +36,11 @@ const serif = join(nm, "@fontsource/noto-serif-kr");
 if (existsSync(serif)) {
   const sd = fresh(join(pub, "fonts/noto-serif-kr"));
   mkdirSync(join(sd, "files"), { recursive: true });
+  // 제목 명조도 swap → optional(2026-10-14 출고 검사) — 늦게 온 글꼴로 제목이 바뀌며 밀리던 것(홈 CLS 0.10)을 없앤다.
   for (const f of readdirSync(join(serif, "files"))) if (/-700-normal\.woff2$/.test(f)) cpSync(join(serif, "files", f), join(sd, "files", f));
   cpSync(join(serif, "LICENSE"), join(sd, "LICENSE"));
   writeFileSync(join(sd, "noto-serif-kr-700.css"), "/* Noto Serif KR 700 · OFL-1.1 · @fontsource/noto-serif-kr */\n" +
-    readFileSync(join(serif, "700.css"), "utf-8").replace(/,\s*url\([^)]*\.woff\) format\('woff'\)/g, ""));
+    readFileSync(join(serif, "700.css"), "utf-8").replace(/,\s*url\([^)]*\.woff\) format\('woff'\)/g, "").replace(/font-display:\s*swap/g, "font-display: optional"));
 }
 
 const ml = fresh(join(pub, "vendor/maplibre"));

@@ -33,6 +33,7 @@ test("지도 면: 바탕·점이 실제로 그려졌다(픽셀 판정)", async (
   const tiles = existsSync("astro/dist/tiles/incheon.pmtiles");
   if (process.env.CI) expect(tiles, "CI 에는 지도 타일이 있어야 한다 — 없으면 바탕을 증명할 수 없다").toBe(true);
   await page.goto(at("map"), { waitUntil: "networkidle" });
+  await page.mouse.move(20, 20); // 움직이는 지도는 사람이 움직이면 뜬다
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
   const st = await page.evaluate(() => window.__dsmap);
   expect(st.errors).toEqual([]);
@@ -115,6 +116,7 @@ test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async
 // 지도 움직임 — 달 막대를 옮기면 달·점 숫자가 바뀌고, 그대로 두면 달이 흐른다(움직임 줄이기 설정이 아닐 때)
 test("지도: 달 막대 · 자동으로 흐르는 달 · 흐름선은 개념선이라고 적었다", async ({ page }) => {
   await page.goto(at("map"), { waitUntil: "networkidle" });
+  await page.mouse.move(20, 20); // 움직이는 지도는 사람이 움직이면 뜬다
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
   await page.locator("#ds-m").fill("0");
   const ym0 = await page.locator("#ds-ym").innerText();
@@ -158,4 +160,17 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   await page.click("#vr-play");
   await expect.poll(() => page.getAttribute("#vr-chart", "data-month"), { timeout: 5_000 }).not.toBe(V.months[0]);
   expect(ym).toBe(V.latest.ym);
+});
+
+// 지도 첫 화면(2026-10-14 출고 검사 · 모바일 성능) — 아무것도 안 하면 maplibre 를 받지 않고 해도 정지 그림이 같은 자리를 채운다
+test("지도: 손대기 전에는 정지 해도 그림 · maplibre 0 · 움직이면 뜬다", async ({ page }) => {
+  const got = [];
+  page.on("request", (r) => got.push(r.url()));
+  await page.goto(at("map"), { waitUntil: "networkidle" });
+  expect(got.filter((u) => /maplibre|pmtiles/.test(u)), "손대기 전 지도 엔진 요청").toEqual([]);
+  await expect(page.locator("#map-poster .h-pt")).toHaveCount(JSON.parse(readFileSync("data/derived/places.json", "utf-8")).places.length + 1);
+  const box = await page.locator("#map-poster").boundingBox();
+  expect(box && box.height, "정지 그림이 지도 칸을 채운다").toBeGreaterThan(300);
+  await page.mouse.move(30, 30);
+  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
 });

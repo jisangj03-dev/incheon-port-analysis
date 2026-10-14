@@ -61,8 +61,8 @@ const n = V.months.length;
       }
       ends.sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
-      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
-      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`;
+      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i]}척 · 부산 ${D.s["부산"][i]}척">${g}</svg>`;
       document.getElementById("vr-ym")!.textContent = D.months[i];
       document.getElementById("vr-inc")!.textContent = String(D.s["인천"][i]);
       document.getElementById("vr-bus")!.textContent = String(D.s["부산"][i]);

@@ -13,6 +13,7 @@ import Haedo from "../components/scene/Haedo.astro";
 import Contact from "../components/scene/Contact.astro";
 import { profile } from "../lib/profile";
 import { curve } from "../lib/haedo-geo";
+import { sourceLine } from "../lib/sources";
 
 const P = portMonthly();
 const S = P.series;
@@ -72,7 +73,7 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
           <span class="mark lo" style={`left:${pct(iLo)}`}>가장 적은 달 {S[iLo].ym} · {lo}</span>
         </div>
         <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
-        <Trust updated={P.updated} source={P.source} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU" />
+        <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU" />
       </figure>
       <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
     </Scene>

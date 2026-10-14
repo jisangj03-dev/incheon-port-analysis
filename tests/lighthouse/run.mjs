@@ -10,8 +10,19 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const base = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
+// [2026-10-14 공개 전환] 구조 넷 지면 전부 + 남이 링크한 계산기 — 출고 검사 「모바일 성능 90↑ · 접근성」의 축.
 const PAGES = [
   ["home", "/incheon-port-analysis/"],
+  ["map", "/incheon-port-analysis/map.html"],
+  ["follow", "/incheon-port-analysis/map/follow.html"],
+  ["vessels", "/incheon-port-analysis/map/vessels.html"],
+  ["sim", "/incheon-port-analysis/sim/"],
+  ["beer-game", "/incheon-port-analysis/sim/beer-game.html"],
+  ["forecast", "/incheon-port-analysis/sim/forecast.html"],
+  ["notes", "/incheon-port-analysis/notes.html"],
+  ["port-yoy", "/incheon-port-analysis/notes/port-yoy.html"],
+  ["ai-ops", "/incheon-port-analysis/notes/ai-ops.html"],
+  ["about", "/incheon-port-analysis/about.html"],
   ["calculator", "/incheon-port-analysis/tools/logistics-cost.html"],
   ["warehouse-map", "/incheon-port-analysis/tools/warehouse-map.html"],
 ];
@@ -49,22 +60,34 @@ function diagnose(url) {
   const err = dom.match(/(?:net::)?ERR_[A-Z_]+/);
   console.error(`[진단] 크롬 직접 열기(--dump-dom): 종료 ${r.status} · ${err ? err[0] : "오류 이름 없음"} · DOM ${dom.length}자 · ${dom.slice(0, 160)}`);
 }
+// 지면마다 LH_RUNS 번(기본 3) 재고 성능은 중앙값을 적는다 — 한 번 재기는 같은 빌드에서도 ±5 흔들렸다(2026-10-14 실측: 따라가기 87~99).
+// 중앙값 회차의 JSON 을 <지면>.json 으로 남기고, 회차별 성능 점수를 같이 적는다(고른 값만 보이지 않게).
+const RUNS = Math.max(1, Number(process.env.LH_RUNS || 3));
 const rows = [];
 let bad = 0;
 for (const [name, path] of PAGES) {
-  const json = `${OUT}/${name}.json`;
-  const r = spawnSync("npx", ["lighthouse", base + path, "--quiet", "--output=json", `--output-path=${json}`,
-    `--chrome-flags=${FLAGS}`], { env, stdio: ["ignore", "inherit", "inherit"] });
-  if (!existsSync(json)) { rows.push([name, `실행 실패(종료 ${r.status})`, "", "", ""]); bad++; continue; }
-  const rep = JSON.parse(readFileSync(json, "utf-8"));
-  if (rep.runtimeError) {   // 점수 대신 이유를 남긴다 — 「실행 실패」 넉 자로는 다음 수를 못 고른다
-    console.error(`[진단] ${name}: 요청 ${rep.requestedUrl} → 최종 ${rep.finalDisplayedUrl} · 브라우저 ${rep.environment?.hostUserAgent}`);
-    for (const w of rep.runWarnings || []) console.error(`[진단] ${name} 경고: ${w}`);
-    if (!bad) diagnose(base + path);   // 첫 실패에서 한 번만
-    rows.push([name, `실행 실패: ${rep.runtimeError.code}`, "", "", ""]); bad++; continue;
+  const reps = [];
+  let fail = "";
+  for (let k = 0; k < RUNS; k++) {
+    const json = `${OUT}/${name}.run${k}.json`;
+    const r = spawnSync("npx", ["lighthouse", base + path, "--quiet", "--output=json", `--output-path=${json}`,
+      `--chrome-flags=${FLAGS}`], { env, stdio: ["ignore", "inherit", "inherit"] });
+    if (!existsSync(json)) { fail = `실행 실패(종료 ${r.status})`; break; }
+    const rep = JSON.parse(readFileSync(json, "utf-8"));
+    if (rep.runtimeError) {   // 점수 대신 이유를 남긴다 — 「실행 실패」 넉 자로는 다음 수를 못 고른다
+      console.error(`[진단] ${name}: 요청 ${rep.requestedUrl} → 최종 ${rep.finalDisplayedUrl} · 브라우저 ${rep.environment?.hostUserAgent}`);
+      for (const w of rep.runWarnings || []) console.error(`[진단] ${name} 경고: ${w}`);
+      if (!bad) diagnose(base + path);   // 첫 실패에서 한 번만
+      fail = `실행 실패: ${rep.runtimeError.code}`; break;
+    }
+    reps.push({ rep, json });
   }
-  const s = (k) => Math.round((rep.categories[k]?.score ?? NaN) * 100);
-  rows.push([name, s("performance"), s("accessibility"), s("best-practices"), s("seo")]);
+  if (fail) { rows.push([name, fail, "", "", "", ""]); bad++; continue; }
+  const sc = (rep, k) => Math.round((rep.categories[k]?.score ?? NaN) * 100);
+  reps.sort((x, y) => sc(x.rep, "performance") - sc(y.rep, "performance"));
+  const mid = reps[Math.floor(reps.length / 2)];
+  writeFileSync(`${OUT}/${name}.json`, readFileSync(mid.json, "utf-8"));
+  rows.push([name, sc(mid.rep, "performance"), sc(mid.rep, "accessibility"), sc(mid.rep, "best-practices"), sc(mid.rep, "seo"), reps.map((x) => sc(x.rep, "performance")).join(" · ")]);
 }
 const md = [
   `# Lighthouse 요약 — ${new Date().toISOString()}`,
@@ -73,8 +96,8 @@ const md = [
   "",
   `대상: ${base} · Lighthouse 13.5.0 · 모바일(기본) · 결과 JSON 은 같은 폴더`,
   "",
-  "| 지면 | 성능 | 접근성 | 권장 | SEO |",
-  "|---|---|---|---|---|",
+  `| 지면 | 성능(중앙값) | 접근성 | 권장 | SEO | 성능 회차별(${RUNS}회) |`,
+  "|---|---|---|---|---|---|",
   ...rows.map((r) => `| ${r.join(" | ")} |`),
   "",
 ].join("\n");

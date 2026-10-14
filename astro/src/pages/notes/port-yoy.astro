@@ -42,7 +42,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
         {bars.map((b) => <rect x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={Math.max(1, b.h).toFixed(1)} fill={b.neg ? "var(--s-signal)" : "var(--s-ink-2)"}><title>{b.ym} {b.v}%</title></rect>)}
       </svg>
       <div class="yoy__axis s-cap"><span>{S[0].ym}</span><span>0 위 = 작년보다 많음 · 0 아래(주홍) = 작년보다 적음</span><span>{last.ym}</span></div>
-      <Trust updated={P.updated} source={P.source} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 %" />
+      <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 %" />
     </figure>
 
     <section class="grow">

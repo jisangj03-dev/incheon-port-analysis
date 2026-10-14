@@ -5,6 +5,7 @@
 import { aiMark } from "../../lib/profile";
 import Studio from "../../layouts/Studio.astro";
 import Updated from "../../components/Updated.astro";
+import { sourceLine } from "../../lib/sources";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot, lastUpdated } from "../../lib/content";
@@ -64,7 +65,7 @@ const updated = lastUpdated("data/forecast/incheon_container_teu.csv");
             ))}
           </tbody></table>
       )}
-      <Updated date={updated} source={`원장 data/forecast/incheon_container_teu.csv · ${L.series.source}`} />
+      <Updated date={updated} source={`원장 data/forecast/incheon_container_teu.csv · ${L.series.source} · ${sourceLine("mof-incheon-port-stats")}`} />
     </section>
 
     <section class="panel" aria-labelledby="h-ledger">
