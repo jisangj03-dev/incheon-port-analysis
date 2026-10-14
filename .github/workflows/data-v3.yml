@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [terms, portwatch, density, osm, apis]
+        job: [terms, portwatch, density, osm, apis, s2]
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -46,7 +46,8 @@ jobs:
             portwatch) python portwatch.py ;;
             density) python ship_density.py ;;
             osm) python osm_iso.py ;;
-            apis) python kr_apis.py ;;
+            apis) python kr_apis.py && python race_derive.py ;;
+            s2) python s2_anchorage.py --months 12 ;;
           esac 2>&1 | tee /tmp/log.txt
           echo "## ${{ matrix.job }}" >> "$GITHUB_STEP_SUMMARY"; tail -40 /tmp/log.txt >> "$GITHUB_STEP_SUMMARY"
       - name: 키가 산출물에 없는지
@@ -55,15 +56,17 @@ jobs:
         run: |
           [ -z "$K" ] && exit 0
           if grep -rqF "$K" data/ 2>/dev/null; then echo "::error::키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
+      - name: 결과 묶기(저장소 기준 경로 그대로)
+        if: always()
+        run: |
+          git add -N . >/dev/null 2>&1 || true
+          F=$(git status --porcelain --untracked-files=all -- data/collected/v3 data/derived astro/public/media/s2 | awk '{print $2}')
+          echo "$F"; [ -n "$F" ] && tar -cf /tmp/out.tar $F || tar -cf /tmp/out.tar --files-from /dev/null
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: v3-${{ matrix.job }}
-          path: |
-            data/collected/v3/
-            data/derived/ship_density.json
-            data/derived/isochrones.json
-          if-no-files-found: ignore
+          path: /tmp/out.tar
           retention-days: 7
   commit:
     needs: fetch
@@ -80,11 +83,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
         run: |
-          for d in /tmp/v3/*; do cp -r "$d"/. . 2>/dev/null || true; done
-          ls -la data/collected/v3 data/derived | head -40
+          for t in /tmp/v3/*/out.tar; do tar -tf "$t" | head -20; tar -xf "$t"; done
+          ls -la data/collected/v3 data/derived astro/public/media/s2 2>/dev/null | head -60
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/collected/v3 data/derived/ship_density.json data/derived/isochrones.json 2>/dev/null || true
+          git add data/collected/v3 data/derived astro/public/media/s2 2>/dev/null || true
           git diff --cached --quiet && { echo "바뀐 것 없음" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
           if [ "$EVENT" = "schedule" ]; then
             b="bot/data-v3-$(date -u +%Y%m%d)"; git checkout -b "$b"
