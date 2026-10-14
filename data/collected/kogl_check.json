@@ -4,43 +4,64 @@
  "sources": {
   "ipa-empty-container": {
    "search": "인천항만공사 공컨테이너",
-   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
-   "data_id": null
+   "search_status": 200,
+   "data_id": "15148930",
+   "url": "https://www.data.go.kr/data/15148930/fileData.do",
+   "status": 200,
+   "license_text": "이용허락범위 제한 없음 이 페이지의 구성 데이터 상세 오픈API 정보 표",
+   "kogl_type": null,
+   "evidence": []
   },
   "kcs-porttrade": {
    "search": "관세청 항구공항별 수출입실적",
-   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
-   "data_id": null
+   "search_status": 200,
+   "data_id": "15101636",
+   "url": "https://www.data.go.kr/data/15101636/openapi.do",
+   "status": 200,
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+   "kogl_type": null,
+   "evidence": []
   },
   "kcs-sido-item": {
    "search": null,
    "search_status": null,
    "data_id": "15101641",
-   "url": "https://www.data.go.kr/data/15101641/fileData.do",
-   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+   "url": "https://www.data.go.kr/data/15101641/openapi.do",
+   "status": 200,
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+   "kogl_type": null,
+   "evidence": []
   },
   "molit-warehouse": {
    "search": null,
    "search_status": null,
    "data_id": "15083282",
    "url": "https://www.data.go.kr/data/15083282/fileData.do",
-   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+   "status": "<urlopen error _ssl.c:1015: The handshake operation timed out>"
   },
   "kcs-nitemtrade": {
    "search": "관세청 품목별 국가별 수출입실적",
-   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
-   "data_id": null
+   "search_status": 200,
+   "data_id": "15100475",
+   "url": "https://www.data.go.kr/data/15100475/openapi.do",
+   "status": 200,
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+   "kogl_type": null,
+   "evidence": []
   },
   "mof-vessel": {
    "search": null,
    "search_status": null,
    "data_id": "15059059",
-   "url": "https://www.data.go.kr/data/15059059/fileData.do",
-   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+   "url": "https://www.data.go.kr/data/15059059/openapi.do",
+   "status": 200,
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+   "kogl_type": null,
+   "evidence": []
   },
   "mof-incheon-port-stats": {
    "url": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700",
-   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
+   "status": 200,
    "license_text": null,
    "kogl_type": null,
    "evidence": []
