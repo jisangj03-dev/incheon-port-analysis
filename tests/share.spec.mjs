@@ -30,7 +30,7 @@ test("B6 — 보고서마다 1200×630 카드 · og:image 가 그 카드 · 틀 
 test("B7 — 퍼가기 지면: 위젯이 돌고 외부 요청 0(분석도 없다) · 출처 링크 · 보고서 지면에 퍼가기 코드", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
   const ext = [];
-  await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => { ext.push(r.request().url()); return r.abort(); });
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1)/, (r) => { if (!/cloudflareinsights\.com$/.test(new URL(r.request().url()).hostname)) ext.push(r.request().url()); return r.abort(); });
   await page.goto("/incheon-port-analysis/embed/report_04_공컨테이너_연도별추세.html");
   await expect(page.locator(".rc .rc__say")).toContainText("배");
   await expect(page.locator(".em-src a")).toHaveAttribute("href", /reports\/report_04/);

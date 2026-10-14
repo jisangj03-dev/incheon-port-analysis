@@ -45,4 +45,4 @@ export const NAV = [
 /** Cloudflare Web Analytics — 공개 화면 외부 요청 0 의 유일한 예외(기준 17 · 28). 공개되는 값이라 비밀값이 아니다. */
 // [2026-10-14 공개 전환] 채팅 지시: 「Cloudflare 분석 1개 자리만 비워 두기 — 코드는 채팅이 나중에 준다」. 토큰이 비면 비컨을 싣지 않는다(외부 요청 0).
 //   이전 토큰(d508…7)은 check_private PUBLIC_IDS 에 근거와 함께 남아 있다 — 되살리려면 이 한 줄.
-export const CF_BEACON = { src: "https://static.cloudflareinsights.com/beacon.min.js", token: "" };
+export const CF_BEACON = { src: "https://static.cloudflareinsights.com/beacon.min.js", token: "d50802d5e62b45baa1de6d74ea63add7" };
