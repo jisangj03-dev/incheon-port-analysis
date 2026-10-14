@@ -19,6 +19,7 @@ const PAGES = [
   ["trade-race", "/incheon-port-analysis/tools/trade-race.html"],
   ["import-cost", "/incheon-port-analysis/tools/import-cost.html"],
   ["anchorage", "/incheon-port-analysis/tools/anchorage.html"],
+  ["chokepoint", "/incheon-port-analysis/tools/chokepoint.html"],
   ["map", "/incheon-port-analysis/map.html"],
   ["follow", "/incheon-port-analysis/map/follow.html"],
   ["vessels", "/incheon-port-analysis/map/vessels.html"],

@@ -83,6 +83,29 @@ const FACES = {
     await glide(p, y, 900);
     await p.click("#vr-play"); await wait(p, 12000);
   } },
+  // 실무 도구(2026-10-14 선장님 최종 위임) — 3초 답이 움직이는 모습 → 조작 한두 번
+  pulse: { gif: [0.5, 9], path: "/tools/port-pulse.html", run: async (p) => {
+    await wait(p, 3500); await p.click(".pulse__cmp button[data-port=Busan]"); await wait(p, 2600);
+    await p.click(".pulse__cmp button[data-port=Pyeongtaek]"); await wait(p, 2600); await p.selectOption("#pl-type", "container"); await wait(p, 2600);
+  } },
+  reach: { gif: [0.5, 10], path: "/tools/delivery-reach.html", run: async (p) => {
+    await wait(p, 5000); await p.click(".seg button[data-k='2']"); await wait(p, 3500);
+    await p.selectOption("#reach-o", { index: 2 }); await wait(p, 4000);
+  } },
+  race: { gif: [0.5, 11], path: "/tools/trade-race.html", run: async (p) => {
+    await wait(p, 11500); await p.click(".seg button[data-k=imp]"); await wait(p, 1500); await p.click("#race-play"); await wait(p, 6000);
+  } },
+  cost: { gif: [0.3, 7], path: "/tools/import-cost.html", run: async (p) => {
+    await wait(p, 4500); await sweep(p, "input[name=duty_pct]", [0, 4, 8, 13], 700); await p.selectOption("select[name=cur]", "CNY"); await wait(p, 1500);
+    await sweep(p, "input[name=wk]", [0, 20, 40, 60, 80, 100], 450); await wait(p, 1200);
+  } },
+  choke: { gif: [0.3, 10], path: "/tools/chokepoint.html", run: async (p) => {
+    await wait(p, 2800); for (const id of ["redsea", "malacca", "taiwan", "hormuz"]) { await p.click(`.seg button[data-id=${id}]`); await wait(p, 2200); }
+    await sweep(p, "#ck-x", [10, 30, 50, 70, 90], 400); await wait(p, 1000);
+  } },
+  anchorage: { gif: [0.3, 10], path: "/tools/anchorage.html", run: async (p) => {
+    await wait(p, 10000); await p.click(".anc__bars button >> nth=6"); await wait(p, 2000);
+  } },
   note: { path: "/notes/port-yoy.html", run: async (p) => {
     await wait(p, 1800);
     const H = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight);
@@ -140,7 +163,7 @@ for (const [face, F] of Object.entries(FACES)) for (const V of VIEWS) {
   console.log(`${face} ${V.name} · ${Math.round((Date.now() - t0) / 1000)}초 · ${webm ? mp4 : "녹화 없음"} · 외부 요청 ${ext.length}${err ? ` · 오류 ${err}` : ""}`);
 }
 // 공개 지면 전체 페이지 캡처(두 폭) — 공개 뒤 모습 그대로(지도는 움직이는 지도가 뜬 상태)
-const FULL = ["/", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/data.html"];
+const FULL = ["/", "/tools/", "/tools/port-pulse.html", "/tools/delivery-reach.html", "/tools/trade-race.html", "/tools/import-cost.html", "/tools/chokepoint.html", "/tools/anchorage.html", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/data.html"];
 if (arg("full", "1") === "0") FULL.length = 0;
 mkdirSync(join(out, "full"), { recursive: true });
 for (const V of VIEWS) for (const path of FULL) {
@@ -153,7 +176,9 @@ for (const V of VIEWS) for (const path of FULL) {
     if (path === "/map.html") { await page.mouse.move(40, 40); await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 }); }
     // 스크롤로 나타나는 장면까지 다 보이게 끝까지 한 번 내렸다 올린다
     await glide(page, await page.evaluate(() => document.documentElement.scrollHeight), 1500); await glide(page, 0, 300); await wait(page, 500);
-    await page.screenshot({ path: join(out, "full", name), fullPage: true });
+    // 움직이는 캔버스가 있는 긴 지면은 30초 안에 못 찍는 일이 있었다(design-lab #15 · 1440 따라가기) — 90초 · CSS 움직임 멈춤 · 한 번 더
+    const snap = () => page.screenshot({ path: join(out, "full", name), fullPage: true, timeout: 90_000, animations: "disabled" });
+    try { await snap(); } catch { await wait(page, 1500); await snap(); }
     console.log(`전체 ${name}`);
   } catch (e) { console.log(`전체 ${name} 실패 ${String(e).split("\n")[0]}`); report.push({ face: `full:${path}`, view: V.name, err: String(e).split("\n")[0] }); }
   await ctx.close();
