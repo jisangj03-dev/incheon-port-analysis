@@ -1,0 +1,49 @@
+{
+ "checked": "2026-10-14",
+ "command": "python tools-build/kogl_check.py",
+ "sources": {
+  "ipa-empty-container": {
+   "search": "인천항만공사 공컨테이너",
+   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
+   "data_id": null
+  },
+  "kcs-porttrade": {
+   "search": "관세청 항구공항별 수출입실적",
+   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
+   "data_id": null
+  },
+  "kcs-sido-item": {
+   "search": null,
+   "search_status": null,
+   "data_id": "15101641",
+   "url": "https://www.data.go.kr/data/15101641/fileData.do",
+   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+  },
+  "molit-warehouse": {
+   "search": null,
+   "search_status": null,
+   "data_id": "15083282",
+   "url": "https://www.data.go.kr/data/15083282/fileData.do",
+   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+  },
+  "kcs-nitemtrade": {
+   "search": "관세청 품목별 국가별 수출입실적",
+   "search_status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
+   "data_id": null
+  },
+  "mof-vessel": {
+   "search": null,
+   "search_status": null,
+   "data_id": "15059059",
+   "url": "https://www.data.go.kr/data/15059059/fileData.do",
+   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)"
+  },
+  "mof-incheon-port-stats": {
+   "url": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700",
+   "status": "'latin-1' codec can't encode character '\\u2014' in position 114: ordinal not in range(256)",
+   "license_text": null,
+   "kogl_type": null,
+   "evidence": []
+  }
+ }
+}
