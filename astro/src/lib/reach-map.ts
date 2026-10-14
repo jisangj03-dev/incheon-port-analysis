@@ -15,7 +15,7 @@ export const STEPS = [
 ];
 
 export class ReachMap {
-  cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; iso: Iso; geo: Geo | null; o = 0; t = 180; k = 1; // k = 혼잡 가정 배율(자유 흐름 분 × k) grid: Uint8Array; W = 0; H = 0; dpr = 1;
+  cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; iso: Iso; geo: Geo | null; o = 0; t = 180; k = 1; grid: Uint8Array; W = 0; H = 0; dpr = 1; // k = 혼잡 가정 배율(자유 흐름 분 × k)
   view: number[]; // 보이는 경위도 범위
   field: HTMLCanvasElement; raf = 0;
   onFrame?: (r: ReachMap) => void;

@@ -52,7 +52,7 @@ export type RaceOpts = { top: number; onYear?: (y: Year, i: number) => void; onP
 
 export class TreemapRace {
   host: HTMLElement; years: Year[]; o: RaceOpts; i = 0; timer: any = null;
-  tiles = new Map<string, HTMLElement>(); rank = new Map<string, number>();
+  tiles = new Map<string, HTMLButtonElement>(); rank = new Map<string, number>();
   constructor(host: HTMLElement, years: Year[], o: RaceOpts) {
     this.host = host; this.years = years; this.o = o; addEventListener("resize", () => this.render(false));
     // 칸 순서를 해마다 바꾸지 않는다 — 전 기간 합 순으로 고정해 두면 칸이 제자리에서 커지고 줄어 눈이 따라간다(해마다 정렬하면 칸이 뛰어다녔다)
