@@ -27,6 +27,13 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     }
     return { rows, note: `공급망 따라가기 · 전기기기(HS 85) · 계산 ${D.command} · ${D.computed}` };
   },
+  // 홈 살아 있는 지도 — 관문별 월 수출입(억 달러) · 전국 대비 비중 · 부두군 컨테이너(천TEU)
+  "home-flows": () => {
+    const F = J("data/derived/home_flows.json");
+    return { rows: F.months.map((m: any) => ({ 연월: m.ym, 인천공항_수입_억달러: m.air_imp, 인천공항_수출_억달러: m.air_exp, 인천항_수입_억달러: m.port_imp, 인천항_수출_억달러: m.port_exp,
+      인천_수입_전국비중_pct: m.imp_share_pct, 인천_수출_전국비중_pct: m.exp_share_pct, 신항_천TEU: m.teu?.["신항"] ?? "", 남항_천TEU: m.teu?.["남항"] ?? "", 국제여객부두_천TEU: m.teu?.["국제여객부두"] ?? "" })),
+      note: `관세청 항구·공항별 수출입실적 · 인천지방해양수산청 항만운영통계 · 계산 tools-build/flows_derive.py · ${F.made}` };
+  },
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);

@@ -6,7 +6,20 @@ import Contact from "../components/scene/Contact.astro";
 import { getEntry, render } from "astro:content";
 import { BRAND, u, REPO, ISSUES } from "../lib/site";
 import { profile, aiMark } from "../lib/profile";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../lib/content";
 const P = profile();
+// 만든 것 — 지면 하나 = 보여 주는 일 하나(이력서의 「프로젝트」 칸). 숫자는 적지 않는다(지면이 데이터에서 직접 보인다).
+const MADE = [
+  { t: "살아 있는 인천 물류 지도", href: "/", what: "관세청 항구·공항별 월 교역액을 흐름 밀도로 바꿔, 기울인 지도 위에 교역국 → 인천 관문 → 수도권 창고로 흐르게 그렸습니다.", skill: "공공 API 수집 · 데이터 파이프라인 · 원근 투영 캔버스 렌더러" },
+  { t: "공급망 따라가기", href: "/map/follow.html", what: "전기기기 하나가 해외 출발부터 통관·인천 수입자·창고까지 오는 길을 구간마다 원천 숫자로 잇고, 원천이 없는 구간은 「데이터 없음」으로 둡니다.", skill: "구간별 원천 연결 · 통관 관문 분석" },
+  { t: "맥주 게임", href: "/sim/beer-game.html", what: "공급망 네 단계 가운데 하나를 직접 맡아 주문을 넣고, 채찍 효과로 비용이 어디서 터지는지 점수로 받습니다.", skill: "재고 정책 시뮬레이션 · 채찍 효과" },
+  { t: "수요예측 실험실", href: "/sim/forecast.html", what: "인천항 컨테이너 물량을 실제값이 나오기 전에 예측해 원장에 적고, 단순 기준선과 오차를 달마다 겨룹니다.", skill: "시계열 예측 · 사전 기록(선커밋) · 오차 평가" },
+  { t: "선박 리플레이", href: "/map/vessels.html", what: "해양수산부 항만별 외항선 입항을 달마다 다시 돌려, 인천을 다른 항만과 같은 축에 놓습니다.", skill: "장기 시계열 · 항만 비교" },
+  { t: "노트 · AI 운영실", href: "/notes.html", what: "인천항 전년 대비 같은 판정 글과, 이 작업실을 AI 와 어떻게 돌리는지 저장소 기록으로 잰 쪽.", skill: "판정 기준 선커밋 · AI 운영 · 출고 검사 자동화" },
+];
+const Q = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8")).questions as { q: string; href: string; see: string }[];
 const about = await getEntry("root", "about");
 const { Content } = about ? await render(about) : { Content: null };
 const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: `${BRAND.name} — 소개`, mainEntity: {
@@ -18,15 +31,35 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
   <article class="s-wrap ab" data-content="about">
     <p class="s-cap">소개</p>
     <h1 class="s-prose">{P.name}</h1>
-    <p class="s-lead s-prose">{P.affiliation} · {P.role}. 수도권 공급망이 인천을 어떻게 지나가는지, 공공 1차 데이터를 움직여 보여 주는 작업실 <b>{BRAND.name}</b>을 만듭니다.</p>
-    <dl class="ab-facts">
-      <div><dt>자격</dt><dd>{P.credentials.map((q, i) => <>{i ? " · " : ""}<span class="q">{q}</span></>)}</dd></div>
-      {P.writing.length > 0 && <div><dt>기고</dt><dd>{P.writing.map((w, i) => <>{i ? " · " : ""}{w.url ? <a href={w.url} rel="noopener">{w.title}</a> : w.title} <span class="s-cap">{w.when}</span></>)}</dd></div>}
-    </dl>
+    <p class="s-lead s-prose">인천을 지나는 수도권 공급망을 공공 데이터로 읽는 SCM 작업실 <b>{BRAND.name}</b>을 만듭니다. 항만·공항·통관·창고 숫자를 직접 모아 계산하고, 움직이는 지도와 시뮬레이션으로 보여 줍니다.</p>
     <Contact />
-    <p class="s-cap s-prose">틀린 숫자·깨진 링크는 <a href={ISSUES}>저장소 이슈</a>로 알려 주셔도 됩니다. 오류는 지우지 않고 고친 자리에 정정 표기로 남깁니다.</p>
 
+    <section class="ab-sec" id="resume" aria-labelledby="h-resume"><h2 id="h-resume">이력</h2>
+      <dl class="cv">
+        {P.education && P.education.length > 0 && <div><dt>학업</dt><dd>{P.education.map((e) => <p><b>{e.school}</b> {e.major} <span class="s-cap">{e.status}</span></p>)}</dd></div>}
+        <div><dt>자격</dt><dd><ul class="cv-q">{P.credentials.map((q) => <li>{q}</li>)}</ul>{P.credentials_note && <p class="s-cap">{P.credentials_note}</p>}</dd></div>
+        {P.writing.length > 0 && <div><dt>기고</dt><dd>{P.writing.map((w) => <p>{w.url ? <a href={w.url} rel="noopener">{w.title}</a> : w.title} <span class="s-cap">{w.when}</span></p>)}</dd></div>}
+        <div><dt>하는 일</dt><dd><p>공공 1차 데이터 수집·검증 · 물동량·교역 분석 · 수요예측 · 공급망 시뮬레이션 · 지도·차트 · AI 로 돌리는 분석 운영</p></dd></div>
+      </dl>
+    </section>
+
+    <section class="ab-sec" id="made" aria-labelledby="h-made"><h2 id="h-made">만든 것</h2>
+      <ol class="made">
+        {MADE.map((m) => <li><h3><a href={u(m.href)}>{m.t}</a></h3><p>{m.what}</p><p class="s-cap">{m.skill}</p></li>)}
+      </ol>
+    </section>
+
+    <section class="ab-sec" id="ask" aria-labelledby="h-ask"><h2 id="h-ask">이런 일로 연락 주세요</h2>
+      <ul class="ask-list">
+        <li><b>귀사 숫자로 다시 돌려 보기</b> — 지면의 계산을 귀사 물동량·재고·비용으로. 아래 같은 질문들입니다.</li>
+        <li><b>채용</b> — 물류·SCM·무역 데이터 분석 인턴·신입 자리.</li>
+        <li><b>기사·자료 확인</b> — 인천 물류 숫자의 출처와 계산을 같이 봅니다.</li>
+      </ul>
+      <ol class="qs-mini">{Q.map((q) => <li><a href={u(q.href)}>{q.q}</a></li>)}</ol>
+      <Contact />
+    </section>
     <section class="ab-sec" id="method"><h2>숫자를 어떻게 재나</h2>
+      <p class="s-cap s-prose">틀린 숫자·깨진 링크는 <a href={ISSUES}>저장소 이슈</a>로 알려 주셔도 됩니다. 오류는 지우지 않고 고친 자리에 정정 표기로 남깁니다.</p>
       <ol class="s-index">
         <li id="sources"><div><h3>공공 1차 데이터만</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
         <li><div><h3>기준을 먼저 적는다</h3><p>판정하는 글은 데이터를 받기 전에 판정 기준을 문서로 커밋합니다. 못 미친 것도 못 미쳤다고 냅니다.</p></div></li>
@@ -53,11 +86,21 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
 <style>
   .ab { padding-top: var(--s-8); padding-bottom: var(--s-8); }
   .ab h1 { margin: var(--s-3) 0 var(--s-4); }
-  .ab-facts { margin: var(--s-5) 0 0; display: grid; gap: var(--s-2); max-width: var(--s-measure); }
-  .ab-facts div { display: grid; grid-template-columns: 3.5rem 1fr; gap: var(--s-3); }
-  .ab-facts dt { color: var(--s-ink-3); }
-  .ab-facts dd { margin: 0; }
-  .q { white-space: nowrap; }
+  .cv { display: grid; gap: var(--s-4); margin: 0; }
+  .cv > div { display: grid; grid-template-columns: 5rem 1fr; gap: var(--s-4); padding-bottom: var(--s-4); border-bottom: 1px solid var(--s-rule); }
+  .cv dt { color: var(--s-ink-3); }
+  .cv dd { margin: 0; } .cv dd p { margin: 0 0 var(--s-1); }
+  .cv-q { list-style: none; margin: 0 0 var(--s-2); padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); }
+  .cv-q li { white-space: nowrap; font-weight: 600; }
+  .made { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s-5); }
+  .made li { padding-bottom: var(--s-4); border-bottom: 1px solid var(--s-rule); }
+  .made h3 { margin: 0 0 var(--s-2); font-size: 20px; }
+  .made h3 a { min-height: 44px; display: inline-flex; align-items: center; }
+  .made p { margin: 0 0 var(--s-1); }
+  .ask-list { margin: 0 0 var(--s-4); padding-left: 1.1em; display: grid; gap: var(--s-2); }
+  .qs-mini { margin: 0; padding-left: 1.4em; display: grid; gap: var(--s-1); color: var(--s-ink-2); }
+  .qs-mini a { min-height: 44px; display: inline-flex; align-items: center; }
+  @media (max-width: 560px) { .cv > div { grid-template-columns: 1fr; gap: var(--s-2); } }
   .ab-sec { margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--s-rule); max-width: 46rem; }
   .ab-sec h2 { margin-bottom: var(--s-4); }
   .ab-doc { margin-top: var(--s-8); max-width: var(--s-measure); border-top: 1px solid var(--s-rule); padding-top: var(--s-5); }

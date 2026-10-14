@@ -4,7 +4,8 @@ import { join } from "node:path";
 import { repoRoot } from "./content";
 
 export type Profile = {
-  name: string; role: string; affiliation: string; credentials: string[];
+  name: string; role: string; affiliation: string; credentials: string[]; credentials_note?: string;
+  education?: { school: string; major: string; status: string }[];
   writing: { title: string; when: string; url: string }[];
   contact: { linkedin: string; mail: { user: string; domain: string } };
 };

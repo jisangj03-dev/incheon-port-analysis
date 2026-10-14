@@ -7,7 +7,7 @@ const B = "/incheon-port-analysis";
 const PATH = { index: "/index.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
 const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
 for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
@@ -96,14 +96,35 @@ test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, req
   }
 });
 
-// 홈 — 스크롤을 따라 주홍 선이 그려지고, 달 막대를 옮기면 큰 숫자가 바뀐다 · 방·노트는 콘텐츠 목록에서 자동
-test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async ({ page }) => {
+// 홈 — 살아 있는 지도(2026-10-14 선장님 판정 뒤): 정지 해도 → 캔버스가 받아 움직인다 · 달이 흐르면 숫자가 돈다 · 보기 단추·관문 숫자 판
+// · 달 막대를 옮기면 큰 숫자가 바뀐다 · 방·노트는 콘텐츠 목록에서 자동
+test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치", async ({ page }) => {
   await page.goto(at("index"), { waitUntil: "networkidle" });
-  const off = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById("route")).strokeDashoffset));
-  const a = await off();
-  await page.evaluate(() => { const h = document.querySelector(".hero"); scrollTo(0, h.offsetHeight - innerHeight); });
-  // 등심선이 많아 스크롤 처리가 늦을 수 있다 — 정해진 시간 대신 조건이 설 때까지 기다린다
-  await expect.poll(off, { message: "끝까지 내리면 선이 다 그려진다", timeout: 10_000 }).toBeLessThan(a);
+  await expect(page.locator(".live__poster")).toBeVisible(); // 정지 그림이 먼저
+  await page.mouse.wheel(0, 1); await page.mouse.wheel(0, -1); // 좁은 화면은 만지면 움직인다
+  await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 20_000 });
+  const st = () => page.evaluate(() => ({ N: window.__fm.N, t: window.__fm.t, zoom: window.__fm.cam.zoom }));
+  await expect.poll(async () => (await st()).N, { message: "흐르는 점이 있다" }).toBeGreaterThan(50);
+  // 그림이 실제로 바뀐다(두 장면의 픽셀이 다르다)
+  const shot = () => page.locator("#fm").screenshot();
+  const s1 = await shot(); await page.waitForTimeout(600); const s2 = await shot();
+  expect(Buffer.compare(s1, s2), "캔버스가 움직이지 않는다").not.toBe(0);
+  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초)
+  const ym = await page.locator("#fm-ym").innerText();
+  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 12_000 });
+  // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
+  await page.locator("[data-view=incheon]").click();
+  await expect.poll(async () => (await st()).zoom, { timeout: 8_000 }).toBeGreaterThan(8);
+  await page.locator("#fm-gates").click();
+  await expect(page.locator("#fm-panel")).toBeVisible();
+  await expect(page.locator("#fm-p-dl")).toContainText("인천공항");
+  await page.locator("#fm-x").click();
+  await expect(page.locator("#fm-panel")).toBeHidden();
+  // 흐름은 월 통계를 그린 것 — 실시간이 아니라고 화면에 적었다
+  await expect(page.locator(".live__legend")).toContainText("실시간 위치가 아닙니다");
+  // 같이 푸는 질문 — 질문마다 지면 하나
+  const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions;
+  await expect(page.locator(".qs > li")).toHaveCount(Q.length);
   const v = await page.locator("#now-v").innerText();
   await page.locator("#now-m").fill("0");
   await expect(page.locator("#now-v")).not.toHaveText(v);

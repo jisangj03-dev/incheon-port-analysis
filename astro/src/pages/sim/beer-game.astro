@@ -15,7 +15,8 @@ const S = R.stages.length;
     <section class="intro" aria-labelledby="h-wave">
       <p class="s-cap">시뮬레이션 · 맥주 게임</p>
       <h1 id="h-wave" class="s-prose">오는 중인 물건을 잊으면, 공장이 흔들립니다.</h1>
-      <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 막대를 움직여 보세요.</p>
+      <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 막대를 움직여 보세요 — 아니면 한 단계를 직접 맡아 보세요.</p>
+      <p class="try-cta"><a class="s-btn" href="#setup">직접 해 보기 — 한 단계를 맡아 {R.weeks}주</a> <span class="s-cap">끝나면 내 점수와 공유 카드가 나옵니다</span></p>
       <figure class="wave-fig">
         <div id="wave" class="wave" data-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
         <figcaption class="readout">
@@ -33,7 +34,7 @@ const S = R.stages.length;
 
     <section id="setup" class="setup" aria-labelledby="h-try">
       <h2 id="h-try" class="s-prose">직접 해 보기</h2>
-      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다.</p>
+      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다. 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
       <div class="pick">
         <label>맡을 단계<select id="role" class="s-input">{R.stages.map((s, i) => <option value={i}>{s.label}</option>)}</select></label>
         <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자</option><option value="random">매주 들쭉날쭉</option></select></label>
@@ -44,6 +45,7 @@ const S = R.stages.length;
 
     <section id="play" hidden aria-labelledby="h-play">
       <h2 id="h-play"><span id="who"></span> <span class="s-cap" id="wk"></span></h2>
+      <div id="chain" class="chain" aria-hidden="true"></div>
       <dl class="stats">
         <div><dt>재고</dt><dd id="inv"></dd></div>
         <div><dt>밀린 주문</dt><dd id="bk"></dd></div>
@@ -55,12 +57,19 @@ const S = R.stages.length;
         <input id="order" class="s-input big" inputmode="numeric" autocomplete="off" required />
         <button type="submit" class="s-btn">주문</button>
       </form>
+      <div id="quick" class="quick" role="group" aria-label="빠른 주문"></div>
       <p id="say" class="s-cap" aria-live="polite"></p>
       <div id="live" class="live"></div>
     </section>
 
     <section id="result" hidden aria-labelledby="h-out" data-chart="beer-game">
       <h2 id="h-out" class="s-prose">결과</h2>
+      <div id="score" class="score"></div>
+      <figure class="card">
+        <img id="card-img" alt="공유 카드 — 내 단계·비용·주문 선" width="1200" height="630" hidden />
+        <canvas id="card" width="1200" height="630" hidden></canvas>
+        <figcaption class="card__act"><a id="card-save" class="s-btn" href="#" download="beer-game.png">카드 저장</a> <button type="button" id="card-share" class="s-btn s-btn--ghost">공유</button> <span id="card-say" class="s-cap" aria-live="polite"></span></figcaption>
+      </figure>
       <p id="verdict" class="s-lead s-prose" aria-live="polite"></p>
       <div id="chart" class="chart" role="img" aria-label="주별 주문 — 소비자 수요와 네 단계"></div>
       <table class="s-table">
@@ -87,7 +96,9 @@ const S = R.stages.length;
   <script>
     import { initBeer } from "../../lib/beer-ui";
     import { initDsBeer } from "../../lib/ds-beer";
+    import { initBeerPlay } from "../../lib/beer-play";
     initDsBeer();
+    initBeerPlay();
     initBeer();
   </script>
 </Studio>
@@ -128,6 +139,41 @@ const S = R.stages.length;
   :global(#rows tr.me th) { color: var(--s-signal); }
   .again { display: flex; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-5); }
   .maker { padding: var(--s-8) 0 0; max-width: 46rem; }
+  .try-cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); margin-top: var(--s-4); }
+  /* 공급망 띠 — 공장 → 유통 → 도매 → 소매 → 소비자. 상자(주홍 점)는 오른쪽으로, 주문(먹 점)은 왼쪽으로 매주 한 칸 */
+  .chain { display: grid; grid-template-columns: repeat(4, auto 1fr) auto; align-items: center; margin: var(--s-5) 0 var(--s-2); gap: 0; }
+  .chain :global(.node) { display: grid; justify-items: center; gap: 2px; padding: 10px 12px; border-top: 2px solid var(--s-rule); min-width: 4.5em; transition: background 0.3s; }
+  .chain :global(.node b) { font-size: 15px; }
+  .chain :global(.node .inv) { font-size: 12px; color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .chain :global(.node.me) { border-top-color: var(--s-signal); background: rgba(179, 54, 30, 0.06); }
+  .chain :global(.node.me b) { color: var(--s-signal); }
+  .chain :global(.node.me .inv) { color: var(--s-ink); font-weight: 600; }
+  .chain :global(.node.short) { animation: beer-short 0.9s ease-in-out 2; }
+  .chain :global(.pipe) { position: relative; height: 2px; background: var(--s-rule); margin: 0 4px; }
+  .chain :global(.pipe i) { position: absolute; top: -4px; width: 10px; height: 10px; opacity: 0; }
+  .chain :global(.pipe .box) { left: 0; background: var(--s-signal); border-radius: 1px; }
+  .chain :global(.pipe .ord) { right: 0; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--s-ink-2); }
+  .chain :global(.pipe.go .box) { animation: beer-box 0.9s ease-in-out; }
+  .chain :global(.pipe.go .ord) { animation: beer-ord 0.9s ease-in-out; }
+  @keyframes beer-box { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
+  @keyframes beer-ord { 0% { right: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { right: calc(100% - 8px); opacity: 0; } }
+  @keyframes beer-short { 50% { background: rgba(179, 54, 30, 0.18); } }
+  @media (prefers-reduced-motion: reduce) { .chain :global(.pipe.go i) { animation: none; } }
+  .quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--s-4); }
+  .quick :global(.s-btn) { min-height: 44px; padding: 0 14px; font-variant-numeric: tabular-nums; }
+  .quick :global(.is-inc) { border-color: var(--s-signal); color: var(--s-signal); }
+  .score { margin: var(--s-4) 0 var(--s-5); }
+  .score :global(.score__big) { margin: var(--s-2) 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; }
+  .score :global(.score__big b) { font-size: clamp(52px, 7vw, 84px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+  .score :global(.score__big span) { color: var(--s-ink-2); }
+  .score :global(.score__big em) { font-style: normal; font-weight: 650; font-size: 22px; }
+  .score :global(.score__cmp) { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-4); margin: var(--s-4) 0 0; }
+  .score :global(.score__cmp dt) { font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .score :global(.score__cmp dd) { margin: 4px 0 0; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .card { margin: var(--s-5) 0; }
+  .card img { display: block; width: 100%; max-width: 720px; height: auto; border: 1px solid var(--s-rule); }
+  .card__act { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); margin-top: var(--s-3); }
   .maker .s-maker { margin-top: var(--s-5); }
+  @media (max-width: 720px) { .chain { grid-template-columns: repeat(4, auto 1fr) auto; font-size: 12px; } .chain :global(.node) { min-width: 0; padding: 8px 4px; } .chain :global(.node b) { font-size: 13px; } .chain :global(.node .inv) { font-size: 11px; } .score :global(.score__cmp) { grid-template-columns: 1fr; } }
   @media (max-width: 720px) { .intro { padding-top: var(--s-5); } .intro h1 { font-size: 32px; } .readout { grid-template-columns: 1fr; gap: var(--s-3); } .pick { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr 1fr; row-gap: var(--s-5); } .stats div:nth-child(3) { padding-left: 0; border-left: 0; } }
 </style>

@@ -2,12 +2,12 @@
 // 해도 지면 레이아웃 — Base(머리·OG·구조화 데이터·머리 메뉴·바닥)를 그대로 쓰고 장면 부품 글꼴 크기(body.studio)만 켠다(2026-10-14 공개 전환 · 레이아웃 하나로).
 // lab/ 시안 지면은 noindex · 공개 지면은 Base 의 정본 주소·OG 를 받는다.
 import Base from "./Base.astro";
-interface Props { title: string; current?: "map" | "sim" | "notes" | "about" | "home"; description?: string; noindex?: boolean; path?: string; ogImage?: string; jsonld?: Record<string, unknown>[] }
-const { title, current = "home", description, noindex, ogImage, jsonld } = Astro.props;
+interface Props { title: string; current?: "map" | "sim" | "notes" | "about" | "home"; description?: string; noindex?: boolean; path?: string; ogImage?: string; jsonld?: Record<string, unknown>[]; lateFonts?: boolean }
+const { title, current = "home", description, noindex, ogImage, jsonld, lateFonts } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 const path = Astro.props.path ?? ((Astro.url.pathname.startsWith(base) ? Astro.url.pathname.slice(base.length) : Astro.url.pathname) || "/");
 const isLab = path.startsWith("/lab/");
 ---
-<Base title={title} description={description} path={path} studio current={current} noindex={noindex ?? isLab} ogImage={ogImage} jsonld={jsonld}>
+<Base title={title} description={description} path={path} studio current={current} noindex={noindex ?? isLab} ogImage={ogImage} jsonld={jsonld} lateFonts={lateFonts}>
   <slot />
 </Base>
