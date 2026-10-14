@@ -78,3 +78,23 @@ test("계산식 = 파생 스크립트(fx_derive.py 예시 숫자를 브라우저
   const sum = (await page.locator("#cs-body tr.sum td").last().innerText()).replace(/,/g, "");
   expect(Number(sum)).toBe(E.now.landed);
 });
+
+test("묘박지: 큰 숫자는 최신의 맑은 날 — 넘겨 보기·구름 많은 날을 눌러도 바뀌지 않는다(채팅 검수 10/14)", async ({ page }) => {
+  const F = JSON.parse(J("data/derived/s2_anchorage.json")).frames, clear = [...F].reverse().find((f) => !f.low_confidence);
+  await page.goto(`${B}/tools/anchorage.html`, { waitUntil: "networkidle" });
+  await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen));
+  await page.waitForTimeout(F.length * 600 + 1500); // 3초 답 넘겨 보기가 끝날 때까지
+  await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen));
+  await expect(page.locator("#anc-date")).toHaveText(clear.date); // 넘겨 보기가 끝나면 그 날로 돌아온다
+  const cloudy = F.findIndex((f) => f.low_confidence);
+  if (cloudy >= 0) { await page.locator(`.anc__bars button[data-i="${cloudy}"]`).click(); await expect(page.locator("#anc-low")).toContainText("구름"); await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen)); }
+});
+
+test("트리맵: 재생이 끝나면 최신 온전한 해에 멈춘다(채팅 검수 10/14)", async ({ page }) => {
+  const D = JSON.parse(J("data/derived/trade_race.json")), full = D.years.filter((y) => !y.partial), L = full[full.length - 1];
+  expect(J("astro/dist/tools/trade-race.html")).toMatch(new RegExp(`<b id="race-y"[^>]*>${L.y}</b>`)); // 첫 화면 정지 상태(서버 그림)
+  await page.goto(`${B}/tools/trade-race.html`, { waitUntil: "networkidle" });
+  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 }); // 3초 답 재생 시작
+  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "false", { timeout: 25_000 }); // 끝
+  await expect(page.locator("#race-y")).toHaveText(L.y);
+});

@@ -43,9 +43,11 @@ const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
     </div>
   </ToolShell>
   <script type="application/json" id="race-data" set:html={JSON.stringify(yrs)}></script>
+  <script type="application/json" id="race-end" set:html={JSON.stringify(D.years.indexOf(L))}></script>
   <script>
     import { TreemapRace } from "../../lib/treemap-race";
     const Y = JSON.parse(document.getElementById("race-data")!.textContent!);
+    const END = JSON.parse(document.getElementById("race-end")!.textContent!); // 최신 온전한 해 — 첫 화면 정지·재생 끝이 여기(채팅 검수 10/14: 캡처가 2022 에서 멈춰 보였다)
     const box = document.getElementById("race-box")!, sl = document.getElementById("race-i") as HTMLInputElement, $ = (id: string) => document.getElementById(id)!;
     let k: "exp" | "imp" = "exp";
     const years = () => Y.map((y: any) => ({ y: y.y, through: y.through, total: y[k].total, items: y[k].items }));
@@ -61,8 +63,8 @@ const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
       make(); race.set(Number(sl.value), false);
       box.dataset.ready = "1";
       // 3초 답 — 첫 해부터 마지막 해까지 한 번 흐른다(움직임 줄이기면 그대로)
-      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { race.set(0, true); setTimeout(() => { race.play(0.9); $("race-play").textContent = "멈춤"; $("race-play").setAttribute("aria-pressed", "true");
-        const stopAt = setInterval(() => { if (race.i === Y.length - 1) { race.stop(); clearInterval(stopAt); $("race-play").textContent = "재생"; $("race-play").setAttribute("aria-pressed", "false"); } }, 200); }, 600); }
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { race.set(0, true); setTimeout(() => { race.play(0.55); $("race-play").textContent = "멈춤"; $("race-play").setAttribute("aria-pressed", "true");
+        const stopAt = setInterval(() => { if (race.i === END) { race.stop(); clearInterval(stopAt); $("race-play").textContent = "재생"; $("race-play").setAttribute("aria-pressed", "false"); } }, 200); }, 600); }
     };
     for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.addEventListener("click", () => {
       k = b.dataset.k as any; for (const x of document.querySelectorAll<HTMLButtonElement>(".seg button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
