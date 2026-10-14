@@ -16,6 +16,9 @@ const vs = S.map((s) => s.v), lo = Math.min(...vs), hi = Math.max(...vs);
 const x = (i: number) => pad + (i * (W - 2 * pad)) / (S.length - 1);
 const y = (v: number) => H - pad - ((v - lo) * (H - 2 * pad)) / (hi - lo || 1);
 const path = S.map((s, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(s.v).toFixed(1)}`).join("");
+// 눈금 대신 가장 높은 달·낮은 달 두 점에만 값을 단다(축·격자 최소 · 끝점·극점에 직접 이름)
+const iHi = vs.indexOf(hi), iLo = vs.indexOf(lo);
+const pct = (i: number) => `${((x(i) / W) * 100).toFixed(2)}%`;
 const reports = (await getCollection("reports"))
   .map((r) => ({ id: r.id, t: title(r.body ?? ""), d: written(r.body ?? "") || lastUpdated(`reports/${r.id}.md`) }))
   .filter((r) => r.t && r.d)
@@ -25,22 +28,26 @@ const reports = (await getCollection("reports"))
 <Studio title="측심 — SCM 작업실(시안)" current="home">
   <div class="s-wrap" data-content="ds-home">
     <section class="s-scene hero">
-      <h1 class="s-prose">수도권으로 들어오는 물건의 길은 <span class="s-signal">인천</span>을 지납니다.</h1>
-      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉의 SCM 작업실 — 그 길을 공공 1차 데이터로 움직여 보여 줍니다.</p>
+      <h1 class="s-prose"><span class="s-signal">인천</span>을 지나는 물건의 길을, 공공 1차 데이터로 잽니다.</h1>
+      <p class="s-lead s-prose" style="margin-top:24px">〈운영자 실명〉의 SCM 작업실입니다. 항만·공항·창고를 잇는 수도권 공급망을 실제 숫자로 움직여 보여 줍니다.</p>
     </section>
 
     <section class="s-scene" aria-labelledby="h-now">
-      <p class="s-cap" id="h-now">인천항 컨테이너 · {last.ym}</p>
+      <h2 class="s-cap now-h" id="h-now">{last.ym} 한 달 동안 인천항으로 드나든 컨테이너</h2>
       <p class="s-num">{last.v}<span class="unit">천TEU</span></p>
       {last.yoy !== null && (
         <p class="s-lead s-prose">작년 같은 달보다 <strong class={last.yoy < 0 ? "s-signal" : ""}>{last.yoy > 0 ? "+" : last.yoy < 0 ? "−" : ""}{Math.abs(last.yoy)}%</strong>. 주장에 불리한 숫자도 같은 자리에 둡니다.</p>
       )}
       <figure class="spark" aria-label={`${S[0].ym}부터 ${last.ym}까지 월별 처리량`}>
-        <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img">
-          <path d={path} fill="none" stroke="var(--s-ink-2)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
-          <circle cx={x(S.length - 1)} cy={y(last.v)} r="5" fill="var(--s-signal)" />
-        </svg>
-        <figcaption class="s-cap">{S[0].ym} — {last.ym} · 월별 · {P.source}</figcaption>
+        <div class="spark-box">
+          <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img">
+            <path d={path} fill="none" stroke="var(--s-ink-2)" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+            <circle cx={x(S.length - 1)} cy={y(last.v)} r="5" fill="var(--s-signal)" />
+          </svg>
+          <span class="mark hi" style={`left:${pct(iHi)}`}>가장 많은 달 {S[iHi].ym} · {hi}</span>
+          <span class="mark lo" style={`left:${pct(iLo)}`}>가장 적은 달 {S[iLo].ym} · {lo}</span>
+        </div>
+        <figcaption class="s-cap">{S[0].ym} — {last.ym} · 월별 · 천TEU · {P.source}</figcaption>
       </figure>
     </section>
 
@@ -75,8 +82,12 @@ const reports = (await getCollection("reports"))
   .hero h1 { font-size: clamp(40px, 6.4vw, 76px); }
   .unit { font-size: 0.24em; font-weight: 600; letter-spacing: 0; margin-left: 12px; color: var(--s-ink-2); }
   .spark { margin: 48px 0 0; }
+  .now-h { font-weight: 400; letter-spacing: 0; margin-bottom: var(--s-3); }
+  .spark-box { position: relative; padding: 28px 0; }
   .spark svg { display: block; width: 100%; height: 180px; }
-  @media (max-width: 560px) { .spark svg { height: 120px; } }
+  .mark { position: absolute; transform: translateX(-50%); font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; line-height: 1; }
+  .mark.hi { top: 0; } .mark.lo { bottom: 0; }
+  @media (max-width: 560px) { .spark svg { height: 120px; } .mark { transform: none; left: 0 !important; } .mark.hi { top: 4px; } }
   .notes { list-style: none; padding: 0; margin: 32px 0 0; }
   .notes li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--s-rule); }
   .notes time { color: var(--s-ink-3); font-size: var(--s-t-sm); padding-top: 0.2em; }
