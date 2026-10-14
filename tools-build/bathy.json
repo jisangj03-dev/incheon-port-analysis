@@ -1,0 +1,14 @@
+{
+  "_설명": "인천 앞바다 등심선(해도 바탕) — 2026-10-14 디자인 「해도」 확장. Actions(bathy.yml)에서만 받는다(세션은 NOAA·GEBCO 가 막혀 있다). 라이선스 문구가 아래 accept 에 맞을 때만 등심선을 만든다 — 안 맞으면 해안선만(채팅 경계).",
+  "bbox": [126.2, 37.15, 127.0, 37.72],
+  "levels_m": [5, 10, 20, 30, 50],
+  "accept": ["public domain", "may be used and redistributed for free", "without restriction", "no restrictions", "freely available"],
+  "servers": ["https://coastwatch.pfeg.noaa.gov/erddap", "https://upwell.pfeg.noaa.gov/erddap"],
+  "candidates": [
+    {"id": "ETOPO_2022_v1_15s", "var": "z"},
+    {"id": "etopo180", "var": "altitude"}
+  ],
+  "search": ["etopo", "gebco"],
+  "out": "data/derived/bathy_incheon.geojson",
+  "meta": "data/derived/bathy_incheon.json"
+}

@@ -1,0 +1,38 @@
+# 인천 앞바다 등심선(디자인 「해도」 바탕) — ERDDAP 격자 수심 → 라이선스 확인 → 등심선 GeoJSON. 이 클라우드 세션은 NOAA·GEBCO 가 막혀 Actions 에서 돈다.
+# 경계: 라이선스 문구가 tools-build/bathy.json accept 에 맞을 때만 등심선을 만든다(안 맞으면 meta 만 · 지도는 해안선만).
+# 결과는 data/derived/bathy_incheon.{geojson,json} 으로 그 브랜치에 커밋한다(claude/ 브랜치만 · main 직접 커밋 없음).
+name: bathy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/bathy.json", "tools-build/bathy.py"]
+
+permissions:
+  contents: write
+
+jobs:
+  bathy:
+    if: startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -q numpy matplotlib
+      - run: python tools-build/bathy.py --selftest
+      - name: 받기 · 라이선스 확인 · 등심선
+        run: |
+          python tools-build/bathy.py | tee /tmp/bathy.log
+          { echo "## 등심선"; echo '```'; head -c 4000 /tmp/bathy.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: 결과 커밋(그 브랜치에)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/derived/bathy_incheon.json data/derived/bathy_incheon.geojson 2>/dev/null || true
+          git diff --cached --quiet && { echo "바뀐 것 없음"; exit 0; }
+          git commit -m "인천 앞바다 등심선 — bathy 워크플로(출처·라이선스 원문은 bathy_incheon.json)"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
