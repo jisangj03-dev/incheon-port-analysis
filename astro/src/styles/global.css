@@ -84,7 +84,8 @@ blockquote { margin: 1.2em 0; padding: 0.2em 1.1em; border-left: 3px solid var(-
 .btn--primary:hover { filter: brightness(1.08); }
 
 /* 갱신일 꼬리표(기준 14) — 차트·지도·표 위젯마다 */
-.updated { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--mist); }
+.updated { display: inline; font-size: 0.78rem; color: var(--mist); }
+.updated__k { white-space: nowrap; } /* 「마지막 갱신 날짜」는 한 줄 */
 .updated::before { content: none; }
 
 /* AI 생성 장면 표기(기준 19) */
@@ -97,8 +98,9 @@ blockquote { margin: 1.2em 0; padding: 0.2em 1.1em; border-left: 3px solid var(-
 .doc img { border-radius: var(--r-sm); background: #fff; display: block; margin: 1rem auto; }
 .doc .table-wrap, .doc table { max-width: 100%; }
 .doc table { display: block; overflow-x: auto; border-collapse: collapse; font-size: 0.9rem; margin: 1.2rem 0; }
-.doc th, .doc td { border: 1px solid var(--hair); padding: 0.45rem 0.65rem; vertical-align: top; }
-.doc th { background: var(--hull); color: var(--ink); text-align: left; }
+.doc th, .doc td { border-bottom: 1px solid var(--hair); padding: 0.45rem 0.65rem; vertical-align: top; overflow-wrap: normal; } /* 해도 표 — 칸 상자 없음 · 숫자는 칸 안에서 쪼개지지 않는다(2026-10-14 눈 검사) */
+.doc th { color: var(--ink); text-align: left; font-weight: 600; }
+.nb, .nb code { white-space: nowrap; word-break: keep-all; overflow-wrap: normal; } /* 짧은 숫자·날짜 칸(md-links nbCells) */
 .doc td.num, .doc th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .doc li { margin: 0.25rem 0; }
 

@@ -7,9 +7,12 @@ import { check } from "../tools-build/check-data-numbers.mjs";
 const PAGE = "/incheon-port-analysis/sim/forecast.html";
 const py = () => JSON.parse(execFileSync("python3", ["analysis/forecast_teu.py", "--json"], { encoding: "utf-8" }));
 
-test("§2-1: 지면 숫자는 원장·대상 계열·실험실 글·채점 결과에만 있다", () => {
+test("§2-1: 지면 숫자는 원장·대상 계열·실험실 글·채점 결과에만 있다(그림이 그려진 뒤의 화면까지)", async ({ page }) => {
   const files = ["data/forecast/incheon_container_teu.csv", "analysis/terminal_monthly_long.csv", "data/forecast/lab.json"].map((f) => readFileSync(f, "utf-8"));
-  const r = check(readFileSync("astro/dist/sim/forecast.html", "utf-8"), [...files, JSON.stringify(py())]);
+  // 2026-10-14 첫 화면 그림(실제 선 + 예측 점선)은 브라우저가 그린다 — 빌드 HTML 이 아니라 그려진 화면을 대조해야 그림 이름표 숫자까지 본다
+  await page.goto(PAGE, { waitUntil: "networkidle" });
+  await page.waitForSelector("#fc-chart[data-ready] svg");
+  const r = check(await page.content(), [...files, JSON.stringify(py())]);
   expect(r.checked).toBeGreaterThan(10);
   expect(r.bad).toEqual([]);
 });

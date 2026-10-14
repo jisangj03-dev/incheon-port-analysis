@@ -32,6 +32,12 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     const ports = Object.keys(V.ocean_arrivals);
     return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `선박 리플레이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
   },
+  // 수요예측 원장 — 덧붙이기만 하는 예측 기록 그대로(발행·기준월·목표월·수평·모델·예측값)
+  "forecast-ledger": () => {
+    const [head, ...rows] = readFileSync(join(repoRoot(), "data/forecast/incheon_container_teu.csv"), "utf-8").replace(/^\uFEFF/, "").trim().split(/\r?\n/);
+    const k = head.split(",");
+    return { rows: rows.map((r) => Object.fromEntries(r.split(",").map((v, i) => [k[i], v]))), note: "수요예측 실험실 원장 · data/forecast/incheon_container_teu.csv(덧붙이기만 · 고치지 않는다) · 단위 천TEU" };
+  },
   "ops-stats": () => {
     const S = J("data/derived/ops_stats.json");
     const keys: [string, string][] = [["commits_total", "커밋(병합 제외)"], ["ai_coauthored", "AI 세션 꼬리표 커밋"], ["bot_routine", "예약 루틴 커밋"], ["human_only", "AI 꼬리표 없는 커밋"], ["corrections", "제목에 정정·되돌림이 적힌 커밋(반대 지표)"], ["prs_merged", "머지된 PR"], ["active_days", "커밋이 있었던 날"], ["ai_share_pct", "AI 꼬리표 비율(%)"], ["human_share_pct", "꼬리표 없는 비율(%)"]];

@@ -85,7 +85,7 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
     series
       .map(
         (s, k) =>
-          `<polyline fill="none" stroke="${s.c}" stroke-width="${s.w}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""} stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${s.v.map((v: number, i: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>` +
+          `<polyline fill="none" stroke="${s.c}" stroke-width="${s.w}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""}${k === series.length - 1 ? ' data-main="공장"' : ""} stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${s.v.map((v: number, i: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>` +
           `<text x="${W - Rt + 8}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${textColor(s.c)}">${s.label}</text>`,
       )
       .join("");
