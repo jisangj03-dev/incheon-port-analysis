@@ -45,25 +45,33 @@ def main():
     start = sys.argv[sys.argv.index("--from") + 1] if "--from" in sys.argv else "201501"
     today = datetime.date.today()
     last = f"{today.year}{today.month:02d}"
-    rows, got, empty = [], [], []
+    rows, got, empty, failed = [], [], [], []
+    # 달마다 바로 파일에 쓴다 — 첫 실행이 20분 제한에 걸려 통째로 잃을 뻔했다(2026-10-14). 진행은 즉시 찍는다.
+    tmp = OUT + ".part"
+    f = open(tmp, "w", encoding="utf-8", newline=""); w = csv.DictWriter(f, COLS); w.writeheader()
+    t0 = time.time()
     for ym in months(start, last):
         q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym}, safe="%")
+        r = None
         for k in range(3):
             try:
-                r = parse(urllib.request.urlopen(f"{BASE}?{q}", timeout=60).read().decode("utf-8", "replace"))
+                r = parse(urllib.request.urlopen(f"{BASE}?{q}", timeout=20).read().decode("utf-8", "replace"))
                 break
             except Exception as ex:
-                if k == 2: print(ym, "실패", type(ex).__name__); r = None
-                time.sleep(3 * (k + 1))
-        if r: rows += r; got.append(ym)
+                r = None
+                if k == 2: print(ym, "실패", type(ex).__name__, flush=True)
+                time.sleep(2 * (k + 1))
+        if r: rows += r; got.append(ym); w.writerows(r); f.flush()
         elif r == []: empty.append(ym)
+        else: failed.append(ym)
+        print(ym, len(r or []), f"{time.time() - t0:.0f}s", flush=True)
+    f.close()
     if not rows:
-        print("행 0 — 쓰지 않는다"); return 1
-    with open(OUT, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, COLS); w.writeheader(); w.writerows(rows)
+        print("행 0 — 쓰지 않는다"); os.remove(tmp); return 1
+    os.replace(tmp, OUT)
     meta = {"source": "해양수산부 항만별 선박입출항실적 · 공공데이터포털 15059059 · SsopVsslEtryndHarbor2/YM", "unit": "척 · 총톤수(GT)",
             "granularity": "월 · 항만 · 선종(국적선·외국선·연안선) 합계 — 개별 선박 아님",
-            "months": [got[0], got[-1]] if got else [], "months_n": len(got), "empty_months": empty, "rows": len(rows),
+            "months": [got[0], got[-1]] if got else [], "months_n": len(got), "empty_months": empty, "failed_months": failed, "rows": len(rows),
             "fetched": today.isoformat(), "command": "python tools-build/vessel.py --from " + start}
     json.dump(meta, open(META, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(meta, ensure_ascii=False)[:600])

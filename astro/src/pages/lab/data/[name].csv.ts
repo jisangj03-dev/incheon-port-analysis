@@ -22,6 +22,11 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     }
     return { rows, note: `공급망 따라가기 · 전기기기(HS 85) · 계산 ${D.command} · ${D.computed}` };
   },
+  "vessel-replay": () => {
+    const V = J("data/derived/vessel_replay.json");
+    const ports = Object.keys(V.ocean_arrivals);
+    return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `선박 리플레이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
+  },
   "ops-stats": () => {
     const S = J("data/derived/ops_stats.json");
     const keys: [string, string][] = [["commits_total", "커밋(병합 제외)"], ["ai_coauthored", "AI 세션 꼬리표 커밋"], ["bot_routine", "예약 루틴 커밋"], ["human_only", "AI 꼬리표 없는 커밋"], ["prs_merged", "머지된 PR"], ["active_days", "커밋이 있었던 날"], ["ai_share_pct", "AI 꼬리표 비율(%)"], ["human_share_pct", "꼬리표 없는 비율(%)"]];
