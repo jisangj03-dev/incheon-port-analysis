@@ -2,6 +2,6 @@
 
 - `frames/` — 조작 영상마다 움직이는 중간 프레임 2장(영상 길이의 35% · 65%). 채팅 검수 ③: GitHub 화면은 mp4 를 못 튼다.
 - `first/` — 면마다 첫 화면(390 세로 · 1440 가로).
-- 만든 명령: `node tests/capture/record-ds.mjs`(공개 빌드 · 로컬). 페이지 코드는 design-lab run 38538765884 의 커밋 afee798 과 같다.
+- 만든 명령: `node tests/capture/record-ds.mjs`(공개 빌드 · 로컬). 지금 그림의 페이지 코드는 design-lab run 38554224778 의 커밋 aaf2ed0 과 같다(그 앞 판은 afee798).
 - mp4 원본·전체 페이지 캡처는 그 run 의 산출물 `design-ours`(14일 보관).
 - 이 브랜치 첫 커밋(80fe125)은 orphan 정리 실패로 저장소 트리 사본이 들어갔다 — 둘째 커밋이 그림만 남긴다.
