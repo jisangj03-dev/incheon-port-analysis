@@ -13,7 +13,8 @@ if (!ours || !ref) { console.error("--ours 와 --ref 가 필요하다"); process
 mkdirSync(out, { recursive: true });
 
 // 이 세션은 /opt/pw-browsers 의 크로미움(PW_CHROMIUM_PATH) · Actions 는 기본 설치본
-const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+// WebGL 은 소프트웨어(SwiftShader)로 — GPU 없는 Actions 머리없는 크로미움은 이 인자 없이 WebGL 을 못 만들어 지도가 빈 면이 된다(playwright.config 와 같은 인자)
+const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined, args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
 const report = [];
 for (const w of widths) {
   const h = w >= 1000 ? 900 : 844;

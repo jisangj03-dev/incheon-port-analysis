@@ -17,7 +17,8 @@ export async function initDsMap() {
   if (has) {
     const proto = new pm.Protocol(); ml.addProtocol("pmtiles", proto.tile);
     style.sources.protomaps = { type: "vector", url: `pmtiles://${tilesUrl}`, attribution: "© OpenStreetMap · Protomaps" };
-    const keep = (l: any) => l.type === "background" || /^(earth|water|landcover|landuse_(park|urban))/.test(l.id);
+    // 면·선만 남긴다 — 이름이 water·earth 로 시작해도 글자 층(symbol)은 글리프가 없어 스타일 전체를 무효로 만든다(2026-10-14 Actions 빈 지도)
+    const keep = (l: any) => l.type === "background" || ((l.type === "fill" || l.type === "line") && /^(earth|water|landcover|landuse_(park|urban))/.test(l.id));
     style.layers = bm.layers("protomaps", bm.namedFlavor("light"), { lang: "ko" }).filter(keep).map((l: any) => {
       if (l.type === "background") return { ...l, paint: { "background-color": C.paper } };
       if (/^water/.test(l.id)) return l.type === "fill" ? { ...l, paint: { "fill-color": C.water } } : { ...l, paint: { ...l.paint, "line-color": C.water } };
@@ -37,7 +38,11 @@ export async function initDsMap() {
   map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]], { padding: { top: 60, bottom: 60, left: 60, right: 160 }, animate: false });
   map.addControl(new ml.NavigationControl({ showCompass: false }), "top-right");
   const vmax = Math.max(1, ...P.map((p) => p.v || 0));
-  map.on("load", () => {
+  // 지도 오류를 화면 밖에 남긴다 — maplibre 오류는 pageerror 로 안 잡혀 시험이 「오류 0」으로 지나갔다
+  const errs: string[] = ((window as any).__dsmapErr = []);
+  map.on("error", (e: any) => errs.push(String(e?.error?.message || e?.error || e)));
+  // 점은 스타일만 읽히면 단다(load 는 바탕 원천까지 기다려 바탕이 실패하면 점도 같이 사라진다)
+  map.once("style.load", () => {
     map.addSource("places", { type: "geojson", data: { type: "FeatureCollection", features: P.map((p) => ({ type: "Feature", properties: { ...p, r: p.v ? 6 + 22 * Math.sqrt(p.v / vmax) : 6, top: p.v === vmax }, geometry: { type: "Point", coordinates: [p.lon, p.lat] } })) } });
     map.addLayer({ id: "dots", type: "circle", source: "places", paint: {
       "circle-radius": ["get", "r"], "circle-color": ["case", ["get", "top"], C.signal, C.ink], "circle-opacity": 0.85,
@@ -52,7 +57,11 @@ export async function initDsMap() {
       if (left) el.style.textAlign = "right";
       new ml.Marker({ element: el, anchor: left ? "right" : "left", offset: [left ? -r : r, 0] }).setLngLat([p.lon, p.lat]).addTo(map);
     }
-    (window as any).__dsmap = { tiles: has, places: P.length };
-    $("ds-map").dataset.ready = has ? "tiles" : "no-tiles";
+  });
+  // 다 그린 뒤(idle) 상태를 적는다 — 시험이 이것을 기다렸다가 화면 픽셀을 잰다
+  map.once("idle", () => {
+    const base = has && map.isSourceLoaded("protomaps");
+    (window as any).__dsmap = { tiles: has, base, places: P.length, errors: errs };
+    $("ds-map").dataset.ready = base ? "tiles" : has ? "tiles-failed" : "no-tiles";
   });
 }
