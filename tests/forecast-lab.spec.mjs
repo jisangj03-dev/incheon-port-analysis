@@ -1,15 +1,15 @@
 // 수요예측 실험실(정체성 전환 §3-4) — 화면 수치 = 데이터 파일(§2-1) · 채점 = analysis/forecast_teu.py 와 같은 값 · 노트 3줄 · AI 표기 · 360px · 외부 요청 0.
-// 지면은 lab/(SOUNDING_LAB=1 빌드에만) — 공개 배포물에는 없다.
+// 지면 = /sim/forecast.html(2026-10-14 공개 전환).
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { check } from "../tools-build/check-data-numbers.mjs";
-const PAGE = "/incheon-port-analysis/lab/forecast.html";
+const PAGE = "/incheon-port-analysis/sim/forecast.html";
 const py = () => JSON.parse(execFileSync("python3", ["analysis/forecast_teu.py", "--json"], { encoding: "utf-8" }));
 
 test("§2-1: 지면 숫자는 원장·대상 계열·실험실 글·채점 결과에만 있다", () => {
   const files = ["data/forecast/incheon_container_teu.csv", "analysis/terminal_monthly_long.csv", "data/forecast/lab.json"].map((f) => readFileSync(f, "utf-8"));
-  const r = check(readFileSync("astro/dist/lab/forecast.html", "utf-8"), [...files, JSON.stringify(py())]);
+  const r = check(readFileSync("astro/dist/sim/forecast.html", "utf-8"), [...files, JSON.stringify(py())]);
   expect(r.checked).toBeGreaterThan(10);
   expect(r.bad).toEqual([]);
 });

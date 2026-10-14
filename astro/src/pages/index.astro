@@ -1,7 +1,7 @@
 ---
-// 시안 ① 새 홈 — 「해도」 한 장 위로 신항→수도권 주홍 선이 스크롤을 따라 그려진다(pudding·Reuters 의 스크롤 이야기 원리).
+// 홈 — 「해도」 한 장 위로 신항→수도권 주홍 선이 스크롤을 따라 그려진다(pudding·Reuters 의 스크롤 이야기 원리).
 // 방·노트는 콘텐츠 목록 하나(data/rooms.json)에서 자동 배치. 숫자는 데이터 파일에서만(정체성 §2-1).
-// 실명·소속·연락처는 자리표시(정체성 §5-4 공개 전환 PR 에서 채운다). lab/ 전용 — 공개 배포물에는 없다.
+// 실명·소속·연락처는 data/profile.json 한 곳에서(정체성 §5-4 공개 전환 · 2026-10-14).
 import Studio from "../layouts/Studio.astro";
 import Scene from "../components/scene/Scene.astro";
 import Trust from "../components/scene/Trust.astro";
@@ -10,6 +10,8 @@ import { portMonthly, mapSeries } from "../lib/data";
 import { rooms, route } from "../lib/rooms";
 import { u } from "../lib/site";
 import Haedo from "../components/scene/Haedo.astro";
+import Contact from "../components/scene/Contact.astro";
+import { profile } from "../lib/profile";
 import { curve } from "../lib/haedo-geo";
 
 const P = portMonthly();
@@ -17,6 +19,7 @@ const S = P.series;
 const last = S[S.length - 1];
 const R = rooms();
 const RT = route();
+const PF = profile();
 
 // ── 해도 한 장(부품 Haedo · 빌드 때 SVG · 외부 요청 0) — 보이는 범위는 화면 비율에 맞춰 신항·인천공항·서울을 한 장면으로
 const M = mapSeries();
@@ -37,7 +40,7 @@ const iHi = vs.indexOf(hi), iLo = vs.indexOf(lo);
 const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
 const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
 ---
-<Studio title="측심 — SCM 작업실(시안)" current="home">
+<Studio title="측심 — SCM 작업실" current="home" path="/">
   <div class="hero" data-content="ds-home-hero">
     <div class="hero__stick">
       <Haedo id="hero-map" points={hpts} fit={hfit} vmax={vmax} pad={{ tText: ".hero__text" }}>
@@ -45,7 +48,7 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
       </Haedo>
       <div class="s-wrap hero__text">
         <h1 class="s-prose"><span class="s-signal">인천</span>을 지나는 물건의 길을, 공공 1차 데이터로 잽니다.</h1>
-        <p class="s-lead s-prose">〈운영자 실명〉의 SCM 작업실입니다. 항만·공항·창고를 잇는 수도권 공급망을 실제 숫자로 움직여 보여 줍니다.</p>
+        <p class="s-lead s-prose">{PF.name}의 SCM 작업실입니다. 항만·공항·창고를 잇는 수도권 공급망을 실제 숫자로 움직여 보여 줍니다.</p>
       </div>
       <p class="s-wrap s-cap hero__cap">주홍 선은 신항에서 {RT.to.label} 쪽으로 긋는 개념선입니다 — 실제 운송 경로가 아닙니다. 숫자는 {M.months[M.months.length - 1]} 컨테이너 처리량(천TEU) · 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     </div>
@@ -69,14 +72,14 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
           <span class="mark lo" style={`left:${pct(iLo)}`}>가장 적은 달 {S[iLo].ym} · {lo}</span>
         </div>
         <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
-        <Trust updated={P.updated} source={P.source} csv={u("/lab/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU" />
+        <Trust updated={P.updated} source={P.source} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU" />
       </figure>
       <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
     </Scene>
 
     <Scene kind="text" title="네 개의 방">
       <ol class="s-index">
-        {R.map((r) => <li><div><h3><a href={r.href.startsWith("#") ? r.href : u(r.href)}>{r.title}</a></h3><p>{r.lead}</p></div></li>)}
+        {R.map((r) => <li><div><h3><a href={r.href.startsWith("#") ? r.href : u(r.href)}>{r.title}</a></h3><p>{r.lead}</p>{r.items && r.items.length > 0 && <ul class="room-items">{r.items.map((it) => <li><a href={u(it.href)}>{it.title}</a></li>)}</ul>}</div></li>)}
       </ol>
     </Scene>
 
@@ -85,9 +88,9 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
     </Scene>
 
     <Scene kind="text" id="about" title="소개">
-      <p class="s-lead s-prose">〈운영자 실명〉 · 〈소속〉. 〈자격〉 · 〈기고〉.</p>
-      <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다.</p>
-      <p class="contact"><a class="s-btn" href="#about">LinkedIn 〈자리표시〉</a> <a class="s-btn s-btn--ghost" href="#about">메일 〈자리표시〉</a></p>
+      <p class="s-lead s-prose">{PF.name} · {PF.affiliation}. {PF.credentials.join(" · ")}{PF.writing.length > 0 && ` · ${PF.writing.map((w) => w.title).join(" · ")}`}.</p>
+      <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다. <a href={u("/about.html")}>소개 더 보기</a></p>
+      <Contact />
     </Scene>
   </div>
   <script>
@@ -118,6 +121,8 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
   </script>
 </Studio>
 <style>
+  .room-items { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); }
+  .room-items a { min-height: 44px; display: inline-flex; align-items: center; }
   .hero { height: 190vh; position: relative; }
   .hero__stick { position: sticky; top: 0; height: 100vh; overflow: hidden; }
   .hero__text { position: absolute; top: 0; left: 0; right: 0; padding-top: var(--s-6); padding-bottom: var(--s-6); z-index: 2; pointer-events: none; }

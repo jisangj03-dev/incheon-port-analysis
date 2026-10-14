@@ -1,6 +1,7 @@
 ---
 // 공급망 따라가기(정체성 §3-2) — 전기기기(HS 85) 하나가 해외에서 인천을 거쳐 수도권으로. 해도는 멈춰 있고(첫 화면 = 정지 그림) 스크롤이 단계를 넘긴다.
 // 숫자 = data/derived/supply_hs85.json(tools-build/supply_derive.py 가 원천 CSV 에서 계산) · 원천 없는 구간은 「이 구간 데이터 없음」(S1).
+import { aiMark } from "../../lib/profile";
 import Studio from "../../layouts/Studio.astro";
 import Haedo from "../../components/scene/Haedo.astro";
 import Trust from "../../components/scene/Trust.astro";
@@ -30,7 +31,7 @@ const pts = P.map((p: any) => ({ ...p, cls: p.id === "신항" ? "top" : "" })).c
 const fit: [number, number][] = pts.map((p: any) => [p.lon, p.lat]); // 해외 화살 시작점은 맞춤에서 뺀다 — 화면 밖에서 들어온다
 const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 꼬리표 자리(위치가 아니라 이름표 자리)
 ---
-<Studio title="공급망 따라가기 — 측심" current="map">
+<Studio title="공급망 따라가기 — 전기기기 하나가 인천을 지나는 길" description="전기기기(HS 85) 하나가 해외에서 인천을 거쳐 수도권으로 오는 길을 구간마다 공공 데이터로 잰다. 데이터가 없는 구간은 없다고 적는다." current="map">
   <div class="story" data-step="intro" data-content="ds-follow">
     <div class="story__map">
       <Haedo id="follow-map" points={pts} fit={fit} pad={{ t: 40, b: 70, l: 0.42, r: 70 }}>
@@ -59,7 +60,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
         <p>수집한 {O.data.n_countries}개국 가운데 {O.data.top} 몫이 <b class="s-signal">{O.data.top_share_pct}%</b>입니다.</p>
         <ol class="bars">{O.data.countries.slice(0, 5).map((c: any) => <li><span>{c.name}</span><i style={`--w:${c.share_pct}%`}>{c.share_pct}%</i><small>{c.musd}{O.data.unit === "백만 달러" ? "백만 달러" : ""}</small></li>)}</ol>
         <p class="s-cap">{O.data.scope}</p>
-        <Trust updated={upd} csv={u("/lab/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(O.source)} />
+        <Trust updated={upd} csv={u("/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(O.source)} />
       </section>
 
       <section class="st" data-s="sea">
@@ -67,7 +68,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
         <h2>배는 인천항 컨테이너 부두로.</h2>
         <p>{SEA.data.ym} 한 달 인천항 컨테이너는 <b>{SEA.data.kteu}</b>천TEU, 작년 같은 달보다 <b class={SEA.data.yoy_pct < 0 ? "s-signal" : ""}>{SEA.data.yoy_pct}%</b>.</p>
         <p class="s-cap">{SEA.data.scope}</p>
-        <Trust updated={upd} csv={u("/lab/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(SEA.source)} />
+        <Trust updated={upd} csv={u("/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(SEA.source)} />
       </section>
 
       <section class="st" data-s="air">
@@ -82,7 +83,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
         <ol class="bars">{CU.data.gates.map((g: any) => <li><span>{g.name}</span><i style={`--w:${g.share_pct * 2}%`}>{g.share_pct}%</i></li>)}</ol>
         <p class="counter"><b>반대 지표</b> — {D.counter.text}: 부산 <b>{D.counter.busan_pct}%</b> · 인천항 <b>{D.counter.incheon_port_pct}%</b>.</p>
         <p class="s-cap">{CU.data.scope}</p>
-        <Trust updated={upd} csv={u("/lab/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(CU.source)} />
+        <Trust updated={upd} csv={u("/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(CU.source)} />
       </section>
 
       <section class="st" data-s="firms">
@@ -90,7 +91,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
         <h2>인천 수입의 {FI.data.share_of_incheon_imports_pct}%가 전기기기.</h2>
         <p>인천에 사업장을 둔 수입자가 들여온 전기기기는 <b>{FI.data.imp_kusd.toLocaleString("ko-KR")}</b>천 달러입니다.</p>
         <p class="s-cap">{FI.data.scope}</p>
-        <Trust updated={upd} csv={u("/lab/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(FI.source)} />
+        <Trust updated={upd} csv={u("/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(FI.source)} />
       </section>
 
       <section class="st" data-s="warehouse">
@@ -98,7 +99,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
         <h2>인천 물류창고 {WH.data.sites}곳, 보세는 {WH.data.bonded_sites}곳.</h2>
         <p>관세법에 따라 등록된 창고가 <b>{WH.data.bonded_pct}%</b>. 가장 많은 구는 {WH.data.top_gu}({WH.data.top_gu_sites}곳).</p>
         <p class="s-cap">{WH.data.scope}</p>
-        <Trust updated={upd} csv={u("/lab/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(WH.source)} />
+        <Trust updated={upd} csv={u("/data/supply-hs85.csv")} csvName="supply-hs85.csv" source={sourceLine(WH.source)} />
       </section>
 
       <section class="st" data-s="last">
@@ -113,7 +114,7 @@ const inland: [number, number] = [126.72, 37.47]; // 「인천 전체 집계」 
           <dt>어떻게</dt><dd data-note="how">관세청·해양수산청·국토교통부 공개 통계를 구간마다 하나씩 붙였다. 구간마다 집계 단위가 달라(전국·인천항·관문·인천 소재지·인천 창고) 숫자를 서로 더하거나 잇지 않는다. 계산 = {D.command}.</dd>
           <dt>한계</dt><dd data-note="limits">한 상자를 실제로 추적한 것이 아니다. 항공·마지막 배송 구간은 원천이 없다. 「인천 소재 수입자」는 통관 항구가 아니라 사업장 주소 기준이다.</dd>
         </dl>
-        <p class="s-cap" data-ai-mark>AI 정리 · 검수 전</p>
+        <p class="s-cap" data-ai-mark>{aiMark()}</p>
       </section>
     </div>
   </div>

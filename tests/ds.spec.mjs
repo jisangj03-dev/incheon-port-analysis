@@ -1,15 +1,17 @@
-// 디자인 시스템 「해도」 시안 3면(lab/ds/) — 숫자 = 데이터 파일(정체성 §2-1) · 외부 요청 0 · 360px 넘침 0 · 만든 사람 노트(지도·시뮬레이션).
-// 공개 배포물에는 없다(SOUNDING_LAB=1 빌드에만).
+// 디자인 시스템 「해도」 공개 지면(2026-10-14 공개 전환 · 종전 lab/ds/ 시안) — 숫자 = 데이터 파일(정체성 §2-1) · 외부 요청 0 · 360px 넘침 0 · 만든 사람 노트.
+// 지면 이름 → 공개 주소. 시험 이름은 시안 때 이름을 그대로 둔다(이력 대조).
 import { test, expect } from "@playwright/test";
 import { readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
-const B = "/incheon-port-analysis/lab/ds";
+const B = "/incheon-port-analysis";
+const PATH = { index: "/index.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
+const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
 for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
-    const r = check(readFileSync(`astro/dist/lab/ds/${f}.html`, "utf-8"), DATA);
+    const r = check(readFileSync(`astro/dist${PATH[f]}`, "utf-8"), DATA);
     expect(r.bad).toEqual([]);
   });
   test(`화면 ${f}: 외부 요청 0 · 360px 넘침 0 · 오류 0`, async ({ page }, info) => {
@@ -17,7 +19,7 @@ for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"])
     await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => { ext.push(r.request().url()); return r.abort(); });
     page.on("pageerror", (e) => errors.push(String(e)));
     if (info.project.name === "iphone-13") await page.setViewportSize({ width: 360, height: 720 });
-    await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
+    await page.goto(at(f), { waitUntil: "networkidle" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
     if (["beer", "map", "follow", "ai-ops", "vessels"].includes(f)) for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
     expect(ext).toEqual([]);
@@ -30,7 +32,7 @@ for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"])
 test("지도 면: 바탕·점이 실제로 그려졌다(픽셀 판정)", async ({ page }, info) => {
   const tiles = existsSync("astro/dist/tiles/incheon.pmtiles");
   if (process.env.CI) expect(tiles, "CI 에는 지도 타일이 있어야 한다 — 없으면 바탕을 증명할 수 없다").toBe(true);
-  await page.goto(`${B}/map.html`, { waitUntil: "networkidle" });
+  await page.goto(at("map"), { waitUntil: "networkidle" });
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
   const st = await page.evaluate(() => window.__dsmap);
   expect(st.errors).toEqual([]);
@@ -63,7 +65,7 @@ test("지도 면: 바탕·점이 실제로 그려졌다(픽셀 판정)", async (
 
 // 맥주 게임 첫 장면 — 누르기 전부터 그림이 있고, 막대를 움직이면 그림과 큰 숫자가 같이 바뀐다(ncase 원리). 개발 용어는 지면에 없다.
 test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 바뀐다 · 개발 용어 0", async ({ page }) => {
-  await page.goto(`${B}/beer.html`, { waitUntil: "networkidle" });
+  await page.goto(at("beer"), { waitUntil: "networkidle" });
   await page.waitForSelector("#wave[data-ready]");
   const vh = page.viewportSize().height;
   // 큰 숫자까지는 키 800 이상 화면에서만 요구한다(iPhone 13 기기 묘사 390×664 에선 그림·막대까지가 첫 화면)
@@ -83,7 +85,7 @@ test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 �
 // 차트 신뢰(OWID 원리) — 차트가 있는 지면마다 갱신일·출처·CSV 꼬리가 있고, CSV 는 실제로 내려온다
 test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, request }) => {
   for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"]) {
-    await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
+    await page.goto(at(f), { waitUntil: "networkidle" });
     const t = page.locator(".s-trust");
     expect(await t.count(), `${f} 신뢰 꼬리`).toBeGreaterThan(0);
     await expect(t.first().locator("[data-updated]")).toHaveCount(1);
@@ -95,7 +97,7 @@ test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, req
 
 // 홈 — 스크롤을 따라 주홍 선이 그려지고, 달 막대를 옮기면 큰 숫자가 바뀐다 · 방·노트는 콘텐츠 목록에서 자동
 test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async ({ page }) => {
-  await page.goto(`${B}/index.html`, { waitUntil: "networkidle" });
+  await page.goto(at("index"), { waitUntil: "networkidle" });
   const off = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById("route")).strokeDashoffset));
   const a = await off();
   await page.evaluate(() => { const h = document.querySelector(".hero"); scrollTo(0, h.offsetHeight - innerHeight); });
@@ -112,7 +114,7 @@ test("홈: 스크롤 선 · 달 막대 · 콘텐츠 목록 자동 배치", async
 
 // 지도 움직임 — 달 막대를 옮기면 달·점 숫자가 바뀌고, 그대로 두면 달이 흐른다(움직임 줄이기 설정이 아닐 때)
 test("지도: 달 막대 · 자동으로 흐르는 달 · 흐름선은 개념선이라고 적었다", async ({ page }) => {
-  await page.goto(`${B}/map.html`, { waitUntil: "networkidle" });
+  await page.goto(at("map"), { waitUntil: "networkidle" });
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
   await page.locator("#ds-m").fill("0");
   const ym0 = await page.locator("#ds-ym").innerText();
@@ -128,7 +130,7 @@ test("지도: 달 막대 · 자동으로 흐르는 달 · 흐름선은 개념선
 
 // 공급망 따라가기(§3-2) — 5단계 이상 · 원천 없는 구간은 「이 구간 데이터 없음」 · 반대 지표 · 스크롤로 단계가 넘어간다
 test("공급망 따라가기: 단계 · 데이터 없음 구간 · 반대 지표 · 스크롤", async ({ page }) => {
-  await page.goto(`${B}/follow.html`, { waitUntil: "networkidle" });
+  await page.goto(at("follow"), { waitUntil: "networkidle" });
   const D = JSON.parse(readFileSync("data/derived/supply_hs85.json", "utf-8"));
   expect(D.steps.length).toBeGreaterThanOrEqual(5);
   expect(await page.locator(".st[data-s]").count()).toBeGreaterThanOrEqual(D.steps.length);
@@ -140,7 +142,7 @@ test("공급망 따라가기: 단계 · 데이터 없음 구간 · 반대 지표
 
 // 선박 리플레이(§3-3) — 월 집계라고 적었다 · 원천 행 수·기간이 수집 CSV 와 맞다(V1) · 막대·재생으로 달이 바뀐다 · 반대 지표
 test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · 재생 · 반대 지표", async ({ page }) => {
-  await page.goto(`${B}/vessels.html`, { waitUntil: "networkidle" });
+  await page.goto(at("vessels"), { waitUntil: "networkidle" });
   const csv = readFileSync("data/collected/vessel-monthly.csv", "utf-8").trim().split("\n").slice(1);
   const yms = csv.map((l) => l.split(",")[0]);
   const V = JSON.parse(readFileSync("data/derived/vessel_replay.json", "utf-8"));

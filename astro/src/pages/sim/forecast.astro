@@ -1,8 +1,9 @@
 ---
 // 인천항 수요예측 실험실 — 정체성 전환 §3-4 · 방법론 docs/수요예측_방법론_선커밋_20261014.md.
-// 구조·데이터·로직 단계라 lab/(SOUNDING_LAB=1 빌드에만). 메뉴 연결·시각 마감·공개는 디자인 기준이 선 뒤.
+// 공개 지면(2026-10-14 공개 전환 · 종전 lab/forecast) · 메뉴 = 시뮬레이션.
 // 화면 숫자는 원장·대상 계열 파일에서 빌드 때 읽고(§2-1), 채점은 analysis/forecast_teu.py 와 같은 식이다 — 시험이 둘을 대조한다.
-import Base from "../../layouts/Base.astro";
+import { aiMark } from "../../lib/profile";
+import Studio from "../../layouts/Studio.astro";
 import Updated from "../../components/Updated.astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -45,7 +46,7 @@ const matured = Object.values(ape).reduce((s, xs) => s + xs.length, 0);
 const firstTarget = rows.map((r) => r.target).sort()[0];
 const updated = lastUpdated("data/forecast/incheon_container_teu.csv");
 ---
-<Base title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다." path="/lab/forecast.html" noindex>
+<Studio current="sim" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
   <div class="fc wrap" data-sim="forecast">
     <p class="eyebrow">실험실 · 시험 지면</p>
     <h1>인천항 수요예측 실험실</h1>
@@ -86,10 +87,10 @@ const updated = lastUpdated("data/forecast/incheon_container_teu.csv");
         <div><dt>어떻게</dt><dd data-note="how">{L.notes.how}</dd></div>
         <div><dt>한계</dt><dd data-note="limits">{L.notes.limits}</dd></div>
       </dl>
-      <p class="ai" data-ai-mark>{L.aiMark}</p>
+      <p class="ai" data-ai-mark>{aiMark()}</p>
     </section>
   </div>
-</Base>
+</Studio>
 <style>
   .fc { padding-top: 2rem; }
   .lede { max-width: 64ch; }
