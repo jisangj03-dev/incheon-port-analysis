@@ -74,10 +74,14 @@ def main():
     namef = next((f for f in fields if f.lower() in ("portname", "port_name", "name")), None)
     datef = next((f for f in fields if f.lower() in ("date", "day")), None)
     keep = [f for f in fields if f.lower().startswith(("portcalls", "import", "export")) or f in (namef, datef, "portid", "country", "ISO3")]
-    rows = query_all(svc, lid, " OR ".join(f"{namef}='{p}'" for p in PORTS), ",".join(keep), f"{datef} ASC") if namef else []
+    # 항만마다 따로 · 2024년 이후만(2026-10-14 실측: 2019년부터 셋을 한꺼번에 물으면 6000행에서 쪽 넘기기가 끊겨 최근이 비었다)
+    yf = next((f for f in fields if f.lower() == "year"), None)
     by = {}
-    for r in rows:
-        by.setdefault(r.get(namef), []).append({k: (day(v) if k == datef else v) for k, v in r.items() if k != namef})
+    for p in PORTS if namef else []:
+        w = f"{namef}='{p}'" + (f" AND {yf} >= 2024" if yf else "")
+        rows = query_all(svc, lid, w, ",".join(keep), f"{datef} ASC")
+        by[p] = [{k: (day(v) if k == datef else v) for k, v in r.items() if k != namef} for r in rows]
+        say(p, len(rows), "행", by[p][0][datef] if by[p] else "", "~", by[p][-1][datef] if by[p] else "")
     out["ports"] = by
     out["counts"] = {k: len(v) for k, v in by.items()}
     write("data/collected/v3/portwatch_ports.json", out)

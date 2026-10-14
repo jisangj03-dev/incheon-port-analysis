@@ -12,7 +12,9 @@ from common import ROOT, get, write, say
 BBOX = (126.2, 36.85, 127.75, 37.98)
 STEP = 0.01
 INCHEON = (126.35, 37.30, 126.80, 37.66)
-SPEED = {"motorway": 90, "trunk": 70, "primary": 60, "secondary": 50, "tertiary": 40, "unclassified": 25, "residential": 25,
+NOT_INCHEON = [(126.755, 37.46, 126.80, 37.57)]  # 부천(오정·원종) — 네모 INCHEON 이 동쪽 경계에서 부천을 덮는다(2026-10-14 첫 실행: 부천오정물류단지가 들어왔다)
+# 선커밋 §3(고속 90 · 간선 60 · 일반 40 · 기타 25) 그대로 — 첫 실행은 trunk 70 · secondary 50 이라 문서와 갈렸다(2026-10-14 바로잡음)
+SPEED = {"motorway": 90, "trunk": 60, "primary": 60, "secondary": 40, "tertiary": 40, "unclassified": 25, "residential": 25,
          "motorway_link": 50, "trunk_link": 50, "primary_link": 40, "secondary_link": 35, "tertiary_link": 30, "service": 15, "living_street": 10}
 LIMIT_MIN = 200
 # 도착 분을 표로 내는 수도권 도시(시청·대표 지점 부근 · 개략) — 칸 값을 읽는다(그 칸 안 가장 빠른 길)
@@ -20,6 +22,15 @@ CITIES = {"서울시청": (126.978, 37.566), "강남역": (127.028, 37.498), "�
           "파주": (126.780, 37.760), "의정부": (127.033, 37.738), "남양주": (127.216, 37.636), "하남": (127.215, 37.539), "성남 분당": (127.120, 37.382),
           "수원": (127.029, 37.264), "안산": (126.831, 37.322), "시흥": (126.803, 37.380), "용인 기흥": (127.115, 37.275), "화성 동탄": (127.074, 37.201),
           "이천": (127.443, 37.272), "평택": (127.112, 36.992), "광주(경기)": (127.255, 37.429)}
+
+
+NOT_SITE = ("앞", "정류", "충전소", "주유소", "입구", "사거리", "삼거리", "교차로", "IC", "JC")
+
+
+def is_site(nm, tags):
+    """물류단지 자체(면·장소)만 — 정류장·충전소·교차로 이름에 든 「물류단지」는 뺀다(2026-10-14 첫 실행: 「물류단지D블럭앞」 정류장이 출발지로 들어왔다)."""
+    if any(nm.endswith(x) or x in nm for x in NOT_SITE): return False
+    return not any(k in tags for k in ("highway", "public_transport", "railway", "bus", "amenity"))
 
 
 def load(pbf):
@@ -31,7 +42,7 @@ def load(pbf):
         def way(s, w):
             hw = w.tags.get("highway")
             nm = w.tags.get("name", "")
-            if "물류단지" in nm:
+            if "물류단지" in nm and is_site(nm, w.tags):
                 try:
                     lo = [n.location for n in w.nodes if n.location.valid()]
                     if lo:
@@ -46,7 +57,7 @@ def load(pbf):
             s.ways.append((SPEED[hw], pts, 1 if ow in ("yes", "true", "1") or hw == "motorway" else -1 if ow == "-1" else 0))
         def node(s, n):
             nm = n.tags.get("name", "")
-            if "물류단지" in nm and INCHEON[0] <= n.location.lon <= INCHEON[2] and INCHEON[1] <= n.location.lat <= INCHEON[3]:
+            if "물류단지" in nm and is_site(nm, n.tags) and INCHEON[0] <= n.location.lon <= INCHEON[2] and INCHEON[1] <= n.location.lat <= INCHEON[3]:
                 s.named.append({"name": nm, "lon": round(n.location.lon, 5), "lat": round(n.location.lat, 5), "osm": f"node/{n.id}"})
     h = H(); h.apply_file(pbf, locations=True, idx="flex_mem")
     return h.ways, h.named
@@ -89,7 +100,7 @@ def main():
     # 출발지 — 같은 이름은 한 번(OSM 면 여러 조각) · 관문 셋
     seen, origins = set(), []
     for o in sorted(named, key=lambda o: o["name"]):
-        if o["name"] in seen: continue
+        if o["name"] in seen or any(b[0] <= o["lon"] <= b[2] and b[1] <= o["lat"] <= b[3] for b in NOT_INCHEON): continue
         seen.add(o["name"]); origins.append({**o, "kind": "물류단지"})
     P = json.load(open(os.path.join(ROOT, "data/derived/places.json"), encoding="utf-8"))["places"]
     for p in P:
@@ -115,7 +126,8 @@ def main():
             win = g8[max(0, iy - 1): iy + 2, max(0, ix - 1): ix + 2]
             v = int(win.min()) if win.size else 255
             city[nm] = v if v < 255 else None
-        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "b64": base64.b64encode(g8.tobytes()).decode()})
+        within = {f"{h}h": sum(1 for v in city.values() if v is not None and v <= 60 * h) for h in (1, 2, 3)}
+        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "cities_within": within, "n_cities": len(CITIES), "b64": base64.b64encode(g8.tobytes()).decode()})
         say(o["name"], reach, f"붙임 {snap_km:.2f}km")
     write("data/derived/isochrones.json", {
         "_설명": "인천 물류단지·관문에서 수도권 칸(0.01°)마다 가장 빠른 도착 분. 도로 등급별 자유 흐름 속도 가정 — 혼잡·신호·상하차 미반영. 255 = 길 없음/200분 넘음.",

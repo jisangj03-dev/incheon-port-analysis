@@ -43,7 +43,7 @@ jobs:
           set -o pipefail
           case "${{ matrix.job }}" in
             terms) python terms_check.py ;;
-            portwatch) python portwatch.py ;;
+            portwatch) python portwatch.py && python pulse_derive.py ;;
             density) python ship_density.py ;;
             osm) python osm_iso.py ;;
             apis) python kr_apis.py && python race_derive.py ;;
