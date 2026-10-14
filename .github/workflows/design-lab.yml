@@ -61,7 +61,7 @@ jobs:
         run: |
           if node -e "process.exit((require('./tools-build/design-lab.json').pairs||[]).length?0:1)"; then
             bash tools-build/pmtiles.sh || echo "::warning::지도 타일 추출 실패 — 지도 면은 바탕 없이 찍힌다"
-            SOUNDING_LAB=1 npm run site:build
+            npm run site:build   # 공개 전환 뒤 — 공개 빌드 그대로 찍는다(lab 없이)
             nohup node tests/serve.mjs > /tmp/serve.log 2>&1 &
             for i in $(seq 1 30); do curl -s -o /dev/null 127.0.0.1:4173/incheon-port-analysis/ && break; sleep 1; done
           fi
@@ -79,7 +79,7 @@ jobs:
               echo "### $name — 추출 실패: $(tail -3 /tmp/err-$name.log | tr '\n' ' ' | cut -c1-300)" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
-      - name: 우리 면 조작 녹화(폰 판정용 · 390 세로·1440 가로 · 면마다 15초 안팎 mp4) + 첫 화면 PNG
+      - name: 우리 면 조작 녹화(폰 판정용 · 390 세로·1440 가로 · 면마다 15초 안팎 mp4) + 첫 화면 PNG + 중간 프레임 2장 + 전체 페이지
         if: hashFiles('tools-build/design-lab.json') != ''
         run: |
           set -o pipefail
