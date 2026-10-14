@@ -9,15 +9,49 @@
  "tried": [
   {
    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
-   "error": "HTTP Error 503: "
+   "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
+   "institution": "National Centers for Environmental Information",
+   "title": "ETOPO_2022_v1_15s",
+   "accepted": true
+  },
+  {
+   "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
+   "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
+   "institution": "GEBCO, BODC",
+   "title": "The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
+   "accepted": true
+  },
+  {
+   "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus",
+   "license": "David T. Sandwell, Joseph J. Becker, and Walter H. F. Smith. The Regents of the University of California All Rights Reserved Permission to copy, modify and distribute any part of this gridded bathymetry at 15 second resolution for educational, research and non-profit purposes, without fee, and without a written agreement is hereby granted provided that the above notice, this paragraph and the following three paragraphs appear in all copies. Those desiring to incorporate this global bathymetry into commercial products or use for commercial purposes should contact the Technology Transfer & Intellectual Property Services, University of California, San Diego, 9500 Gilman Drive, Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu. IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS global bathymetry, EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. THE global bathymetry PROVIDED HEREIN IS ON AN \\\"AS IS\\\" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF THE global bathymetry WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER RIGHTS.",
+   "institution": "SIO, NOAA, U.S. Navy, NGA, GEBCO",
+   "title": "SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
+   "accepted": false
   },
   {
    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/etopo180",
-   "error": "HTTP Error 503: "
+   "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
+   "institution": "NOAA NGDC",
+   "title": "Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
+   "accepted": true
   },
   {
    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
    "error": "HTTP Error 404: "
+  },
+  {
+   "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
+   "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
+   "institution": "GEBCO, BODC",
+   "title": "The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
+   "accepted": true
+  },
+  {
+   "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/srtm15plus",
+   "license": "David T. Sandwell, Joseph J. Becker, and Walter H. F. Smith. The Regents of the University of California All Rights Reserved Permission to copy, modify and distribute any part of this gridded bathymetry at 15 second resolution for educational, research and non-profit purposes, without fee, and without a written agreement is hereby granted provided that the above notice, this paragraph and the following three paragraphs appear in all copies. Those desiring to incorporate this global bathymetry into commercial products or use for commercial purposes should contact the Technology Transfer & Intellectual Property Services, University of California, San Diego, 9500 Gilman Drive, Mail Code 0910, La Jolla, CA 92093-0910, Ph: (858) 534-5815, FAX: (858) 534-7345, E-MAIL:invent@ucsd.edu. IN NO EVENT SHALL THE UNIVERSITY OF CALIFORNIA BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS global bathymetry, EVEN IF THE UNIVERSITY OF CALIFORNIA HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. THE global bathymetry PROVIDED HEREIN IS ON AN \\\"AS IS\\\" BASIS, AND THE UNIVERSITY OF CALIFORNIA HAS NO OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS. THE UNIVERSITY OF CALIFORNIA MAKES NO REPRESENTATIONS AND EXTENDS NO WARRANTIES OF ANY KIND, EITHER IMPLIED OR EXPRESS, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, OR THAT THE USE OF THE global bathymetry WILL NOT INFRINGE ANY PATENT, TRADEMARK OR OTHER RIGHTS.",
+   "institution": "SIO, NOAA, U.S. Navy, NGA, GEBCO",
+   "title": "SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
+   "accepted": false
   },
   {
    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/etopo180",
@@ -27,78 +61,18 @@
    "accepted": true
   }
  ],
- "search": [
-  "https://coastwatch.pfeg.noaa.gov/erddap · ETOPO_2022_v1_15s · ETOPO_2022_v1_15s",
-  "https://coastwatch.pfeg.noaa.gov/erddap · ETOPO_2022_v1_15s_Lon0360 · ETOPO_2022_v1_15s, Lon0360",
-  "https://coastwatch.pfeg.noaa.gov/erddap · etopo180 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · etopo360 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude 0 to 360), (Ice Sheet Surface)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopoSeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO (US West Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopo22SeafloorGradient_Atlantic · Estimated Seafloor Depth Gradients: ETOPO-22 (US Atlantic Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · erdEtopo22SeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO-22 (US West Coast)",
-  "https://coastwatch.pfeg.noaa.gov/erddap · GEBCO_2020 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
-  "https://coastwatch.pfeg.noaa.gov/erddap · GEBCO_2020_Lon0360 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals, Lon0360",
-  "https://coastwatch.pfeg.noaa.gov/erddap · srtm15plus · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
-  "https://coastwatch.pfeg.noaa.gov/erddap · srtm30plus · SRTM30_PLUS Estimated Topography, 30 seconds, Global, v11",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_d374_30ba_3613 · ETOPO Global Topography and Bathymetry. ETOPO1 Bed g gmt4 (ETOPO1_Bed_g.int), 0.016666668°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_8ee6_e652_1983 · ETOPO Global Topography and Bathymetry. ETOPO1 Ice g gmt4 (ETOPO1_Ice_g.int), 0.016666668°",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_bedrock · ETOPO1 Global Surface Relief: Bedrock",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_bedrock_lon360 · ETOPO1 Global Surface Relief: Bedrock, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_ice · ETOPO1 Global Surface Relief: Ice Surface",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo1_ice_lon360 · ETOPO1 Global Surface Relief: Ice Surface, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo5 · ETOPO5 Global Surface Relief",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo5_lon180 · ETOPO5 Global Surface Relief, Lon+/-180",
-  "https://upwell.pfeg.noaa.gov/erddap · etopo180 · Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
-  "https://upwell.pfeg.noaa.gov/erddap · erdEtopoSeafloorGradient · Estimated Seafloor Depth Gradients: ETOPO (US West Coast)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_91bc_1651_cd5d · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_0ca0_5960_4a1a · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_eee4_d57f_de51 · British Columbia, Canada Tsunami Forecast Grids for MOST Model",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_d6e2_0c5b_7c4c · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_6b8b_152b_0d69 · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c73f_4ea1_092c · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_95e8_6a6d_e070 · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_40dc_3927_f620 · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_1ad6_1a0a_5221 · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_4be8_724d_bc40 · Adak, Alaska Tsunami Forecast Grids for MOST Model (AdakAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_a60c_31d7_712e · Atka, Alaska Tsunami Forecast Grids for MOST Model (AtkaAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_4e62_6ad9_218e · British Columbia, Canada Tsunami Forecast Grids for MOST Model (BritishColumbia B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_958f_7e24_cc14 · King Cove, Alaska Tsunami Forecast Grids for MOST Model (KingCoveAK A), 0.01°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_426e_5fd1_20bf · Sitka, Alaska Tsunami Forecast Grids for MOST Model (SitkaAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_5617_d2d2_48f1 · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c617_09ef_7c63 · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_53a1_8f39_320e · British Columbia, Canada Tsunami Forecast Grids for MOST Model (BritishColumbia A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_067d_fc5c_ae4b · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_2791_7ae2_0cb7 · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK B)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_1e8a_ad1b_86f8 · Kodiak, Alaska Tsunami Forecast Grids for MOST Model (KodiakAK C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_9abf_2a28_dd9e · Craig, Alaska Tsunami Forecast Grids for MOST Model (ChignikAK A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_f834_575a_0ca7 · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK A), 0.033333335°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_8128_0f22_61b4 · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK B), 0.0033333334°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_681e_d222_ecae · Craig, Alaska Tsunami Forecast Grids for MOST Model (CraigAK C), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_c71a_e2d5_c731 · British Columbia 3 arc-second Bathymetric Digital Elevation Model (british columbia 3 msl 2013), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_ab94_d3bf_2a16 · Wake Island Coastal Digital Elevation Model (wake island 13 mhw 2009), 9.259259E-5°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_3a14_d50b_70dc · Wake Island Coastal Digital Elevation Model (wake island 3 mhw 2009), 8.3333335E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_bbd9_21a7_0755 · Adak, Alaska Coastal Digital Elevation Model (adak 1 mhw 2009), 2.7777778E-4°",
-  "https://upwell.pfeg.noaa.gov/erddap · GEBCO_2020 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals",
-  "https://upwell.pfeg.noaa.gov/erddap · GEBCO_2020_Lon0360 · The GEBCO_2020 Grid, a continuous terrain model for oceans and land at 15 arc-second intervals, Lon0360",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_28c7_6c52_679a · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_bba0_890c_823f · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda C)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_5386_5610_ad54 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA A)",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_abea_d38a_7819 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA C)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm15plus · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_93ec_b953_6845 · Bermuda Tsunami Forecast Grids for MOST Model (Bermuda B)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm30plus · SRTM30_PLUS Estimated Topography, 30 seconds, Global, v11",
-  "https://upwell.pfeg.noaa.gov/erddap · noaa_ngdc_96ed_b118_e5e1 · Nantucket, Massachusetts Tsunami Forecast Grids for MOST Model (NantucketMA B)",
-  "https://upwell.pfeg.noaa.gov/erddap · srtm15plus_Lon0360 · SRTM15_PLUS Estimated Topography, 15 seconds, Global, v1, Lon0360"
- ],
+ "search": [],
  "status": "contours",
- "source": "https://upwell.pfeg.noaa.gov/erddap/griddap/etopo180",
- "title": "Topography, ETOPO1, 0.0166667 degrees, Global (longitude -180 to 180), (Ice Sheet Surface)",
- "institution": "NOAA NGDC",
+ "smoothing": "chaikin x2 (보기용)",
+ "source": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
+ "title": "ETOPO_2022_v1_15s",
+ "institution": "National Centers for Environmental Information",
  "license": "The data may be used and redistributed for free but is not intended for legal use, since it may contain inaccuracies. Neither the data Contributor, ERD, NOAA, nor the United States Government, nor any of their employees or contractors, makes any warranty, express or implied, including warranties of merchantability and fitness for a particular purpose, or assumes any legal liability for the accuracy, completeness, or usefulness, of this information.",
  "grid": [
-  35,
-  49
+  138,
+  193
  ],
- "resolution_arcsec": 60.0,
+ "resolution_arcsec": 15.0,
  "levels_m": [
   5,
   10,
@@ -106,10 +80,5 @@
   30,
   50
  ],
- "features": 43,
- "smoothing": "chaikin x2 (보기용 · 2026-10-14 세션이 같은 함수로 적용 — 원 격자 값은 그대로)",
- "last_attempt": {
-  "retrieved": "2026-10-14",
-  "why": "15″ 후보·재추출 시도가 모든 서버에서 HTTP 403(run a1e8732 커밋 기록) — 다음 실행에서 다시"
- }
+ "features": 393
 }
