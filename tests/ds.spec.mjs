@@ -106,16 +106,18 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   const st = () => page.evaluate(() => ({ N: window.__fm.N, t: window.__fm.t, zoom: window.__fm.cam.zoom }));
   await expect.poll(async () => (await st()).N, { message: "흐르는 점이 있다" }).toBeGreaterThan(50);
   // 그림이 실제로 바뀐다(두 장면의 픽셀이 다르다)
-  const shot = () => page.locator("#fm").screenshot();
-  const s1 = await shot(); await page.waitForTimeout(600); const s2 = await shot();
+  // 요소 캡처는 「안정될 때까지」 장면을 기다린다 — CI(소프트웨어 렌더 · 병렬)에서는 장면이 몇 초에 하나라 시간 초과(QA 115). 영역을 바로 찍는다.
+  const box = await page.locator("#fm").boundingBox();
+  const shot = () => page.screenshot({ clip: box, timeout: 20_000 });
+  const s1 = await shot(); await page.waitForTimeout(2500); const s2 = await shot();
   expect(Buffer.compare(s1, s2), "캔버스가 움직이지 않는다").not.toBe(0);
   // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초 — 느린 시험 기계에서 장면 수가 적어도 판정이 같게 시계를 한 달 앞으로 민다)
   const ym = await page.locator("#fm-ym").innerText();
   await page.evaluate(() => { window.__fm.t += 7; });
-  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 5_000 });
+  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 20_000 }); // 한 장면이 와야 바뀐다 — CI 에서는 몇 초
   // 인천·수도권 보기 → 가까이 날아간다 · 관문 숫자 판이 열린다
   await page.locator("[data-view=incheon]").click();
-  // 비행은 지도 시계(장면마다 많아야 0.25초)로 3.2초 — 소프트웨어 렌더 + 병렬 시험 부하에서는 초당 몇 장면이라 벽시계로 10초 넘게 걸린다(2026-10-14 실측 · 단독 실행은 통과)
+  // 비행은 지도 시계(장면마다 많아야 0.25초)로 3.2초 — 소프트웨어 렌더 + 병렬 시험 부하에서는 벽시계로 10초 넘게 걸린다(2026-10-14 실측)
   await expect.poll(async () => (await st()).zoom, { timeout: 25_000 }).toBeGreaterThan(8);
   await page.locator("#fm-gates").click();
   await expect(page.locator("#fm-panel")).toBeVisible();
