@@ -69,9 +69,11 @@ def main():
     if not pbf:
         url = "https://download.geofabrik.de/asia/south-korea-latest.osm.pbf"
         say("받는다", url)
-        st, body = get(url, timeout=1200, binary=True)
-        if st != 200: write("data/collected/v3/osm_iso_probe.json", {"url": url, "status": st}); return 1
-        pbf = os.path.join(tempfile.mkdtemp(), "kr.osm.pbf"); open(pbf, "wb").write(body)
+        import subprocess
+        pbf = os.path.join(tempfile.mkdtemp(), "kr.osm.pbf")
+        r = subprocess.run(["curl", "-sSL", "--retry", "3", "-m", "1500", "-o", pbf, "-w", "%{http_code} %{size_download}", url], capture_output=True, text=True)
+        say("받음", r.stdout.strip())
+        if not r.stdout.startswith("200"): write("data/collected/v3/osm_iso_probe.json", {"url": url, "result": r.stdout.strip()}); return 1
     ways, named = load(pbf)
     say("도로", len(ways), "· 이름에 물류단지", len(named))
     G, lon, lat = graph(ways)

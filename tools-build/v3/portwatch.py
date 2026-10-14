@@ -20,12 +20,18 @@ def find_service(name):
         tried.append({"url": url, "status": st})
         if not d: continue
         items = d.get("results") or d.get("features") or []
+        tried[-1]["titles"] = [((it.get("properties") or it).get("title") or (it.get("properties") or it).get("name"), (it.get("properties") or it).get("url")) for it in items[:10]]
         for it in items:
-            props = it.get("properties", it)
+            props = it.get("properties") or it
             u = props.get("url") or ""
             t = props.get("title") or props.get("name") or ""
             if "FeatureServer" in u and name.lower() in (t + u).lower():
                 return u.split("/FeatureServer")[0] + "/FeatureServer", tried
+    # 보조 후보 — 공개 튜토리얼들이 쓰는 주소(검색이 비면 직접 메타데이터를 물어 맞는지 본다)
+    for svc in [f"https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/{name}/FeatureServer"]:
+        st, d = jget(svc, {"f": "json"})
+        tried.append({"url": svc, "status": st, "ok": bool(d and (d.get("layers") or d.get("tables")))})
+        if d and (d.get("layers") or d.get("tables")): return svc, tried
     return None, tried
 
 

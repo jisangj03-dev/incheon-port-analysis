@@ -40,6 +40,7 @@ jobs:
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: |
+          set -o pipefail
           case "${{ matrix.job }}" in
             terms) python terms_check.py ;;
             portwatch) python portwatch.py ;;

@@ -27,6 +27,11 @@ def find_zip():
         for want in ("commercial", "global"):
             for u in urls:
                 if want in u.lower(): return u, tried, d
+    # 보조 후보 — 공개 재현 코드(PyPSA-Eur)가 쓰는 주소
+    for u in ["https://datacatalogfiles.worldbank.org/ddh-published/0037580/DR0045406/shipdensity_global.zip"]:
+        st, _ = get(u, timeout=60, binary=True, headers={"Range": "bytes=0-1023"})
+        tried.append({"url": u, "status": st})
+        if st in (200, 206): return u, tried, None
     return None, tried, None
 
 
@@ -45,9 +50,13 @@ def main():
         if not url:
             write("data/collected/v3/ship_density_probe.json", {**meta, "error": "zip 을 못 찾았다"}); return 1
         say("받는다", url)
-        st, body = get(url, timeout=900, binary=True)
-        if st != 200: write("data/collected/v3/ship_density_probe.json", {**meta, "url": url, "status": st}); return 1
-        zp = os.path.join(tempfile.mkdtemp(), "d.zip"); open(zp, "wb").write(body)
+        # 큰 파일 — 메모리에 올리지 않고 디스크로 바로(curl · 재시도)
+        import subprocess
+        zp = os.path.join(tempfile.mkdtemp(), "d.zip")
+        r = subprocess.run(["curl", "-sSL", "--retry", "3", "-m", "1800", "-o", zp, "-w", "%{http_code} %{size_download}", url], capture_output=True, text=True)
+        meta["download"] = r.stdout.strip()
+        say("받음", r.stdout.strip(), r.stderr.strip()[:200])
+        if not r.stdout.startswith("200"): write("data/collected/v3/ship_density_probe.json", {**meta, "url": url}); return 1
     import zipfile, rasterio
     from rasterio.windows import from_bounds
     names = [n for n in zipfile.ZipFile(zp).namelist() if n.lower().endswith(".tif")]
