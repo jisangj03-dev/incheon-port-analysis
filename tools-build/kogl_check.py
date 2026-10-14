@@ -14,24 +14,27 @@ UA = "Mozilla/5.0 (X11; Linux x86_64) sounding-kogl-check/1.0 (+https://github.c
 
 # 원천 → 공공데이터포털 데이터 번호(알면) 또는 검색어(모르면 검색 결과에서 번호를 찾는다)
 SOURCES = {
-    "ipa-empty-container": {"q": "인천항만공사 공컨테이너"},
-    "kcs-porttrade": {"q": "관세청 항구공항별 수출입실적"},
+    "ipa-empty-container": {"q": "공컨테이너", "want": ["공컨테이너"]},
+    "kcs-porttrade": {"q": "관세청 항구공항별 수출입실적", "want": ["항구"]},
     "kcs-sido-item": {"id": "15101641"},
     "molit-warehouse": {"id": "15083282"},
-    "kcs-nitemtrade": {"q": "관세청 품목별 국가별 수출입실적"},
+    "kcs-nitemtrade": {"q": "관세청 품목별 국가별 수출입실적", "want": ["품목별", "국가별"]},
     "mof-vessel": {"id": "15059059"},
     "mof-incheon-port-stats": {"board": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700"},
 }
 KOGL = re.compile(r"공공누리\s*(?:제\s*)?([1-4])\s*유형|KOGL\s*(?:Type\s*)?([1-4])|img_opentype0?([1-4])|opentype_?0?([1-4])", re.I)
 
 
-def get(url):
+def get(url, tries=3):
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "ko"})
-    try:
-        with urllib.request.urlopen(req, timeout=25) as r:
-            return r.status, r.read().decode("utf-8", "replace")
-    except Exception as e:  # 막힘·시간 초과도 결과로 남긴다(통과로 세지 않는다)
-        return getattr(e, "code", None) or str(e)[:120], ""
+    err = None
+    for _ in range(tries):  # 시간 초과는 두 번 더 친다(2026-10-14 첫 실행: 물류창고 화면 TLS 시간 초과)
+        try:
+            with urllib.request.urlopen(req, timeout=40) as r:
+                return r.status, r.read().decode("utf-8", "replace")
+        except Exception as e:  # 막힘·시간 초과도 결과로 남긴다(통과로 세지 않는다)
+            err = getattr(e, "code", None) or str(e)[:120]
+    return err, ""
 
 
 def text(h):
@@ -51,13 +54,19 @@ def parse(h):
         ev.append(h[max(0, m.start() - 60): m.end() + 60].replace("\n", " "))
     for m in re.finditer(r"공공누리[^<]{0,60}", t):
         ev.append(m.group(0))
-    return {"license_text": lic, "kogl_type": int(kogl) if kogl else None, "evidence": ev[:4]}
+    tm = re.search(r"<title>([^<]*)</title>", h)
+    return {"title": html.unescape(tm.group(1)).strip() if tm else None, "license_text": lic, "kogl_type": int(kogl) if kogl else None, "evidence": ev[:4]}
 
 
-def find_id(q):
+def find_id(q, want=None):
+    """검색 결과에서 데이터 번호를 찾는다 — want(제목에 들어갈 낱말)가 있으면 그것이 든 첫 결과(엉뚱한 데이터를 잡지 않게)."""
     st, h = get("https://www.data.go.kr/tcs/dss/selectDataSetList.do?" + urllib.parse.urlencode({"keyword": q}))
-    m = re.search(r"/data/(\d{8})/(?:openapi|fileData)\.do", h)
-    return (m.group(1) if m else None), st
+    cands = []
+    for m in re.finditer(r'href="/data/(\d{8})/(?:openapi|fileData)\.do[^"]*"[^>]*>([\s\S]{0,300}?)</a>', h):
+        t = text(m.group(2))
+        if (m.group(1), t) not in cands: cands.append((m.group(1), t))
+    pick = next((c for c in cands if not want or all(w in c[1] for w in want)), None)
+    return (pick[0] if pick else None), st, cands[:6]
 
 
 def main():
@@ -68,7 +77,9 @@ def main():
             st, h = get(s["board"])
             rec = {"url": s["board"], "status": st}
             # 목록의 첫 글을 연다(공공누리 마크는 글 본문 아래에 붙는다)
-            m = re.search(r'href="([^"]*board\.do\?[^"]*boardIdx=\d+[^"]*)"', h)
+            rec["links"] = sorted(set(re.findall(r'href="([^"]*(?:board|view|bbs)[^"]*)"', h)))[:15]
+            rec["onclick"] = re.findall(r"(?:onclick|href)=\"[^\"]*(?:fn_?[Vv]iew|goView|view)\([^)]*\)", h)[:5]
+            m = re.search(r'href="([^"]*board\.do\?[^"]*(?:boardIdx|seq|nttId)=\d+[^"]*)"', h)
             if m:
                 post = urllib.parse.urljoin(s["board"], html.unescape(m.group(1)))
                 st2, h2 = get(post)
@@ -76,8 +87,8 @@ def main():
             else:
                 rec.update(parse(h))
         else:
-            did, st0 = (s["id"], None) if "id" in s else find_id(s["q"])
-            rec = {"search": s.get("q"), "search_status": st0, "data_id": did}
+            did, st0, cands = (s["id"], None, []) if "id" in s else find_id(s["q"], s.get("want"))
+            rec = {"search": s.get("q"), "search_status": st0, "candidates": cands, "data_id": did}
             if did:
                 for kind in ("openapi", "fileData"):
                     url = f"https://www.data.go.kr/data/{did}/{kind}.do"
@@ -95,7 +106,7 @@ def main():
 def selftest():
     p = parse('<th>이용허락범위</th><td>제한 없음</td><img src="/img/img_opentype01.png" alt="공공누리 제1유형">')
     assert p["license_text"].startswith("제한 없음") and p["kogl_type"] == 1, p
-    assert parse("<p>아무것도 없음</p>") == {"license_text": None, "kogl_type": None, "evidence": []}
+    assert parse("<p>아무것도 없음</p>") == {"title": None, "license_text": None, "kogl_type": None, "evidence": []}
     UA.encode("latin-1")  # 헤더에 못 싣는 글자가 있으면 여기서 멈춘다
     print("selftest 3/3 ok"); return 0
 
