@@ -1,0 +1,50 @@
+---
+// 해도 장면 — 땅(옅은 황토)·고속도로 실루엣·등심선(배경으로 물러남) 위에 점·이름표·개념선. 보이는 범위는 lib/haedo.ts 가 화면 비율에 맞춘다.
+// 슬롯 "over" = 그림 좌표로 그리는 덧그림(경로·화살표) · 슬롯 "labels" = 이름표(data-x/data-y 그림 좌표 · data-off 화면 px).
+import { base, CH, px, py, fitBox } from "../../lib/haedo-geo";
+interface Pt { id: string; lon: number; lat: number; v?: number | null; label?: string; cls?: string }
+interface Props { id: string; points: Pt[]; fit: [number, number][]; pad?: { t?: number; b?: number; l?: number; r?: number; tText?: string }; vmax?: number; caption?: string }
+const { id, points, fit, pad = {}, vmax = 1, caption } = Astro.props;
+const B = base();
+const r = (v?: number | null) => (v ? 4 + 12 * Math.sqrt(v / vmax) : 3.5);
+const geo = { FIT: fitBox(fit), pad, LIMIT: B.limit };
+---
+<figure class="haedo" id={id} data-haedo>
+  <svg class="haedo__sea" viewBox={`0 0 1000 ${CH}`} preserveAspectRatio="none" role="img" aria-label="인천 앞바다에서 서울까지의 해도">
+    {B.land && <path d={B.land} class="h-land" />}
+    {B.contours.map((d: string) => <path d={d} class="h-ct" />)}
+    {!B.land && B.coast.map((d: string) => <path d={d} class="h-cs" />)}
+    {B.road && <path d={B.road} class="h-road" />}
+    <slot name="over" />
+    {points.map((p) => <circle cx={px(p.lon)} cy={py(p.lat)} r="1" data-rpx={r(p.v).toFixed(1)} data-pt={p.id} class:list={["h-pt", p.cls]} />)}
+  </svg>
+  <div class="haedo__labels" aria-hidden="true">
+    {points.map((p) => <span class:list={["h-lb", p.cls]} data-lb={p.id} data-x={px(p.lon).toFixed(1)} data-y={py(p.lat).toFixed(1)} data-off={(r(p.v) + 6).toFixed(1)}><b>{p.label ?? p.id}</b>{p.v != null && <i>{p.v}</i>}</span>)}
+    <slot name="labels" />
+  </div>
+  <svg class="haedo__grat" aria-hidden="true"></svg>
+  {caption && <figcaption class="s-cap haedo__cap">{caption}</figcaption>}
+  <script type="application/json" data-haedo-geo set:html={JSON.stringify(geo)}></script>
+</figure>
+<style>
+  .haedo { position: absolute; inset: 0; margin: 0; }
+  .haedo__sea { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* 종이 해도처럼 — 땅은 옅은 황토, 바다는 종이 그대로, 등심선은 배경으로 물러난다 */
+  .haedo :global(.h-land) { fill: #ebe4d3; stroke: #ebe4d3; stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+  .haedo :global(.h-ct) { fill: none; stroke: #ddd5c4; stroke-width: 0.6; vector-effect: non-scaling-stroke; }
+  .haedo :global(.h-cs) { fill: none; stroke: #b5ac9a; stroke-width: 0.8; vector-effect: non-scaling-stroke; }
+  .haedo :global(.h-road) { fill: none; stroke: #cdc3ae; stroke-width: 0.9; vector-effect: non-scaling-stroke; }
+  .haedo :global(.h-pt) { fill: var(--s-ink); fill-opacity: 0.85; stroke: var(--s-paper); stroke-width: 1.5; vector-effect: non-scaling-stroke; transition: fill 0.4s, fill-opacity 0.4s; }
+  .haedo :global(.h-pt.top) { fill: var(--s-signal); }
+  .haedo :global(.h-pt.to) { fill: var(--s-paper); stroke: var(--s-signal); stroke-width: 2; }
+  .haedo__labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+  .haedo :global(.h-lb) { position: absolute; transform: translate(0, -50%); white-space: nowrap; font-size: 14px; line-height: 1.2; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); transition: opacity 0.4s; }
+  .haedo :global(.h-lb b) { font-weight: 600; }
+  .haedo :global(.h-lb i) { font-style: italic; color: var(--s-ink-2); margin-left: 6px; font-variant-numeric: tabular-nums; }
+  .haedo :global(.h-lb.to b) { color: var(--s-signal); }
+  .haedo__grat { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+  .haedo__grat :global(line) { stroke: var(--s-ink-2); }
+  .haedo__grat :global(text) { font: 400 11px var(--s-font); fill: var(--s-ink-3); }
+  .haedo__cap { position: absolute; left: 0; right: 0; bottom: 30px; z-index: 2; text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper); }
+  @media (max-width: 560px) { .haedo :global(.h-lb) { font-size: 13px; } }
+</style>
