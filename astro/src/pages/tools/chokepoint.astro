@@ -37,11 +37,14 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
       <p class="ck__big"><b id="ck-pct" class={F.vs_base_pct != null && F.vs_base_pct < -10 ? "dn" : ""}>{F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}</b>
         <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 지금 하루 <b id="ck-now">{F.now28}</b>척</span></p>
       <figure class="ck__fig" id="ck-fig">
+        <div class="ck__plot">
+        <div class="ax" id="ck-axis" data-furniture>{L0.ticks.map(([y, v]) => <span class="ax__y" style={`top:${((Number(y) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{L0.yrs.map(([x, y]) => <span class="ax__x" style={`left:${((Number(x) / VW) * 100).toFixed(2)}%`}>{y}</span>)}</div>
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" class="ck__svg" aria-hidden="true">
-          <g data-furniture id="ck-axis">{L0.ticks.map(([y, v]) => <><line x1={pad.l} x2={VW - pad.r} y1={y} y2={y} class="g" /><text x={pad.l - 6} y={Number(y) + 4} class="t" text-anchor="end">{v}</text></>)}{L0.yrs.map(([x, y]) => <text x={x} y={VH - 5} class="t">{y}</text>)}</g>
+          <g id="ck-grid">{L0.ticks.map(([y]) => <line x1={pad.l} x2={VW - pad.r} y1={y} y2={y} class="g" />)}</g>
           {L0.base && <line id="ck-base" x1={pad.l} x2={VW - pad.r} y1={L0.base} y2={L0.base} class="b" />}
           <path id="ck-line" d={L0.d} class="ln" />
         </svg>
+        </div>
         <figcaption class="s-cap">하루 통항 척수(주 평균) · 점선 = 2023년 같은 달 평균 · 마지막 날 {F.asof}</figcaption>
       </figure>
       <div class="ck__trade">
@@ -66,7 +69,8 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
       $("ck-pct").textContent = p.vs_base_pct != null ? `${sign(p.vs_base_pct)}%` : "—"; $("ck-pct").className = p.vs_base_pct != null && p.vs_base_pct < -10 ? "dn" : "";
       $("ck-name").textContent = p.ko; $("ck-now").textContent = String(p.now28); $("ck-imp").textContent = `${p.imp_pct}%`; $("ck-exp").textContent = `${p.exp_pct}%`; $("ck-month").textContent = fmt(p.monthly_musd);
       $("ck-line").setAttribute("d", s.d); const b = document.getElementById("ck-base"); if (b) { if (s.base) { b.setAttribute("y1", s.base); b.setAttribute("y2", s.base); b.style.display = ""; } else b.style.display = "none"; }
-      $("ck-axis").innerHTML = s.ticks.map(([y, v]: any) => `<line x1="40" x2="992" y1="${y}" y2="${y}" class="g"/><text x="34" y="${Number(y) + 4}" class="t" text-anchor="end">${v}</text>`).join("") + s.yrs.map(([xx, y]: any) => `<text x="${xx}" y="215" class="t">${y}</text>`).join("");
+      $("ck-axis").innerHTML = s.ticks.map(([y, v]: any) => `<span class="ax__y" style="top:${((Number(y) / 220) * 100).toFixed(2)}%">${v}</span>`).join("") + s.yrs.map(([xx, y]: any) => `<span class="ax__x" style="left:${((Number(xx) / 1000) * 100).toFixed(2)}%">${y}</span>`).join("");
+      $("ck-grid").innerHTML = s.ticks.map(([y]: any) => `<line x1="40" x2="992" y1="${y}" y2="${y}" class="g"/>`).join("");
       $("ck-bars").innerHTML = p.top.map((t: any) => `<li><span>${t.name}</span><i style="--w:${((t.musd / p.top[0].musd) * 100).toFixed(1)}%"></i><b>${fmt(t.musd)}</b></li>`).join("");
       const fig = $("ck-fig"); fig.classList.remove("go"); void fig.offsetWidth; fig.classList.add("go");
       if (p.vs_base_pct != null && p.vs_base_pct < 0) x.value = String(Math.min(100, Math.round(-p.vs_base_pct / 5) * 5));
@@ -88,6 +92,9 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
   .ck__big > b.dn { color: var(--s-signal); }
   .ck__big > span { color: var(--s-ink-2); } .ck__big > span b { color: var(--s-ink); }
   .ck__fig { margin: 0; }
+  .ck__plot { position: relative; }
+  .ax { position: absolute; inset: 0; pointer-events: none; font: 500 11px var(--s-font); color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .ax :global(.ax__y) { position: absolute; left: 0; transform: translateY(-55%); } .ax :global(.ax__x) { position: absolute; bottom: 0; transform: translateX(2px); }
   .ck__svg { display: block; width: 100%; height: clamp(150px, 24vh, 220px); }
   .ck__svg :global(.g) { stroke: var(--s-rule); vector-effect: non-scaling-stroke; }
   .ck__svg :global(.t) { font: 500 11px var(--s-font); fill: var(--s-ink-3); }
@@ -98,7 +105,7 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
   .ck__trade { display: grid; gap: var(--s-2); }
   .ck__share { margin: 0; font-variant-numeric: tabular-nums; } .ck__share span { color: var(--s-ink-2); margin-right: 6px; } .ck__share b { font-size: 19px; }
   .ck__bars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; font-variant-numeric: tabular-nums; font-size: 13.5px; }
-  .ck__bars :global(li) { display: grid; grid-template-columns: 6.5rem 1fr 4.5rem; gap: 8px; align-items: center; }
+  .ck__bars :global(li) { display: grid; grid-template-columns: 7.5rem 1fr 4.5rem; gap: 8px; align-items: center; }
   .ck__bars :global(i) { display: block; height: 8px; background: var(--s-ink-3); width: var(--w); transform-origin: left; animation: ck-bar 0.8s 0.3s ease-out both; }
   .ck__bars :global(b) { text-align: right; font-weight: 600; }
   @keyframes ck-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
@@ -106,6 +113,6 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
   .seg { display: flex; flex-wrap: wrap; } .seg .s-btn { min-height: 44px; }
   .ck__slider { flex: 1; min-width: 220px; display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); } .ck__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
   .ck__shock { flex-basis: 100%; margin: 0; font-variant-numeric: tabular-nums; } .ck__shock b { font-size: 20px; } .ck__shock small { color: var(--s-ink-3); }
-  @media (max-width: 720px) { .ck__bars { grid-template-columns: 1fr; } .ck__bars :global(li) { grid-template-columns: 5.5rem 1fr 4rem; } }
+  @media (max-width: 720px) { .ck__bars { grid-template-columns: 1fr; } .ck__bars :global(li) { grid-template-columns: 7.5rem 1fr 4rem; } }
   @media (prefers-reduced-motion: reduce) { .ck__fig.go .ln, .ck__bars :global(i) { animation: none; } }
 </style>

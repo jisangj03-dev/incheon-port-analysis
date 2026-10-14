@@ -33,14 +33,17 @@ const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
       <p class="cost__big"><b id="cs-diff" class={E.diff > 0 ? "up" : "dn"}>{sign(E.diff)}{won(Math.abs(E.diff))}<small>원</small></b>
         <span>1만 달러 물건 원가 · <span id="cs-wk">{day(E.ago.week)}</span> 주 대비 이번 주</span></p>
       <figure class="cost__fig" id="cs-fig">
+        <div class="cost__plot">
+        <div class="ax" data-furniture>{ticks.map((v) => <span class="ax__y" style={`top:${((Y(v) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{Wk.map((w, i) => String(w[0]).slice(4, 6) === "01" && Number(String(w[0]).slice(6, 8)) <= 7 && <span class="ax__x" style={`left:${((X(i) / VW) * 100).toFixed(2)}%`}>{String(w[0]).slice(0, 4)}</span>)}</div>
         <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" class="cost__svg" aria-hidden="true">
-          <g data-furniture>{ticks.map((v) => <><line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" /><text x={P.l - 6} y={(Y(v) + 4).toFixed(1)} class="t" text-anchor="end">{v}</text></>)}
-          {Wk.map((w, i) => String(w[0]).slice(4, 8) <= "0107" && String(w[0]).slice(4, 6) === "01" && <text x={X(i).toFixed(1)} y={VH - 6} class="t">{String(w[0]).slice(0, 4)}</text>)}</g>
+
           <path d={path} class="ln" pathLength="1" />
           <line id="cs-ago" x1={X(iAgo).toFixed(1)} x2={X(iAgo).toFixed(1)} y1={P.t} y2={VH - P.b} class="mk" />
           <circle cx={X(iNow).toFixed(1)} cy={Y(us[iNow]).toFixed(1)} r="5" class="now" />
           <circle id="cs-dot" cx={X(iAgo).toFixed(1)} cy={Y(us[iAgo]).toFixed(1)} r="6" class="dot" />
+          {ticks.map((v) => <line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" />)}
         </svg>
+        </div>
         <figcaption class="s-cap">관세환율(수입) 원/달러 · 주마다 · 이번 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
       </figure>
     </div>
@@ -102,6 +105,10 @@ const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
   .cost__big b.up { color: var(--s-signal); } .cost__big b.dn { color: #3f6476; }
   .cost__big > span { color: var(--s-ink-2); }
   .cost__fig { margin: 0; }
+  /* 눈금 글자는 SVG 밖 HTML — 늘려 그리는 SVG 안 글자는 390 에서 찌그러졌다 */
+  .cost__plot { position: relative; }
+  .ax { position: absolute; inset: 0; pointer-events: none; font: 500 11px var(--s-font); color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .ax__y { position: absolute; left: 0; transform: translateY(-55%); } .ax__x { position: absolute; bottom: 0; transform: translateX(2px); }
   .cost__svg { display: block; width: 100%; height: clamp(180px, 30vh, 280px); }
   .cost__svg .g { stroke: var(--s-rule); vector-effect: non-scaling-stroke; }
   .cost__svg .t { font: 500 11px var(--s-font); fill: var(--s-ink-3); }
