@@ -17,20 +17,17 @@ jobs:
           KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: |
           python3 - <<'PY'
-          import os, json, urllib.request, urllib.parse, collections
+          import os, urllib.request, urllib.parse, collections, xml.etree.ElementTree as ET
           key = os.environ["KEY"]
           base = "https://apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM"
-          for ym in ("202608", "202508"):
-              q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym, "type": "json"}, safe="%")
+          for ym in ("202608", "202508", "202301", "202001"):
+              q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym}, safe="%")
               try:
                   raw = urllib.request.urlopen(f"{base}?{q}", timeout=60).read().decode("utf-8", "replace")
+                  root = ET.fromstring(raw)
               except Exception as ex:
                   print(ym, "오류", type(ex).__name__); continue
-              try:
-                  j = json.loads(raw); items = j["response"]["body"]["items"]["item"]
-              except Exception:
-                  print(ym, "json 아님 — 앞 200자(키 없음 확인용 아님):", raw[:200].replace(key, "***")); continue
-              items = items if isinstance(items, list) else [items]
-              print(ym, "행", len(items), "열", sorted(items[0].keys()) if items else [])
-              print(" 항만·선종:", collections.Counter((i.get("prtAgNm"), i.get("nm")) for i in items).most_common(40))
+              items = [{c.tag: (c.text or "") for c in it} for it in root.iter("item")]
+              print(ym, "행", len(items), "열", sorted(items[0].keys()) if items else [], "totalCount", root.findtext(".//totalCount"))
+              print(" 항만·선종:", [(i.get("prtAgNm"), i.get("nm"), i.get("etrVsslCo")) for i in items])
           PY
