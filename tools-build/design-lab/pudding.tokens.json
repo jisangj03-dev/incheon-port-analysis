@@ -1,0 +1,793 @@
+{
+ "meta": {
+  "httpStatus": 200,
+  "viewport": {
+   "width": 1920,
+   "height": 1080
+  },
+  "fontsReady": true,
+  "contentLength": 71168
+ },
+ "colors": {
+  "semantic": {
+   "background": "rgb(255, 255, 255)",
+   "text": "rgb(38, 38, 38)"
+  },
+  "palette": [
+   {
+    "color": "rgb(38, 38, 38)",
+    "normalized": "#262626",
+    "count": 87,
+    "oklch": "oklch(26.8618% 0 0)",
+    "onColor": "#ffffff",
+    "hover": "#2e2e2e"
+   },
+   {
+    "color": "rgb(109, 109, 109)",
+    "normalized": "#6d6d6d",
+    "count": 28,
+    "oklch": "oklch(53.4762% 0 0)",
+    "onColor": "#ffffff",
+    "hover": "#838383"
+   },
+   {
+    "color": "rgb(255, 255, 255)",
+    "normalized": "#ffffff",
+    "count": 7,
+    "oklch": "oklch(100% 0 0)",
+    "onColor": "#000000",
+    "hover": "#d9d9d9"
+   },
+   {
+    "color": "rgb(0, 0, 0)",
+    "normalized": "#000000",
+    "count": 4,
+    "oklch": "oklch(0% 0 0)",
+    "onColor": "#ffffff",
+    "hover": "#000000"
+   }
+  ],
+  "cssVariables": {
+   "--color-focus": {
+    "value": "#3AE660",
+    "hex": "#3ae660",
+    "oklch": "oklch(81.2499% 0.22401 146.535)"
+   },
+   "--color-selection": {
+    "value": "rgb(202, 202, 202)",
+    "hex": "#cacaca",
+    "oklch": "oklch(83.9014% 0 0)"
+   },
+   "--color-yellow": {
+    "value": "#e5e338",
+    "hex": "#e5e338",
+    "oklch": "oklch(88.9697% 0.17809 108.835)"
+   },
+   "--color-red": {
+    "value": "#ff533d",
+    "hex": "#ff533d",
+    "oklch": "oklch(67.7037% 0.21169 30.541)"
+   },
+   "--color-blue": {
+    "value": "#4717f6",
+    "hex": "#4717f6",
+    "oklch": "oklch(47.5934% 0.28421 276.251)"
+   },
+   "--color-purple": {
+    "value": "#a239ca",
+    "hex": "#a239ca",
+    "oklch": "oklch(55.8066% 0.22079 314.871)"
+   }
+  },
+  "detected": [
+   {
+    "color": "rgb(38, 38, 38)",
+    "normalized": "#262626",
+    "count": 87,
+    "usageFrac": 0.5576923076923077,
+    "areaFrac": 0.001371868207767492,
+    "isToken": true
+   },
+   {
+    "color": "rgb(109, 109, 109)",
+    "normalized": "#6d6d6d",
+    "count": 28,
+    "usageFrac": 0.1794871794871795,
+    "areaFrac": 0,
+    "isToken": true
+   },
+   {
+    "color": "rgb(255, 255, 255)",
+    "normalized": "#ffffff",
+    "count": 7,
+    "usageFrac": 0.04487179487179487,
+    "areaFrac": 0.7529132018087612,
+    "isToken": true
+   },
+   {
+    "color": "rgb(0, 0, 0)",
+    "normalized": "#000000",
+    "count": 4,
+    "usageFrac": 0.02564102564102564,
+    "areaFrac": 0,
+    "isToken": true
+   },
+   {
+    "color": "rgba(48, 48, 48, 0.4)",
+    "normalized": "#303030",
+    "count": 3,
+    "usageFrac": 0.019230769230769232,
+    "areaFrac": 0,
+    "isToken": false
+   },
+   {
+    "color": "rgb(154, 76, 173)",
+    "normalized": "#9a4cad",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(251, 205, 81)",
+    "normalized": "#fbcd51",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(246, 147, 255)",
+    "normalized": "#f693ff",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(230, 143, 51)",
+    "normalized": "#e68f33",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(240, 228, 168)",
+    "normalized": "#f0e4a8",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(76, 130, 184)",
+    "normalized": "#4c82b8",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(181, 22, 112)",
+    "normalized": "#b51670",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(187, 160, 239)",
+    "normalized": "#bba0ef",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(65, 184, 190)",
+    "normalized": "#41b8be",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(240, 208, 211)",
+    "normalized": "#f0d0d3",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(51, 185, 222)",
+    "normalized": "#33b9de",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(194, 217, 50)",
+    "normalized": "#c2d932",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(253, 227, 0)",
+    "normalized": "#fde300",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(237, 18, 237)",
+    "normalized": "#ed12ed",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(241, 204, 167)",
+    "normalized": "#f1cca7",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(250, 197, 20)",
+    "normalized": "#fac514",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(23, 176, 232)",
+    "normalized": "#17b0e8",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(208, 236, 253)",
+    "normalized": "#d0ecfd",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(188, 148, 204)",
+    "normalized": "#bc94cc",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(131, 73, 182)",
+    "normalized": "#8349b6",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(208, 121, 113)",
+    "normalized": "#d07971",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(184, 75, 71)",
+    "normalized": "#b84b47",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(193, 75, 62)",
+    "normalized": "#c14b3e",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(212, 212, 43)",
+    "normalized": "#d4d42b",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(249, 228, 255)",
+    "normalized": "#f9e4ff",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(240, 225, 15)",
+    "normalized": "#f0e10f",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   },
+   {
+    "color": "rgb(191, 64, 183)",
+    "normalized": "#bf40b7",
+    "count": 1,
+    "usageFrac": 0.00641025641025641,
+    "areaFrac": 0.009100552962350789,
+    "isToken": false
+   }
+  ]
+ },
+ "typography": {
+  "styles": [
+   {
+    "count": 27,
+    "family": "Gooper SemiCondensed",
+    "weight": 500,
+    "lineHeight": "1.00",
+    "spacing": "-0.8px",
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 2,
+    "family": "Gooper SemiCondensed",
+    "weight": 700,
+    "lineHeight": "1.00",
+    "spacing": null,
+    "transform": null,
+    "isFluid": true,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 1,
+    "family": "Gooper SemiCondensed",
+    "weight": 400,
+    "lineHeight": "1.20",
+    "spacing": null,
+    "transform": null,
+    "isFluid": true,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 3,
+    "family": "Gooper SemiCondensed",
+    "weight": 900,
+    "lineHeight": "1.20",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 29,
+    "family": "Gooper SemiCondensed",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 3,
+    "family": "Atlas Grotesk",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 63,
+    "family": "Atlas Grotesk",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 1,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.20",
+    "spacing": null,
+    "isFluid": true,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 1,
+    "family": "Gooper SemiCondensed",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 1,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.15",
+    "spacing": "1px"
+   },
+   {
+    "count": 15,
+    "family": "Atlas Grotesk",
+    "weight": 700,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 2,
+    "family": "Atlas Grotesk",
+    "weight": 400,
+    "lineHeight": "1.32",
+    "spacing": null,
+    "transform": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 54,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 8,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.00",
+    "spacing": null
+   },
+   {
+    "count": 8,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.15",
+    "spacing": null,
+    "isFluid": true
+   },
+   {
+    "count": 1,
+    "family": "Atlas Grotesk",
+    "weight": 400,
+    "lineHeight": "1.20",
+    "spacing": null,
+    "transform": null,
+    "isFluid": true,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   },
+   {
+    "count": 1,
+    "family": "Atlas Typewriter",
+    "weight": 400,
+    "lineHeight": "1.40",
+    "spacing": null,
+    "isFluid": true,
+    "fontFeatures": "\"kern\", \"liga\" 0, \"onum\" 0, \"tnum\""
+   }
+  ],
+  "sources": {
+   "adobeFonts": false,
+   "variableFonts": false,
+   "customFonts": [
+    "Atlas Grotesk",
+    "Atlas Typewriter",
+    "Gooper SemiCondensed",
+    "Tiempos Text"
+   ],
+   "fontDisplay": "swap"
+  }
+ },
+ "spacing": {
+  "scaleType": "8px",
+  "commonValues": [
+   {
+    "px": "1px",
+    "display": "1px",
+    "rem": "0.06rem",
+    "count": 1,
+    "numericValue": 1
+   },
+   {
+    "px": "4px",
+    "display": "4px",
+    "rem": "0.25rem",
+    "count": 55,
+    "numericValue": 4
+   },
+   {
+    "px": "8px",
+    "display": "8px",
+    "rem": "0.50rem",
+    "count": 81,
+    "numericValue": 8
+   },
+   {
+    "px": "10px",
+    "display": "10px",
+    "rem": "0.63rem",
+    "count": 1,
+    "numericValue": 10
+   },
+   {
+    "px": "12px",
+    "display": "12px",
+    "rem": "0.75rem",
+    "count": 33,
+    "numericValue": 12
+   },
+   {
+    "px": "16px",
+    "display": "16px",
+    "rem": "1.00rem",
+    "count": 27,
+    "numericValue": 16
+   },
+   {
+    "px": "24px",
+    "display": "24px",
+    "rem": "1.50rem",
+    "count": 3,
+    "numericValue": 24
+   },
+   {
+    "px": "32px",
+    "display": "32px",
+    "rem": "2.00rem",
+    "count": 63,
+    "numericValue": 32
+   },
+   {
+    "px": "36px",
+    "display": "36px",
+    "rem": "2.25rem",
+    "count": 2,
+    "numericValue": 36
+   },
+   {
+    "px": "60px",
+    "display": "60px",
+    "rem": "3.75rem",
+    "count": 1,
+    "numericValue": 60
+   },
+   {
+    "px": "64px",
+    "display": "64px",
+    "rem": "4.00rem",
+    "count": 4,
+    "numericValue": 64
+   },
+   {
+    "px": "100px",
+    "display": "100px",
+    "rem": "6.25rem",
+    "count": 1,
+    "numericValue": 100
+   },
+   {
+    "px": "256px",
+    "display": "256px",
+    "rem": "16.00rem",
+    "count": 1,
+    "numericValue": 256
+   }
+  ]
+ },
+ "borderRadius": {
+  "values": [
+   {
+    "value": "2px",
+    "count": 10,
+    "numericValue": 2
+   },
+   {
+    "value": "3px",
+    "count": 2,
+    "numericValue": 3
+   },
+   {
+    "value": "6px",
+    "count": 4,
+    "numericValue": 6
+   },
+   {
+    "value": "28px",
+    "count": 27,
+    "numericValue": 28
+   }
+  ]
+ },
+ "borders": {
+  "combinations": [
+   {
+    "width": "1px",
+    "color": "rgb(38, 38, 38)",
+    "count": 27
+   },
+   {
+    "width": "1px",
+    "color": "rgba(48, 48, 48, 0.4)",
+    "count": 3
+   },
+   {
+    "width": "1px",
+    "color": "rgb(214, 214, 214)",
+    "count": 1
+   }
+  ]
+ },
+ "shadows": [
+  {
+   "shadow": "rgba(0, 0, 0, 0.3) 0px 2px 1px 0px",
+   "count": 3
+  },
+  {
+   "shadow": "rgba(0, 0, 0, 0.1) 0px 2px 1px 0px",
+   "count": 1
+  }
+ ],
+ "gradients": [
+  {
+   "stopColors": [
+    "rgba(255, 255, 255, 0)",
+    "rgba(255, 255, 255, 0.8)",
+    "rgb(255, 255, 255)"
+   ],
+   "count": 1
+  }
+ ],
+ "motion": {
+  "durations": [
+   {
+    "value": "0.1s",
+    "ms": 100,
+    "count": 6
+   },
+   {
+    "value": "0.2s",
+    "ms": 200,
+    "count": 2
+   },
+   {
+    "value": "0.25s",
+    "ms": 250,
+    "count": 187
+   }
+  ],
+  "easings": [
+   {
+    "count": 195
+   }
+  ],
+  "contexts": {
+   "nav": {
+    "count": 1,
+    "durations": [
+     "0.2s"
+    ]
+   },
+   "button": {
+    "count": 7,
+    "durations": [
+     "0.1s",
+     "0.25s"
+    ]
+   },
+   "input": {
+    "count": 1,
+    "durations": [
+     "0.25s"
+    ]
+   },
+   "link": {
+    "count": 1,
+    "durations": [
+     "0.25s"
+    ]
+   }
+  }
+ },
+ "components": {
+  "buttons": [
+   {
+    "states": {
+     "default": {
+      "backgroundColor": "rgb(38, 38, 38)",
+      "color": "rgb(255, 255, 255)",
+      "padding": "16px 18px",
+      "borderRadius": "2px",
+      "fontSize": "12.8px",
+      "fontWeight": "400"
+     }
+    },
+    "fontWeight": "400",
+    "fontSize": "12.8px"
+   }
+  ],
+  "inputs": {
+   "text": [
+    {
+     "states": {
+      "default": {
+       "backgroundColor": "rgb(255, 255, 255)",
+       "color": "rgb(38, 38, 38)",
+       "borderRadius": "6px",
+       "padding": "8px",
+       "boxShadow": "rgba(0, 0, 0, 0.3) 0px 2px 1px 0px",
+       "outline": "rgb(38, 38, 38) none 3px"
+      }
+     }
+    }
+   ]
+  },
+  "links": [
+   {
+    "color": "rgb(0, 0, 0)",
+    "fontWeight": "400",
+    "states": {
+     "default": {
+      "color": "rgb(0, 0, 0)"
+     }
+    }
+   },
+   {
+    "color": "rgb(38, 38, 38)",
+    "fontWeight": "400",
+    "states": {
+     "default": {
+      "color": "rgb(38, 38, 38)"
+     }
+    }
+   },
+   {
+    "color": "rgb(255, 255, 255)",
+    "fontWeight": "400",
+    "states": {
+     "default": {
+      "color": "rgb(255, 255, 255)"
+     }
+    }
+   }
+  ]
+ },
+ "breakpoints": [
+  {
+   "px": "400px"
+  },
+  {
+   "px": "600px"
+  },
+  {
+   "px": "720px"
+  },
+  {
+   "px": "960px"
+  }
+ ]
+}
