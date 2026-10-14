@@ -10,7 +10,7 @@ import datetime, html, json, os, re, sys, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/collected/kogl_check.json")
-UA = "Mozilla/5.0 (X11; Linux x86_64) sounding-kogl-check/1.0 (+https://github.com/jisangj03-dev/incheon-port-analysis) — license fields only"
+UA = "Mozilla/5.0 (X11; Linux x86_64) sounding-kogl-check/1.0 (+https://github.com/jisangj03-dev/incheon-port-analysis) license fields only"  # HTTP 헤더는 latin-1 — 긴 줄표 등 금지(2026-10-14 첫 실행이 전부 이것으로 실패)
 
 # 원천 → 공공데이터포털 데이터 번호(알면) 또는 검색어(모르면 검색 결과에서 번호를 찾는다)
 SOURCES = {
@@ -96,7 +96,8 @@ def selftest():
     p = parse('<th>이용허락범위</th><td>제한 없음</td><img src="/img/img_opentype01.png" alt="공공누리 제1유형">')
     assert p["license_text"].startswith("제한 없음") and p["kogl_type"] == 1, p
     assert parse("<p>아무것도 없음</p>") == {"license_text": None, "kogl_type": None, "evidence": []}
-    print("selftest 2/2 ok"); return 0
+    UA.encode("latin-1")  # 헤더에 못 싣는 글자가 있으면 여기서 멈춘다
+    print("selftest 3/3 ok"); return 0
 
 
 if __name__ == "__main__":
