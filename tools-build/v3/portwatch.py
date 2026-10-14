@@ -3,8 +3,8 @@
 결과: data/collected/v3/portwatch_ports.json · portwatch_chokepoints.json · portwatch_quality.json(선커밋 기준: 2025-01 이후 인천 일별 입항 0·빈 날 10% 초과면 「품질 부족」).
   python tools-build/v3/portwatch.py
 """
-import datetime, json, sys
-from common import jget, write, say
+import datetime, json, os, sys, time
+from common import ROOT, jget, write, say
 
 PORTS = ["Incheon", "Busan", "Pyeongtaek"]
 
@@ -42,17 +42,21 @@ def layer_fields(svc):
     return None, []
 
 
-def query_all(svc, lid, where, fields="*", order=None):
+def query_all(svc, lid, where, fields="*", order=None, page=1000):
+    """쪽 넘기기 — 쪽마다 세 번까지 다시 묻는다. 실패하면 None(부분 결과로 덮어쓰지 않게 · 2026-10-14 #8: 부산 0행 · 인천 1000행에서 끊김)."""
     rows, off = [], 0
     while True:
-        p = {"where": where, "outFields": fields, "f": "json", "resultOffset": off, "resultRecordCount": 2000, "returnGeometry": "false"}
+        p = {"where": where, "outFields": fields, "f": "json", "resultOffset": off, "resultRecordCount": page, "returnGeometry": "false"}
         if order: p["orderByFields"] = order
-        st, d = jget(f"{svc}/{lid}/query", p, timeout=120)
-        if not d or "features" not in d:
-            say("질의 실패", st, str(d)[:200]); break
+        d = None
+        for k in range(3):
+            st, d = jget(f"{svc}/{lid}/query", p, timeout=120)
+            if d and "features" in d: break
+            say("질의 실패 — 다시", k + 1, st, str(d)[:160]); time.sleep(10 * (k + 1)); d = None
+        if d is None: return None
         feats = [f["attributes"] for f in d["features"]]
         rows += feats
-        if not d.get("exceededTransferLimit") and len(feats) < 2000: break
+        if not feats or (not d.get("exceededTransferLimit") and len(feats) < page): break
         off += len(feats)
     return rows
 
@@ -63,6 +67,7 @@ def day(v):
 
 
 def main():
+    rc = 0
     out = {"fetched": datetime.date.today().isoformat(), "source": "IMF PortWatch(portwatch.imf.org)"}
     svc, tried = find_service("Daily_Ports_Data")
     out["service"], out["search"] = svc, tried
@@ -79,12 +84,21 @@ def main():
     by = {}
     for p in PORTS if namef else []:
         w = f"{namef}='{p}'" + (f" AND {yf} >= 2024" if yf else "")
-        rows = query_all(svc, lid, w, ",".join(keep), f"{datef} ASC")
+        rows = query_all(svc, lid, w, ",".join(keep), f"{datef} ASC") or []
         by[p] = [{k: (day(v) if k == datef else v) for k, v in r.items() if k != namef} for r in rows]
         say(p, len(rows), "행", by[p][0][datef] if by[p] else "", "~", by[p][-1][datef] if by[p] else "")
     out["ports"] = by
     out["counts"] = {k: len(v) for k, v in by.items()}
-    write("data/collected/v3/portwatch_ports.json", out)
+    # 덮어쓰기 전 검사 — 항만이 하나라도 비었거나 마지막 날이 지난 파일보다 이르면 지난 파일을 지킨다
+    old = os.path.join(ROOT, "data/collected/v3/portwatch_ports.json")
+    prev_last = None
+    if os.path.exists(old):
+        try: prev_last = max(v[-1][datef] for v in json.load(open(old, encoding="utf-8"))["ports"].values() if v)
+        except Exception: prev_last = None
+    new_last = min((v[-1][datef] for v in by.values() if v), default=None)
+    if any(not by.get(p) for p in PORTS) or (prev_last and new_last and new_last < prev_last):
+        say("항만 자료가 덜 왔다 — 지난 파일을 지킨다", out["counts"], "새 마지막", new_last, "지난", prev_last); rc = 1
+    else: write("data/collected/v3/portwatch_ports.json", out)
     # 품질(선커밋 §3): 2025-01 이후 인천 일별 입항이 0 이거나 빈 날의 비율
     inc = [r for r in by.get("Incheon", []) if str(r.get(datef, "")) >= "2025-01-01"]
     callf = next((f for f in fields if f.lower() == "portcalls"), None)
@@ -97,7 +111,7 @@ def main():
         q["verdict"] = "품질 부족" if q["pct"] > 10 else "사용"
     else:
         q = {"verdict": "자료 없음", "rows": len(inc)}
-    write("data/collected/v3/portwatch_quality.json", q)
+    if rc == 0: write("data/collected/v3/portwatch_quality.json", q)
     say("인천 품질", json.dumps(q, ensure_ascii=False))
     # 초크포인트
     svc2, tried2 = find_service("Daily_Chokepoints_Data")
@@ -109,12 +123,14 @@ def main():
         nf = next((f for f in f2 if f.lower() in ("portname", "name", "chokepoint")), None)
         kf = [f for f in f2 if f.lower().startswith(("n_", "capacity")) or f in (df, nf)]
         rows2 = query_all(svc2, lid2, f"{df} >= DATE '2023-01-01'" if df else "1=1", ",".join(kf) or "*", f"{df} ASC" if df else None)
+        if rows2 is None: say("초크포인트 질의 실패 — 지난 파일을 지킨다"); return 1
+        if len({r.get(nf) for r in rows2}) < 20: say("초크포인트 이름이 20 곳 미만 — 지난 파일을 지킨다"); return 1
         by2 = {}
         for r in rows2: by2.setdefault(r.get(nf), []).append({k: (day(v) if k == df else v) for k, v in r.items() if k not in (nf, "ObjectId", "OBJECTID")})
         ck["chokepoints"] = by2
         ck["counts"] = {k: len(v) for k, v in by2.items()}
     write("data/collected/v3/portwatch_chokepoints.json", ck)
-    return 0
+    return rc
 
 
 if __name__ == "__main__":

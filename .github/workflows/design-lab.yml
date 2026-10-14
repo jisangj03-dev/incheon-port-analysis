@@ -34,7 +34,7 @@ jobs:
     needs: gate
     if: needs.gate.outputs.run == 'yes'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40 # 도구 여섯 녹화·전체 캡처가 붙어 20분을 넘는다(2026-10-14)
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
