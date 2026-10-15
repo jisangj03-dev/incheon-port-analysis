@@ -50,13 +50,28 @@ jobs:
           "$CH" --headless=new --no-first-run --no-sandbox --remote-debugging-port=9222 --user-data-dir=/tmp/cdp about:blank >/tmp/cdp.log 2>&1 &
           for i in $(seq 1 30); do curl -s 127.0.0.1:9222/json/version >/dev/null && break; sleep 1; done
           curl -s 127.0.0.1:9222/json/version | head -c 300; echo
+      - name: 지도 타일 캐시(시안 지도 면 · sounding-qa 와 같은 열쇠)
+        if: hashFiles('tools-build/design-lab.json') != ''
+        uses: actions/cache@v4
+        with:
+          path: astro/public/tiles
+          key: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-${{ github.run_id }}
+          restore-keys: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-
+      - name: 시안 면 빌드·띄우기(pairs 가 있을 때)
+        run: |
+          if node -e "process.exit((require('./tools-build/design-lab.json').pairs||[]).length?0:1)"; then
+            bash tools-build/pmtiles.sh || echo "::warning::지도 타일 추출 실패 — 지도 면은 바탕 없이 찍힌다"
+            SOUNDING_LAB=1 npm run site:build
+            nohup node tests/serve.mjs > /tmp/serve.log 2>&1 &
+            for i in $(seq 1 30); do curl -s -o /dev/null 127.0.0.1:4173/incheon-port-analysis/ && break; sleep 1; done
+          fi
       - name: 수치 추출
         env:
           BROWSER_CDP_ENDPOINT: http://127.0.0.1:9222
         run: |
           UA=$(node -p "require('./tools-build/design-lab.json').userAgent")
           echo "## 기준 사이트 수치 추출(dembrandt 0.37.0)" >> "$GITHUB_STEP_SUMMARY"
-          node -e "for (const t of require('./tools-build/design-lab.json').targets) console.log(t.name + ' ' + t.url)" | while read -r name url; do
+          node -e "const d=require('./tools-build/design-lab.json'); if (d.extract !== false) for (const t of d.targets) console.log(t.name + ' ' + t.url)" | while read -r name url; do
             if npx dembrandt "$url" --json-only --user-agent "$UA" > "/tmp/raw-$name.json" 2>"/tmp/err-$name.log"; then
               echo "### $name ($url)" >> "$GITHUB_STEP_SUMMARY"
               node tools-build/design-tokens.mjs "/tmp/raw-$name.json" "tools-build/design-lab/$name.tokens.json" | tee -a "$GITHUB_STEP_SUMMARY"
@@ -64,12 +79,33 @@ jobs:
               echo "### $name — 추출 실패: $(tail -3 /tmp/err-$name.log | tr '\n' ' ' | cut -c1-300)" >> "$GITHUB_STEP_SUMMARY"
             fi
           done
+      - name: 우리 면 조작 녹화(폰 판정용 · 390 세로·1440 가로 · 면마다 15초 안팎 mp4) + 첫 화면 PNG
+        if: hashFiles('tools-build/design-lab.json') != ''
+        run: |
+          set -o pipefail
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          node tests/capture/record-ds.mjs --out lab-out/ours | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: 우리 면 녹화 보관(기준 사이트 없음 · 14일)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-ours
+          path: lab-out/ours
+          retention-days: 14
+          if-no-files-found: warn
       - name: 화면 비교(같은 폭 나란히)
         continue-on-error: true
         run: |
-          OURS=$(node -p "require('./tools-build/design-lab.json').ours")
-          node -e "for (const t of require('./tools-build/design-lab.json').targets) console.log(t.name + ' ' + t.url)" | while read -r name url; do
-            node tests/capture/compare.mjs --ours "$OURS" --ref "$url" --out lab-out/compare --name "$name" | tee -a "$GITHUB_STEP_SUMMARY"
+          # pairs 가 있으면 시안 면(로컬 빌드) ↔ 기준 사이트, 없으면 공개 실물 ↔ 각 대상
+          # 한 쌍이 실패해도 나머지는 찍고, 실패는 요약에 적는다(tee 가 종료 코드를 삼키지 않게 pipefail)
+          set -o pipefail
+          node -e "
+            const d=require('./tools-build/design-lab.json');
+            const L='http://127.0.0.1:4173/incheon-port-analysis';
+            const rows=(d.pairs&&d.pairs.length)?d.pairs.map(p=>[p.name,L+p.ours,p.ref.startsWith('/')?L+p.ref:p.ref]):d.targets.map(t=>[t.name,d.ours,t.url]);
+            for (const r of rows) console.log(r.join(' '));" | while read -r name ours ref; do
+            node tests/capture/compare.mjs --ours "$ours" --ref "$ref" --out lab-out/compare --name "$name" --full | tee -a "$GITHUB_STEP_SUMMARY" \
+              || echo "### $name — 캡처 실패(작업 로그 참조)" | tee -a "$GITHUB_STEP_SUMMARY"
           done
       - uses: actions/upload-artifact@v4
         with:

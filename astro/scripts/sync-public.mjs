@@ -30,6 +30,18 @@ cpSync(join(pv, "woff2-dynamic-subset"), join(fontDir, "woff2-dynamic-subset"), 
 // 다음 지면부터는 캐시된 글꼴이 바로 쓰인다. CSS 는 비동기로 붙인다(Base.astro) — 첫 화면을 막지 않는다.
 writeFileSync(join(fontDir, "pretendard.css"), readFileSync(join(pv, "pretendardvariable-dynamic-subset.css"), "utf-8").replace(/font-display:\s*swap/g, "font-display: optional"));
 
+// 제목 명조 시안(디자인 「해도」 글꼴 두 안 · 2026-10-14) — Noto Serif KR 700 하나만(OFL-1.1 · LICENSE 같이). 지면 CSS 가 unicode-range 로 쓰는 글자만 받는다.
+// 공개 지면은 아직 이 글꼴을 쓰지 않는다(lab 시안만 · SOUNDING_LAB=1 빌드에만 복사 — 공개 배포물 변화 0) — 선장님 판정 뒤 정한다.
+const serif = join(nm, "@fontsource/noto-serif-kr");
+if (process.env.SOUNDING_LAB === "1" && existsSync(serif)) {
+  const sd = fresh(join(pub, "fonts/noto-serif-kr"));
+  mkdirSync(join(sd, "files"), { recursive: true });
+  for (const f of readdirSync(join(serif, "files"))) if (/-700-normal\.woff2$/.test(f)) cpSync(join(serif, "files", f), join(sd, "files", f));
+  cpSync(join(serif, "LICENSE"), join(sd, "LICENSE"));
+  writeFileSync(join(sd, "noto-serif-kr-700.css"), "/* Noto Serif KR 700 · OFL-1.1 · @fontsource/noto-serif-kr */\n" +
+    readFileSync(join(serif, "700.css"), "utf-8").replace(/,\s*url\([^)]*\.woff\) format\('woff'\)/g, ""));
+} else rmSync(join(pub, "fonts/noto-serif-kr"), { recursive: true, force: true }); // 앞선 lab 빌드의 사본이 공개 산출물에 남지 않게
+
 const ml = fresh(join(pub, "vendor/maplibre"));
 for (const f of ["maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs", "maplibre-gl.css"]) {
   cpSync(join(nm, "maplibre-gl/dist", f), join(ml, f));
