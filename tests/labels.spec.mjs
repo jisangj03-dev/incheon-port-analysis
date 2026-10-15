@@ -32,9 +32,12 @@ test("라벨 겹침 0 — 공급망 따라가기 단계마다", async ({ page })
   await page.goto(`${B}/map/follow.html`, { waitUntil: "networkidle" });
   for (const id of await page.locator(".st[data-s]").evaluateAll((a) => a.map((x) => x.getAttribute("data-s")))) {
     await page.evaluate((id) => { const el = document.querySelector(`[data-s="${id}"]`); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); }, id);
-    await expect.poll(() => page.getAttribute(".story", "data-step"), { timeout: 5_000 }).toBe(id);
-    // 꼬리표는 0.5초에 걸쳐 나타나고 사라진다(장면마다 위치를 다시 잡는다) — CI 는 장면 간격이 2초를 넘는 때가 있어(QA 122) 전환이 끝나기를 최대 15초 기다린다. 끝난 뒤에도 겹치면 실패
-    await expect.poll(async () => (await overlaps(page)).out, { timeout: 15_000, message: `따라가기 ${id} 라벨 겹침` }).toEqual([]);
+    // [2026-10-15 · QA 142·147] CI 합성기가 굶으면 스크롤 뒤 rAF 가 늦어 단계 번호가 5초 넘게 안 바뀌고, 지도 카메라도 안 움직여 꼬리표 자리가 안 잡혔다
+    // → 확인할 때마다 단계 고르기(pick)와 지도 한 걸음(홈 지도 시험과 같은 손 틱)을 직접 부른다. 판정(단계 일치 · 겹침 0)은 그대로다
+    const tick = () => page.evaluate(() => { const w = window; w.__followPick?.(); const f = w.__trip; if (f) { f.step(0.25); f.o?.camStep ? f.o.camStep(f, 0.25) : f.camStep?.(0.25); f.draw(); } });
+    await expect.poll(async () => { await tick(); return page.getAttribute(".story", "data-step"); }, { timeout: 15_000 }).toBe(id);
+    // 꼬리표는 0.5초에 걸쳐 나타나고 사라진다(장면마다 위치를 다시 잡는다) — 전환이 끝나기를 최대 15초 기다린다. 끝난 뒤에도 겹치면 실패
+    await expect.poll(async () => { await tick(); return (await overlaps(page)).out; }, { timeout: 15_000, message: `따라가기 ${id} 라벨 겹침` }).toEqual([]);
   }
 });
 
