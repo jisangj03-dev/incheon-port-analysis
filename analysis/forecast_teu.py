@@ -104,6 +104,9 @@ def score(series=SERIES, ledger=LEDGER):
             d["hit"].append((f - prev > 0) == (a - prev > 0))
     out = {m: {"n": len(d["ape"]), "mape": sum(d["ape"]) / len(d["ape"]) if d["ape"] else None,
                "direction": (sum(d["hit"]) / len(d["hit"])) if d["hit"] else None} for m, d in res.items()}
+    for d in out.values():  # 화면이 쓰는 꼴(소수 첫째 자리 %) — 지면 시험이 글자 그대로 대조한다
+        d["mape_pct"] = None if d["mape"] is None else "%.1f" % (d["mape"] * 100)
+        d["direction_pct"] = None if d["direction"] is None else "%.0f" % (d["direction"] * 100)
     return out, len(rows)
 
 
@@ -143,6 +146,11 @@ if __name__ == "__main__":
         sys.exit(selftest())
     if "--issue" in sys.argv:
         sys.exit(issue())
+    if "--json" in sys.argv:  # 지면 시험이 화면 수치와 대조한다
+        import json
+        out, n = score()
+        print(json.dumps({"matured": n, "models": out}, ensure_ascii=False))
+        sys.exit(0)
     if "--score" in sys.argv:
         out, n = score()
         print(f"[채점] 익은 행 {n}개")
