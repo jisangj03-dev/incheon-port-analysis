@@ -1,0 +1,97 @@
+---
+// 도구 · 품목 트리맵 레이스(실무 질문 Q3) — 인천 소재 기업의 품목별(HS 2단위) 수출·수입 구성이 해마다 칸 넓이로 다시 배치되며 흐른다.
+// 원천 = 관세청 시도별 품목별 수출입실적(인천 28) · 파생 = data/derived/trade_race.json(tools-build/v3/race_derive.py). 첫 그림 = 마지막 해(서버에서 칸 배치).
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { squarify, groupOf, GROUPS, inkOn } from "../../lib/treemap-race";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/trade_race.json"), "utf-8"));
+const Y = D.years.filter((y: any) => !y.partial);
+const L = Y[Y.length - 1], F = Y[0];
+const yrs = D.years.map((y: any) => ({ y: y.partial ? `${y.y}(1~${Number(y.through.slice(4))}월)` : y.y, through: y.through,
+  exp: { total: y.exp_total, items: y.items.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp })) },
+  imp: { total: y.imp_total, items: y.items.map((i: any) => ({ hs: i.hs, name: i.name, v: i.imp })) } }));
+// 첫 그림 — 마지막 온전한 해 수출(서버 배치 · 1000×560 비율)
+// 칸 순서 = 전 기간 몫의 합 순(TreemapRace 와 같은 규칙 — 첫 그림과 움직임이 같은 자리에서 시작한다)
+const tot = new Map<string, number>(); for (const y of D.years) for (const it of y.items) tot.set(it.hs, (tot.get(it.hs) || 0) + it.exp / (y.exp_total || 1));
+const rank = new Map([...tot.entries()].sort((a, b) => b[1] - a[1]).map(([hs], i) => [hs, i]));
+const top = [...L.items].sort((a: any, b: any) => (rank.get(a.hs) ?? 999) - (rank.get(b.hs) ?? 999)), head = top.slice(0, 18), rest = top.slice(18).reduce((s: number, x: any) => s + x.exp, 0);
+const list = [...head.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp, pct: i.exp_pct })), { hs: "etc", name: "그 밖", v: rest, pct: null }];
+const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
+---
+<Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
+  <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`${L.y}년 인천 소재 기업 수출 1위는 ${L.top_exp.name}(${L.top_exp.pct}%), 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
+    updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" note="HS 2단위 · 백만 달러 · 사업장 소재지(인천) 기준"
+    how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천 소재 기업 수출(또는 수입)에서 그 품목의 몫. 위에서 열여덟 품목만 이름을 달고 나머지는 「그 밖」."
+    limits="통관 항구(인천항·인천공항)가 아니라 사업장 주소가 인천인 기업의 실적이다 — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
+    <div slot="answer" class="race">
+      <p class="race__y"><b id="race-y">{L.y}</b> <span id="race-k">수출</span> <i id="race-total" data-og-num={`백만 달러 · ${L.y}년 수출`}>{L.exp_total.toLocaleString("ko-KR")}</i><small>백만 달러</small></p>
+      <div class="race__box" id="race-box" role="img" aria-label={`${L.y}년 인천 소재 기업 수출 품목 구성`}>
+        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{r.w > 90 && r.h > 50 && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
+      </div>
+      <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}</p>
+    </div>
+    <div slot="controls" class="race__ctl">
+      <div class="seg" role="group" aria-label="수출·수입"><button type="button" class="s-btn" data-k="exp" aria-pressed="true">수출</button><button type="button" class="s-btn s-btn--ghost" data-k="imp" aria-pressed="false">수입</button></div>
+      <button type="button" class="s-btn s-btn--ghost" id="race-play" aria-pressed="false">재생</button>
+      <label class="race__slider">해 <input id="race-i" type="range" min="0" max={yrs.length - 1} value={D.years.indexOf(L)} step="1" aria-label="해 고르기" /></label>
+      <p class="race__pick s-cap" id="race-pick" aria-live="polite">칸을 누르면 그 품목의 해마다 금액이 나옵니다.</p>
+    </div>
+  </ToolShell>
+  <script type="application/json" id="race-data" set:html={JSON.stringify(yrs)}></script>
+  <script type="application/json" id="race-end" set:html={JSON.stringify(D.years.indexOf(L))}></script>
+  <script>
+    import { TreemapRace } from "../../lib/treemap-race";
+    const Y = JSON.parse(document.getElementById("race-data")!.textContent!);
+    const END = JSON.parse(document.getElementById("race-end")!.textContent!); // 최신 온전한 해 — 첫 화면 정지·재생 끝이 여기(채팅 검수 10/14: 캡처가 2022 에서 멈춰 보였다)
+    const box = document.getElementById("race-box")!, sl = document.getElementById("race-i") as HTMLInputElement, $ = (id: string) => document.getElementById(id)!;
+    let k: "exp" | "imp" = "exp";
+    const years = () => Y.map((y: any) => ({ y: y.y, through: y.through, total: y[k].total, items: y[k].items }));
+    const fmt = (v: number) => v.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
+    let race: TreemapRace;
+    const make = () => {
+      race?.stop(); for (const el of box.querySelectorAll(".tm-pre, .tm-tile")) el.remove();
+      race = new TreemapRace(box, years(), { top: 18, onYear: (y, i) => { $("race-y").textContent = y.y; $("race-total").textContent = fmt(y.total); $("race-k").textContent = k === "exp" ? "수출" : "수입"; sl.value = String(i); box.setAttribute("aria-label", `${y.y} 인천 소재 기업 ${k === "exp" ? "수출" : "수입"} 품목 구성`); },
+        onPick: (hs) => { const s = Y.map((y: any) => `${y.y} ${fmt((y[k].items.find((i: any) => i.hs === hs) || { v: 0 }).v)}`).join(" · "); const nm = (Y[0][k].items.find((i: any) => i.hs === hs) || { name: hs }).name; $("race-pick").textContent = `${nm}(HS ${hs}) — ${s} 백만 달러`; } });
+      (window as any).__race = race;
+    };
+    const boot = () => {
+      make(); race.set(Number(sl.value), false);
+      box.dataset.ready = "1";
+      // 3초 답 — 첫 해부터 마지막 해까지 한 번 흐른다(움직임 줄이기면 그대로)
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) { race.set(0, true); setTimeout(() => { race.play(0.55); $("race-play").textContent = "멈춤"; $("race-play").setAttribute("aria-pressed", "true");
+        const stopAt = setInterval(() => { if (race.i === END) { race.stop(); clearInterval(stopAt); $("race-play").textContent = "재생"; $("race-play").setAttribute("aria-pressed", "false"); } }, 200); }, 600); }
+    };
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.addEventListener("click", () => {
+      k = b.dataset.k as any; for (const x of document.querySelectorAll<HTMLButtonElement>(".seg button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
+      const i = race.i; make(); race.set(i, false);
+    });
+    $("race-play").addEventListener("click", () => { if (race.timer) { race.stop(); $("race-play").textContent = "재생"; } else { race.play(1.1); $("race-play").textContent = "멈춤"; } });
+    sl.addEventListener("input", () => { race.stop(); race.set(Number(sl.value)); });
+    const go = () => ("requestIdleCallback" in window ? (window as any).requestIdleCallback(boot, { timeout: 1000 }) : setTimeout(boot, 200));
+    document.readyState === "complete" ? go() : addEventListener("load", go, { once: true });
+  </script>
+</Studio>
+<style>
+  .race__y { margin: 0 0 var(--s-2); display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .race__y b { font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .race__y span { color: var(--s-ink-2); } .race__y i { font-style: normal; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; } .race__y small { color: var(--s-ink-3); }
+  .race__box { position: relative; height: min(58vh, 560px); background: var(--s-paper); overflow: hidden; }
+  .race__box :global(.tm-pre), .race__box :global(.tm-tile) { position: absolute; display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 6px 8px; overflow: hidden; color: #fff; font: 600 13px/1.25 var(--s-font); text-align: left; border: 0; }
+  .race__box :global(.tm-tile) { left: 0; top: 0; transition: transform 0.85s cubic-bezier(.3,.7,.2,1), width 0.85s cubic-bezier(.3,.7,.2,1), height 0.85s cubic-bezier(.3,.7,.2,1), opacity 0.5s; cursor: pointer; }
+  .race__box :global(.tm-tile b), .race__box :global(.tm-pre b) { font-weight: 650; max-width: 100%; }
+  .race__box :global(.tm-tile i), .race__box :global(.tm-pre i) { font-style: normal; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .race__box :global(.tm-tile i), .race__box :global(.tm-pre i) { opacity: 1; }
+  .race__box :global(.tm-tile:disabled) { cursor: default; }
+  .race__legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: var(--s-3) 0 0; font-size: 12.5px; color: var(--s-ink-2); }
+  .race__legend i { display: inline-block; width: 12px; height: 12px; margin-right: 5px; vertical-align: -1px; }
+  .race__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
+  .seg { display: flex; gap: 0; } .seg .s-btn { min-height: 44px; }
+  .race__slider { flex: 1; min-width: 200px; display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); } .race__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
+  .race__pick { flex-basis: 100%; margin: 0; }
+  @media (max-width: 720px) { .race__box { height: 52vh; } .race__box :global(.tm-tile), .race__box :global(.tm-pre) { font-size: 11.5px; padding: 4px 5px; } }
+</style>

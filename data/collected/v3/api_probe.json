@@ -1,0 +1,838 @@
+{
+ "checked": "2026-10-14",
+ "key_present": true,
+ "apis": {
+  "iiac-air-country": {
+   "search": "인천국제공항공사 국가별 항공 통계",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15095071",
+     "인천국제공항공사 _ 국가별 항공 통계 서비스"
+    ]
+   ],
+   "data_id": "15095071",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/B551177/AviationStatsByCountry",
+     "https://apis.data.go.kr/B551177/AviationStatsByCountry/getTotalNumberOfFlight"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate",
+     "getTotalNumberOfFlight"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 인증키 serviceKey 100 필 - 인증키 조회기간(부터) from_month 12 옵 201405 YYYYMM 조회기간(까지) to_month 12 옵 201405 YYYYMM 정기/부정기 periodicity 2 옵 0 정기=0, 부정기=1, null=전체 화물기/여객기 pax_cargo 2 옵 Y 여객기=Y, 화물기=N, null=전체 응답유형 type 4 옵 xml 응답유형 [xml, json] default=xml 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 지역구분 region 24 필 기타 지역 구분명 국가 country 24 옵 네팔 국가명 도착 arrFlight 12 옵 9 도착편수(편) 출발 depFlight 12 옵 9 출발편수(편) 합계 flights 12 옵 18 합계편수(편) 결과코드 resultCode 2 필 00 결과코드 결과메시지 resultMsg 50 필 NORMAL SERVICE. 결과메시지 오픈API 에러코드 안내 오픈 API에 대한 에러코드를 에러메시지, 에러코드, 설명 순으로 안내하는 표입니다. 에러메시지 에러코드 설명 APPLICATION_ERROR 01 GW 내부 처리 중 예기치 않은 오류가 발생했습니다. 잠시 후 다시 호출하고, 문제가 반복되면 활용지원센터로 문의해 주세요. HTTP_ERROR 04 허용되지 않은 HTTP 요청이거나 기관 API 응답 처리에 실패했습니다. 요청 방식과 호출 URL을 확인해 주세요. SERVICETIMEOUT_ERROR 05 기관 API 또는 GW 연계 서비스와의 연결에 실패했거나 응답 대기시간을 초과했습니다. 잠시 후 다시 호출해 주세요. INVALID_REQUEST_PARAMETER_ERROR 10 요청 파라미터의 값이나 형식이 올바르지 않습니다. API 명세에서 파라미터 이름, 형식 및 허용값을 확인해 주세요. NO_OPENA",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "인천국제공항공사_국가별 항공 통계 서비스 | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getTotalNumberOfFlight",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/AviationStatsByCountry/getTotalNumberOfFlight",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    }
+   ]
+  },
+  "iiac-freighter": {
+   "search": "인천국제공항공사 화물기 정기운항편",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15095051",
+     "인천국제공항공사 _ 화물기 정기운항편 일정 정보"
+    ],
+    [
+     "15095069",
+     "인천국제공항공사 _공항별 항공 통계 서비스"
+    ],
+    [
+     "15114086",
+     "인천국제공항공사 _ 화물기 정기운항편 현황 상세 조회 서비스"
+    ],
+    [
+     "15098227",
+     "인천국제공항공사 _운항마감정보"
+    ]
+   ],
+   "data_id": "15095051",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/B551177/CgoFltSched",
+     "https://apis.data.go.kr/B551177/CgoFltSched/getCgoFltSchedArrivals"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getCgoFltSchedArrivals",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 서비스키 serviceKey 100 필 - 서비스키 데이터 행 numOfRows 10 필 10 데이터 행 데이터 표출 페이지 pageNo 1 필 1 데이터 표출 페이지 수 언어구분 lang 2 옵 K 언어 구분값 K: 국문, E: 영문, C: 중문, J: 일문 출발지공항(IATA) airport 8 옵 FRA 출발지공항(IATA) 코드 응답유형 type 4 옵 xml 응답유형 [xml, json] default=xml 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 항공사명 airline 8 옵 대한항공 항공사명 출발지공항명 airport 40 옵 프랑크푸르트 출발지공항명 출발지공항(IATA) 코드 airportCode 14 옵 FRA 출발지공항(IATA) 코드 정기운항 시작일 firstdate 10 옵 20210330 정기운항 시작일 편명 flightid 20 옵 KE530 편명 금요일 취항여부 friday 4 옵 N Y : 취항 N : 미취항 정기운항 종료일 lastdate 10 옵 20211215 정기운항 종료일 월요일 취항여부 monday 4 옵 N Y : 취항 N : 미취항 토요일 취항여부 saturday 4 옵 N Y : 취항 N : 미취항 시즌명 season 8 옵 S21 시즌명 정기운항 시작 시간 st 6 옵 0130 정기운항 시작 시간 일요일 취항여부 sunday 4 옵 N Y : 취항 N : 미취항 목요일 취항여부 thursday 4 옵 N Y : 취항 N : 미취항 화요일 취항여부 tuesday 4 옵 Y Y : 취항 N : 미취항 수요일 취항여부 wednesday 4 옵 N Y : 취항 N : 미취항 데이터 행 numOfRows 10 필 10 데이터 행 데이터 표출 페이지 pageNo 1 필 1 데이터 표출 페이지 수 데이터 항목 수 totalCount 4 필 69 데이터 항목 수 결과코드 r",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "인천국제공항공사_화물기 정기운항편 일정 정보 | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCgoFltSchedArrivals",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCgoFltSchedArrivals",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCgoFltSchedArrivals",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/B551177/CgoFltSched/getCgoFltSchedArrivals",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    }
+   ]
+  },
+  "kcs-exchange": {
+   "search": "관세청 관세환율",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15101230",
+     "관세청 _관세환율정보(GW)"
+    ]
+   ],
+   "data_id": "15101230",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo",
+     "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getRetrieveTrifFxrtInfo"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getRetrieveTrifFxrtInfo",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 서비스키 serviceKey 100 필수 - 공공데이터포털에서 받은 인증키 적용개시일자 aplyBgnDt 8 필수 20150101 조회년월일 주간환율구분코드 weekFxrtTpcd 1 필수 2 수출:1, 수입:2 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 결과코드 resultCode 2 필수 00 결과코드 결과메시지 resultMsg 500 필수 정상서비스 결과메시지 국가부호 cntySgn 2 필수 AE 한 페이지 결과 수 화폐단위명 mtryUtNm 30 필수 UAE Dirham 화폐단위명 환율 fxrt 13 필수 302.7 환율 통화부호 currSgn 3 필수 AED 통화부호 적용개시일자 aplyBgnDt 8 필수 20141228 적용개시일자 수출입구분 imexTp 1 필수 2 수출:1, 수입:2 오픈API 에러코드 안내 오픈 API에 대한 에러코드를 에러메시지, 에러코드, 설명 순으로 안내하는 표입니다. 에러메시지 에러코드 설명 APPLICATION_ERROR 01 GW 내부 처리 중 예기치 않은 오류가 발생했습니다. 잠시 후 다시 호출하고, 문제가 반복되면 활용지원센터로 문의해 주세요. HTTP_ERROR 04 허용되지 않은 HTTP 요청이거나 기관 API 응답 처리에 실패했습니다. 요청 방식과 호출 URL을 확인해 주세요. SERVICETIMEOUT_ERROR 05 기관 API 또는 GW 연계 서비스와의 연결에 실패했거나 응답 대기시간을 초과했습니다. 잠시 후 다시 호출해 주세요. INVALID_REQUEST_PARAMETER_ERROR 10 요청 파라미터의 값이나 형식이 올바르지 않습니다. API 명세에서 파라미터 이름, 형식 및 허용값을 확인해 주세요. NO_OPENAPI_SERVICE_ERROR 12 요청한 오픈API 서비스가 존재하지 않거나 폐기되었습니다. 호출 URL에 오타가 없는지 확인해 주",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "관세청_관세환율정보(GW) | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getRetrieveTrifFxrtInfo",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 200,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 1,
+     "sample": [
+      {}
+     ],
+     "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"HTTP_ERROR\",\n      \"returnAuthMsg\": \"HTTP 에러\",\n      \"returnReasonCode\": \"04\"\n    }\n  }\n}\n"
+    },
+    {
+     "url": "https://apis.data.go.kr/1220000/retrieveTrifFxrtInfo/getRetrieveTrifFxrtInfo",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 200,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 1,
+     "sample": [
+      {}
+     ],
+     "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"HTTP_ERROR\",\n      \"returnAuthMsg\": \"HTTP 에러\",\n      \"returnReasonCode\": \"04\"\n    }\n  }\n}\n"
+    }
+   ]
+  },
+  "kcs-customs-office": {
+   "search": "관세청 세관별 수출입실적",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15101633",
+     "관세청 _ 세관별 수출입실적 (GW)"
+    ]
+   ],
+   "data_id": "15101633",
+   "spec": {
+    "status": 200,
+    "endpoints": [],
+    "ops": [
+     "getCategoryClass",
+     "getCustomstradeList",
+     "getCustomstradeList_response",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": null,
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "관세청_세관별 수출입실적(GW) | 공공데이터포털"
+   },
+   "calls": []
+  },
+  "mof-cargo-item": {
+   "search": "해양수산부 품목별 화물처리",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15056791",
+     "해양수산부 _ 품목별 화물처리실적 통계정보"
+    ],
+    [
+     "15059131",
+     "해양수산부 _수출입컨테이너처리실적 통계정보"
+    ],
+    [
+     "15057250",
+     "해양수산부 _국가별컨테이너처리실적 통계정보"
+    ],
+    [
+     "15057586",
+     "해양수산부 _외내항컨테이너처리실적 통계정보"
+    ]
+   ],
+   "data_id": "15056791",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2",
+     "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 서비스키 serviceKey 100 필수 - 공공데이터포털에서 받은 인증키 페이지 번호 pageNo 4 옵션 1 페이지번호 한 페이지 결과 수 numOfRows 4 옵션 10 한 페이지 결과 수 조회시작연월 sym 6 필수 201701 조회시작연월 조회종료연월 eym 6 필수 201712 조회종료연월 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 결과코드 resultCode 2 필수 00 결과코드 결과메시지 resultMsg 50 필수 NORMAL_SERVICE 한 페이지 결과 수 numOfRows 4 필수 10 한 페이지 결과 수 페이지 번호 pageNo 4 필수 1 페이지번호 전체 결과 수 totalCount 40 필수 3 전체 결과 수 통계 연월 useYm 6 필수 201701 통계 연월 품목명 frghtPrdlstNm 20 옵션 육 류 품목명 품목코드 frghtPrdlstCd 2 옵션 1 품목코드 합계 total 8 옵션 222188 합계 입항 etrypt 8 옵션 129347 입항 출항 tkoff 8 옵션 92841 출항 오픈API 에러코드 안내 오픈 API에 대한 에러코드를 에러메시지, 에러코드, 설명 순으로 안내하는 표입니다. 에러메시지 에러코드 설명 APPLICATION_ERROR 01 GW 내부 처리 중 예기치 않은 오류가 발생했습니다. 잠시 후 다시 호출하고, 문제가 반복되면 활용지원센터로 문의해 주세요. HTTP_ERROR 04 허용되지 않은 HTTP 요청이거나 기관 API 응답 처리에 실패했습니다. 요청 방식과 호출 URL을 확인해 주세요. SERVICETIMEOUT_ERROR 05 기관 API 또는 GW 연계 서비스와의 연결에 실패했거나 응답 대기시간을 초과했습니다. 잠시 후 다시 호출해 주세요. INVALID_REQUEST_PARAMETER_ERROR 10 요청 파라미터의 값이나 형식이 ",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "해양수산부_품목별 화물처리실적 통계정보 | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getCategoryClass",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getElementById",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json"
+     },
+     "status": "<urlopen error [Errno 104] Connection reset by peer>",
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargFrghtPrdlst2/YM/getMypageUrl",
+     "params": {
+      "numOfRows": "10",
+      "pageNo": "1",
+      "type": "json",
+      "_type": "json",
+      "searchday": "20260801",
+      "qryYymmDd": "20260801",
+      "strtYymm": "202608",
+      "endYymm": "202608",
+      "searchMonth": "202608",
+      "imexTp": "2"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "sample": [],
+     "body_head": ""
+    }
+   ]
+  }
+ }
+}

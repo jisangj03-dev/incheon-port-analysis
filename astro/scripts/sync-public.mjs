@@ -31,16 +31,17 @@ cpSync(join(pv, "woff2-dynamic-subset"), join(fontDir, "woff2-dynamic-subset"), 
 writeFileSync(join(fontDir, "pretendard.css"), readFileSync(join(pv, "pretendardvariable-dynamic-subset.css"), "utf-8").replace(/font-display:\s*swap/g, "font-display: optional"));
 
 // 제목 명조 시안(디자인 「해도」 글꼴 두 안 · 2026-10-14) — Noto Serif KR 700 하나만(OFL-1.1 · LICENSE 같이). 지면 CSS 가 unicode-range 로 쓰는 글자만 받는다.
-// 공개 지면은 아직 이 글꼴을 쓰지 않는다(lab 시안만 · SOUNDING_LAB=1 빌드에만 복사 — 공개 배포물 변화 0) — 선장님 판정 뒤 정한다.
+// [2026-10-14 공개 전환] 제목 명조 확정(토큰 --s-font-head) — 공개 지면도 쓴다.
 const serif = join(nm, "@fontsource/noto-serif-kr");
-if (process.env.SOUNDING_LAB === "1" && existsSync(serif)) {
+if (existsSync(serif)) {
   const sd = fresh(join(pub, "fonts/noto-serif-kr"));
   mkdirSync(join(sd, "files"), { recursive: true });
+  // 제목 명조도 swap → optional(2026-10-14 출고 검사) — 늦게 온 글꼴로 제목이 바뀌며 밀리던 것(홈 CLS 0.10)을 없앤다.
   for (const f of readdirSync(join(serif, "files"))) if (/-700-normal\.woff2$/.test(f)) cpSync(join(serif, "files", f), join(sd, "files", f));
   cpSync(join(serif, "LICENSE"), join(sd, "LICENSE"));
   writeFileSync(join(sd, "noto-serif-kr-700.css"), "/* Noto Serif KR 700 · OFL-1.1 · @fontsource/noto-serif-kr */\n" +
-    readFileSync(join(serif, "700.css"), "utf-8").replace(/,\s*url\([^)]*\.woff\) format\('woff'\)/g, ""));
-} else rmSync(join(pub, "fonts/noto-serif-kr"), { recursive: true, force: true }); // 앞선 lab 빌드의 사본이 공개 산출물에 남지 않게
+    readFileSync(join(serif, "700.css"), "utf-8").replace(/,\s*url\([^)]*\.woff\) format\('woff'\)/g, "").replace(/font-display:\s*swap/g, "font-display: optional"));
+}
 
 const ml = fresh(join(pub, "vendor/maplibre"));
 for (const f of ["maplibre-gl.mjs", "maplibre-gl-shared.mjs", "maplibre-gl-worker.mjs", "maplibre-gl.css"]) {

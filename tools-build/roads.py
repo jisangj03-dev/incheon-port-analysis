@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 홈 실루엣은 서울까지 닿아야 해서 배포 타일(동경 126.85°까지)이 아니라 Actions 가 /tmp 에 따로 받는 작은 타일(z10 이하 · 배포 안 함)을 읽는다
 TILES = os.environ.get("HOME_TILES") or os.path.join(ROOT, "astro/public/tiles/incheon.pmtiles")
 OUT = os.path.join(ROOT, "data/derived/land_incheon.geojson")
-BBOX = (126.30, 37.20, 127.10, 37.72)  # 서·남·동·북 — 홈 해도(신항~서울)
+BBOX = (126.30, 36.85, 127.65, 37.90)  # 서·남·동·북 — 홈 해도(신항~서울 · [2026-10-15 공개 전 개편 P0] 수도권 물류 거점까지: 평택·당진항·이천·안성·광주·김포)
 Z = 10
 TOL = 0.0012  # 단순화 허용치(도 · 약 120m) — 실루엣이라 이 정도면 된다
 
@@ -91,11 +91,16 @@ def main():
                             if len(pts) < 2: continue
                             kind = "land" if name == "earth" else "road"
                             g = {"type": "Polygon", "coordinates": [pts]} if kind == "land" else {"type": "LineString", "coordinates": pts}
-                            feats.append({"type": "Feature", "properties": {"kind": kind, "class": props.get("kind", "")}, "geometry": g})
+                            pr = {"kind": kind, "class": props.get("kind", "")}
+                            if kind == "road":  # 고속도로 번호·이름 — 수도권 화물 통로(제2경인 110 · 수도권제1순환 100 · 영동 50 · 경부 1 · 서해안 15)를 고른다
+                                for k in ("ref", "name"):
+                                    if props.get(k): pr[k] = str(props[k])
+                            feats.append({"type": "Feature", "properties": pr, "geometry": g})
     gj = {"type": "FeatureCollection", "source": "OpenStreetMap 기여자 · Protomaps(저장소 내장 PMTiles)", "license": "ODbL 1.0 (© OpenStreetMap contributors)",
           "zoom": Z, "simplify_deg": TOL, "features": feats}
     json.dump(gj, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    print(json.dumps({"land": sum(f["properties"]["kind"] == "land" for f in feats), "road": sum(f["properties"]["kind"] == "road" for f in feats), "bytes": os.path.getsize(OUT)}))
+    print(json.dumps({"land": sum(f["properties"]["kind"] == "land" for f in feats), "road": sum(f["properties"]["kind"] == "road" for f in feats), "bytes": os.path.getsize(OUT),
+                      "refs": dict(sorted(__import__("collections").Counter(f["properties"].get("ref", "-") for f in feats if f["properties"]["kind"] == "road").items()))}, ensure_ascii=False))
     return 0
 
 
