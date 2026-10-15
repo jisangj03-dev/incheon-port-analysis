@@ -104,13 +104,16 @@ function bend(a: number[], b: number[], k = 0.18) {
 }
 
 const SPEED = { sea: 950, air: 2600, land: 15 }; // km/s(그림 속도 — 실제 속도 아님)
+// [2026-10-15 공개 전 개편 P0] 첫 화면 = 수도권(sudo) · 둘러보기는 수도권 안에서만(sudo ↔ 인천 관문) · 「아시아」는 단추로만
 export const VIEWS: Record<string, Cam> = {
   asia: { lon: 122.5, lat: 30.5, zoom: 3.0, pitch: 46, bearing: -10, ox: 0.17, oy: 0.04 },
+  sudo: { lon: 126.98, lat: 37.30, zoom: 8.2, pitch: 50, bearing: 12, ox: 0.16, oy: 0.06 },
   incheon: { lon: 126.72, lat: 37.43, zoom: 9.1, pitch: 54, bearing: 18, ox: 0.16, oy: 0.06 },
 };
 /** 좁은 화면(세로) — 글자가 위에 따로 있으니 가운데로 · 조금 더 멀리 */
 export const VIEWS_M: Record<string, Cam> = {
   asia: { lon: 121.0, lat: 30.0, zoom: 2.55, pitch: 44, bearing: -10, ox: 0.05, oy: -0.1 },
+  sudo: { lon: 126.95, lat: 37.30, zoom: 7.55, pitch: 48, bearing: 12, ox: 0, oy: -0.08 },
   incheon: { lon: 126.75, lat: 37.42, zoom: 8.45, pitch: 52, bearing: 18, ox: 0, oy: -0.08 },
 };
 
@@ -132,6 +135,7 @@ export class FlowMap {
   arrive: Float32Array = new Float32Array(8); // 관문별 최근 도착(고리 반짝임)
   tour: { from: Cam; to: Cam; t0: number; dur: number } | null = null;
   touring = false; tourStep = 0; tourT = 0; views: Record<string, Cam> = VIEWS;
+  /** 둘러보기가 도는 보기(이름) — 하나면 그 자리에서 천천히 돈다 */ tourViews: string[] = ["sudo", "incheon"];
   private dX = new Float32Array(0); private dY = new Float32Array(0); private dV = new Uint8Array(0); private dPh = new Float32Array(0);
   private wR: { r: number[]; bb: number[] }[] = []; private nR: number[][] = []; private rdR: number[][] = []; private ctR: number[][] = [];
 
@@ -369,8 +373,8 @@ export class FlowMap {
     } else if (this.touring) this.cam.bearing += dt * (this.cam.zoom > 6 ? 1.6 : 0.8); // 머무는 동안 천천히 돈다
     if (this.touring && !this.tour) {
       this.tourT += dt;
-      const hold = this.tourStep % 2 === 0 ? 9 : 10;
-      if (this.tourT > hold) { this.tourT = 0; this.tourStep++; this.flyTo(this.tourStep % 2 ? this.views.incheon : this.views.asia, 4.2); }
+      const hold = this.tourStep % 2 === 0 ? 9 : 10, tv = this.tourViews;
+      if (tv.length > 1 && this.tourT > hold) { this.tourT = 0; this.tourStep++; this.flyTo(this.views[tv[this.tourStep % tv.length]], 4.2); }
     }
   }
 

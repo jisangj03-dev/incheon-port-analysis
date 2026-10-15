@@ -140,6 +140,7 @@ export async function initDsMap() {
     relayout();
     if (slider) slider.value = String(i);
     $("ds-map").dataset.month = MD.months[i];
+    const ps = (window as any).__mapPlay; if (ps) { ps.i = i; ps.frames++; }
   };
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let timer: any = null, dashT: any = null;
@@ -151,10 +152,15 @@ export async function initDsMap() {
     let k = 0; dashT = setInterval(() => { if (map.getLayer("flow")) map.setPaintProperty("flow", "line-dasharray", DASH[(k = (k + 1) % DASH.length)]); }, 90);
   };
   const stop = () => { clearInterval(timer); clearInterval(dashT); timer = dashT = null; play && (play.textContent = "재생", play.setAttribute("aria-pressed", "true")); };
-  slider?.addEventListener("input", () => { stop(); setMonth(Number(slider.value)); });
-  play?.addEventListener("click", () => (timer ? stop() : start()));
-  // 첫 화면은 마지막 달을 잠깐 보인 뒤 처음부터 돈다
-  map.once("idle", () => { if (reduce) stop(); else setTimeout(() => { if (!timer && play?.getAttribute("aria-pressed") !== "true") start(); }, 2500); });
+  // [2026-10-15 P0] 만지면(달 막대·끌기·확대) 멈췄다가 6초 뒤 다시 돈다 · 「멈춤」 단추로 멈춘 것(held)은 그대로 — 첫 장면(해도 그림)의 상태를 이어받는다
+  const PS = ((window as any).__mapPlay ||= { held: reduce, i: MD ? MD.months.length - 1 : 0, frames: 0 });
+  let rt: any = 0;
+  const touch = () => { stop(); clearTimeout(rt); if (!PS.held && !reduce) rt = setTimeout(() => { if (!timer && !PS.held) start(); }, 6000); };
+  slider?.addEventListener("input", () => { touch(); setMonth(Number(slider.value)); });
+  play?.addEventListener("click", () => { clearTimeout(rt); if (timer) { PS.held = true; stop(); } else { PS.held = false; start(); } });
+  for (const ev of ["dragstart", "zoomstart", "rotatestart", "pitchstart"]) map.on(ev, (e: any) => { if (e.originalEvent) touch(); });
+  // 첫 장면에서 흐르던 달에서 이어 돈다
+  map.once("idle", () => { (window as any).__mapPosterStop?.(); if (MD && PS.i != null) setMonth(PS.i); if (reduce || PS.held) stop(); else start(); });
   // 다 그린 뒤(idle) 상태를 적는다 — 시험이 이것을 기다렸다가 화면 픽셀을 잰다
   map.once("idle", () => {
     const base = has && map.isSourceLoaded("protomaps");

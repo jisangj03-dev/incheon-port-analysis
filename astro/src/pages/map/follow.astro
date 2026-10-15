@@ -40,7 +40,7 @@ const TRIP = {
 <Studio title="공급망 따라가기 — 전기기기 하나가 인천을 지나는 길" description="전기기기(HS 85) 하나가 해외에서 인천을 거쳐 수도권으로 오는 길을 구간마다 공공 데이터로 잰다. 데이터가 없는 구간은 없다고 적는다." current="map" lateFonts>
   <div class="story" data-step="intro" data-content="ds-follow">
     <div class="story__map" id="trip-stage">
-      <img class="trip__poster" src={u("/assets/home-poster.svg")} alt="" width={PW} height={PH} decoding="async" />
+      <img class="trip__poster" src={u("/assets/home-poster-asia.svg")} alt="" width={PW} height={PH} decoding="async" />
       <canvas id="trip" class="trip__cv" role="img" aria-label={`지도 여행 — 상자 하나가 ${TRIP.origin.at}에서 황해를 건너 인천 신항, 인천 창고, 서울 쪽으로 가는 길(개념선). 배경의 점은 월 통계를 그린 교역 흐름.`}></canvas>
       <div class="trip__labels" aria-hidden="true">
         <span class="f-tag" data-show="intro origin" data-ll={`${TRIP.origin.lon},${TRIP.origin.lat}`} data-dx="10" data-dy="-26">{TRIP.origin.name} · {TRIP.origin.at} 자리에서 출발</span>
@@ -51,7 +51,7 @@ const TRIP = {
         <span class="f-tag" data-show="firms warehouse" data-ll={`${TRIP.gu.lon},${TRIP.gu.lat}`} data-dx="14" data-dy="-30">인천 전체 집계 — 한 곳의 위치가 아님</span>
         <span class="f-tag" data-show="last" data-ll={`${TRIP.to.lon},${TRIP.to.lat}`} data-dx="-120" data-dy="18">수도권 배송 — 이 구간 데이터 없음</span>
       </div>
-      <p class="trip__cap s-cap">상자와 길은 개념선입니다 — 한 상자를 실제로 추적한 것이 아닙니다. 옅은 점은 월 통계를 그린 교역 흐름입니다.</p>
+      <p class="trip__cap s-cap">상자와 길은 개념선입니다 — 한 상자를 실제로 추적한 것이 아닙니다. 옅은 점은 월 통계를 그린 교역 흐름입니다.<span class="trip__auto"> 지금은 자동 미리보기 — 내리면 직접 따라갑니다.</span></p>
     </div>
 
     <div class="story__steps">
@@ -176,16 +176,38 @@ const TRIP = {
       }
     };
     let fm: FlowMap | null = null;
+    // [2026-10-15 공개 전 개편 P0] 자동 미리보기 — 맨 위에서 아무것도 안 만지면 상자가 단계를 스스로 지나간다(단계마다 4.5초).
+    // 내리거나 만지면 멈추고 스크롤이 카메라가 된다 · 6초 동안 안 만지고 맨 위면 다시 돈다 · 동작 줄이기면 돌지 않는다.
+    const ORDER = steps.map((el) => el.dataset.s!), AUTO_SEC = 4.5;
+    const auto = { on: !reduce, t: 0, rt: 0 as any };
+    (window as any).__followAuto = auto;
+    const autoNow = () => auto.on && scrollY < 40;
+    const cur = (): [string, number] => {
+      if (!autoNow()) return [story.dataset.step || "intro", prog];
+      const k = Math.floor(auto.t / AUTO_SEC) % ORDER.length;
+      return [ORDER[k], (auto.t % AUTO_SEC) / AUTO_SEC];
+    };
+    const touch = () => {
+      auto.on = false; stage.dataset.auto = "0"; clearTimeout(auto.rt);
+      if (!reduce) auto.rt = setTimeout(() => { auto.on = true; }, 6000);
+      if (!raf) raf = requestAnimationFrame(pick);
+    };
+    for (const ev of ["scroll", "pointerdown", "wheel", "keydown", "touchstart"]) addEventListener(ev, touch, { passive: true });
     const ease = (a: number, b: number, k: number) => a + (b - a) * k;
     const camStep = (f: FlowMap, dt: number) => {
-      const P = plan(story.dataset.step || "intro", prog), k = reduce ? 1 : 1 - Math.exp(-dt * 3.2), c = f.cam;
+      if (autoNow()) {
+        auto.t += dt; const id = cur()[0];
+        if (story.dataset.step !== id) story.dataset.step = id;
+        if (stage.dataset.auto !== "1") stage.dataset.auto = "1";
+      }
+      const P = plan(...cur()), k = reduce ? 1 : 1 - Math.exp(-dt * 3.2), c = f.cam;
       const X = ease(mx(c.lon), mx(P.cam.lon), k), Y = ease(my(c.lat), my(P.cam.lat), k), [lon, lat] = ll(X, Y);
       let db = P.cam.bearing - c.bearing; if (db > 180) db -= 360; if (db < -180) db += 360;
       Object.assign(c, { lon, lat, zoom: ease(c.zoom, P.cam.zoom, k), pitch: ease(c.pitch, P.cam.pitch, k), bearing: c.bearing + db * k, ox: ease(c.ox || 0, P.cam.ox || 0, k), oy: ease(c.oy || 0, P.cam.oy || 0, k) });
     };
     // 덧그림 — 지나온 길(주홍) · 남은 길(옅게) · 상자(흰 테두리 주홍 네모 + 고리)
     const overlay = (ctx: CanvasRenderingContext2D, Pf: any) => {
-      const P = plan(story.dataset.step || "intro", prog), o = [0, 0, 0];
+      const P = plan(...cur()), o = [0, 0, 0];
       if (P.path) {
         const seg = (from: number, to: number, style: string, w: number, dash: number[]) => {
           ctx.beginPath(); ctx.setLineDash(dash);
@@ -229,8 +251,9 @@ const TRIP = {
     };
     let booted = false;
     const kick = () => { if (booted) return; booted = true; boot().catch((e) => { stage.dataset.ready = "error"; console.error(e); }); };
+    // [2026-10-15 P0] 좁은 화면도 만지기를 기다리지 않는다 — 페이지가 다 뜬 뒤 한가할 때 받는다(그 사이 만지면 바로)
     const go = () => {
-      if (!lite) { "requestIdleCallback" in window ? (window as any).requestIdleCallback(kick, { timeout: 1500 }) : setTimeout(kick, 300); return; }
+      "requestIdleCallback" in window ? (window as any).requestIdleCallback(kick, { timeout: lite ? 2500 : 1500 }) : setTimeout(kick, lite ? 600 : 300);
       for (const ev of ["touchstart", "pointerdown", "scroll", "keydown", "wheel"]) addEventListener(ev, kick, { once: true, passive: true });
     };
     document.readyState === "complete" ? go() : addEventListener("load", go, { once: true });
@@ -241,6 +264,7 @@ const TRIP = {
   .story__map { position: sticky; top: 0; height: 100vh; z-index: 0; overflow: hidden; }
   .trip__poster, .trip__cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .trip__poster { object-fit: cover; }
+  .trip__auto { display: none; } .story__map[data-auto="1"] .trip__auto { display: inline; }
   .trip__cv { opacity: 0; transition: opacity 0.8s ease; }
   .story__map[data-ready="1"] .trip__cv { opacity: 1; }
   .trip__labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }

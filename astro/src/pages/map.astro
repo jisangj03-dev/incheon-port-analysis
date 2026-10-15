@@ -22,7 +22,7 @@ type DP = { id: string; label: string; kind: string; lon: number; lat: number; a
 const places: DP[] = D.places.map((p: any) => ({ id: p.id, label: p.label, kind: p.kind, lon: p.lon, lat: p.lat, approx: !!p.approx, v: p.values ? p.values[p.values.length - 1] : null, values: p.values || null }));
 const RT = route();
 const CT = JSON.parse(readFileSync(join(repoRoot(), "data/derived/supply_hs85.json"), "utf-8")).counter;
-// 첫 화면 = 해도 정지 그림(빌드 때 SVG · 스크립트 거의 0) — maplibre 는 사람이 움직이면 띄운다(2026-10-14 출고 검사: 모바일 성능 56 · maplibre 실행이 주범).
+// 첫 화면 = 해도 그림(빌드 때 SVG) 위에서 달이 흐른다 — maplibre 는 넓은 화면이면 한가할 때, 좁은 화면이면 사람이 움직이면 띄운다(2026-10-14 출고 검사: 모바일 성능 56 · maplibre 실행이 주범 · 10-15 P0 자동 재생).
 const pvmax = Math.max(1, ...places.map((p) => p.v || 0));
 const ppts = places.map((p) => ({ id: p.id, lon: p.lon, lat: p.lat, v: p.v, cls: p.v === pvmax ? "top" : "" })).concat([{ id: "to", label: RT.to.label, lon: RT.to.lon, lat: RT.to.lat, v: null, cls: "to" }] as any);
 const pfit: [number, number][] = ppts.map((p: any) => [p.lon, p.lat]);
@@ -73,12 +73,49 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   <script>
     import { initDsMap } from "../lib/ds-map";
     import { initHaedo } from "../lib/haedo";
-    initHaedo(document.getElementById("map-poster") as HTMLElement);
-    // 움직이는 지도는 사람이 움직이면(스크롤 · 누름 · 마우스 · 키 · 바퀴) 띄운다 — 받기 전에는 위 해도 정지 그림이 같은 자리를 보인다
-    let started = false;
+    // [2026-10-15 공개 전 개편 P0] 들어오자마자 돈다 — 클릭 없이.
+    //  · 첫 장면 = 해도 정지 그림 위에서 달이 흐른다(점 넓이 = 그 달 처리량 · 원 반지름만 바꾼다 — 가볍다 · 모바일 성능 90)
+    //  · 넓은 화면은 한가할 때 maplibre 를 받아 이어 돈다 · 좁은 화면은 사람이 움직이면 받는다(maplibre 실행이 모바일 성능 56 의 주범이었다 · 10-14)
+    //  · 만지면(달 막대·끌기) 멈췄다가 6초 뒤 다시 · 「멈춤」 단추로 멈춘 것은 그대로 · 동작 줄이기면 돌지 않는다
+    const fig = document.getElementById("map-poster") as HTMLElement;
+    let s = 1;
+    initHaedo(fig, (k) => { s = k; });
+    const P = JSON.parse(document.getElementById("ds-map-data")!.textContent || "[]");
+    const MD = JSON.parse(document.getElementById("ds-map-months")!.textContent || "{}");
+    const slider = document.getElementById("ds-m") as HTMLInputElement, play = document.getElementById("ds-play") as HTMLButtonElement;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, lite = matchMedia("(max-width: 720px)").matches;
+    const last = (p: any) => (p.values ? p.values[p.values.length - 1] : null);
+    const vmax = Math.max(1, ...P.map((p: any) => last(p) || 0));
+    const W = window as any;
+    W.__mapPlay = { held: reduce, i: MD.months.length - 1, frames: 0 };
+    let pt: any = null, rt: any = 0, started = false;
+    const pset = (i: number) => {
+      W.__mapPlay.i = i; W.__mapPlay.frames++;
+      slider.value = String(i); document.getElementById("ds-ym")!.textContent = MD.months[i];
+      for (const p of P) {
+        const v = p.values ? p.values[i] : null, c = fig.querySelector<SVGCircleElement>(`circle[data-pt="${CSS.escape(p.id)}"]`);
+        if (c) { const r = v ? 4 + 12 * Math.sqrt(v / vmax) : 3.5; c.dataset.rpx = r.toFixed(1); c.setAttribute("r", String(r / s)); }
+        const lb = fig.querySelector(`[data-lb="${CSS.escape(p.id)}"] i`); if (lb) lb.textContent = v == null ? "—" : String(v);
+      }
+    };
+    const pbtn = () => { play.textContent = pt ? "멈춤" : "재생"; play.setAttribute("aria-pressed", String(!pt)); };
+    const pstart = () => { if (pt || W.__mapPlay.held) return; pt = setInterval(() => pset((W.__mapPlay.i + 1) % MD.months.length), 900); pbtn(); };
+    const pstop = () => { clearInterval(pt); pt = null; pbtn(); };
+    const ptouch = () => { pstop(); clearTimeout(rt); if (!W.__mapPlay.held && !reduce) rt = setTimeout(pstart, 6000); };
+    const onPlay = () => { if (pt) { W.__mapPlay.held = true; pstop(); } else { W.__mapPlay.held = false; pstart(); } };
+    const onSlide = () => { ptouch(); pset(Number(slider.value)); };
+    play.addEventListener("click", onPlay); slider.addEventListener("input", onSlide);
+    if (!reduce) { pbtn(); setTimeout(pstart, 1200); } else pbtn();
+    // 움직이는 지도(maplibre)로 넘긴다 — 넘길 때 달·멈춤 상태를 그대로 준다
     const EV = ["scroll", "pointerdown", "pointermove", "keydown", "touchstart", "wheel"] as const;
-    const go = () => { if (started) return; started = true; for (const e of EV) removeEventListener(e, go); initDsMap(); };
+    // 첫 장면은 maplibre 가 다 그릴(idle) 때까지 계속 돈다 — 받는 동안 멈춘 화면이 없게(ds-map 이 idle 에서 부른다)
+    W.__mapPosterStop = () => { clearInterval(pt); pt = null; clearTimeout(rt); play.removeEventListener("click", onPlay); slider.removeEventListener("input", onSlide); };
+    const go = () => {
+      if (started) return; started = true;
+      for (const e of EV) removeEventListener(e, go); initDsMap();
+    };
     for (const e of EV) addEventListener(e, go, { passive: true, once: true });
+    if (!lite) "requestIdleCallback" in window ? W.requestIdleCallback(go, { timeout: 2500 }) : setTimeout(go, 800);
     if (location.hash === "#live") go();
   </script>
 </Studio>

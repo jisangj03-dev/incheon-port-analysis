@@ -115,10 +115,14 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   const ym = await page.locator("#fm-ym").innerText();
   await page.evaluate(() => { window.__fm.t += 7; }); await tick(0.05);
   await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 10_000 });
-  // 인천·수도권 보기 → 가까이 날아간다(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
+  // [2026-10-15 P0] 첫 화면 = 수도권(가까이) · 「아시아」 → 멀리 · 「인천 관문」 → 더 가까이(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
+  expect((await st()).zoom, "첫 화면이 수도권이 아니다").toBeGreaterThan(7);
+  await page.locator("[data-view=asia]").click();
+  await page.evaluate(() => { window.__fm.t += 4; }); await tick(0.05);
+  await expect.poll(async () => (await st()).zoom, { timeout: 10_000 }).toBeLessThan(4);
   await page.locator("[data-view=incheon]").click();
   await page.evaluate(() => { window.__fm.t += 4; }); await tick(0.05);
-  await expect.poll(async () => (await st()).zoom, { timeout: 10_000 }).toBeGreaterThan(8);
+  await expect.poll(async () => (await st()).zoom, { timeout: 10_000 }).toBeGreaterThan(8.3);
   await page.locator("#fm-gates").click();
   await expect(page.locator("#fm-panel")).toBeVisible();
   await expect(page.locator("#fm-p-dl")).toContainText("인천공항");
@@ -169,8 +173,10 @@ test("공급망 따라가기: 단계 · 데이터 없음 구간 · 반대 지표
 });
 
 // 선박 리플레이(§3-3) — 월 집계라고 적었다 · 원천 행 수·기간이 수집 CSV 와 맞다(V1) · 막대·재생으로 달이 바뀐다 · 반대 지표
-test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · 재생 · 반대 지표", async ({ page }) => {
+test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · 재생 · 반대 지표", async ({ page, request }) => {
   await page.goto(at("vessels"), { waitUntil: "networkidle" });
+  // [2026-10-15 P0] 들어오자마자 돈다 — 손대지 않았는데 달이 바뀐다
+  await expect.poll(() => page.evaluate(() => window.__vrPlay?.on), { timeout: 5_000 }).toBe(true);
   const csv = readFileSync("data/collected/vessel-monthly.csv", "utf-8").trim().split("\n").slice(1);
   const yms = csv.map((l) => l.split(",")[0]);
   const V = JSON.parse(readFileSync("data/derived/vessel_replay.json", "utf-8"));
@@ -179,8 +185,12 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   await expect(page.locator("[data-v1]")).toContainText(`원천 ${V.source_rows}행`);
   await expect(page.locator("main, body").first()).toContainText("개별 선박 아님");
   await expect(page.locator(".counter")).toContainText("반대 지표");
-  const ym = await page.locator("#vr-ym").innerText();
+  // 처음 그려지는 달(서버가 낸 HTML) = 마지막 달 — 자동 재생이 곧 바꾸므로 HTML 원문으로 본다
+  const html = await (await request.get(page.url())).text();
+  const ym = (html.match(/id="vr-ym"[^>]*>([^<]+)</) || [])[1];
   await page.locator("#vr-m").fill("0");
+  // 만지면 멈춘다(6초 뒤 다시)
+  expect(await page.evaluate(() => window.__vrPlay.on), "달 막대를 만졌는데 멈추지 않았다").toBe(false);
   await expect(page.locator("#vr-ym")).toHaveText(V.months[0]);
   await expect(page.locator("#vr-inc")).toHaveText(String(V.ocean_arrivals["인천"][0]));
   await page.click("#vr-play");
@@ -188,15 +198,21 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   expect(ym).toBe(V.latest.ym);
 });
 
-// 지도 첫 화면(2026-10-14 출고 검사 · 모바일 성능) — 아무것도 안 하면 maplibre 를 받지 않고 해도 정지 그림이 같은 자리를 채운다
-test("지도: 손대기 전에는 정지 해도 그림 · maplibre 0 · 움직이면 뜬다", async ({ page }) => {
+// 지도 첫 화면(2026-10-14 출고 검사 · 모바일 성능 · 10-15 P0 자동 재생) — 좁은 화면은 maplibre 를 받지 않고 해도 그림 위에서 달이 스스로 흐른다(가벼운 첫 장면).
+// 넓은 화면은 한가할 때 maplibre 를 받아 이어 돈다. 둘 다 클릭 없이.
+test("지도: 클릭 없이 달이 흐른다 · 좁은 화면은 maplibre 0 · 움직이면 뜬다", async ({ page }) => {
   const got = [];
   page.on("request", (r) => got.push(r.url()));
   await page.goto(at("map"), { waitUntil: "networkidle" });
-  expect(got.filter((u) => /maplibre|pmtiles/.test(u)), "손대기 전 지도 엔진 요청").toEqual([]);
+  const narrow = (page.viewportSize()?.width || 1440) <= 720;
+  if (narrow) expect(got.filter((u) => /maplibre|pmtiles/.test(u)), "좁은 화면 손대기 전 지도 엔진 요청").toEqual([]);
   await expect(page.locator("#map-poster .h-pt")).toHaveCount(JSON.parse(readFileSync("data/derived/places.json", "utf-8")).places.length + 1);
-  const box = await page.locator("#map-poster").boundingBox();
-  expect(box && box.height, "정지 그림이 지도 칸을 채운다").toBeGreaterThan(300);
+  // 좁은 화면은 첫 장면(해도 그림)이 지도 칸을 채운다 · 넓은 화면은 maplibre 가 곧 받아 그림이 물러난다 — 지도 칸 자체를 잰다
+  const box = await page.locator(narrow ? "#map-poster" : ".ds-map-box").boundingBox();
+  expect(box && box.height, "지도 칸이 채워져 있다").toBeGreaterThan(300);
+  // 클릭 없이 달이 바뀐다(첫 장면이든 maplibre 든)
+  const f0 = await page.evaluate(() => window.__mapPlay.frames);
+  await expect.poll(() => page.evaluate(() => window.__mapPlay.frames), { timeout: 15_000, message: "손대지 않았는데 달이 안 흐른다" }).toBeGreaterThan(f0 + 1);
   await page.mouse.move(30, 30);
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
 });
