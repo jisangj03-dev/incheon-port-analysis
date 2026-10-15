@@ -28,7 +28,7 @@ jobs:
       matrix:
         job: [terms, portwatch, density, osm, apis, s2, kcci, iiac, radar, dart]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: ${{ matrix.job == 'dart' && 60 || 40 }}  # dart = 기업개황 3천여 건
     steps:
       - uses: actions/checkout@v5
         if: inputs.only == '' || inputs.only == matrix.job

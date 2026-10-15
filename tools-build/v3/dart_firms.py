@@ -6,7 +6,8 @@
   python dart_firms.py            수집(Actions)
   python dart_firms.py --selftest 규칙 시험(키·네트워크 없이)
 """
-import datetime, json, os, re, sys, time
+import datetime, json, os, re, sys, threading, time
+from concurrent.futures import ThreadPoolExecutor
 from common import ROOT, DART_KEY, jget, scrub, say
 
 API = "https://opendart.fss.or.kr/api"
@@ -17,6 +18,7 @@ DIV = {"49": "육상 운송 및 파이프라인 운송업", "50": "수상 운송
 CLS = {"Y": "유가증권시장", "K": "코스닥", "N": "코넥스", "E": "비상장(사업보고서 제출)"}
 ACCTS = [("revenue", ("매출액", "영업수익", "수익(매출액)")), ("op", ("영업이익",)), ("net", ("당기순이익",)), ("assets", ("자산총계",))]
 calls = 0
+LOCK = threading.Lock()
 
 
 class Stop(Exception):
@@ -25,8 +27,9 @@ class Stop(Exception):
 
 def call(path, **p):
     global calls
-    if calls >= CAP: raise Stop("하루 호출 상한(5천) — 멈춘다")
-    calls += 1
+    with LOCK:
+        if calls >= CAP: raise Stop("하루 호출 상한(5천) — 멈춘다")
+        calls += 1
     st, d = jget(f"{API}/{path}", {"crtfc_key": DART_KEY, **p}, timeout=40)
     if not isinstance(d, dict): raise Stop(f"응답 없음 {path} {st}")
     s = d.get("status")
@@ -117,10 +120,15 @@ def main():
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None)
     try:
         last = filers(now); say("사업보고서 제출 법인", len(last), "· 호출", calls)
-        infos = {}
-        for c in last:
+        # 기업개황 — 한 번에 여섯씩(한 줄로는 3천여 건이 Actions 40분을 넘었다 · 2026-10-15 첫 실행)
+        def one(c):
             d = call("company.json", corp_code=c)
-            if d.get("status") == "000": infos[c] = {k: d.get(k) for k in ("corp_code", "corp_name", "corp_cls", "stock_code", "adres", "induty_code", "acc_mt")}  # 싣는 칸에 쓸 것만 남긴다
+            return c, ({k: d.get(k) for k in ("corp_code", "corp_name", "corp_cls", "stock_code", "adres", "induty_code", "acc_mt")} if d.get("status") == "000" else None)  # 싣는 칸에 쓸 것만 남긴다
+        infos = {}
+        with ThreadPoolExecutor(6) as ex:
+            for n, (c, info) in enumerate(ex.map(one, list(last)), 1):
+                if info: infos[c] = info
+                if n % 500 == 0: say("기업개황", n, "/", len(last))
         hit = [c for c in last if infos.get(c) and keep(infos[c])]
         say("인천·물류", len(hit), "· 호출", calls)
         fin = {}
