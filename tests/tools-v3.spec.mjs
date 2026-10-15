@@ -198,3 +198,14 @@ test("등시선: 시간대 배율 = reach_slots.json · 상하차 분 더하기"
   await page.fill("#reach-prep", "30");
   await expect.poll(first).toBe(a + 30);
 });
+
+// [2026-10-15 P1 ①] 등시선 화물차 판 — 단추를 누르면 표가 화물차 도착 분(cities_truck)으로 바뀐다
+test("등시선: 화물차 판 = cities_truck", async ({ page }) => {
+  const I = JSON.parse(J("data/derived/isochrones.json"));
+  test.skip(!I.origins[0].b64_truck, "화물차 판 데이터 없음");
+  await page.goto(`${B}/tools/delivery-reach.html`);
+  await page.waitForSelector(".reach__map[data-ready='1']");
+  await page.locator("#reach-veh button[data-truck='1']").click();
+  const sel = Number(await page.locator("#reach-o").inputValue()), O = I.origins[sel];
+  await expect(page.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(O.cities_truck["서울시청"]));
+});
