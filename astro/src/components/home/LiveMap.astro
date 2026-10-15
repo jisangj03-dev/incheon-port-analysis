@@ -274,6 +274,17 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__bars i { display: block; height: 6px; width: var(--w); background: var(--s-signal); border-radius: 1px; }
   .live__bars b { font-weight: 500; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
   .live__foot { padding-top: var(--s-4); }
+  /* [2026-10-15 채팅 검수] 낮은 창(1536×640 등)에서 글 블록이 아래 숫자판·연락 단추와 겹쳤다 — 무대 높이가 창 높이만 보고 정해졌기 때문.
+     넓은 화면에서는 글과 무대를 한 칸(grid)에 겹쳐 두고, 글 블록 아래에 숫자판 높이만큼 자리를 남긴다 → 글이 길면 무대가 늘어난다(겹칠 수 없다).
+     시험 = tests/hero.spec.mjs(너비 1280·1440·1536 × 높이 640·720·900 · 겹침 0) */
+  @media (min-width: 721px) {
+    .live { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .live > .live__text, .live > .live__frame { grid-row: 1; grid-column: 1; }
+    .live > .live__foot { grid-row: 2; grid-column: 1; }
+    .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 168px) + 30px); }
+    .live__frame { display: flex; flex-direction: column; }
+    .live__stage { flex: 1 0 auto; height: auto; min-height: clamp(560px, calc(100svh - 92px), 980px); }
+  }
   @media (max-width: 720px) {
     /* 좁은 화면 — 글자를 위에 따로 두고(덮지 않는다) 지도를 그 아래 넓게 */
     .live__text { position: static; padding-top: var(--s-4); pointer-events: auto; }
