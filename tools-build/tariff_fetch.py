@@ -21,6 +21,21 @@ def main():
     h = fetch(f"https://www.data.go.kr/data/{DID}/fileData.do")
     ids = sorted(set(re.findall(r"FILE_\d{12,}", h)))
     sns = sorted(set(re.findall(r"fileDetailSn['\"]?\s*[:=]\s*['\"]?(\d+)", h))) or ["1"]
+    uddi = sorted(set(re.findall(r"uddi:[0-9a-f-]{20,}", h)))
+    out["uddi"] = uddi
+    # 화면에 번호가 없으면(스크립트가 받아 온다) 포털 내려받기 조회를 거친다 — 2026-10-15 1차: 화면에 FILE_ 번호 0
+    out["hints"] = sorted(set(re.findall(r"(fn_\w*[Dd]own\w*|selectFileData\w*|fileDownload\.do|downloadFile\w*)", h)))[:12]
+    if not ids:
+        for ud in uddi[:2]:
+            for u in (f"https://www.data.go.kr/tcs/dss/selectFileDataDownload.do?publicDataPk={DID}&publicDataDetailPk={ud}&fileDetailSn=1",
+                      f"https://www.data.go.kr/tcs/dss/selectFileDataDownload.do?publicDataDetailPk={ud}"):
+                try:
+                    t = fetch(u, timeout=40); out["steps"].append({"url": u, "head": t[:300]})
+                    ids += re.findall(r"FILE_\d{12,}", t)
+                    sns += re.findall(r"fileDetailSn['\"]?\s*[:=]\s*['\"]?(\d+)", t)
+                except Exception as e:
+                    out["steps"].append({"url": u, "error": str(e)[:160]})
+        ids = sorted(set(ids)); sns = sorted(set(sns)) or ["1"]
     out["atchFileId"], out["fileDetailSn"] = ids, sns
     out["title"] = (re.search(r"<title>([^<]*)", h) or [None, None])[1]
     blob = None
