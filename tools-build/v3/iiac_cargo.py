@@ -17,15 +17,19 @@ def num(s):
     except ValueError: return 0.0
 
 
-def download():
+def download(last=None):
+    """데이터 상세 화면에서 내려받기 주소(파일 번호)를 읽어 받는다. 화면이 안 열리면 지난번에 쓴 파일 번호로 바로 받는다
+    (2026-10-15 data-v3: 화면이 Actions 에서 연달아 timed out — 파일 주소는 갱신 때만 바뀐다)."""
     st, h = get(PAGE, tries=4, timeout=60)
     m = re.search(r"fileDownload\.do\?atchFileId=(FILE_\d+)&(?:amp;)?fileDetailSn=(\d+)", h or "")
-    if not m: say("내려받기 주소를 못 찾았다", st); return None, None
-    url = f"https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId={m.group(1)}&fileDetailSn={m.group(2)}&insertDataPrcus=N"
+    ref = {"atchFileId": m.group(1), "fileDetailSn": m.group(2)} if m else (last or None)
+    if not ref: say("내려받기 주소를 못 찾았다", st); return None, None, None
+    if not m: say("화면이 안 열려 지난 파일 번호로 받는다", st, ref["atchFileId"])
+    url = f"https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId={ref['atchFileId']}&fileDetailSn={ref['fileDetailSn']}&insertDataPrcus=N"
     st, b = get(url, tries=4, timeout=120, binary=True)
-    say("받음", st, len(b or b""), m.group(1))
+    say("받음", st, len(b or b""), ref["atchFileId"])
     upd = re.search(r"수정일\s*</?[^>]*>?\s*(\d{4}-\d{2}-\d{2})", h or "") or re.search(r"수정일[^0-9]{0,40}(\d{4}-\d{2}-\d{2})", re.sub(r"<[^>]+>", " ", h or ""))
-    return (b.decode("utf-8-sig", "replace") if b else None), (upd.group(1) if upd else None)
+    return (b.decode("utf-8-sig", "replace") if b else None), (upd.group(1) if upd else (last or {}).get("portal_updated")), ref
 
 
 def derive(text, updated=None):
@@ -50,16 +54,20 @@ def derive(text, updated=None):
 
 
 def main():
+    old = json.load(open(OUT, encoding="utf-8")) if os.path.exists(OUT) else {}
     if "--csv" in sys.argv:
-        text, upd = open(sys.argv[sys.argv.index("--csv") + 1], encoding="utf-8-sig").read(), None
+        text, upd, ref = open(sys.argv[sys.argv.index("--csv") + 1], encoding="utf-8-sig").read(), None, None
     else:
-        text, upd = download()
-    d = derive(text or "", upd)
+        last = dict(old["file"], portal_updated=old.get("portal_updated")) if old.get("file") else None
+        text, upd, ref = download(last)
+    if not text:
+        # 원천에 닿지 못했다 — 반기 갱신 자료라 잃는 것이 없다. 지난 파일을 지키고 경고만 남긴다(형식이 바뀐 것은 아래에서 빨강)
+        print("::warning::인천공항 파일(15062056)에 닿지 못했다 — 지난 파일을 지킨다"); return 0
+    d = derive(text, upd)
     if not d or len(d["countries"]) < 20:
-        say("자료가 덜 왔다 — 지난 파일을 지킨다"); return 1
-    if os.path.exists(OUT):
-        old = json.load(open(OUT, encoding="utf-8"))
-        if old.get("through", "") > d["through"]: say("새 파일이 지난 것보다 이르다 — 지킨다", d["through"], old["through"]); return 1
+        say("자료가 덜 왔다(형식이 바뀌었을 수 있다) — 지난 파일을 지킨다"); return 1
+    if old.get("through", "") > d["through"]: say("새 파일이 지난 것보다 이르다 — 지킨다", d["through"], old["through"]); return 1
+    if ref: d["file"] = {k: ref[k] for k in ("atchFileId", "fileDetailSn")}
     json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     top = list(d["countries"].items())[:5]
     say(f"{d['months'][0]}~{d['through']} · 나라 {len(d['countries'])} · 도착 {d['total_in_t']:,}톤 · 출발 {d['total_out_t']:,}톤 · 위 다섯 {[(k, v['in_pct'], v['out_pct']) for k, v in top]}")
