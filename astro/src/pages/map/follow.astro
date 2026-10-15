@@ -149,6 +149,7 @@ const TRIP = {
       if (fm && !fm.running) fm.draw();
     };
     addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(pick); }, { passive: true });
+    (window as any).__followPick = pick; // 시험 손잡이 — CI 합성기가 굶으면 rAF 가 늦어 단계가 안 넘어간다(QA 147 · 2026-10-15). 시험이 직접 부른다
     addEventListener("resize", () => { if (!raf) raf = requestAnimationFrame(pick); if (fm) { fm.resize(); fm.draw(); } });
     pick();
 
