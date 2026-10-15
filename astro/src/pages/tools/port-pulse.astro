@@ -21,7 +21,7 @@ const oddOf = (k: string) => (P[k].check?.odd || []) as string[];
 const odds = order.filter((k) => oddOf(k).length).map((k) => `${P[k].ko} ${ranges(oddOf(k))}`);
 // 어긋난 달이 「평소」 판정 구간(평소 첫날 ~ 최근 끝날)에 드는가 — 들면 판정 옆에 그대로 적는다
 const inJudge = order.filter((k) => oddOf(k).some((m) => m >= P[k].judge.base_from.slice(0, 7) && m <= P[k].judge.recent_to.slice(0, 7))).map((k) => P[k].ko);
-const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.map((k) => [k, { ko: P[k].ko, days: P[k].days, odd: oddOf(k) }])) };
+const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.map((k) => [k, { ko: P[k].ko, days: P[k].days, odd: oddOf(k), stale_to: P[k].stale_to }])) };
 ---
 <Studio title="인천항 일일 맥박 — 지금 배가 평소보다 많이 들어오나" description="IMF PortWatch 일별 입항으로 인천항의 최근 7일을 직전 13주 평소와 견주고, 부산·평택과 나란히 본다." current="tools" ogImage="/og/tool-port-pulse.jpg" lateFonts>
   <ToolShell id="pulse" who="포워더 · 선사 · 터미널" asOf={D.asof} q="지금 인천항에 배가 평소보다 많이 들어오나?"
@@ -38,7 +38,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
       </figure>
       <ol class="pulse__cmp" aria-label="부산·평택과 견줌(각자의 평소 대비)">
         {order.map((k) => { const j = P[k].judge; return <li data-port={k} class={k === "Incheon" ? "on" : ""}><button type="button" data-port={k} aria-pressed={k === "Incheon" ? "true" : "false"}>
-          <b>{P[k].ko}</b><i class={j.pct > D.rule.threshold_pct ? "up" : j.pct < -D.rule.threshold_pct ? "dn" : ""}>{sign(j.pct)}%</i><span>{j.recent_avg}척/일 · 평소 {j.base_avg}</span>
+          <b>{P[k].ko}</b><i class={j.pct > D.rule.threshold_pct ? "up" : j.pct < -D.rule.threshold_pct ? "dn" : ""}>{sign(j.pct)}%</i><span>{j.recent_avg}척/일 · 평소 {j.base_avg}{P[k].stale_to && <em class="stale"> · {P[k].stale_to}까지</em>}</span>
           <Fragment set:html={sparkSvg(P[k].days)} /></button></li>; })}
       </ol>
       {odds.length > 0 && <p class="s-cap pulse__odd" data-odd>원천 점검 — 해양수산부 월 외항 입항과 견줘 PortWatch 가 {D.ports.Incheon.check.threshold_pct}% 넘게 어긋난 달(그래프에서 흐리게): {odds.join(" / ")}. 해수부 통계에는 같은 변동이 없어 원천의 수집·집계 변동으로 보입니다(원인 미확인). {inJudge.length ? `${inJudge.join("·")}은 그 달이 「평소」 판정 구간에 들어 판정을 덜 믿어야 합니다.` : "어긋난 달은 지금 「평소」 판정 구간에 들지 않습니다."}</p>}
@@ -63,7 +63,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
       const tk = st.type === "all" ? "" : `${C.types.find((t: any) => t.id === st.type).ko} `;
       $("pl-pct").textContent = `${sign(j.pct)}%`; $("pl-pct").className = j.pct > R.threshold_pct ? "up" : j.pct < -R.threshold_pct ? "dn" : "";
       $("pl-word").textContent = `${p.ko} ${tk}${j.word}`;
-      $("pl-sub").textContent = `최근 7일 ${j.r.toFixed(1)}척/일 · 평소 ${j.b.toFixed(1)}척/일`;
+      $("pl-sub").textContent = `최근 7일 ${j.r.toFixed(1)}척/일 · 평소 ${j.b.toFixed(1)}척/일` + (p.stale_to ? ` · ${p.stale_to}까지(원천 질의 실패로 지난 자료)` : "");
       const im = mean(p.days.slice(-7).map((x: any) => x.imp)), ex = mean(p.days.slice(-7).map((x: any) => x.exp));
       $("pl-trade").textContent = `${p.ko} 추정 교역량(최근 7일 하루 평균 · 모델 추정치) — 수입 ${im ? fmt(im) : "—"}톤 · 수출 ${ex ? fmt(ex) : "—"}톤`;
       if (anim && !matchMedia("(prefers-reduced-motion: reduce)").matches) requestAnimationFrame(() => requestAnimationFrame(() => fig.classList.add("go"))); else fig.classList.add("go", "still");
@@ -97,6 +97,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
   .pulse__fig :global(.pb rect.on) { fill: var(--s-signal); }
   .pulse__fig :global(.pb rect.odd) { fill: #ddd6c8; }
   .pulse__odd { margin: 0; max-width: 52rem; }
+  .pulse__cmp .stale { font-style: normal; color: var(--s-signal); }
   .pulse__fig :global(.pa) { stroke: #191714; stroke-width: 1.4; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
   .pulse__fig :global(.pa-t) { fill: #191714; font-weight: 600; }
   .pulse__fig :global(.pl) { fill: none; stroke: #191714; stroke-width: 2; vector-effect: non-scaling-stroke; }
