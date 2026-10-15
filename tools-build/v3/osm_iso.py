@@ -17,6 +17,9 @@ NOT_INCHEON = [(126.755, 37.46, 126.80, 37.57)]  # 부천(오정·원종) — �
 SPEED = {"motorway": 90, "trunk": 60, "primary": 60, "secondary": 40, "tertiary": 40, "unclassified": 25, "residential": 25,
          "motorway_link": 50, "trunk_link": 50, "primary_link": 40, "secondary_link": 35, "tertiary_link": 30, "service": 15, "living_street": 10}
 LIMIT_MIN = 200
+# [2026-10-15 P1 ①] 화물차 판 — 고속도로 화물차(적재 1.5톤 초과) 최고속도 80km/h(도로교통법 시행규칙 제19조 · 원문은 세션에서 열지 못해 검색 확인)
+# · OSM hgv=no(화물차 통행 금지) 길은 뺀다. 시간대·지역별 화물차 통행 제한(도심 시간제)은 OSM 에 고르게 적혀 있지 않아 반영하지 않는다(지면에 적는다).
+TRUCK_CAP = {"motorway": 80}
 # 도착 분을 표로 내는 수도권 도시(시청·대표 지점 부근 · 개략) — 칸 값을 읽는다(그 칸 안 가장 빠른 길)
 CITIES = {"서울시청": (126.978, 37.566), "강남역": (127.028, 37.498), "부천": (126.783, 37.503), "김포": (126.716, 37.615), "고양 일산": (126.770, 37.658),
           "파주": (126.780, 37.760), "의정부": (127.033, 37.738), "남양주": (127.216, 37.636), "하남": (127.215, 37.539), "성남 분당": (127.120, 37.382),
@@ -54,7 +57,7 @@ def load(pbf):
             except osmium.InvalidLocationError: return
             if not any(inb(p[1], p[2]) for p in pts): return
             ow = w.tags.get("oneway", "no")
-            s.ways.append((SPEED[hw], pts, 1 if ow in ("yes", "true", "1") or hw == "motorway" else -1 if ow == "-1" else 0))
+            s.ways.append((SPEED[hw], pts, 1 if ow in ("yes", "true", "1") or hw == "motorway" else -1 if ow == "-1" else 0, hw, w.tags.get("hgv", "") != "no"))
         def node(s, n):
             nm = n.tags.get("name", "")
             if "물류단지" in nm and is_site(nm, n.tags) and INCHEON[0] <= n.location.lon <= INCHEON[2] and INCHEON[1] <= n.location.lat <= INCHEON[3]:
@@ -63,13 +66,15 @@ def load(pbf):
     return h.ways, h.named
 
 
-def graph(ways):
+def graph(ways, truck=False):
     from scipy.sparse import csr_matrix
     idx, lon, lat, r, c, t = {}, [], [], [], [], []
     def nid(ref, x, y):
         if ref not in idx: idx[ref] = len(lon); lon.append(x); lat.append(y)
         return idx[ref]
-    for spd, pts, ow in ways:
+    for spd, pts, ow, hw, hgv_ok in ways:
+        if truck and not hgv_ok: continue
+        if truck: spd = min(spd, TRUCK_CAP.get(hw, spd))
         for (a, x0, y0), (b, x1, y1) in zip(pts, pts[1:]):
             i, j = nid(a, x0, y0), nid(b, x1, y1)
             km = math.hypot((x1 - x0) * 111.32 * math.cos(math.radians((y0 + y1) / 2)), (y1 - y0) * 110.57)
@@ -105,8 +110,9 @@ def main():
     P = json.load(open(os.path.join(ROOT, "data/derived/places.json"), encoding="utf-8"))["places"]
     for p in P:
         if p["id"] in ("신항", "남항", "인천공항"): origins.append({"name": p["label"], "lon": p["lon"], "lat": p["lat"], "osm": p.get("coord_source", "")[:60], "kind": "관문"})
-    out = []
-    for o in origins:
+    def solve(G, lon, lat, o):
+        cx = np.clip(((lon - BBOX[0]) / STEP).astype(int), 0, W - 1); cy = np.clip(((BBOX[3] - lat) / STEP).astype(int), 0, H - 1)
+        inside = (lon >= BBOX[0]) & (lon <= BBOX[2]) & (lat >= BBOX[1]) & (lat <= BBOX[3])
         d2 = (lon - o["lon"]) ** 2 + (lat - o["lat"]) ** 2
         s = int(np.argmin(d2))
         snap_km = math.sqrt(d2[s]) * 100
@@ -119,16 +125,23 @@ def main():
         nb = np.min([pad[1 + dy: 1 + dy + H, 1 + dx: 1 + dx + W] for dy in (-1, 0, 1) for dx in (-1, 0, 1)], axis=0) + 2
         grid = np.where(grid < 255, grid, np.minimum(nb, 255))
         g8 = np.clip(np.round(grid), 0, 255).astype("uint8")
-        reach = {f"{h}h": int((g8 <= 60 * h).sum()) for h in (1, 2, 3)}
         city = {}
         for nm, (x, y) in CITIES.items():
             ix, iy = int((x - BBOX[0]) / STEP), int((BBOX[3] - y) / STEP)
             win = g8[max(0, iy - 1): iy + 2, max(0, ix - 1): ix + 2]
             v = int(win.min()) if win.size else 255
             city[nm] = v if v < 255 else None
+        return g8, city, snap_km
+    GT, lonT, latT = graph(ways, truck=True)
+    out = []
+    for o in origins:
+        g8, city, snap_km = solve(G, lon, lat, o)
+        gT, cityT, _ = solve(GT, lonT, latT, o)
+        reach = {f"{h}h": int((g8 <= 60 * h).sum()) for h in (1, 2, 3)}
         within = {f"{h}h": sum(1 for v in city.values() if v is not None and v <= 60 * h) for h in (1, 2, 3)}
-        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "cities_within": within, "n_cities": len(CITIES), "b64": base64.b64encode(g8.tobytes()).decode()})
-        say(o["name"], reach, f"붙임 {snap_km:.2f}km")
+        out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "cities_within": within, "n_cities": len(CITIES), "b64": base64.b64encode(g8.tobytes()).decode(),
+                    "cities_truck": cityT, "b64_truck": base64.b64encode(gT.tobytes()).decode()})
+        say(o["name"], reach, f"붙임 {snap_km:.2f}km", "· 화물차 서울시청", cityT.get("서울시청"), "분(승용", city.get("서울시청"), ")")
     # 사고 127 교훈(지난 것보다 나쁘지 않을 때만): 출발지가 지난 파일보다 적게 나오면 덮어쓰지 않는다
     prev = os.path.join(ROOT, "data/derived/isochrones.json")
     if os.path.exists(prev) and len(out) < len(json.load(open(prev, encoding="utf-8")).get("origins", [])):
@@ -136,7 +149,7 @@ def main():
     write("data/derived/isochrones.json", {
         "_설명": "인천 물류단지·관문에서 수도권 칸(0.01°)마다 가장 빠른 도착 분. 도로 등급별 자유 흐름 속도 가정 — 혼잡·신호·상하차 미반영. 255 = 길 없음/200분 넘음.",
         "source": "OpenStreetMap 기여자(ODbL 1.0) · Geofabrik south-korea 추출", "made": datetime.date.today().isoformat(),
-        "bbox": BBOX, "step": STEP, "w": W, "h": H, "speeds_kmh": SPEED, "limit_min": LIMIT_MIN,
+        "bbox": BBOX, "step": STEP, "w": W, "h": H, "speeds_kmh": SPEED, "truck_cap_kmh": TRUCK_CAP, "limit_min": LIMIT_MIN,
         "cities": {k: list(v) for k, v in CITIES.items()}, "origins": out})
     return 0
 

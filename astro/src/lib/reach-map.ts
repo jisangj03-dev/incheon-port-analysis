@@ -15,7 +15,7 @@ export const STEPS = [
 ];
 
 export class ReachMap {
-  cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; iso: Iso; geo: Geo | null; o = 0; t = 180; k = 1; grid: Uint8Array; W = 0; H = 0; dpr = 1; // k = 혼잡 가정 배율(자유 흐름 분 × k)
+  cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; iso: Iso; geo: Geo | null; o = 0; t = 180; k = 1; prep = 0; grid: Uint8Array; W = 0; H = 0; dpr = 1; // k = 시간대 배율(자유 흐름 분 × k · 내비 대조 보정) · prep = 상하차·준비 분(모든 도착에 더한다)
   view: number[]; // 보이는 경위도 범위
   field: HTMLCanvasElement; raf = 0;
   onFrame?: (r: ReachMap) => void;
@@ -26,7 +26,8 @@ export class ReachMap {
     this.field = document.createElement("canvas"); this.field.width = iso.w; this.field.height = iso.h;
     this.resize();
   }
-  decode(i: number) { const s = atob(this.iso.origins[i].b64), a = new Uint8Array(s.length); for (let k = 0; k < s.length; k++) a[k] = s.charCodeAt(k); return a; }
+  /** 화물차 판(고속도로 80km/h · hgv=no 길 제외) — 데이터에 b64_truck 이 있을 때만 */ truck = false;
+  decode(i: number) { const O: any = this.iso.origins[i], s = atob(this.truck && O.b64_truck ? O.b64_truck : O.b64), a = new Uint8Array(s.length); for (let k = 0; k < s.length; k++) a[k] = s.charCodeAt(k); return a; }
   setOrigin(i: number) { this.o = i; this.grid = this.decode(i); }
   resize() {
     const r = this.cv.getBoundingClientRect(); this.dpr = Math.min(2, devicePixelRatio || 1);
@@ -41,10 +42,10 @@ export class ReachMap {
   px(lon: number, lat: number) { const v = this.view; return [((lon - v[0]) / (v[2] - v[0])) * this.W, ((v[3] - lat) / (v[3] - v[1])) * this.H]; }
   /** 문턱 t(분)까지의 도달권을 칸 그림으로 */
   paintField() {
-    const { w, h } = this.iso, img = new ImageData(w, h), d = img.data, t = this.t, g = this.grid, k = this.k;
+    const { w, h } = this.iso, img = new ImageData(w, h), d = img.data, t = this.t, g = this.grid, k = this.k, pp = this.prep;
     for (let i = 0; i < g.length; i++) {
       if (g[i] === 255) continue;
-      const m = g[i] * k; if (m > t || m > 180) continue;
+      const m = g[i] * k + pp; if (m > t || m > 180) continue;
       const b = STEPS.find((b) => m <= b.max)!; const edge = t - m < 4 * k ? 0.22 : 0;
       d[i * 4] = b.c[0]; d[i * 4 + 1] = b.c[1]; d[i * 4 + 2] = b.c[2]; d[i * 4 + 3] = Math.round(255 * Math.min(1, b.a + edge));
     }
@@ -71,7 +72,7 @@ export class ReachMap {
     const boxes: number[][] = [];
     ctx.font = `500 ${this.W < 500 ? 10.5 : 12}px system-ui, sans-serif`; ctx.textBaseline = "middle";
     for (const [nm, [x, y]] of Object.entries(this.iso.cities)) {
-      const [cx, cy] = this.px(x, y), m0 = O.cities[nm], m = m0 == null ? null : Math.round(m0 * this.k), on = m != null && m <= this.t;
+      const [cx, cy] = this.px(x, y), m0 = ((this.truck && (O as any).cities_truck) || O.cities)[nm], m = m0 == null ? null : Math.round(m0 * this.k + this.prep), on = m != null && m <= this.t;
       ctx.beginPath(); ctx.arc(cx, cy, on ? 3.5 : 2.5, 0, Math.PI * 2); ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.35)"; ctx.fill();
       const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width, bx = [cx + 6, cy - 7, cx + 6 + tw, cy + 7];
       if (bx[2] > this.W - 2 || boxes.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]))) continue;
