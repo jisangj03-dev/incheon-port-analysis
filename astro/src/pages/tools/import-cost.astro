@@ -1,0 +1,179 @@
+---
+// 도구 · 환율 파도 + 수입원가 계산기(2차 · 실무 질문 Q5) — 관세환율이 바뀌면 같은 물건의 수입 원가(과세가격 + 관세 + 부가세)가 얼마나 바뀌나.
+// 원천 = 관세청 관세환율(수입 · 주간) · 파생 = data/derived/import_cost.json(tools-build/v3/fx_derive.py · 첫 화면 예시도 거기서 계산).
+// 운임지수(KCCI 등)는 이용 조건을 원문으로 확인하지 못해 싣지 않는다(선커밋 §3) — 운임은 직접 넣는다. 참고용 · 자문 아님(지면 안에 적는다).
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/import_cost.json"), "utf-8"));
+const E = D.example, Wk = D.weeks as (string | number)[][];
+const day = (s: string) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+const won = (v: number) => v.toLocaleString("ko-KR");
+const sign = (v: number) => (v > 0 ? "+" : v < 0 ? "−" : "");
+// 환율 선(USD) — 서버에서 그린다(정지 화면 먼저)
+const VW = 1000, VH = 260, P = { l: 46, r: 10, t: 16, b: 26 };
+const us = Wk.map((w) => Number(w[1])), lo = Math.floor(Math.min(...us) / 20) * 20, hi = Math.ceil(Math.max(...us) / 20) * 20;
+const X = (i: number) => P.l + (i / (Wk.length - 1)) * (VW - P.l - P.r), Y = (v: number) => P.t + (1 - (v - lo) / (hi - lo)) * (VH - P.t - P.b);
+const path = us.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join("");
+const iAgo = Wk.findIndex((w) => w[0] === E.ago.week), iNow = Wk.length - 1;
+const ticks: number[] = []; for (let v = lo; v <= hi; v += 40) ticks.push(v);
+// 운임 파도 — KCCI(한국해양진흥공사 · 지수 · 달러 운임 아님). 없으면 칸을 그리지 않는다
+const K = D.kcci as any;
+const kLine = (ci: number) => { if (!K) return ""; const v = K.weeks.map((w: any[]) => Number(w[ci + 1])).filter((x: number) => x > 0), mx = Math.max(...v), mn = Math.min(...v);
+  return K.weeks.map((w: any[], i: number) => `${i ? "L" : "M"}${((i / (K.weeks.length - 1)) * 1000).toFixed(1)} ${(8 + (1 - (Number(w[ci + 1]) - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""); };
+const lastK = K ? K.weeks[K.weeks.length - 1] : null;
+---
+<Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 관세환율(주간)로 같은 물건의 수입 원가(과세가격·관세·부가세)를 주마다 다시 계산한다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
+  <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
+    q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
+    lead={`같은 1만 달러(CIF) 물건을 이번 주 관세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
+    updated={D.fetched} source={K ? `${sourceLine("kcs-exchange")} · ${sourceLine("kobc-kcci")}` : sourceLine("kcs-exchange")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
+    how="관세청 관세환율(수입 · 주마다 고시)을 받아, 과세가격 = CIF 가격 × 관세환율(원 단위 반올림) · 관세 = 과세가격 × 관세율 · 부가가치세 = (과세가격 + 관세) × 10% 로 계산했다(관세·부가세는 원 미만 버림). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
+    limits={`원가는 부가세를 뺀 값이다 — 수입 부가세는 사업자가 매입세액으로 공제받는다(간이과세·면세 사업자·개인 수입은 다르다). 통관 때 실제로 내는 돈은 「납부 합계」 줄이다. 개별소비세·교육세·주세·통관 수수료·FTA 협정세율·감면은 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. ${K ? "운임 파도(KCCI)는 지수(포인트)라 달러 운임이 아니다 — 운임 칸 제안은 지수 변동률만 곱한다. 마지막 반영 주는 원천의 마지막 주 그대로다. " : "운임지수는 아직 싣지 않았다(운임은 직접 넣는다). "}실제 납부액은 수입신고 때 세관이 정한다.`}>
+    <div slot="answer" class="cost">
+      <p class="cost__big"><b id="cs-diff" data-og-num={`원가 차이 · 1만 달러 물건 · ${day(E.ago.week)} 주 대비`} class={E.diff > 0 ? "up" : "dn"}>{sign(E.diff)}{won(Math.abs(E.diff))}<small>원</small></b>
+        <span>1만 달러 물건 원가 · <span id="cs-wk">{day(E.ago.week)}</span> 주 대비 이번 주</span></p>
+      <figure class="cost__fig" id="cs-fig">
+        <div class="cost__plot">
+        <div class="ax" data-furniture>{ticks.map((v) => <span class="ax__y" style={`top:${((Y(v) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{Wk.map((w, i) => String(w[0]).slice(4, 6) === "01" && Number(String(w[0]).slice(6, 8)) <= 7 && <span class="ax__x" style={`left:${((X(i) / VW) * 100).toFixed(2)}%`}>{String(w[0]).slice(0, 4)}</span>)}</div>
+        <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" class="cost__svg" aria-hidden="true">
+
+          <path d={path} class="ln" pathLength="1" />
+          <line id="cs-ago" x1={X(iAgo).toFixed(1)} x2={X(iAgo).toFixed(1)} y1={P.t} y2={VH - P.b} class="mk" />
+          <circle cx={X(iNow).toFixed(1)} cy={Y(us[iNow]).toFixed(1)} r="5" class="now" />
+          <circle id="cs-dot" cx={X(iAgo).toFixed(1)} cy={Y(us[iAgo]).toFixed(1)} r="6" class="dot" />
+          {ticks.map((v) => <line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" />)}
+        </svg>
+        </div>
+        <figcaption class="s-cap">관세환율(수입) 원/달러 · 주마다 · 이번 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
+      </figure>
+    </div>
+    <div slot="controls" class="cost__ctl">
+      <form id="cs-form" class="cost__form" onsubmit="return false">
+        <label>통화 <select name="cur">{D.currencies.map((c: string) => <option value={c}>{c === "JPY" ? "JPY(1엔)" : c}</option>)}</select></label>
+        <label>물품 가격 <input name="goods" type="number" inputmode="decimal" min="0" step="any" value={E.goods} /></label>
+        <label>조건 <select name="incoterm"><option value="CIF">CIF(운임·보험 포함)</option><option value="FOB">FOB(운임·보험 따로)</option></select></label>
+        <label>운임(같은 통화) <input name="freight" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
+        <label>보험료(같은 통화) <input name="insurance" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
+        <label>관세율 % <input name="duty_pct" type="number" inputmode="decimal" min="0" max="1000" step="any" value={E.duty_pct} /></label>
+        <label>국내 운송·통관비(원) <input name="inland" type="number" inputmode="numeric" min="0" step="1000" value="0" /></label>
+        <label class="cost__wk">견줄 주 <input name="wk" type="range" min="0" max={Wk.length - 1} value={iAgo} step="1" aria-label="견줄 주 고르기" /></label>
+      </form>
+      <table class="cost__tbl" aria-live="polite">
+        <thead><tr><th></th><th id="cs-h-a">견줄 주</th><th id="cs-h-b">이번 주</th></tr></thead>
+        <tbody id="cs-body"></tbody>
+      </table>
+      <p class="s-cap">입력은 이 브라우저 안에서만 계산합니다(어디에도 보내지 않습니다).</p>
+    </div>
+    {K && <section class="wave" id="wave" aria-labelledby="wave-h">
+      <h2 class="s-cap" id="wave-h">운임 파도 · {K.names[K.routes[0]] ? "KCCI" : ""} 컨테이너 운임지수(부산 기점) · 마지막 반영 주 <b class="wave__asof">{K.last_week}</b>{K.lag_weeks > 0 && <span class="wave__lag"> · 발표 예정 주보다 {K.lag_weeks}주 늦음</span>}</h2>
+      <div class="wave__row">
+        <label>항로 <select id="wave-r">{K.routes.map((r: string, i: number) => <option value={i}>{K.names[r]}</option>)}</select></label>
+        <p class="wave__now"><b id="wave-v">{lastK[1].toLocaleString("ko-KR")}</b><small>포인트</small> · 52주 전 대비 <b id="wave-c">{K.chg_52w_pct[K.routes[0]] > 0 ? "+" : ""}{K.chg_52w_pct[K.routes[0]]}%</b></p>
+        <button type="button" class="s-btn s-btn--ghost" id="wave-apply">운임 칸에 변동률 적용 제안</button>
+      </div>
+      <svg viewBox="0 0 1000 120" preserveAspectRatio="none" class="wave__svg" aria-hidden="true"><path id="wave-l" d={kLine(0)} /></svg>
+      <p class="s-cap wave__note" id="wave-note"><b>지수는 달러 운임이 아닙니다.</b> 제안은 견줄 주 → 마지막 반영 주의 지수 변동률을 지금 운임 칸 값에 곱한 것뿐입니다. 출처 한국해양진흥공사 KCCI(공공데이터포털) · {K.first_week}~{K.last_week} 주간.</p>
+    </section>}
+  </ToolShell>
+  <script type="application/json" id="cs-kcci" set:html={JSON.stringify(K ? { routes: K.routes, names: K.names, weeks: K.weeks } : null)}></script>
+  <script type="application/json" id="cs-data" set:html={JSON.stringify({ weeks: Wk, cur: D.currencies, iAgo, box: { VW, VH, P, lo, hi } })}></script>
+  <script>
+    import { landedCost } from "../../lib/import-cost";
+    const C = JSON.parse(document.getElementById("cs-data")!.textContent!), $ = (id: string) => document.getElementById(id)!;
+    const f = $("cs-form") as HTMLFormElement, W = C.weeks as any[][], B = C.box, last = W.length - 1;
+    const day = (s: string) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+    const won = (v: number) => Math.round(v).toLocaleString("ko-KR");
+    const X = (i: number) => B.P.l + (i / last) * (B.VW - B.P.l - B.P.r), Y = (v: number) => B.P.t + (1 - (v - B.lo) / (B.hi - B.lo)) * (B.VH - B.P.t - B.P.b);
+    const val = (n: string) => Number((f.elements.namedItem(n) as HTMLInputElement).value) || 0;
+    const calc = (i: number) => { const ci = 1 + C.cur.indexOf((f.elements.namedItem("cur") as HTMLSelectElement).value);
+      return { fx: Number(W[i][ci]), ...landedCost({ goods: val("goods"), freight: val("freight"), insurance: val("insurance"), incoterm: (f.elements.namedItem("incoterm") as HTMLSelectElement).value as any, fx: Number(W[i][ci]), duty_pct: val("duty_pct"), inland_krw: val("inland") }) }; };
+    const render = (i: number) => {
+      const a = calc(i), b = calc(last), d = b.cost - a.cost;
+      $("cs-diff").innerHTML = `${d > 0 ? "+" : d < 0 ? "−" : ""}${won(Math.abs(d))}<small>원</small>`; $("cs-diff").className = d > 0 ? "up" : "dn";
+      $("cs-wk").textContent = day(W[i][0]); $("cs-h-a").textContent = `${day(W[i][0])} 주`; $("cs-h-b").textContent = `${day(W[last][0])} 주`;
+      const rows: [string, number, number][] = [["관세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ["부가가치세", a.vat, b.vat], ["납부 합계(관세·부가세 포함)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
+      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("납부") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "관세환율" ? x : won(x)}</td><td>${k === "관세환율" ? y : won(y)}</td></tr>`).join("");
+      const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
+      dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
+    };
+    const wk = f.elements.namedItem("wk") as HTMLInputElement;
+    f.addEventListener("input", () => render(Number(wk.value)));
+    // 3초 답 — 선이 그어지고, 점이 2024년 첫 주부터 52주 전 주까지 환율 파도를 탄다(원가 차이가 같이 바뀐다)
+    const boot = () => {
+      render(C.iAgo); $("cs-fig").classList.add("go");
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      let i = 0; const t = setInterval(() => { render(i); wk.value = String(i); i += 2; if (i >= C.iAgo) { clearInterval(t); render(C.iAgo); wk.value = String(C.iAgo); } }, 40);
+      (window as any).__cost = { render };
+    };
+    document.readyState === "complete" ? setTimeout(boot, 200) : addEventListener("load", () => setTimeout(boot, 200), { once: true });
+    // 운임 파도 — 항로를 고르면 선·숫자가 바뀌고, 「제안」은 견줄 주(환율 막대와 같은 날 무렵) → 마지막 반영 주 변동률을 운임 칸에 곱한다
+    const KW = JSON.parse(document.getElementById("cs-kcci")!.textContent!);
+    if (KW) {
+      const sel = $("wave-r") as HTMLSelectElement;
+      const col = () => Number(sel.value) + 1;
+      const near = (ymd: string) => { const d = `${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`; let b = 0; KW.weeks.forEach((w: any[], i: number) => { if (w[0] <= d) b = i; }); return b; };
+      const drawK = () => {
+        const c = col(), v = KW.weeks.map((w: any[]) => Number(w[c])), mx = Math.max(...v), mn = Math.min(...v), n = v.length;
+        $("wave-l").setAttribute("d", v.map((y: number, i: number) => `${i ? "L" : "M"}${((i / (n - 1)) * 1000).toFixed(1)} ${(8 + (1 - (y - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""));
+        const last = v[n - 1], a = v[Math.max(0, n - 53)];
+        $("wave-v").textContent = Math.round(last).toLocaleString("ko-KR"); $("wave-c").textContent = `${last >= a ? "+" : ""}${(100 * (last / a - 1)).toFixed(1)}%`;
+      };
+      sel.addEventListener("change", drawK);
+      $("wave-apply").addEventListener("click", () => {
+        const c = col(), i0 = near(String(W[Number(wk.value)][0])), v0 = Number(KW.weeks[i0][c]), v1 = Number(KW.weeks[KW.weeks.length - 1][c]);
+        const fr = f.elements.namedItem("freight") as HTMLInputElement, cur = Number(fr.value) || 0, r = v0 ? v1 / v0 : 1;
+        if (!cur) { $("wave-note").firstElementChild!.textContent = "운임 칸에 먼저 견줄 주의 운임을 넣으세요."; return; }
+        fr.value = String(Math.round(cur * r)); (f.elements.namedItem("incoterm") as HTMLSelectElement).value = "FOB";
+        $("wave-note").firstElementChild!.textContent = `${KW.names[KW.routes[c - 1]]} 지수 ${KW.weeks[i0][0]} → ${KW.weeks[KW.weeks.length - 1][0]} ${r >= 1 ? "+" : ""}${(100 * (r - 1)).toFixed(1)}% 를 운임 칸에 곱했습니다(지수는 달러 운임이 아닙니다).`;
+        render(Number(wk.value));
+      });
+    }
+  </script>
+</Studio>
+<style>
+  .cost { display: grid; gap: var(--s-3); }
+  .cost__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .cost__big b { font-size: clamp(36px, 4.6vw, 60px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .cost__big b small { font-size: 0.45em; margin-left: 4px; color: var(--s-ink-2); }
+  .cost__big b.up { color: var(--s-signal); } .cost__big b.dn { color: #3f6476; }
+  .cost__big > span { color: var(--s-ink-2); }
+  .cost__fig { margin: 0; }
+  /* 눈금 글자는 SVG 밖 HTML — 늘려 그리는 SVG 안 글자는 390 에서 찌그러졌다 */
+  .cost__plot { position: relative; }
+  .ax { position: absolute; inset: 0; pointer-events: none; font: 500 11px var(--s-font); color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .ax__y { position: absolute; left: 0; transform: translateY(-55%); } .ax__x { position: absolute; bottom: 0; transform: translateX(2px); }
+  .cost__svg { display: block; width: 100%; height: clamp(180px, 30vh, 280px); }
+  .cost__svg .g { stroke: var(--s-rule); vector-effect: non-scaling-stroke; }
+  .cost__svg .t { font: 500 11px var(--s-font); fill: var(--s-ink-3); }
+  .cost__svg .ln { fill: none; stroke: #191714; stroke-width: 2; vector-effect: non-scaling-stroke; }
+  /* 그어지는 움직임 = 오른쪽을 가렸다 걷는다(pathLength 대시는 non-scaling-stroke 와 같이 쓰면 끝이 모자랐다) */
+  .cost__fig.go .ln { animation: cs-draw 1.4s ease-out both; }
+  @keyframes cs-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .cost__svg .mk { stroke: var(--s-signal); stroke-width: 1.2; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+  .cost__svg .now { fill: #191714; } .cost__svg .dot { fill: var(--s-signal); stroke: var(--s-paper); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .cost__ctl { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
+  .cost__form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); }
+  .cost__form label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .cost__form label { min-width: 0; }
+  .cost__form input, .cost__form select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); font-variant-numeric: tabular-nums; }
+  .cost__wk { grid-column: 1 / -1; } .cost__wk input { padding: 0; accent-color: var(--s-signal); border: 0; }
+  .cost__tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .cost__tbl th, .cost__tbl td { padding: 8px 6px; border-bottom: 1px solid var(--s-rule); text-align: right; font-weight: 500; }
+  .cost__tbl th:first-child, .cost__tbl tbody th { text-align: left; color: var(--s-ink-2); }
+  .cost__tbl thead th { font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .cost__tbl :global(tr.sum) td, .cost__tbl :global(tr.sum) th { font-weight: 700; color: var(--s-ink); border-bottom: 2px solid #191714; }
+  @media (max-width: 820px) { .cost__ctl { grid-template-columns: 1fr; } .cost__tbl { font-size: 14px; } .cost__tbl th, .cost__tbl td { padding: 7px 3px; } }
+  .wave { margin-top: var(--s-6); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); display: grid; gap: var(--s-3); }
+  .wave h2 { margin: 0; font-size: 14px; } .wave__asof { color: var(--s-signal); } .wave__lag { color: var(--s-signal); }
+  .wave__row { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
+  .wave__row label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .wave__row select { min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); }
+  .wave__now { margin: 0; font-variant-numeric: tabular-nums; } .wave__now b { font-size: 22px; } .wave__now small { color: var(--s-ink-3); margin: 0 4px; }
+  .wave__svg { width: 100%; height: 120px; display: block; } .wave__svg path { fill: none; stroke: #3f6476; stroke-width: 1.8; vector-effect: non-scaling-stroke; }
+  .wave__note { margin: 0; max-width: 52rem; }
+</style>
