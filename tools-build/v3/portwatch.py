@@ -66,6 +66,25 @@ def day(v):
     return str(v)[:10]
 
 
+def merge_ports(by, old_ports, datef):
+    """새로 받은 항만은 그대로, 못 받은(빈) 항만은 지난 파일의 행을 쓴다. 반환 = (항만별 행, {지킨 항만: 그 마지막 날}, 지난 마지막 날, 새로 받은 것의 마지막 날)."""
+    prev_last = max((v[-1][datef] for v in old_ports.values() if v), default=None)
+    fresh = {p: v for p, v in by.items() if v}
+    new_last = min((v[-1][datef] for v in fresh.values()), default=None)
+    carried = {p: old_ports[p][-1][datef] for p in by if not by[p] and old_ports.get(p)}
+    return {p: (by[p] or old_ports.get(p, [])) for p in by}, carried, prev_last, new_last
+
+
+def selftest():
+    o = {"Incheon": [{"date": "2026-10-09"}], "Busan": [{"date": "2026-10-09"}], "Pyeongtaek": [{"date": "2026-10-09"}]}
+    n = {"Incheon": [{"date": "2026-10-12"}], "Busan": [{"date": "2026-10-12"}], "Pyeongtaek": []}
+    by, carried, pl, nl = merge_ports(n, o, "date")
+    assert by["Pyeongtaek"] == o["Pyeongtaek"] and carried == {"Pyeongtaek": "2026-10-09"} and nl == "2026-10-12" and pl == "2026-10-09", (by, carried)
+    by, carried, _, _ = merge_ports({"Incheon": [], "Busan": [{"date": "2026-10-12"}]}, o, "date")
+    assert carried == {"Incheon": "2026-10-09"}  # 인천을 못 받으면 main 이 쓰지 않는다
+    print("selftest 2/2 ok"); return 0
+
+
 def main():
     rc = 0
     out = {"fetched": datetime.date.today().isoformat(), "source": "IMF PortWatch(portwatch.imf.org)"}
@@ -89,16 +108,18 @@ def main():
         say(p, len(rows), "행", by[p][0][datef] if by[p] else "", "~", by[p][-1][datef] if by[p] else "")
     out["ports"] = by
     out["counts"] = {k: len(v) for k, v in by.items()}
-    # 덮어쓰기 전 검사 — 항만이 하나라도 비었거나 마지막 날이 지난 파일보다 이르면 지난 파일을 지킨다
+    # 덮어쓰기 전 검사 — 인천이 비었거나 새로 받은 항만의 마지막 날이 지난 파일보다 이르면 지난 파일을 지킨다.
+    # [2026-10-15 · 실행 15~17] 평택 질의만 원천에서 400(Invalid query parameters)이 이어졌고, 평택 하나 때문에 인천·부산 새 자료까지 버려
+    # 「일일 맥박」이 멈췄다 → 못 받은 항만만 지난 행을 지키고 `carried` 에 그 항만의 마지막 날을 적는다(지면이 「○까지」로 밝힌다).
     old = os.path.join(ROOT, "data/collected/v3/portwatch_ports.json")
-    prev_last = None
-    if os.path.exists(old):
-        try: prev_last = max(v[-1][datef] for v in json.load(open(old, encoding="utf-8"))["ports"].values() if v)
-        except Exception: prev_last = None
-    new_last = min((v[-1][datef] for v in by.values() if v), default=None)
-    if any(not by.get(p) for p in PORTS) or (prev_last and new_last and new_last < prev_last):
+    prev = json.load(open(old, encoding="utf-8")) if os.path.exists(old) else {}
+    by, carried, prev_last, new_last = merge_ports(by, prev.get("ports", {}), datef)
+    out["ports"], out["counts"], out["carried"] = by, {k: len(v) for k, v in by.items()}, carried
+    if not by.get("Incheon") or "Incheon" in carried or (prev_last and new_last and new_last < prev_last):
         say("항만 자료가 덜 왔다 — 지난 파일을 지킨다", out["counts"], "새 마지막", new_last, "지난", prev_last); rc = 1
-    else: write("data/collected/v3/portwatch_ports.json", out)
+    else:
+        write("data/collected/v3/portwatch_ports.json", out)
+        if carried: print(f"::warning::PortWatch {', '.join(carried)} 질의 실패 — 그 항만은 지난 자료를 지켰다 {carried}")
     # 품질(선커밋 §3): 2025-01 이후 인천 일별 입항이 0 이거나 빈 날의 비율
     inc = [r for r in by.get("Incheon", []) if str(r.get(datef, "")) >= "2025-01-01"]
     callf = next((f for f in fields if f.lower() == "portcalls"), None)
@@ -134,4 +155,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(selftest() if "--selftest" in sys.argv else main())
