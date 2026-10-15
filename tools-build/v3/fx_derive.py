@@ -14,11 +14,21 @@ EX = {"goods": 10000, "freight": 0, "insurance": 0, "incoterm": "CIF", "duty_pct
 def jsround(x): return math.floor(x + 0.5)
 
 
-def landed(goods, freight, insurance, incoterm, fx, duty_pct, vat_pct=10, inland=0):
+def tax10(v):
+    """세액 끝수 — 10원 미만 버림(국고금 관리법 제47조)."""
+    return int(math.floor(v / 10 + 1e-9)) * 10
+
+
+def landed(goods, freight, insurance, incoterm, fx, duty_pct, vat_pct=10, inland=0, excise_pct=0, edu_pct=30, rural_pct=0, liquor_pct=0, liquor_edu_pct=10):
+    """astro/src/lib/import-cost.ts landedCost 와 같은 식(바꾸면 둘 다) — [2026-10-15 P1 ②] 내국세 넷 · 과세가격 원 미만 버림 · 세액 10원 미만 버림."""
     cif = goods + freight + insurance if incoterm == "FOB" else goods
-    cv = jsround(cif * fx); duty = math.floor(cv * duty_pct / 100); vat = math.floor((cv + duty) * vat_pct / 100)
-    # landed = 통관 때 내는 납부 합계(과세가격 + 관세 + 부가세) · cost = 원가(부가세 제외) — 수입 부가세는 사업자가 매입세액으로 공제받는다(채팅 최종 검수 10/15)
-    return {"customs_value": cv, "duty": duty, "vat": vat, "landed": cv + duty + vat + inland, "cost": cv + duty + inland}
+    cv = int(math.floor(cif * fx + 1e-6)); duty = tax10(cv * duty_pct / 100); base = cv + duty
+    excise = tax10(base * excise_pct / 100); liquor = tax10(base * liquor_pct / 100)
+    edu = tax10(excise * edu_pct / 100) + tax10(liquor * liquor_edu_pct / 100); rural = tax10(excise * rural_pct / 100)
+    vat = tax10((base + excise + liquor + edu + rural) * vat_pct / 100)
+    taxes = duty + excise + liquor + edu + rural
+    # landed = 통관 때 내는 납부 합계(과세가격 + 세금 전부) · cost = 원가(부가세 제외) — 수입 부가세는 사업자가 매입세액으로 공제받는다(채팅 최종 검수 10/15)
+    return {"customs_value": cv, "duty": duty, "excise": excise, "liquor": liquor, "edu": edu, "rural": rural, "vat": vat, "landed": cv + taxes + vat + inland, "cost": cv + taxes + inland}
 
 
 def derive(src):
@@ -72,10 +82,15 @@ def main():
 
 def selftest():
     r = landed(10000, 0, 0, "CIF", 1347.03, 8)
-    assert r["customs_value"] == 13470300 and r["duty"] == 1077624 and r["vat"] == 1454792 and r["landed"] == 16002716 and r["cost"] == 14547924, r
+    assert r["customs_value"] == 13470300 and r["duty"] == 1077620 and r["vat"] == 1454790 and r["landed"] == 16002710 and r["cost"] == 14547920, r
     f = landed(9000, 800, 200, "FOB", 1300, 0)
     assert f["customs_value"] == 13000000 and f["vat"] == 1300000, f
-    print("selftest 2/2 ok"); return 0
+    # 개별소비세 대상(예: 개소세 20% · 교육세 30%): 과세가격 1,000,000 · 관세 8% → 관세 80,000 · 개소세 216,000 · 교육세 64,800 · 부가세 136,080
+    e = landed(1000, 0, 0, "CIF", 1000, 8, excise_pct=20)
+    assert (e["duty"], e["excise"], e["edu"], e["vat"]) == (80000, 216000, 64800, 136080), e
+    # 끝수: 세액 10원 미만 버림
+    assert tax10(1234.9) == 1230 and tax10(9.99) == 0
+    print("selftest 4/4 ok"); return 0
 
 
 if __name__ == "__main__":
