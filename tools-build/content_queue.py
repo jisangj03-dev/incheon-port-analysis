@@ -5,7 +5,7 @@
   · 「갱신 시」 = 도구의 기준일(asof)이 content-queue/state.json 에 적힌 것과 다를 때만 새로 쓴다(--all 이면 전부).
   python tools-build/content_queue.py [--all] [--date YYYY-MM-DD] [--selftest]
 """
-import datetime, glob, json, os, re, sys
+import datetime, glob, hashlib, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Q = os.path.join(ROOT, "content-queue")
@@ -133,12 +133,14 @@ def main():
     for fn in TOOLS:
         try: f = fn()
         except (FileNotFoundError, KeyError, ValueError, IndexError) as e: print("건너뜀", fn.__name__, type(e).__name__, e); continue
-        if "--all" not in sys.argv and st.get(f["id"]) == f["asof"]: continue
+        # 기준일만 보면 같은 날 바뀐 숫자(입찰 레이더 스냅샷 13:46 → 14:15)를 놓친다(2026-10-15 QA) → 사실 묶음의 지문으로 본다
+        key = f"{f['asof']}|{hashlib.sha1(json.dumps(f, ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:10]}"
+        if "--all" not in sys.argv and st.get(f["id"]) == key: continue
         md = render(f, made); bad = outside(md, ok)
         if bad: dropped.append((f["id"], bad)); print("버림(데이터 밖 숫자)", f["id"], bad); continue
         d = os.path.join(Q, made); os.makedirs(d, exist_ok=True)
         open(os.path.join(d, f"{f['id']}.md"), "w", encoding="utf-8").write(md)
-        st[f["id"]] = f["asof"]; wrote.append(f["id"])
+        st[f["id"]] = key; wrote.append(f["id"])
     os.makedirs(Q, exist_ok=True)
     json.dump(dict(sorted(st.items())), open(st_p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"초안 {len(wrote)}편 → content-queue/{made}/ {wrote} · 버림 {len(dropped)}")
