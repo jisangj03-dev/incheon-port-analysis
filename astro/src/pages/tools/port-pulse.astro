@@ -23,14 +23,14 @@ const odds = order.filter((k) => oddOf(k).length).map((k) => `${P[k].ko} ${range
 const inJudge = order.filter((k) => oddOf(k).some((m) => m >= P[k].judge.base_from.slice(0, 7) && m <= P[k].judge.recent_to.slice(0, 7))).map((k) => P[k].ko);
 const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.map((k) => [k, { ko: P[k].ko, days: P[k].days, odd: oddOf(k) }])) };
 ---
-<Studio title="인천항 일일 맥박 — 지금 배가 평소보다 많이 들어오나" description="IMF PortWatch 일별 입항으로 인천항의 최근 7일을 직전 13주 평소와 견주고, 부산·평택과 나란히 본다." current="tools" lateFonts>
+<Studio title="인천항 일일 맥박 — 지금 배가 평소보다 많이 들어오나" description="IMF PortWatch 일별 입항으로 인천항의 최근 7일을 직전 13주 평소와 견주고, 부산·평택과 나란히 본다." current="tools" ogImage="/og/tool-port-pulse.jpg" lateFonts>
   <ToolShell id="pulse" who="포워더 · 선사 · 터미널" asOf={D.asof} q="지금 인천항에 배가 평소보다 많이 들어오나?"
     lead={`${md(J.recent_from)}~${md(J.recent_to)} 하루 평균 ${J.recent_avg}척 — 평소(직전 13주) ${J.base_avg}척보다 ${sign(J.pct)}%, ${J.word}.`}
     updated={D.fetched} source={sourceLine("imf-portwatch")} csv={u("/data/port-pulse.csv")} csvName="port-pulse-incheon-busan-pyeongtaek.csv" note="일별 · AIS 기반 추정 · 며칠 늦게 갱신"
     how={`IMF PortWatch 가 선박 위치 신호(AIS)로 항만마다 하루 입항 척수를 센 값을 받아, 원천의 마지막 날짜까지 7일 평균을 그 앞 91일(13주) 평균과 견줬다. ±${D.rule.threshold_pct}% 를 넘으면 「많다·적다」, 그 안이면 「평소 수준」 — 이 문턱은 숫자를 보기 전에 정했다.`}
     limits="오늘이 아니라 원천의 마지막 날짜(머리의 「○일 기준」)까지다. AIS 를 끈 배·작은 배는 빠질 수 있고, 연안 여객선은 세지 않는다. 추정 교역량(톤)은 PortWatch 의 모델 추정치라 관세청 통계와 다르다.">
     <div slot="answer" class="pulse">
-      <p class="pulse__word"><b class={J.pct > D.rule.threshold_pct ? "up" : J.pct < -D.rule.threshold_pct ? "dn" : ""} id="pl-pct">{sign(J.pct)}%</b> <span id="pl-word">{J.word}</span>
+      <p class="pulse__word"><b class={J.pct > D.rule.threshold_pct ? "up" : J.pct < -D.rule.threshold_pct ? "dn" : ""} id="pl-pct" data-og-num={`${J.word} · 인천항 최근 7일 입항`}>{sign(J.pct)}%</b> <span id="pl-word">{J.word}</span>
         <small id="pl-sub">최근 7일 {J.recent_avg}척/일 · 평소 {J.base_avg}척/일{big && ` · 가장 크게 움직인 선종 = ${big.ko}(${big.r} ← ${big.b})`}</small></p>
       <figure class="pulse__fig" id="pl-fig" data-port="Incheon">
         <div id="pl-chart" set:html={pulseSvg(I.days, "all", 182, D.rule.recent, D.rule.base, oddOf("Incheon"))} />
