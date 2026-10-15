@@ -1,0 +1,37 @@
+{
+  "_설명": "측심 운영자 공개 프로필 — 실명이 사는 유일한 파일(정체성 전환 §5-4 · analysis/check_private.py NAME_HOME). 지면은 전부 여기서 읽는다. 메일은 원문으로 두지 않는다(사용자·도메인을 갈라 두고 지면도 누를 때만 조립 · 주소 원문 노출 금지 — 10/14 선장님 결정). 비어 있는 연락처는 지면에서 뺀다. 학번·전화·주소는 두지 않는다.",
+  "name": "정지상",
+  "role": "SCM 작업실 운영",
+  "affiliation": "인하대학교 아태물류학부",
+  "education": [
+    {
+      "school": "인하대학교",
+      "major": "아태물류학부",
+      "status": "재학"
+    }
+  ],
+  "credentials": [
+    "물류관리사",
+    "유통관리사 2급",
+    "국제무역사",
+    "원산지관리사",
+    "보세사"
+  ],
+  "credentials_note": "물류·유통·무역·원산지·보세 — 화물이 들어와 통관을 거쳐 창고·매장으로 가는 길의 단계마다 하나씩",
+  "writing": [
+    {
+      "title": "인천항 공공데이터를 AI에 통째로 맡기고 알게 된 것들",
+      "outlet": "커넥터스",
+      "when": "2026-10",
+      "url": "https://contents.premium.naver.com/connectx/us/contents/261005111857589bc"
+    }
+  ],
+  "contact": {
+    "_순서": "LinkedIn 앞 · 메일 뒤(#45 결정)",
+    "linkedin": "https://www.linkedin.com/in/jisang-jung-logistics/",
+    "mail": {
+      "user": "jisangj03",
+      "domain": "gmail.com"
+    }
+  }
+}

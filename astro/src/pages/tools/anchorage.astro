@@ -1,0 +1,129 @@
+---
+// 도구 · 위성으로 본 인천 묘박지(2차 · 실무 질문 Q7) — 달마다 가장 맑은 Sentinel-2 장면을 넘기며, 먼바다 상자 안 「위성에 보인 배」 어림 수를 같이 본다.
+// 그림 = astro/public/media/s2/*.jpg(tools-build/v3/s2_anchorage.py · AWS 공개 · 계정 불필요) · 숫자 = data/derived/s2_anchorage.json.
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { readFileSync, existsSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const S = JSON.parse(readFileSync(join(repoRoot(), "data/derived/s2_anchorage.json"), "utf-8"));
+const F = S.frames;
+// [2026-10-15 P1 ④] 레이더(Sentinel-1) — 구름·밤과 무관하게 센 배(있을 때만 · tools-build/s1_anchorage.py)
+const R1 = existsSync(join(repoRoot(), "data/derived/s1_anchorage.json")) ? JSON.parse(readFileSync(join(repoRoot(), "data/derived/s1_anchorage.json"), "utf-8")) : null;
+const RF = (R1?.frames || []) as any[];
+const RL = RF[RF.length - 1];
+const rmx = Math.max(1, ...RF.map((f: any) => f.n));
+const pt = (ll: number[]) => [((ll[0] - S.aoi[0]) / (S.aoi[2] - S.aoi[0])) * 100, ((S.aoi[3] - ll[1]) / (S.aoi[3] - S.aoi[1])) * 100];
+// 3초 답 = 최신의 맑은 날(구름 많은 날 숫자는 큰 숫자 자리에 오지 않는다 · 채팅 검수 10/14) — 맑은 날이 없으면 마지막 장
+const L = [...F].reverse().find((f: any) => !f.low_confidence) || F[F.length - 1];
+const iL = F.indexOf(L);
+const A = S.aoi, C = S.count_box;
+const box = { l: ((C[0] - A[0]) / (A[2] - A[0])) * 100, t: ((A[3] - C[3]) / (A[3] - A[1])) * 100, w: ((C[2] - C[0]) / (A[2] - A[0])) * 100, h: ((C[3] - C[1]) / (A[3] - A[1])) * 100 };
+const mx = Math.max(...F.map((f: any) => f.ships_seen));
+const yr = L.date.slice(0, 4);
+---
+<Studio title="위성으로 본 인천 묘박지 — 배가 얼마나 기다리나" description="달마다 가장 맑은 Sentinel-2 위성 사진으로 인천 앞바다 묘박지를 넘겨 보고, 먼바다 상자 안에 보인 배를 어림한다." current="tools" ogImage="/og/tool-anchorage.jpg" lateFonts>
+  <ToolShell id="anchorage" who="선사 · 터미널 · 포워더" asOf={L.date} q="인천 앞바다 묘박지에 배가 얼마나 기다리나?" lead={`${L.date} 위성 사진의 먼바다 상자 안에서 배로 보이는 물체 ${L.ships_seen}개. 달마다 가장 맑은 날 한 장씩 넘겨 봅니다.`}
+    updated={S.made} source={`${sourceLine("copernicus-s2")}${R1 ? " · Copernicus Sentinel-1 RTC(Microsoft Planetary Computer)" : ""} · Contains modified Copernicus Sentinel data ${yr}`} csv={u("/data/anchorage.csv")} csvName="incheon-anchorage-s2.csv" note={`타일 ${S.tile} · 달마다 한 장`}
+    how={`AWS 공개 Sentinel-2 L2A 에서 인천 앞바다 창만 읽고(실제색), 달마다 구름이 가장 적은 장면을 골랐다. 배 어림 = ${S.method}.`}
+    limits={`그 장면이 찍힌 한 순간이다(사진 오전 11시 무렵 · 레이더는 궤도 시각) — 하루·한 달 평균이 아니다.${R1 ? " 레이더는 한 궤도(같은 시각)만 쓴다 — 시각이 다르면 떠 있는 배 수가 달라진다. 레이더 배 세기는 물 위 밝은 덩어리(배경보다 " + R1.method.kdb + "dB · 절대 " + (R1.method.abs_db ?? "—") + "dB 이상 · " + R1.method.min_px + "~" + R1.method.max_px + "화소)를 센 것이라 부표·작은 섬·양식장이 섞이고, 붙어 있는 배는 하나로 셀 수 있다. 배 자리 원은 경위도를 사진 칸에 곧게 옮긴 개략이다." : ""}`+" 부두에 붙은 배·작은 배·구름 아래 배는 빠지고, 부표·작은 바위가 섞일 수 있다. 구름이 3% 넘는 장면은 「신뢰 낮음」으로 적는다."}>
+    <div slot="answer" class="anc">
+      <p class="anc__big"><b id="anc-n" data-og-num="개 · 먼바다에서 배로 보이는 물체(위성 어림)">{L.ships_seen}</b><span>개 — 먼바다 상자 안에서 배로 보이는 물체 · <b>{L.date}</b>(가장 최근의 맑은 날)</span></p>
+      <figure class="anc__fig" id="anc-fig" data-zoom="1" style={`--ar:${(L.w / L.h).toFixed(4)};--zar:${((L.w / L.h) * box.w / box.h).toFixed(4)};--zl:${(-box.l / box.w * 100).toFixed(3)}%;--zt:${(-box.t / box.h * 100).toFixed(3)}%;--zw:${(100 / box.w * 100).toFixed(3)}%;--zh:${(100 / box.h * 100).toFixed(3)}%`}>
+        <div class="anc__view"><div class="anc__pan">
+          <img class="anc__img" id="anc-img" src={u(L.img)} width={L.w} height={L.h} alt={`${L.date} 인천 앞바다 Sentinel-2 실제색 사진`} />
+          <img class="anc__img anc__img--b" id="anc-img-b" src={u(L.img)} width={L.w} height={L.h} alt="" aria-hidden="true" />
+          {RL && <svg class="anc__ships" id="anc-ships" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">{RL.ships.map((s: number[]) => { const [x, y] = pt(s); return <circle cx={x.toFixed(2)} cy={y.toFixed(2)} r="0.55" />; })}</svg>}
+          <span class="anc__box" style={`left:${box.l.toFixed(2)}%;top:${box.t.toFixed(2)}%;width:${box.w.toFixed(2)}%;height:${box.h.toFixed(2)}%`} aria-hidden="true"><i>배를 세는 먼바다 상자</i></span>
+        </div></div>
+        <figcaption class="anc__cap s-cap">지금 보는 장면 <b id="anc-date">{L.date}</b> · <span id="anc-cur">{L.ships_seen}개</span><span id="anc-low"></span> · Sentinel-2 실제색 · 점선 상자 = 배를 세는 먼바다(부두·대교·갯벌 제외)</figcaption>
+      </figure>
+      {RL && <div class="anc__sar">
+        <p class="anc__sar-h"><b id="anc-sar-n">{RL.n}</b>척 — 레이더(Sentinel-1)로 센 배 · <b id="anc-sar-d">{RL.date}</b> · 구름·밤과 무관 · 사진 위 빨간 원</p>
+        <ol class="anc__sar-bars" aria-label="레이더로 센 배 — 날짜별">{RF.map((f: any, i: number) => <li><button type="button" data-r={i} aria-pressed={i === RF.length - 1 ? "true" : "false"} title={`${f.date} · ${f.n}척`}><i style={`height:${Math.max(3, (f.n / rmx) * 100).toFixed(1)}%`}></i></button></li>)}</ol>
+        <p class="s-cap">{RF[0].date} ~ {RL.date} · 장면 {RF.length}개 · 날짜 막대를 누르면 그날 배 자리가 사진 위에 뜹니다(사진은 같은 달 가장 맑은 날 · 날짜가 다를 수 있다).</p>
+      </div>}
+      <ol class="anc__bars" aria-label="달마다 위성에 보인 배">
+        {F.map((f: any, i: number) => <li><button type="button" data-i={i} aria-pressed={i === iL ? "true" : "false"} title={`${f.date} · ${f.ships_seen}개`}><i style={`height:${Math.max(4, (f.ships_seen / mx) * 100).toFixed(1)}%`} class={f.low_confidence ? "low" : ""}></i><span>{f.date.slice(2, 7)}</span></button></li>)}
+      </ol>
+    </div>
+    <div slot="controls" class="anc__ctl">
+      <button type="button" class="s-btn s-btn--ghost" id="anc-play" aria-pressed="false">넘겨 보기</button>
+      <button type="button" class="s-btn s-btn--ghost" id="anc-zoom" aria-pressed="true">전체 보기</button>
+      <label class="anc__slider">날짜 <input id="anc-s" type="range" min="0" max={F.length - 1} value={iL} step="1" aria-label="사진 날짜 고르기" /></label>
+      <p class="s-cap">막대를 누르면 그 달 사진으로 바뀝니다. 흐린 막대 = 구름이 많아 어림을 덜 믿는 달.</p>
+    </div>
+  </ToolShell>
+  <script type="application/json" id="anc-sar" set:html={JSON.stringify(RF.map((f: any) => ({ d: f.date, n: f.n, s: f.ships.map(pt).map((v: number[]) => v.map((x) => Math.round(x * 100) / 100)) })))}></script>
+  <script type="application/json" id="anc-data" data-last={iL} set:html={JSON.stringify(F.map((f: any) => ({ ...f, img: u(f.img) })))}></script>
+  <script>
+    const F = JSON.parse(document.getElementById("anc-data")!.textContent!), $ = (id: string) => document.getElementById(id)!;
+    // [2026-10-15 P1 ④] 넘김 = 크로스페이드(두 장을 겹쳐 새 장이 다 풀린 뒤 서서히) · 미리 불러오기 · 날짜 막대 · 묘박지 확대(기본)
+    let img = $("anc-img") as HTMLImageElement, back = $("anc-img-b") as HTMLImageElement;
+    back.style.opacity = "0";
+    // 미리 받아 두면 넘길 때 깜빡이지 않는다(쉬는 틈에 · 같은 출처)
+    const pre = () => F.forEach((f: any) => { const i = new Image(); i.decoding = "async"; i.src = f.img; });
+    let cur = Number(document.getElementById("anc-data")!.dataset.last), timer: any = null;
+    const show = (i: number) => {
+      cur = (i + F.length) % F.length; const f = F[cur];
+      const nb = back; nb.onload = null;
+      const swap = () => { nb.style.opacity = "1"; img.style.opacity = "0"; nb.alt = `${f.date} 인천 앞바다 Sentinel-2 실제색 사진`; nb.removeAttribute("aria-hidden"); img.alt = ""; img.setAttribute("aria-hidden", "true"); back = img; img = nb; };
+      if (nb.getAttribute("src") === f.img && nb.complete) swap(); else { nb.onload = swap; nb.src = f.img; }
+      (document.getElementById("anc-s") as HTMLInputElement).value = String(cur);
+      $("anc-date").textContent = f.date; $("anc-cur").textContent = `${f.ships_seen}개`; $("anc-low").textContent = f.low_confidence ? " · 구름 많음(신뢰 낮음)" : "";
+      for (const b of document.querySelectorAll<HTMLButtonElement>(".anc__bars button")) b.setAttribute("aria-pressed", String(Number(b.dataset.i) === cur));
+    };
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".anc__bars button")) b.addEventListener("click", () => { stop(); show(Number(b.dataset.i)); });
+    // 레이더 날짜 → 그날 배 자리(원) · 같은 달 사진으로 넘긴다
+    const SAR = JSON.parse(document.getElementById("anc-sar")!.textContent || "[]");
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".anc__sar-bars button")) b.addEventListener("click", () => {
+      stop(); const r = SAR[Number(b.dataset.r)];
+      for (const x of document.querySelectorAll<HTMLButtonElement>(".anc__sar-bars button")) x.setAttribute("aria-pressed", String(x === b));
+      $("anc-sar-n").textContent = String(r.n); $("anc-sar-d").textContent = r.d;
+      const svg = document.getElementById("anc-ships"); if (svg) svg.innerHTML = r.s.map((p: number[]) => `<circle cx="${p[0]}" cy="${p[1]}" r="0.55"/>`).join("");
+      const m = F.findIndex((f: any) => f.date.slice(0, 7) === r.d.slice(0, 7)); if (m >= 0) show(m);
+    });
+    $("anc-s").addEventListener("input", (e) => { stop(); show(Number((e.target as HTMLInputElement).value)); });
+    $("anc-zoom").addEventListener("click", () => { const fig = $("anc-fig"), on = fig.dataset.zoom !== "1"; fig.dataset.zoom = on ? "1" : "0"; $("anc-zoom").textContent = on ? "전체 보기" : "묘박지 확대"; $("anc-zoom").setAttribute("aria-pressed", String(on)); });
+    const stop = () => { clearInterval(timer); timer = null; $("anc-play").textContent = "넘겨 보기"; $("anc-play").setAttribute("aria-pressed", "false"); };
+    $("anc-play").addEventListener("click", () => { if (timer) return stop(); timer = setInterval(() => show(cur + 1), 1400); $("anc-play").textContent = "멈춤"; $("anc-play").setAttribute("aria-pressed", "true"); });
+    // 3초 답 — 다 뜬 뒤 첫 달부터 지금까지 한 번 넘긴다(움직임 줄이기면 그대로)
+    const go = () => { pre(); if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const end = cur; let k = 0; show(0); timer = setInterval(() => { k++; show(k); if (k >= F.length - 1) { stop(); setTimeout(() => show(end), 700); } }, 600); $("anc-play").textContent = "멈춤"; };
+    document.readyState === "complete" ? setTimeout(go, 400) : addEventListener("load", () => setTimeout(go, 400), { once: true });
+  </script>
+</Studio>
+<style>
+  .anc { display: grid; gap: var(--s-4); }
+  .anc__fig { position: relative; margin: 0; width: min(100%, 1100px, calc(52vh * var(--ar))); } /* 첫 화면에 사진·숫자·막대가 같이 들어오게 */
+  .anc__view { position: relative; overflow: hidden; aspect-ratio: var(--ar); background: #1c2a2e; }
+  .anc__pan { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transition: all 0.6s var(--s-ease); }
+  .anc__fig[data-zoom="1"] { width: min(100%, 1100px, calc(52vh * var(--zar))); }
+  .anc__fig[data-zoom="1"] .anc__view { aspect-ratio: var(--zar); }
+  .anc__fig[data-zoom="1"] .anc__pan { left: var(--zl); top: var(--zt); width: var(--zw); height: var(--zh); }
+  .anc__img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; transition: opacity 0.6s ease; background: #1c2a2e; }
+  @media (prefers-reduced-motion: reduce) { .anc__img, .anc__pan { transition: none; } }
+  .anc__slider { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); flex: 1; min-width: 200px; } .anc__slider input { width: 100%; min-height: 44px; accent-color: var(--s-signal); margin: 0; }
+  .anc__ships { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .anc__ships :global(circle) { fill: none; stroke: #ff5a36; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+  .anc__sar { display: grid; gap: 6px; max-width: 1100px; }
+  .anc__sar-h { margin: 0; font-variant-numeric: tabular-nums; color: var(--s-ink-2); } .anc__sar-h b { color: var(--s-ink); } #anc-sar-n { font-size: 22px; color: var(--s-signal); }
+  .anc__sar-bars { list-style: none; display: flex; gap: 2px; padding: 0; margin: 0; height: 56px; align-items: end; }
+  .anc__sar-bars li { flex: 1; height: 100%; } .anc__sar-bars button { display: flex; align-items: end; width: 100%; height: 100%; min-height: 44px; border: 0; padding: 0; background: none; cursor: pointer; }
+  .anc__sar-bars i { display: block; width: 100%; background: #3f6476; } .anc__sar-bars button[aria-pressed="true"] i { background: var(--s-signal); }
+  .anc__box { position: absolute; border: 2px dashed rgba(245, 242, 235, 0.85); pointer-events: none; }
+  .anc__box i { position: absolute; left: 4px; top: 2px; font: 500 12px/1.2 var(--s-font); color: #f5f2eb; font-style: normal; text-shadow: 0 0 3px #000; }
+  .anc__cap { margin-top: var(--s-2); font-variant-numeric: tabular-nums; }
+  .anc__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; font-variant-numeric: tabular-nums; }
+  .anc__big > b { font-size: clamp(38px, 4.6vw, 60px); font-weight: 700; letter-spacing: -0.03em; color: var(--s-signal); }
+  .anc__big > span { color: var(--s-ink-2); } .anc__big > span b { color: var(--s-ink); }
+  .anc__bars { list-style: none; display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4px; padding: 0; margin: 0; max-width: 1100px; }
+  .anc__bars button { display: grid; grid-template-rows: 70px auto; align-items: end; width: 100%; min-height: 44px; border: 0; background: none; cursor: pointer; padding: 0; }
+  .anc__bars i { display: block; background: var(--s-ink-3); width: 100%; }
+  .anc__bars i.low { opacity: 0.35; }
+  .anc__bars button[aria-pressed="true"] i { background: var(--s-signal); }
+  .anc__bars span { font-size: 11px; color: var(--s-ink-3); font-variant-numeric: tabular-nums; margin-top: 3px; }
+  .anc__ctl { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-4); } .anc__ctl p { margin: 0; }
+  @media (max-width: 720px) { .anc__bars span { font-size: 9.5px; } }
+</style>

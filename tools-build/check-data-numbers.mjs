@@ -26,11 +26,12 @@ export function numbersIn(text) {
   return [...t.matchAll(/\d{1,3}(?:,\d{3})+(?:\.\d+)?(?!\d)|\d+(?:\.\d+)?/g)].map((m) => m[0]).filter((n) => !/^(19|20)\d{2}$/.test(n));
 }
 
-// 지면 머리·바닥글(공통 틀)은 빼고 콘텐츠 본문만 본다 — data-sim/data-content 표지부터 그 뒤 첫 <script 앞까지.
+// 지면 머리·바닥글(공통 틀)은 빼고 콘텐츠 본문만 본다 — data-sim/data-content 표지부터 바닥글(<footer) 앞까지. 스크립트는 visibleText 가 지운다.
+// [2026-10-14] 종전에는 「첫 <script 앞까지」였다 — 그림 데이터 스크립트가 본문 한가운데 있는 지면(수요예측·선박)은 그 뒤 표·글을 안 봤다.
 export function contentOf(html) {
   const i = html.search(/data-(sim|content)=/);
   if (i < 0) return html;
-  const j = html.indexOf("<script", i);
+  const j = html.indexOf("<footer", i);
   return html.slice(html.lastIndexOf("<", i), j < 0 ? undefined : j);
 }
 
@@ -50,8 +51,10 @@ if (process.argv[1] && process.argv[1].endsWith("check-data-numbers.mjs")) {
     const ng = check('<footer>2,000</footer><div data-sim="x"><p>재고 12상자</p></div><script></script>', data);
     const fu = check('<div data-content="x"><g class="tk" data-furniture><text>127°00′E</text></g><p>재고 77상자</p></div>', data);
     const csv = check('<div data-sim="x"><td>302.6</td><td>1,302</td></div>', ["a,M1,302.6\nb,\"1,302\""]);
-    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77" || csv.bad.length) { console.error("FAIL selftest", ok, ng, fu, csv); process.exit(1); }
-    console.log("check-data-numbers selftest OK (4)");
+    // 본문 한가운데 스크립트 뒤의 표도 본다(2026-10-14)
+    const mid = check('<div data-sim="x"><p>36주</p><script type="application/json">{"a":1}</script><td>88</td></div><footer>2,000</footer>', data);
+    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77" || csv.bad.length || mid.bad.join() !== "88") { console.error("FAIL selftest", ok, ng, fu, csv, mid); process.exit(1); }
+    console.log("check-data-numbers selftest OK (5)");
     process.exit(0);
   }
   const [html, ...files] = process.argv.slice(2);
