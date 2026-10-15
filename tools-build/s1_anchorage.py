@@ -13,20 +13,32 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/s1_anchorage.json")
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1"
 COUNT = (126.30, 37.27, 126.56, 37.41)  # 배를 세는 상자 — s2_anchorage.py 와 같은 상자(인천대교·항내·갯벌 양식장 제외)
-KDB = 7.0        # 배경보다 이만큼(dB) 밝으면 후보
+KDB = 10.0       # 배경보다 이만큼(dB) 밝으면 후보 — 2026-10-15 진단(9벌 · 12장)으로 정함
 WATER_DB = -15.0  # 배경이 이보다 어두워야 물
 MIN_PX, MAX_PX = 3, 400
+ABS_DB = -4.0    # 배 화소의 절대 밝기 하한(dB) — 진단: 하한 없으면 장면당 42~340(얼룩) · −4dB 면 13~102 로 같은 달 S2 사진 배 수(17~58)와 자릿수가 맞다
+DIAG = os.environ.get("S1_DIAG") == "1"
+GRID = [(k, a) for k in (7, 10, 13) for a in (-14, -8, -4)]  # (배경 대비 dB, 절대 dB) — 2026-10-15 첫 실행이 장면당 14~534척(얼룩 오검출 의심)이라 기준을 잰다
 MAX_SCENES = 24  # 한 실행 상한(달 2장 꼴) — 2026-10-15 첫 실행이 40장을 30분 안에 못 읽었다
 TIME_BUDGET = 1300  # 초 — 넘으면 거기까지 쓰고 끝낸다(중간 저장)
 
 
-def detect(vv, transform_xy, kdb=KDB, water_db=WATER_DB):
+def detect(vv, transform_xy, kdb=KDB, water_db=WATER_DB, abs_db=None, grid=None):
     """vv = 선형 후방산란 2차원 배열(nan = 자료 없음) → 배 자리 [(x, y)](격자 좌표 → transform_xy 로 바꾼 값)."""
     from scipy import ndimage
+    global grid_out
+    grid_out = {}
     v = np.where(np.isfinite(vv) & (vv > 0), vv, np.nan)
     db = 10 * np.log10(np.where(np.isfinite(v), v, 1e-6))
     bg = ndimage.median_filter(np.where(np.isfinite(v), db, -30), size=31)
-    cand = np.isfinite(v) & (db - bg >= kdb) & (bg < water_db)
+    if grid is not None:  # 진단 — 기준값 여러 벌로 덩어리 수만 센다(자리 없이)
+        for k, a in grid:
+            c = np.isfinite(v) & (db - bg >= k) & (bg < water_db) & (db >= a)
+            lb, nn = ndimage.label(c)
+            if nn:
+                sz = ndimage.sum(c, lb, index=range(1, nn + 1)); nn = int(((sz >= MIN_PX) & (sz <= MAX_PX)).sum())
+            grid_out[f"{k}|{a}"] = nn
+    cand = np.isfinite(v) & (db - bg >= kdb) & (bg < water_db) & ((db >= abs_db) if abs_db is not None else True)
     lab, n = ndimage.label(cand)
     out = []
     if n:
@@ -43,7 +55,7 @@ def save(frames, end, prev=None):
     frames = frames + [f for k, f in (prev or {}).items() if k not in have]
     out = {"_설명": "Sentinel-1 레이더(VV)로 묘박지 상자 안 밝은 덩어리를 센 것 — 구름·밤과 무관. 부표·작은 섬·양식장이 섞일 수 있고, 붙어 있는 배는 하나로 셀 수 있다.",
            "source": "Copernicus Sentinel-1 RTC · Microsoft Planetary Computer(sentinel-1-rtc)", "credit": f"Contains modified Copernicus Sentinel data {end.year - 1}–{end.year}",
-           "count_box": COUNT, "method": {"kdb": KDB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
+           "count_box": COUNT, "method": {"kdb": KDB, "abs_db": ABS_DB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
            "made": end.isoformat(), "frames": sorted(frames, key=lambda f: f["date"])}
     json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 
@@ -60,14 +72,23 @@ def main():
     print("장면", len(items), start, "~", end)
     frames, prev = [], {}
     if os.path.exists(OUT):
-        for f in json.load(open(OUT, encoding="utf-8")).get("frames", []): prev[f["scene"]] = f
+        P0 = json.load(open(OUT, encoding="utf-8"))
+        if P0.get("method", {}).get("abs_db") == ABS_DB and P0.get("method", {}).get("kdb") == KDB:  # 기준이 바뀌면 지난 장면을 다시 센다
+            for f in P0.get("frames", []): prev[f["scene"]] = f
     import time
     t0 = time.time()
     os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR"); os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif,.tiff")
+    # 한 궤도만 — 오름·내림 궤도는 찍는 시각이 달라(새벽/저녁) 섞으면 척수가 계절처럼 뛴다(진단 10/15) → 달을 가장 많이 덮는 궤도
+    orb = {}
+    for it in items: orb.setdefault(it.properties.get("sat:orbit_state"), set()).add(it.datetime.strftime("%Y-%m"))
+    keep = max(orb, key=lambda k: len(orb[k])) if orb else None
+    items = [it for it in items if it.properties.get("sat:orbit_state") == keep]
+    print("궤도", keep, {k: len(v) for k, v in orb.items()})
     # 달마다 고르게 — 같은 달이면 앞뒤 둘까지(날짜 그래프가 한쪽으로 몰리지 않게)
     by_m = {}
     for it in items: by_m.setdefault(it.datetime.strftime("%Y-%m"), []).append(it)
     pick = [x for m in sorted(by_m) for x in (by_m[m][:1] + by_m[m][-1:] if len(by_m[m]) > 1 else by_m[m])][-MAX_SCENES:]
+    if DIAG: pick = pick[::2][:12]; prev = {}  # 진단 = 달 하나에 한 장 · 지난 결과 안 씀
     for it in pick:
         if time.time() - t0 > TIME_BUDGET: print("시간 상한 — 여기까지"); break
         if it.id in prev: frames.append(prev[it.id]); continue
@@ -84,12 +105,13 @@ def main():
             def xy(c, rr):
                 X, Y = T * (c + 0.5, rr + 0.5)
                 lo, la = wtransform(crs, "EPSG:4326", [X], [Y]); return [round(lo[0], 4), round(la[0], 4)]
-            ships = detect(vv, xy)
-            frames.append({"date": it.datetime.date().isoformat(), "scene": it.id, "orbit": it.properties.get("sat:orbit_state"), "valid_pct": round(valid, 1), "n": len(ships), "ships": ships})
+            ships = detect(vv, xy, abs_db=ABS_DB, grid=GRID if DIAG else None)
+            frames.append({"date": it.datetime.date().isoformat(), "scene": it.id, "orbit": it.properties.get("sat:orbit_state"), "valid_pct": round(valid, 1), "n": len(ships), "ships": ships, **({"grid": dict(grid_out)} if DIAG else {})})
             print(it.id, it.datetime.date(), "배", len(ships), f"{time.time() - t0:.0f}초", flush=True)
-            save(frames, end, prev)
+            save(frames, end, prev) if not DIAG else json.dump(frames, open(os.path.join(ROOT, "data/collected/s1_diag.json"), "w", encoding="utf-8"), ensure_ascii=False)
         except Exception as e:
             print(it.id, "읽기 실패", type(e).__name__, str(e)[:120])
+    if DIAG: print("진단 끝 →", "data/collected/s1_diag.json"); return 0
     save(frames, end, prev)
     frames.sort(key=lambda f: f["date"])
     print("프레임", len(frames), "→", OUT); return 0 if frames else 1
