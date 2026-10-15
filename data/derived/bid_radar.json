@@ -1,13 +1,13 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-15 15:09",
+ "snapshot": "2026-10-15 15:49",
  "window_days": 21,
- "scanned": 7945,
- "n": 32,
+ "scanned": 8005,
+ "n": 33,
  "group_counts": {
   "운송·배송": 16,
-  "보관·창고": 6,
+  "보관·창고": 7,
   "통관·무역": 4,
   "항만·해운·항공": 6
  },
@@ -458,6 +458,18 @@
    "presmptPrce": 1774315000,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01771582&bidPbancOrd=000",
    "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01773248",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "선거물품 집중보관 용역(2027~2028, 장기신규)",
+   "ntceInsttNm": "조달청 서울지방조달청",
+   "dminsttNm": "중앙선거관리위원회 서울특별시선거관리위원회",
+   "bidNtceDt": "2026-10-15 15:45:17",
+   "bidClseDt": "2026-11-25 10:00:00",
+   "presmptPrce": 424545455,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773248&bidPbancOrd=000",
+   "group": "보관·창고"
   }
  ]
 }
