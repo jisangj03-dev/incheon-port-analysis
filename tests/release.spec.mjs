@@ -69,7 +69,8 @@ test("③ 개인정보 — 메일 원문 · 전화번호 · 학번 · 집 주소
   for (const f of TEXT) {
     const s = read(f);
     for (const m of s.matchAll(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g)) if (!/@(users\.noreply\.github\.com|example\.(com|org))$/.test(m[0])) bad.push(`${f}: 메일 ${m[0]}`);
-    for (const m of s.matchAll(/(?<![\d.])01[016789][-. ]?\d{3,4}[-. ]?\d{4}(?![\d.])/g)) bad.push(`${f}: 전화 ${m[0]}`);
+    // 관세율표 류별 파일(data/tariff/<류>.json)은 HSK 10자리 코드 — 01류(0101…)가 휴대전화 모양에 걸린다(QA 250) · 메일·학번 검사는 그대로
+    if (!/(^|\/)data\/tariff\/\d+\.json$/.test(f)) for (const m of s.matchAll(/(?<![\d.])01[016789][-. ]?\d{3,4}[-. ]?\d{4}(?![\d.])/g)) bad.push(`${f}: 전화 ${m[0]}`);
     if (/학번/.test(s)) bad.push(`${f}: 「학번」`);
   }
   expect(bad).toEqual([]);
