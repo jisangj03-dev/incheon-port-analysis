@@ -14,7 +14,7 @@ jobs:
   probe:
     if: startsWith(github.ref_name, 'claude/')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 14
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -23,14 +23,17 @@ jobs:
       - name: 찾기·명세·시험 호출
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        timeout-minutes: 10
         run: python tools-build/tariff_probe.py 2>&1 | tee /tmp/log.txt
       - name: 키가 산출물·로그에 없는지
+        if: always()
         env:
           K: ${{ secrets.DATA_GO_KR_KEY }}
         run: |
           [ -z "$K" ] && exit 0
           if grep -rqF "$K" data/ /tmp/log.txt 2>/dev/null; then echo "::error::키 원문이 산출물·로그에 있다 — 커밋하지 않는다"; exit 1; fi
-      - name: 결과 커밋(그 브랜치에)
+      - name: 결과 커밋(그 브랜치에 · 중간 결과도)
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
