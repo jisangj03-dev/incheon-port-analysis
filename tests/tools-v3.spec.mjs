@@ -66,7 +66,8 @@ test("CSV = 지면 데이터(맥박·등시선·트리맵·환율·묘박지) ·
 });
 
 test("도구 목록 · 홈 질문 · 관문 판이 같은 도구 목록(rooms.json)에서 나온다", async ({ page }) => {
-  const R = JSON.parse(J("data/rooms.json")).rooms.find((r) => r.id === "tools").items;
+  const ready = (t) => { if (!t.needs) return true; try { return JSON.parse(J(t.needs)).ok !== false; } catch { return false; } }; // rooms.ts ready() 와 같은 규칙
+  const R = JSON.parse(J("data/rooms.json")).rooms.find((r) => r.id === "tools").items.filter(ready);
   await page.goto(`${B}/tools/`, { waitUntil: "domcontentloaded" });
   for (const t of R) await expect(page.locator(`a[href$="${t.href}"]`).first()).toBeVisible();
   await page.goto(`${B}/`, { waitUntil: "domcontentloaded" });

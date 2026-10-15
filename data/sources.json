@@ -348,6 +348,20 @@
       "used_by": [
         "입찰 레이더"
       ]
+    },
+    {
+      "id": "opendart",
+      "name": "전자공시 OpenDART(기업개황 · 공시검색 · 단일회사 주요계정)",
+      "owner": "금융감독원",
+      "where": "opendart.fss.or.kr API — list.json(A001 사업보고서) · company.json · fnlttSinglAcnt.json · 원문 = dart.fss.or.kr 접수번호",
+      "license": "OpenDART 이용약관(원문 대조 전 — [미확인])",
+      "kogl": "유형 표시 없음",
+      "commercial": "[미확인] 약관 원문 대조 전",
+      "modify": "수치를 바꾸지 않고 옮김",
+      "checked": "2026-10-15 선커밋 ③-나 상세 — 키는 Actions 비밀(OPENDART_KEY)만 · 대표자·임원·전화·홈페이지·상세 주소는 받은 즉시 버림 · 투자 권유 아님 · 약관 원문 대조는 아직(terms 일에 넣을 것)",
+      "used_by": [
+        "인천 물류기업 카드"
+      ]
     }
   ]
 }

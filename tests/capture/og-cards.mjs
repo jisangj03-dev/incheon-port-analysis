@@ -31,7 +31,9 @@ for (const f of pages) {
 // 도구 카드(B6) · 도구 퍼가기(B7) — 전권 위임 ④. 도구 지면을 **스크립트 없이**(서버가 그린 첫 상태) 열어 질문·큰 숫자·3초 답·기준일·출처·CSV 를
 // 읽고, 그 값으로 카드 틀을 채워 찍고, 같은 값으로 퍼가기 지면을 쓴다. 카드·퍼가기·지면이 한 순간 한 출처에서 나온다(숫자를 따로 만들지 않는다).
 const SITE = "https://jisangj03-dev.github.io/incheon-port-analysis";
-const TOOLS = (JSON.parse(readFileSync("data/rooms.json", "utf-8")).rooms.find((r) => r.id === "tools")?.items || []).filter((t) => /^\/tools\/.+\.html$/.test(t.href));
+// needs(데이터 파일)가 없거나 ok=false 인 도구는 지면이 없다 — rooms.ts ready() 와 같은 규칙
+const ready = (t) => { if (!t.needs) return true; try { return JSON.parse(readFileSync(t.needs, "utf-8")).ok !== false; } catch { return false; } };
+const TOOLS = (JSON.parse(readFileSync("data/rooms.json", "utf-8")).rooms.find((r) => r.id === "tools")?.items || []).filter((t) => /^\/tools\/.+\.html$/.test(t.href) && ready(t));
 const cards = {};
 let tbad = 0;
 if (existsSync(join(dir, "tool.html")) && TOOLS.length) {

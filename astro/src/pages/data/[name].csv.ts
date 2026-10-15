@@ -77,6 +77,16 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: R.items.map((x: any) => ({ 묶음: x.group, 공고번호: x.bidNtceNo, 차수: x.bidNtceOrd, 공고명: x.bidNtceNm, 공고기관: x.ntceInsttNm, 수요기관: x.dminsttNm, 공고일시: x.bidNtceDt, 마감일시: x.bidClseDt, 추정가격_원: x.presmptPrce ?? "", 나라장터: x.bidNtceDtlUrl })),
       note: `${R.source} · ${R.snapshot} 스냅샷(그 뒤 마감·정정됐을 수 있음) · 고르는 규칙 = 선커밋 ③-가 · 자동 수집 · 검수 안 함 · 계산 tools-build/v3/bid_radar.py` };
   },
+  // 인천 물류기업 카드(③-나) — 공시 수치 그대로 한 법인 한 줄(대표자·임원·연락처 없음). 표본 5곳 미만(ok=false)이면 표를 내지 않는다
+  "incheon-firms": () => {
+    const D = J("data/derived/incheon_firms.json");
+    if (!D.ok) throw new Error("표본 미달");
+    const v = (a: any, k: string, w: "now" | "prev") => a?.[k]?.[w] ?? "";
+    return { rows: D.firms.map((f: any) => ({ 회사명: f.name, 상장구분: f.cls, 종목코드: f.stock_code ?? "", 업종코드: f.induty_code, 업종: f.division, 본점_구군: f.gu ?? "", 결산월: f.acc_mt,
+        보고서: f.report, 기준: f.accounts?.fs ?? "", 매출액_당기_원: v(f.accounts, "revenue", "now"), 매출액_전기_원: v(f.accounts, "revenue", "prev"), 영업이익_당기_원: v(f.accounts, "op", "now"), 영업이익_전기_원: v(f.accounts, "op", "prev"),
+        당기순이익_당기_원: v(f.accounts, "net", "now"), 당기순이익_전기_원: v(f.accounts, "net", "prev"), 자산총계_당기_원: v(f.accounts, "assets", "now"), 자산총계_전기_원: v(f.accounts, "assets", "prev"), 접수일: f.rcept_dt, 공시원문: f.url })),
+      note: `${D.source} · ${D.snapshot} 스냅샷 · 고르는 규칙 = 선커밋 ③-나 상세 · 공시 수치 그대로 · 투자 권유 아님 · 계산 tools-build/v3/dart_firms.py` };
+  },
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);

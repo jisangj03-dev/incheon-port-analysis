@@ -88,6 +88,15 @@
           "who": "물류기업 영업 · 3PL · 포워더 · 컨설팅",
           "lead": "나라장터 용역 입찰공고에서 물류·무역 공고만 골라 마감 가까운 순으로 봅니다(빌드 때 스냅샷 · 목록은 검수 안 함).",
           "href": "/tools/bid-radar.html"
+        },
+        {
+          "id": "incheon-firms",
+          "title": "인천 물류기업 카드",
+          "q": "인천에 본점을 둔 물류 법인은 공시에 어떤 숫자를 냈나?",
+          "who": "물류·SCM 실무 · 채용 담당 · 기자",
+          "lead": "사업보고서를 낸 인천 본점 운수·창고 법인의 주요계정을 OpenDART 공시 그대로 옮깁니다(투자 권유 아님 · 5곳 미만이면 싣지 않음).",
+          "href": "/tools/incheon-firms.html",
+          "needs": "data/derived/incheon_firms.json"
         }
       ]
     },

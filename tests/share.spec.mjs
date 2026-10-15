@@ -42,7 +42,9 @@ test("B7 — 퍼가기 지면: 위젯이 돌고 외부 요청 0(분석도 없다
 });
 
 // 도구 일곱(전권 위임 ④) — 카드가 있고, og:image 가 그 카드이고, 카드에 찍힌 숫자 = 지면 큰 숫자(cards.json 은 찍는 순간 지면에서 읽은 값)
-const TOOLS = JSON.parse(readFileSync("data/rooms.json", "utf-8")).rooms.find((r) => r.id === "tools").items;
+// needs(데이터 파일)가 없거나 ok=false 인 도구는 지면이 없다(rooms.ts ready() 와 같은 규칙)
+const ready = (t) => { if (!t.needs) return true; try { return JSON.parse(readFileSync(t.needs, "utf-8")).ok !== false; } catch { return false; } };
+const TOOLS = JSON.parse(readFileSync("data/rooms.json", "utf-8")).rooms.find((r) => r.id === "tools").items.filter(ready);
 test("B6 도구 — 도구마다 1200×630 카드 · og:image · 카드 숫자 = 지면 큰 숫자", async ({ request }, info) => {
   test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
   test.skip(!existsSync("astro/dist/og/cards.json"), "npm run site:og 를 안 돌렸다");
