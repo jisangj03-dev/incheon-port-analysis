@@ -32,16 +32,20 @@ def cells(htm):
 
 
 def parse_table(rows):
-    """머리줄에 날짜·종합(KCCI)·항로 이름이 있는 표 → 주 목록"""
+    """머리줄(DATE · KCCI · 항로 코드)이 있는 표 → 주 목록. 날짜 칸은 머리 이름(DATE·날짜·기준일)으로 찾는다
+    (2026-10-15: 엑셀은 첫 칸이 「번호」라 첫 칸에서 날짜를 찾던 규칙이 엑셀 196주를 놓치고 화면 표 4묶음만 남겼다)."""
     head = next((r for r in rows if any("KCCI" in x or "종합" in x for x in r) and len(r) >= 5), None)
     if not head: return None
+    di = next((i for i, x in enumerate(head) if re.search(r"^(DATE|날짜|기준일|발표일|일자)$", x.strip(), re.I)), 0)
     out = []
     for r in rows[rows.index(head) + 1:]:
-        d = re.search(r"(20\d{2})[-./](\d{1,2})[-./](\d{1,2})", r[0] if r else "")
-        if not d or len(r) < len(head) - 1: continue
+        if len(r) <= di: continue
+        d = re.search(r"(20\d{2})[-./]?(\d{1,2})[-./]?(\d{1,2})", r[di].split(".")[0] if re.fullmatch(r"\d{8}(\.0)?", r[di]) else r[di])
+        if not d: continue
         vals = {}
-        for k, v in zip(head[1:], r[1:]):
-            try: vals[k] = float(v.replace(",", ""))
+        for j, (k, v) in enumerate(zip(head, r)):
+            if j == di or not k.strip() or re.search(r"번호|No", k): continue
+            try: vals[k.strip()] = float(str(v).replace(",", ""))
             except ValueError: pass
         if vals: out.append({"date": f"{d.group(1)}-{int(d.group(2)):02d}-{int(d.group(3)):02d}", **vals})
     return sorted(out, key=lambda x: x["date"]) or None
@@ -83,7 +87,7 @@ def main():
                 except Exception as e: tries[-1]["xls_error"] = str(e)[:120]
             else:
                 rr = parse_table(cells(b2.decode("utf-8", "replace")))
-            if rr and len(rr) > len(rows or []): rows = rr; probe["used"] = tries[-1]
+            if rr and (len(rr) > len(rows or []) or len(rr[-1]) > len((rows or [{}])[-1])): rows = rr; probe["used"] = {k: tries[-1][k] for k in ("path", "fields", "size")}
             if rows and len(rows) > 100: break
         if rows and len(rows) > 100: break
     probe["tries"] = tries
@@ -97,5 +101,15 @@ def main():
     say("KCCI", len(rows), "주", rows[0]["date"], "~", rows[-1]["date"]); return 0
 
 
+
+
+
+def selftest():
+    g = [["KOBC CONTAINER COMPOSITE INDEX TIMESERIES", ""], ["번호", "DATE", "KCCI", "KUWI", "KCI"], ["2", "20261012", "4654.0", "8258.0", "55.0"], ["1", "20261006", "4629.0", "8194.0", "54.0"]]
+    r = parse_table(g)
+    assert r == [{"date": "2026-10-06", "KCCI": 4629.0, "KUWI": 8194.0, "KCI": 54.0}, {"date": "2026-10-12", "KCCI": 4654.0, "KUWI": 8258.0, "KCI": 55.0}], r
+    print("selftest 1/1 ok"); return 0
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(selftest() if "--selftest" in sys.argv else main())
