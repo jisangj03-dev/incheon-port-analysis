@@ -26,7 +26,7 @@ test("홈: 손대지 않아도 지도가 받아져 돌고(수도권 첫 화면) 
   // 6초 뒤 다시
   const ms = await page.evaluate(() => window.__fmResumeMs);
   expect(ms).toBe(6000);
-  await expect.poll(async () => (await st()).tour, { timeout: 12_000, intervals: [1000], message: "6초 뒤 다시 돌지 않는다" }).toBe(true);
+  await expect.poll(async () => (await st()).tour, { timeout: 25_000, intervals: [1000], message: "6초 뒤 다시 돌지 않는다(CI 는 타이머가 밀려 25초까지 본다 · QA 225)" }).toBe(true);
   // 「둘러보기 멈춤」 — 누르면 다시 누를 때까지 그대로
   await page.locator("#fm-tour").click();
   expect((await st()).tour).toBe(false);
