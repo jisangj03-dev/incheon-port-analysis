@@ -3,6 +3,1350 @@
  "fetched": "2026-10-15",
  "weeks": [
   {
+   "date": "2022-11-14",
+   "KCCI": 2706.0,
+   "Mainlane": 1851.0,
+   "Non-Mainlane": 5044.0,
+   "Intra  Asia": 3483.0
+  },
+  {
+   "date": "2022-11-21",
+   "KCCI": 2429.0,
+   "Mainlane": 1726.0,
+   "Non-Mainlane": 4578.0,
+   "Intra  Asia": 2776.0
+  },
+  {
+   "date": "2022-11-28",
+   "KCCI": 2260.0,
+   "Mainlane": 1623.0,
+   "Non-Mainlane": 4148.0,
+   "Intra  Asia": 2399.0
+  },
+  {
+   "date": "2022-12-05",
+   "KCCI": 2093.0,
+   "Mainlane": 1582.0,
+   "Non-Mainlane": 3772.0,
+   "Intra  Asia": 2171.0
+  },
+  {
+   "date": "2022-12-12",
+   "KCCI": 2022.0,
+   "Mainlane": 1553.0,
+   "Non-Mainlane": 3615.0,
+   "Intra  Asia": 2035.0
+  },
+  {
+   "date": "2022-12-19",
+   "KCCI": 1936.0,
+   "Mainlane": 1550.0,
+   "Non-Mainlane": 3445.0,
+   "Intra  Asia": 1983.0
+  },
+  {
+   "date": "2022-12-26",
+   "KCCI": 1891.0,
+   "Mainlane": 1516.0,
+   "Non-Mainlane": 3384.0,
+   "Intra  Asia": 1870.0
+  },
+  {
+   "date": "2023-01-02",
+   "KCCI": 1835.0,
+   "Mainlane": 1518.0,
+   "Non-Mainlane": 3289.0,
+   "Intra  Asia": 1873.0
+  },
+  {
+   "date": "2023-01-09",
+   "KCCI": 1738.0,
+   "Mainlane": 1510.0,
+   "Non-Mainlane": 3184.0,
+   "Intra  Asia": 1950.0
+  },
+  {
+   "date": "2023-01-16",
+   "KCCI": 1701.0,
+   "Mainlane": 1515.0,
+   "Non-Mainlane": 3098.0,
+   "Intra  Asia": 1887.0
+  },
+  {
+   "date": "2023-01-25",
+   "KCCI": 1668.0,
+   "Mainlane": 1506.0,
+   "Non-Mainlane": 3045.0,
+   "Intra  Asia": 1880.0
+  },
+  {
+   "date": "2023-01-30",
+   "KCCI": 1638.0,
+   "Mainlane": 1478.0,
+   "Non-Mainlane": 2972.0,
+   "Intra  Asia": 1828.0
+  },
+  {
+   "date": "2023-02-06",
+   "KCCI": 1574.0,
+   "Mainlane": 1447.0,
+   "Non-Mainlane": 2887.0,
+   "Intra  Asia": 1838.0
+  },
+  {
+   "date": "2023-02-13",
+   "KCCI": 1560.0,
+   "Mainlane": 1433.0,
+   "Non-Mainlane": 2840.0,
+   "Intra  Asia": 1770.0
+  },
+  {
+   "date": "2023-02-20",
+   "KCCI": 1542.0,
+   "Mainlane": 1417.0,
+   "Non-Mainlane": 2795.0,
+   "Intra  Asia": 1743.0
+  },
+  {
+   "date": "2023-02-27",
+   "KCCI": 1496.0,
+   "Mainlane": 1364.0,
+   "Non-Mainlane": 2690.0,
+   "Intra  Asia": 1696.0
+  },
+  {
+   "date": "2023-03-06",
+   "KCCI": 1448.0,
+   "Mainlane": 1327.0,
+   "Non-Mainlane": 2574.0,
+   "Intra  Asia": 1596.0
+  },
+  {
+   "date": "2023-03-13",
+   "KCCI": 1401.0,
+   "Mainlane": 1313.0,
+   "Non-Mainlane": 2458.0,
+   "Intra  Asia": 1495.0
+  },
+  {
+   "date": "2023-03-20",
+   "KCCI": 1353.0,
+   "Mainlane": 1253.0,
+   "Non-Mainlane": 2334.0,
+   "Intra  Asia": 1463.0
+  },
+  {
+   "date": "2023-03-27",
+   "KCCI": 1317.0,
+   "Mainlane": 1218.0,
+   "Non-Mainlane": 2249.0,
+   "Intra  Asia": 1428.0
+  },
+  {
+   "date": "2023-04-03",
+   "KCCI": 1229.0,
+   "Mainlane": 1217.0,
+   "Non-Mainlane": 2151.0,
+   "Intra  Asia": 1405.0
+  },
+  {
+   "date": "2023-04-10",
+   "KCCI": 1218.0,
+   "Mainlane": 1193.0,
+   "Non-Mainlane": 2089.0,
+   "Intra  Asia": 1408.0
+  },
+  {
+   "date": "2023-04-17",
+   "KCCI": 1269.0,
+   "Mainlane": 1324.0,
+   "Non-Mainlane": 2229.0,
+   "Intra  Asia": 1436.0
+  },
+  {
+   "date": "2023-04-24",
+   "KCCI": 1368.0,
+   "Mainlane": 1568.0,
+   "Non-Mainlane": 2507.0,
+   "Intra  Asia": 1482.0
+  },
+  {
+   "date": "2023-05-02",
+   "KCCI": 1346.0,
+   "Mainlane": 1455.0,
+   "Non-Mainlane": 2440.0,
+   "Intra  Asia": 1423.0
+  },
+  {
+   "date": "2023-05-08",
+   "KCCI": 1346.0,
+   "Mainlane": 1468.0,
+   "Non-Mainlane": 2432.0,
+   "Intra  Asia": 1430.0
+  },
+  {
+   "date": "2023-05-15",
+   "KCCI": 1324.0,
+   "Mainlane": 1413.0,
+   "Non-Mainlane": 2407.0,
+   "Intra  Asia": 1408.0
+  },
+  {
+   "date": "2023-05-22",
+   "KCCI": 1328.0,
+   "Mainlane": 1409.0,
+   "Non-Mainlane": 2482.0,
+   "Intra  Asia": 1400.0
+  },
+  {
+   "date": "2023-05-30",
+   "KCCI": 1303.0,
+   "Mainlane": 1340.0,
+   "Non-Mainlane": 2399.0,
+   "Intra  Asia": 1400.0
+  },
+  {
+   "date": "2023-06-05",
+   "KCCI": 1357.0,
+   "Mainlane": 1574.0,
+   "Non-Mainlane": 2657.0,
+   "Intra  Asia": 1373.0
+  },
+  {
+   "date": "2023-06-12",
+   "KCCI": 1328.0,
+   "Mainlane": 1516.0,
+   "Non-Mainlane": 2546.0,
+   "Intra  Asia": 1361.0
+  },
+  {
+   "date": "2023-06-19",
+   "KCCI": 1288.0,
+   "Mainlane": 1406.0,
+   "Non-Mainlane": 2368.0,
+   "Intra  Asia": 1323.0
+  },
+  {
+   "date": "2023-06-26",
+   "KCCI": 1261.0,
+   "Mainlane": 1340.0,
+   "Non-Mainlane": 2262.0,
+   "Intra  Asia": 1283.0
+  },
+  {
+   "date": "2023-07-03",
+   "KCCI": 1231.0,
+   "Mainlane": 1362.0,
+   "Non-Mainlane": 2290.0,
+   "Intra  Asia": 1215.0
+  },
+  {
+   "date": "2023-07-10",
+   "KCCI": 1227.0,
+   "Mainlane": 1410.0,
+   "Non-Mainlane": 2366.0,
+   "Intra  Asia": 1172.0
+  },
+  {
+   "date": "2023-07-17",
+   "KCCI": 1237.0,
+   "Mainlane": 1491.0,
+   "Non-Mainlane": 2452.0,
+   "Intra  Asia": 1138.0
+  },
+  {
+   "date": "2023-07-24",
+   "KCCI": 1270.0,
+   "Mainlane": 1660.0,
+   "Non-Mainlane": 2579.0,
+   "Intra  Asia": 1133.0
+  },
+  {
+   "date": "2023-07-31",
+   "KCCI": 1292.0,
+   "Mainlane": 1714.0,
+   "Non-Mainlane": 2690.0,
+   "Intra  Asia": 1181.0
+  },
+  {
+   "date": "2023-08-07",
+   "KCCI": 1377.0,
+   "Mainlane": 1936.0,
+   "Non-Mainlane": 2929.0,
+   "Intra  Asia": 1431.0
+  },
+  {
+   "date": "2023-08-14",
+   "KCCI": 1390.0,
+   "Mainlane": 1969.0,
+   "Non-Mainlane": 2995.0,
+   "Intra  Asia": 1459.0
+  },
+  {
+   "date": "2023-08-21",
+   "KCCI": 1411.0,
+   "Mainlane": 2023.0,
+   "Non-Mainlane": 3088.0,
+   "Intra  Asia": 1465.0
+  },
+  {
+   "date": "2023-08-28",
+   "KCCI": 1370.0,
+   "Mainlane": 1965.0,
+   "Non-Mainlane": 3004.0,
+   "Intra  Asia": 1405.0
+  },
+  {
+   "date": "2023-09-04",
+   "KCCI": 1362.0,
+   "Mainlane": 2007.0,
+   "Non-Mainlane": 3038.0,
+   "Intra  Asia": 1359.0
+  },
+  {
+   "date": "2023-09-11",
+   "KCCI": 1332.0,
+   "Mainlane": 1964.0,
+   "Non-Mainlane": 2970.0,
+   "Intra  Asia": 1303.0
+  },
+  {
+   "date": "2023-09-18",
+   "KCCI": 1284.0,
+   "Mainlane": 1924.0,
+   "Non-Mainlane": 2793.0,
+   "Intra  Asia": 1224.0
+  },
+  {
+   "date": "2023-09-25",
+   "KCCI": 1236.0,
+   "Mainlane": 1842.0,
+   "Non-Mainlane": 2609.0,
+   "Intra  Asia": 1183.0
+  },
+  {
+   "date": "2023-10-10",
+   "KCCI": 1170.0,
+   "Mainlane": 1768.0,
+   "Non-Mainlane": 2350.0,
+   "Intra  Asia": 1101.0
+  },
+  {
+   "date": "2023-10-16",
+   "KCCI": 1157.0,
+   "Mainlane": 1768.0,
+   "Non-Mainlane": 2340.0,
+   "Intra  Asia": 1070.0
+  },
+  {
+   "date": "2023-10-23",
+   "KCCI": 1167.0,
+   "Mainlane": 1739.0,
+   "Non-Mainlane": 2323.0,
+   "Intra  Asia": 1063.0
+  },
+  {
+   "date": "2023-10-30",
+   "KCCI": 1199.0,
+   "Mainlane": 1816.0,
+   "Non-Mainlane": 2369.0,
+   "Intra  Asia": 1077.0
+  },
+  {
+   "date": "2023-11-06",
+   "KCCI": 1284.0,
+   "Mainlane": 2035.0,
+   "Non-Mainlane": 2492.0,
+   "Intra  Asia": 1202.0
+  },
+  {
+   "date": "2023-11-13",
+   "KCCI": 1262.0,
+   "Mainlane": 1906.0,
+   "Non-Mainlane": 2423.0,
+   "Intra  Asia": 1178.0
+  },
+  {
+   "date": "2023-11-20",
+   "KCCI": 1255.0,
+   "Mainlane": 1814.0,
+   "Non-Mainlane": 2398.0,
+   "Intra  Asia": 1199.0
+  },
+  {
+   "date": "2023-11-27",
+   "KCCI": 1254.0,
+   "Mainlane": 1772.0,
+   "Non-Mainlane": 2422.0,
+   "Intra  Asia": 1208.0
+  },
+  {
+   "date": "2023-12-04",
+   "KCCI": 1269.0,
+   "Mainlane": 1709.0,
+   "Non-Mainlane": 2452.0,
+   "Intra  Asia": 1305.0
+  },
+  {
+   "date": "2023-12-11",
+   "KCCI": 1280.0,
+   "Mainlane": 1700.0,
+   "Non-Mainlane": 2468.0,
+   "Intra  Asia": 1394.0
+  },
+  {
+   "date": "2023-12-18",
+   "KCCI": 1344.0,
+   "Mainlane": 1800.0,
+   "Non-Mainlane": 2744.0,
+   "Intra  Asia": 1606.0
+  },
+  {
+   "date": "2023-12-26",
+   "KCCI": 1421.0,
+   "Mainlane": 1852.0,
+   "Non-Mainlane": 2896.0,
+   "Intra  Asia": 1929.0
+  },
+  {
+   "date": "2024-01-02",
+   "KCCI": 1557.0,
+   "Mainlane": 2032.0,
+   "Non-Mainlane": 3041.0,
+   "Intra  Asia": 2495.0
+  },
+  {
+   "date": "2024-01-08",
+   "KCCI": 1934.0,
+   "Mainlane": 2499.0,
+   "Non-Mainlane": 3665.0,
+   "Intra  Asia": 3732.0
+  },
+  {
+   "date": "2024-01-15",
+   "KCCI": 2238.0,
+   "Mainlane": 2886.0,
+   "Non-Mainlane": 4353.0,
+   "Intra  Asia": 4495.0
+  },
+  {
+   "date": "2024-01-22",
+   "KCCI": 2620.0,
+   "Mainlane": 3798.0,
+   "Non-Mainlane": 5440.0,
+   "Intra  Asia": 5160.0
+  },
+  {
+   "date": "2024-01-29",
+   "KCCI": 2734.0,
+   "Mainlane": 4199.0,
+   "Non-Mainlane": 5813.0,
+   "Intra  Asia": 5233.0
+  },
+  {
+   "date": "2024-02-05",
+   "KCCI": 2831.0,
+   "Mainlane": 4902.0,
+   "Non-Mainlane": 6270.0,
+   "Intra  Asia": 4877.0
+  },
+  {
+   "date": "2024-02-13",
+   "KCCI": 2742.0,
+   "Mainlane": 4739.0,
+   "Non-Mainlane": 6070.0,
+   "Intra  Asia": 4652.0
+  },
+  {
+   "date": "2024-02-19",
+   "KCCI": 2729.0,
+   "Mainlane": 4740.0,
+   "Non-Mainlane": 6068.0,
+   "Intra  Asia": 4519.0
+  },
+  {
+   "date": "2024-02-26",
+   "KCCI": 2703.0,
+   "Mainlane": 4678.0,
+   "Non-Mainlane": 6005.0,
+   "Intra  Asia": 4457.0
+  },
+  {
+   "date": "2024-03-04",
+   "KCCI": 2632.0,
+   "Mainlane": 4477.0,
+   "Non-Mainlane": 5917.0,
+   "Intra  Asia": 4169.0
+  },
+  {
+   "date": "2024-03-11",
+   "KCCI": 2533.0,
+   "Mainlane": 4218.0,
+   "Non-Mainlane": 5693.0,
+   "Intra  Asia": 3997.0
+  },
+  {
+   "date": "2024-03-18",
+   "KCCI": 2402.0,
+   "Mainlane": 3939.0,
+   "Non-Mainlane": 5264.0,
+   "Intra  Asia": 3752.0
+  },
+  {
+   "date": "2024-03-25",
+   "KCCI": 2326.0,
+   "Mainlane": 3845.0,
+   "Non-Mainlane": 5131.0,
+   "Intra  Asia": 3526.0
+  },
+  {
+   "date": "2024-04-01",
+   "KCCI": 2216.0,
+   "Mainlane": 3594.0,
+   "Non-Mainlane": 4721.0,
+   "Intra  Asia": 3385.0
+  },
+  {
+   "date": "2024-04-08",
+   "KCCI": 2149.0,
+   "Mainlane": 3321.0,
+   "Non-Mainlane": 4266.0,
+   "Intra  Asia": 3357.0
+  },
+  {
+   "date": "2024-04-15",
+   "KCCI": 2145.0,
+   "Mainlane": 3219.0,
+   "Non-Mainlane": 4111.0,
+   "Intra  Asia": 3378.0
+  },
+  {
+   "date": "2024-04-22",
+   "KCCI": 2183.0,
+   "Mainlane": 3175.0,
+   "Non-Mainlane": 4042.0,
+   "Intra  Asia": 3336.0
+  },
+  {
+   "date": "2024-04-29",
+   "KCCI": 2278.0,
+   "Mainlane": 3329.0,
+   "Non-Mainlane": 4225.0,
+   "Intra  Asia": 3452.0
+  },
+  {
+   "date": "2024-05-07",
+   "KCCI": 2606.0,
+   "Mainlane": 4014.0,
+   "Non-Mainlane": 5068.0,
+   "Intra  Asia": 3850.0
+  },
+  {
+   "date": "2024-05-13",
+   "KCCI": 2717.0,
+   "Mainlane": 4132.0,
+   "Non-Mainlane": 5206.0,
+   "Intra  Asia": 4033.0
+  },
+  {
+   "date": "2024-05-20",
+   "KCCI": 3158.0,
+   "Mainlane": 4902.0,
+   "Non-Mainlane": 5940.0,
+   "Intra  Asia": 4820.0
+  },
+  {
+   "date": "2024-05-27",
+   "KCCI": 3367.0,
+   "Mainlane": 5070.0,
+   "Non-Mainlane": 6190.0,
+   "Intra  Asia": 5126.0
+  },
+  {
+   "date": "2024-06-03",
+   "KCCI": 3743.0,
+   "Mainlane": 5620.0,
+   "Non-Mainlane": 6765.0,
+   "Intra  Asia": 5740.0
+  },
+  {
+   "date": "2024-06-10",
+   "KCCI": 4043.0,
+   "Mainlane": 5955.0,
+   "Non-Mainlane": 7109.0,
+   "Intra  Asia": 6174.0
+  },
+  {
+   "date": "2024-06-17",
+   "KCCI": 4306.0,
+   "Mainlane": 6422.0,
+   "Non-Mainlane": 7552.0,
+   "Intra  Asia": 6549.0
+  },
+  {
+   "date": "2024-06-24",
+   "KCCI": 4572.0,
+   "Mainlane": 6908.0,
+   "Non-Mainlane": 8040.0,
+   "Intra  Asia": 7092.0
+  },
+  {
+   "date": "2024-07-01",
+   "KCCI": 4778.0,
+   "Mainlane": 7232.0,
+   "Non-Mainlane": 8539.0,
+   "Intra  Asia": 7497.0
+  },
+  {
+   "date": "2024-07-08",
+   "KCCI": 5135.0,
+   "Mainlane": 7851.0,
+   "Non-Mainlane": 9664.0,
+   "Intra  Asia": 8221.0
+  },
+  {
+   "date": "2024-07-15",
+   "KCCI": 5133.0,
+   "Mainlane": 7692.0,
+   "Non-Mainlane": 9731.0,
+   "Intra  Asia": 8430.0
+  },
+  {
+   "date": "2024-07-22",
+   "KCCI": 5044.0,
+   "Mainlane": 7397.0,
+   "Non-Mainlane": 9760.0,
+   "Intra  Asia": 8525.0
+  },
+  {
+   "date": "2024-07-29",
+   "KCCI": 4890.0,
+   "Mainlane": 6900.0,
+   "Non-Mainlane": 9574.0,
+   "Intra  Asia": 8508.0
+  },
+  {
+   "date": "2024-08-05",
+   "KCCI": 4778.0,
+   "Mainlane": 6640.0,
+   "Non-Mainlane": 9441.0,
+   "Intra  Asia": 8479.0
+  },
+  {
+   "date": "2024-08-12",
+   "KCCI": 4673.0,
+   "Mainlane": 6343.0,
+   "Non-Mainlane": 9283.0,
+   "Intra  Asia": 8390.0
+  },
+  {
+   "date": "2024-08-19",
+   "KCCI": 4659.0,
+   "Mainlane": 6636.0,
+   "Non-Mainlane": 9480.0,
+   "Intra  Asia": 8106.0
+  },
+  {
+   "date": "2024-08-26",
+   "KCCI": 4530.0,
+   "Mainlane": 6376.0,
+   "Non-Mainlane": 9158.0,
+   "Intra  Asia": 7816.0
+  },
+  {
+   "date": "2024-09-02",
+   "KCCI": 4467.0,
+   "Mainlane": 6369.0,
+   "Non-Mainlane": 9054.0,
+   "Intra  Asia": 7479.0
+  },
+  {
+   "date": "2024-09-09",
+   "KCCI": 4313.0,
+   "Mainlane": 6127.0,
+   "Non-Mainlane": 8774.0,
+   "Intra  Asia": 6754.0
+  },
+  {
+   "date": "2024-09-23",
+   "KCCI": 4077.0,
+   "Mainlane": 5963.0,
+   "Non-Mainlane": 8029.0,
+   "Intra  Asia": 5855.0
+  },
+  {
+   "date": "2024-09-30",
+   "KCCI": 3740.0,
+   "Mainlane": 5677.0,
+   "Non-Mainlane": 7296.0,
+   "Intra  Asia": 4843.0
+  },
+  {
+   "date": "2024-10-07",
+   "KCCI": 3451.0,
+   "Mainlane": 5299.0,
+   "Non-Mainlane": 6764.0,
+   "Intra  Asia": 4131.0
+  },
+  {
+   "date": "2024-10-14",
+   "KCCI": 3327.0,
+   "Mainlane": 5246.0,
+   "Non-Mainlane": 6335.0,
+   "Intra  Asia": 3872.0
+  },
+  {
+   "date": "2024-10-21",
+   "KCCI": 3209.0,
+   "Mainlane": 5157.0,
+   "Non-Mainlane": 6156.0,
+   "Intra  Asia": 3440.0
+  },
+  {
+   "date": "2024-10-28",
+   "KCCI": 3188.0,
+   "Mainlane": 5158.0,
+   "Non-Mainlane": 6127.0,
+   "Intra  Asia": 3329.0
+  },
+  {
+   "date": "2024-11-04",
+   "KCCI": 3259.0,
+   "Mainlane": 5149.0,
+   "Non-Mainlane": 5759.0,
+   "Intra  Asia": 4009.0
+  },
+  {
+   "date": "2024-11-11",
+   "KCCI": 3256.0,
+   "Mainlane": 5068.0,
+   "Non-Mainlane": 5704.0,
+   "Intra  Asia": 4095.0
+  },
+  {
+   "date": "2024-11-18",
+   "KCCI": 3183.0,
+   "Mainlane": 4814.0,
+   "Non-Mainlane": 5360.0,
+   "Intra  Asia": 4193.0
+  },
+  {
+   "date": "2024-11-25",
+   "KCCI": 3089.0,
+   "Mainlane": 4379.0,
+   "Non-Mainlane": 5261.0,
+   "Intra  Asia": 4205.0
+  },
+  {
+   "date": "2024-12-02",
+   "KCCI": 3013.0,
+   "Mainlane": 3898.0,
+   "Non-Mainlane": 5073.0,
+   "Intra  Asia": 4471.0
+  },
+  {
+   "date": "2024-12-09",
+   "KCCI": 3032.0,
+   "Mainlane": 3606.0,
+   "Non-Mainlane": 4987.0,
+   "Intra  Asia": 4953.0
+  },
+  {
+   "date": "2024-12-16",
+   "KCCI": 3140.0,
+   "Mainlane": 3971.0,
+   "Non-Mainlane": 5285.0,
+   "Intra  Asia": 5249.0
+  },
+  {
+   "date": "2024-12-23",
+   "KCCI": 3265.0,
+   "Mainlane": 4500.0,
+   "Non-Mainlane": 5693.0,
+   "Intra  Asia": 5419.0
+  },
+  {
+   "date": "2024-12-30",
+   "KCCI": 3333.0,
+   "Mainlane": 4786.0,
+   "Non-Mainlane": 5926.0,
+   "Intra  Asia": 5432.0
+  },
+  {
+   "date": "2025-01-06",
+   "KCCI": 3480.0,
+   "Mainlane": 5429.0,
+   "Non-Mainlane": 6467.0,
+   "Intra  Asia": 5283.0
+  },
+  {
+   "date": "2025-01-13",
+   "KCCI": 3378.0,
+   "Mainlane": 5195.0,
+   "Non-Mainlane": 6313.0,
+   "Intra  Asia": 5062.0
+  },
+  {
+   "date": "2025-01-20",
+   "KCCI": 3191.0,
+   "Mainlane": 4957.0,
+   "Non-Mainlane": 6192.0,
+   "Intra  Asia": 4634.0
+  },
+  {
+   "date": "2025-02-03",
+   "KCCI": 2951.0,
+   "Mainlane": 4603.0,
+   "Non-Mainlane": 6029.0,
+   "Intra  Asia": 3930.0
+  },
+  {
+   "date": "2025-02-10",
+   "KCCI": 2801.0,
+   "Mainlane": 4555.0,
+   "Non-Mainlane": 5870.0,
+   "Intra  Asia": 3489.0
+  },
+  {
+   "date": "2025-02-17",
+   "KCCI": 2693.0,
+   "Mainlane": 4299.0,
+   "Non-Mainlane": 5460.0,
+   "Intra  Asia": 3320.0
+  },
+  {
+   "date": "2025-02-24",
+   "KCCI": 2530.0,
+   "Mainlane": 3893.0,
+   "Non-Mainlane": 5020.0,
+   "Intra  Asia": 3098.0
+  },
+  {
+   "date": "2025-03-04",
+   "KCCI": 2323.0,
+   "Mainlane": 3305.0,
+   "Non-Mainlane": 4390.0,
+   "Intra  Asia": 2904.0
+  },
+  {
+   "date": "2025-03-10",
+   "KCCI": 2140.0,
+   "Mainlane": 2833.0,
+   "Non-Mainlane": 3736.0,
+   "Intra  Asia": 2943.0
+  },
+  {
+   "date": "2025-03-17",
+   "KCCI": 1950.0,
+   "Mainlane": 2495.0,
+   "Non-Mainlane": 3378.0,
+   "Intra  Asia": 2552.0
+  },
+  {
+   "date": "2025-03-24",
+   "KCCI": 1825.0,
+   "Mainlane": 2317.0,
+   "Non-Mainlane": 3256.0,
+   "Intra  Asia": 2419.0
+  },
+  {
+   "date": "2025-03-31",
+   "KCCI": 1773.0,
+   "Mainlane": 2291.0,
+   "Non-Mainlane": 3236.0,
+   "Intra  Asia": 2245.0
+  },
+  {
+   "date": "2025-04-07",
+   "KCCI": 1829.0,
+   "Mainlane": 2529.0,
+   "Non-Mainlane": 3575.0,
+   "Intra  Asia": 2288.0
+  },
+  {
+   "date": "2025-04-14",
+   "KCCI": 1800.0,
+   "Mainlane": 2566.0,
+   "Non-Mainlane": 3606.0,
+   "Intra  Asia": 2162.0
+  },
+  {
+   "date": "2025-04-21",
+   "KCCI": 1767.0,
+   "Mainlane": 2416.0,
+   "Non-Mainlane": 3453.0,
+   "Intra  Asia": 2235.0
+  },
+  {
+   "date": "2025-04-28",
+   "KCCI": 1758.0,
+   "Mainlane": 2405.0,
+   "Non-Mainlane": 3437.0,
+   "Intra  Asia": 2215.0
+  },
+  {
+   "date": "2025-05-12",
+   "KCCI": 1752.0,
+   "Mainlane": 2514.0,
+   "Non-Mainlane": 3495.0,
+   "Intra  Asia": 2068.0
+  },
+  {
+   "date": "2025-05-19",
+   "KCCI": 1849.0,
+   "Mainlane": 2898.0,
+   "Non-Mainlane": 3947.0,
+   "Intra  Asia": 2023.0
+  },
+  {
+   "date": "2025-05-26",
+   "KCCI": 1906.0,
+   "Mainlane": 3076.0,
+   "Non-Mainlane": 4142.0,
+   "Intra  Asia": 2012.0
+  },
+  {
+   "date": "2025-06-02",
+   "KCCI": 2186.0,
+   "Mainlane": 3785.0,
+   "Non-Mainlane": 4860.0,
+   "Intra  Asia": 2083.0
+  },
+  {
+   "date": "2025-06-09",
+   "KCCI": 2807.0,
+   "Mainlane": 5418.0,
+   "Non-Mainlane": 6373.0,
+   "Intra  Asia": 2540.0
+  },
+  {
+   "date": "2025-06-16",
+   "KCCI": 2827.0,
+   "Mainlane": 4921.0,
+   "Non-Mainlane": 6382.0,
+   "Intra  Asia": 2677.0
+  },
+  {
+   "date": "2025-06-23",
+   "KCCI": 2711.0,
+   "Mainlane": 3963.0,
+   "Non-Mainlane": 6195.0,
+   "Intra  Asia": 2932.0
+  },
+  {
+   "date": "2025-06-30",
+   "KCCI": 2590.0,
+   "Mainlane": 3371.0,
+   "Non-Mainlane": 5461.0,
+   "Intra  Asia": 3075.0
+  },
+  {
+   "date": "2025-07-07",
+   "KCCI": 2449.0,
+   "Mainlane": 2708.0,
+   "Non-Mainlane": 4836.0,
+   "Intra  Asia": 3265.0
+  },
+  {
+   "date": "2025-07-14",
+   "KCCI": 2394.0,
+   "Mainlane": 2500.0,
+   "Non-Mainlane": 4679.0,
+   "Intra  Asia": 3285.0
+  },
+  {
+   "date": "2025-07-21",
+   "KCCI": 2285.0,
+   "Mainlane": 2296.0,
+   "Non-Mainlane": 3973.0,
+   "Intra  Asia": 3410.0
+  },
+  {
+   "date": "2025-07-28",
+   "KCCI": 2199.0,
+   "Mainlane": 2126.0,
+   "Non-Mainlane": 3652.0,
+   "Intra  Asia": 3414.0
+  },
+  {
+   "date": "2025-08-04",
+   "KCCI": 2131.0,
+   "Mainlane": 2090.0,
+   "Non-Mainlane": 3412.0,
+   "Intra  Asia": 3349.0
+  },
+  {
+   "date": "2025-08-11",
+   "KCCI": 2069.0,
+   "Mainlane": 2029.0,
+   "Non-Mainlane": 3222.0,
+   "Intra  Asia": 3278.0
+  },
+  {
+   "date": "2025-08-18",
+   "KCCI": 1993.0,
+   "Mainlane": 1904.0,
+   "Non-Mainlane": 2996.0,
+   "Intra  Asia": 3110.0
+  },
+  {
+   "date": "2025-08-25",
+   "KCCI": 1940.0,
+   "Mainlane": 1849.0,
+   "Non-Mainlane": 2899.0,
+   "Intra  Asia": 2969.0
+  },
+  {
+   "date": "2025-09-01",
+   "KCCI": 1909.0,
+   "Mainlane": 1871.0,
+   "Non-Mainlane": 2923.0,
+   "Intra  Asia": 2797.0
+  },
+  {
+   "date": "2025-09-08",
+   "KCCI": 1950.0,
+   "Mainlane": 2253.0,
+   "Non-Mainlane": 3224.0,
+   "Intra  Asia": 2545.0
+  },
+  {
+   "date": "2025-09-15",
+   "KCCI": 1915.0,
+   "Mainlane": 2296.0,
+   "Non-Mainlane": 3268.0,
+   "Intra  Asia": 2364.0
+  },
+  {
+   "date": "2025-09-22",
+   "KCCI": 1785.0,
+   "Mainlane": 2019.0,
+   "Non-Mainlane": 3038.0,
+   "Intra  Asia": 2126.0
+  },
+  {
+   "date": "2025-09-29",
+   "KCCI": 1692.0,
+   "Mainlane": 1873.0,
+   "Non-Mainlane": 2890.0,
+   "Intra  Asia": 1917.0
+  },
+  {
+   "date": "2025-10-20",
+   "KCCI": 1698.0,
+   "Mainlane": 2040.0,
+   "Non-Mainlane": 2925.0,
+   "Intra  Asia": 1955.0
+  },
+  {
+   "date": "2025-10-27",
+   "KCCI": 1719.0,
+   "Mainlane": 2091.0,
+   "Non-Mainlane": 2981.0,
+   "Intra  Asia": 1972.0
+  },
+  {
+   "date": "2025-11-03",
+   "KCCI": 1834.0,
+   "Mainlane": 2411.0,
+   "Non-Mainlane": 3304.0,
+   "Intra  Asia": 2146.0
+  },
+  {
+   "date": "2025-11-10",
+   "KCCI": 1848.0,
+   "Mainlane": 2464.0,
+   "Non-Mainlane": 3073.0,
+   "Intra  Asia": 2306.0
+  },
+  {
+   "date": "2025-11-17",
+   "KCCI": 1760.0,
+   "Mainlane": 2134.0,
+   "Non-Mainlane": 2892.0,
+   "Intra  Asia": 2384.0
+  },
+  {
+   "date": "2025-11-24",
+   "KCCI": 1689.0,
+   "Mainlane": 1908.0,
+   "Non-Mainlane": 2764.0,
+   "Intra  Asia": 2359.0
+  },
+  {
+   "date": "2025-12-01",
+   "KCCI": 1677.0,
+   "Mainlane": 1820.0,
+   "Non-Mainlane": 2642.0,
+   "Intra  Asia": 2403.0
+  },
+  {
+   "date": "2025-12-08",
+   "KCCI": 1699.0,
+   "Mainlane": 1831.0,
+   "Non-Mainlane": 2706.0,
+   "Intra  Asia": 2450.0
+  },
+  {
+   "date": "2025-12-15",
+   "KCCI": 1704.0,
+   "Mainlane": 1807.0,
+   "Non-Mainlane": 2700.0,
+   "Intra  Asia": 2524.0
+  },
+  {
+   "date": "2025-12-22",
+   "KCCI": 1806.0,
+   "Mainlane": 2116.0,
+   "Non-Mainlane": 3070.0,
+   "Intra  Asia": 2705.0
+  },
+  {
+   "date": "2025-12-29",
+   "KCCI": 1805.0,
+   "Mainlane": 2123.0,
+   "Non-Mainlane": 3096.0,
+   "Intra  Asia": 2767.0
+  },
+  {
+   "date": "2026-01-12",
+   "KCCI": 1876.0,
+   "Mainlane": 2339.0,
+   "Non-Mainlane": 3270.0,
+   "Intra  Asia": 2829.0
+  },
+  {
+   "date": "2026-01-19",
+   "KCCI": 1898.0,
+   "Mainlane": 2513.0,
+   "Non-Mainlane": 3533.0,
+   "Intra  Asia": 2809.0
+  },
+  {
+   "date": "2026-01-26",
+   "KCCI": 1799.0,
+   "Mainlane": 2278.0,
+   "Non-Mainlane": 3221.0,
+   "Intra  Asia": 2741.0
+  },
+  {
+   "date": "2026-02-02",
+   "KCCI": 1683.0,
+   "Mainlane": 2101.0,
+   "Non-Mainlane": 2990.0,
+   "Intra  Asia": 2539.0
+  },
+  {
+   "date": "2026-02-09",
+   "KCCI": 1597.0,
+   "Mainlane": 1958.0,
+   "Non-Mainlane": 2854.0,
+   "Intra  Asia": 2407.0
+  },
+  {
+   "date": "2026-02-23",
+   "KCCI": 1522.0,
+   "Mainlane": 1823.0,
+   "Non-Mainlane": 2658.0,
+   "Intra  Asia": 2253.0
+  },
+  {
+   "date": "2026-03-03",
+   "KCCI": 1614.0,
+   "Mainlane": 1974.0,
+   "Non-Mainlane": 2826.0,
+   "Intra  Asia": 2291.0
+  },
+  {
+   "date": "2026-03-09",
+   "KCCI": 1767.0,
+   "Mainlane": 2036.0,
+   "Non-Mainlane": 2962.0,
+   "Intra  Asia": 2315.0
+  },
+  {
+   "date": "2026-03-16",
+   "KCCI": 1879.0,
+   "Mainlane": 2046.0,
+   "Non-Mainlane": 3013.0,
+   "Intra  Asia": 2461.0
+  },
+  {
+   "date": "2026-03-23",
+   "KCCI": 2027.0,
+   "Mainlane": 2299.0,
+   "Non-Mainlane": 3184.0,
+   "Intra  Asia": 2600.0
+  },
+  {
+   "date": "2026-03-30",
+   "KCCI": 2094.0,
+   "Mainlane": 2362.0,
+   "Non-Mainlane": 3196.0,
+   "Intra  Asia": 2718.0
+  },
+  {
+   "date": "2026-04-06",
+   "KCCI": 2178.0,
+   "Mainlane": 2467.0,
+   "Non-Mainlane": 3406.0,
+   "Intra  Asia": 2646.0
+  },
+  {
+   "date": "2026-04-13",
+   "KCCI": 2186.0,
+   "Mainlane": 2616.0,
+   "Non-Mainlane": 3600.0,
+   "Intra  Asia": 2534.0
+  },
+  {
+   "date": "2026-04-20",
+   "KCCI": 2193.0,
+   "Mainlane": 2725.0,
+   "Non-Mainlane": 3728.0,
+   "Intra  Asia": 2401.0
+  },
+  {
+   "date": "2026-04-27",
+   "KCCI": 2192.0,
+   "Mainlane": 2752.0,
+   "Non-Mainlane": 3743.0,
+   "Intra  Asia": 2377.0
+  },
+  {
+   "date": "2026-05-11",
+   "KCCI": 2194.0,
+   "Mainlane": 2753.0,
+   "Non-Mainlane": 3787.0,
+   "Intra  Asia": 2353.0
+  },
+  {
+   "date": "2026-05-18",
+   "KCCI": 2361.0,
+   "Mainlane": 3011.0,
+   "Non-Mainlane": 4103.0,
+   "Intra  Asia": 2679.0
+  },
+  {
+   "date": "2026-05-26",
+   "KCCI": 2478.0,
+   "Mainlane": 3135.0,
+   "Non-Mainlane": 4257.0,
+   "Intra  Asia": 2838.0
+  },
+  {
+   "date": "2026-06-01",
+   "KCCI": 2675.0,
+   "Mainlane": 3456.0,
+   "Non-Mainlane": 4572.0,
+   "Intra  Asia": 3120.0
+  },
+  {
+   "date": "2026-06-08",
+   "KCCI": 3042.0,
+   "Mainlane": 4247.0,
+   "Non-Mainlane": 5393.0,
+   "Intra  Asia": 3679.0
+  },
+  {
+   "date": "2026-06-15",
+   "KCCI": 3349.0,
+   "Mainlane": 4891.0,
+   "Non-Mainlane": 6005.0,
+   "Intra  Asia": 3983.0
+  },
+  {
+   "date": "2026-06-22",
+   "KCCI": 3747.0,
+   "Mainlane": 5729.0,
+   "Non-Mainlane": 6832.0,
+   "Intra  Asia": 4566.0
+  },
+  {
+   "date": "2026-06-29",
+   "KCCI": 3920.0,
+   "Mainlane": 5969.0,
+   "Non-Mainlane": 7217.0,
+   "Intra  Asia": 4720.0
+  },
+  {
+   "date": "2026-07-06",
+   "KCCI": 4330.0,
+   "Mainlane": 6922.0,
+   "Non-Mainlane": 8421.0,
+   "Intra  Asia": 5332.0
+  },
+  {
+   "date": "2026-07-13",
+   "KCCI": 4318.0,
+   "Mainlane": 6734.0,
+   "Non-Mainlane": 8523.0,
+   "Intra  Asia": 5426.0
+  },
+  {
+   "date": "2026-07-20",
+   "KCCI": 4204.0,
+   "Mainlane": 6385.0,
+   "Non-Mainlane": 8694.0,
+   "Intra  Asia": 5184.0
+  },
+  {
+   "date": "2026-07-27",
+   "KCCI": 4123.0,
+   "Mainlane": 6115.0,
+   "Non-Mainlane": 8758.0,
+   "Intra  Asia": 4947.0
+  },
+  {
+   "date": "2026-08-03",
+   "KCCI": 4138.0,
+   "Mainlane": 6172.0,
+   "Non-Mainlane": 8986.0,
+   "Intra  Asia": 4884.0
+  },
+  {
+   "date": "2026-08-10",
+   "KCCI": 4288.0,
+   "Mainlane": 6733.0,
+   "Non-Mainlane": 9696.0,
+   "Intra  Asia": 4806.0
+  },
+  {
+   "date": "2026-08-18",
+   "KCCI": 4393.0,
+   "Mainlane": 6906.0,
+   "Non-Mainlane": 9982.0,
+   "Intra  Asia": 4741.0
+  },
+  {
+   "date": "2026-08-24",
+   "KCCI": 4506.0,
+   "Mainlane": 7095.0,
+   "Non-Mainlane": 10311.0,
+   "Intra  Asia": 4602.0
+  },
+  {
+   "date": "2026-08-31",
+   "KCCI": 4591.0,
+   "Mainlane": 7203.0,
+   "Non-Mainlane": 10482.0,
+   "Intra  Asia": 4515.0
+  },
+  {
+   "date": "2026-09-07",
+   "KCCI": 4697.0,
+   "Mainlane": 7424.0,
+   "Non-Mainlane": 10989.0,
+   "Intra  Asia": 4289.0
+  },
+  {
+   "date": "2026-09-14",
+   "KCCI": 4696.0,
+   "Mainlane": 7485.0,
+   "Non-Mainlane": 11019.0,
+   "Intra  Asia": 4187.0
+  },
+  {
    "date": "2026-09-21",
    "KCCI": 4760.0,
    "Mainlane": 7942.0,
