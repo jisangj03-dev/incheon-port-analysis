@@ -1,7 +1,7 @@
 // 수도권 배송 등시선(실무 도구 · 2026-10-14) — 출발지에서 도착 분 격자(빌드 때 계산 · tools-build/v3/osm_iso.py)를 받아,
 // 0분에서 180분까지 문턱을 올리며 도달권이 번지는 장면을 그린다(1시간·2시간·3시간 띠). 바탕 = 홈과 같은 땅(Natural Earth · OSM 인천 상세).
 // 투영 = 위도 보정 경위도 평면(위에서 내려다본 지도) — 등시선은 길이·넓이를 읽어야 해서 기울이지 않는다.
-export type Iso = { bbox: number[]; step: number; w: number; h: number; cities: Record<string, number[]>; origins: { name: string; kind: string; lon: number; lat: number; cities: Record<string, number | null>; b64: string }[] };
+export type Iso = { bbox: number[]; step: number; w: number; h: number; cities: Record<string, number[]>; origins: { name: string; kind: string; lon: number; lat: number; cities: Record<string, number | null>; b64: string; cities_truck?: Record<string, number | null>; b64_truck?: string }[] };
 type Geo = { world: number[][]; near: { land: number[][]; road: number[][] } };
 
 // 30분 계단 여섯 — 가까울수록 진하다(자유 흐름이면 1시간 띠가 넓어 한 색으로는 안 읽혔다 · 2026-10-14 첫 실데이터)
