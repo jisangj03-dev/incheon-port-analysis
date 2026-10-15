@@ -5,9 +5,9 @@ import { readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis/lab/ds";
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
-for (const f of ["index", "beer", "map", "note"]) {
+for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
     const r = check(readFileSync(`astro/dist/lab/ds/${f}.html`, "utf-8"), DATA);
     expect(r.bad).toEqual([]);
@@ -19,7 +19,7 @@ for (const f of ["index", "beer", "map", "note"]) {
     if (info.project.name === "iphone-13") await page.setViewportSize({ width: 360, height: 720 });
     await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
-    if (f === "beer" || f === "map") for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
+    if (["beer", "map", "follow", "ai-ops", "vessels"].includes(f)) for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
     expect(ext).toEqual([]);
     expect(errors).toEqual([]);
   });
@@ -82,7 +82,7 @@ test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 �
 
 // 차트 신뢰(OWID 원리) — 차트가 있는 지면마다 갱신일·출처·CSV 꼬리가 있고, CSV 는 실제로 내려온다
 test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, request }) => {
-  for (const f of ["index", "beer", "map", "note"]) {
+  for (const f of ["index", "beer", "map", "note", "follow", "ai-ops", "vessels"]) {
     await page.goto(`${B}/${f}.html`, { waitUntil: "networkidle" });
     const t = page.locator(".s-trust");
     expect(await t.count(), `${f} 신뢰 꼬리`).toBeGreaterThan(0);
@@ -124,4 +124,36 @@ test("지도: 달 막대 · 자동으로 흐르는 달 · 흐름선은 개념선
   const a = await page.getAttribute("#ds-map", "data-month");
   await expect.poll(() => page.getAttribute("#ds-map", "data-month"), { timeout: 5_000 }).not.toBe(a);
   await expect(page.locator("[data-content='ds-map-foot']")).toContainText("개념선");
+});
+
+// 공급망 따라가기(§3-2) — 5단계 이상 · 원천 없는 구간은 「이 구간 데이터 없음」 · 반대 지표 · 스크롤로 단계가 넘어간다
+test("공급망 따라가기: 단계 · 데이터 없음 구간 · 반대 지표 · 스크롤", async ({ page }) => {
+  await page.goto(`${B}/follow.html`, { waitUntil: "networkidle" });
+  const D = JSON.parse(readFileSync("data/derived/supply_hs85.json", "utf-8"));
+  expect(D.steps.length).toBeGreaterThanOrEqual(5);
+  expect(await page.locator(".st[data-s]").count()).toBeGreaterThanOrEqual(D.steps.length);
+  for (const s of D.steps.filter((x) => !x.data)) await expect(page.locator(`[data-s="${s.id}"]`)).toContainText("이 구간 데이터 없음");
+  await expect(page.locator(".counter")).toContainText("반대 지표");
+  await page.evaluate(() => { const el = document.querySelector('[data-s="customs"]'); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); });
+  await expect.poll(() => page.getAttribute(".story", "data-step"), { timeout: 5_000 }).toBe("customs");
+});
+
+// 선박 리플레이(§3-3) — 월 집계라고 적었다 · 원천 행 수·기간이 수집 CSV 와 맞다(V1) · 막대·재생으로 달이 바뀐다 · 반대 지표
+test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · 재생 · 반대 지표", async ({ page }) => {
+  await page.goto(`${B}/vessels.html`, { waitUntil: "networkidle" });
+  const csv = readFileSync("data/collected/vessel-monthly.csv", "utf-8").trim().split("\n").slice(1);
+  const yms = csv.map((l) => l.split(",")[0]);
+  const V = JSON.parse(readFileSync("data/derived/vessel_replay.json", "utf-8"));
+  expect(V.source_rows).toBe(csv.length);
+  expect(V.source_months[0]).toBe(yms.reduce((a, b) => (a < b ? a : b)));
+  await expect(page.locator("[data-v1]")).toContainText(`원천 ${V.source_rows}행`);
+  await expect(page.locator("main, body").first()).toContainText("개별 선박 아님");
+  await expect(page.locator(".counter")).toContainText("반대 지표");
+  const ym = await page.locator("#vr-ym").innerText();
+  await page.locator("#vr-m").fill("0");
+  await expect(page.locator("#vr-ym")).toHaveText(V.months[0]);
+  await expect(page.locator("#vr-inc")).toHaveText(String(V.ocean_arrivals["인천"][0]));
+  await page.click("#vr-play");
+  await expect.poll(() => page.getAttribute("#vr-chart", "data-month"), { timeout: 5_000 }).not.toBe(V.months[0]);
+  expect(ym).toBe(V.latest.ym);
 });

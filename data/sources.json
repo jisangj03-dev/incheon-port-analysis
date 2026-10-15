@@ -1,6 +1,6 @@
 {
   "_설명": "측심 공개 지면이 쓰는 데이터 출처 대장(기준 16 · A5). 행마다 이용허락과 확인 근거. 확인 못 한 것은 '미확인'으로 적는다 — 추측으로 채우지 않는다. 공공데이터포털 화면이 적는 것은 '이용허락범위 제한 없음'이지 공공누리 유형 번호가 아니다. 대장에 없는 지면은 빌드 검사(tests/site.spec.mjs)가 실패시킨다.",
-  "갱신": "2026-10-12",
+  "갱신": "2026-10-14",
   "sources": [
     {
       "id": "ipa-empty-container",
@@ -111,7 +111,9 @@
       "modify": "허용(ODbL — 같은 조건)",
       "checked": "2026-10-12 · 판정 v2 주의 ⑥",
       "used_by": [
-        "map"
+        "map",
+        "home",
+        "follow"
       ]
     },
     {
@@ -126,6 +128,64 @@
       "checked": "2026-10-12 · 기준 19",
       "used_by": [
         "home"
+      ]
+    },
+    {
+      "id": "kcs-nitemtrade",
+      "name": "관세청 품목별 국가별 수출입실적",
+      "owner": "관세청",
+      "where": "공공데이터포털 apis.data.go.kr/1220000/nitemtrade",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」",
+      "kogl": "미확인",
+      "commercial": "허용(포털 메타 기준)",
+      "modify": "허용(포털 메타 기준)",
+      "checked": "2026-10-12 예약 수집(collect.yml) · 유형 번호는 미확인",
+      "used_by": [
+        "follow"
+      ]
+    },
+    {
+      "id": "mof-vessel",
+      "name": "해양수산부 항만별 선박입출항실적",
+      "owner": "해양수산부",
+      "where": "공공데이터포털 15059059 · apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」",
+      "kogl": "미확인",
+      "commercial": "허용(포털 메타 기준)",
+      "modify": "허용(포털 메타 기준)",
+      "checked": "2026-10-14 vessel.yml 수집 · 월·항만·선종 합계(개별 선박 아님) · 유형 번호는 미확인",
+      "used_by": [
+        "vessels"
+      ]
+    },
+    {
+      "id": "noaa-etopo",
+      "name": "ETOPO 2022 15″ 전지구 지형·수심",
+      "owner": "미국 NOAA NCEI",
+      "where": "ERDDAP coastwatch.pfeg.noaa.gov · ETOPO_2022_v1_15s",
+      "license": "\"may be used and redistributed for free but is not intended for legal use\"(ERDDAP license 속성 원문 — data/derived/bathy_incheon.json)",
+      "kogl": "해당 없음(미국 정부 자료)",
+      "commercial": "허용(원문)",
+      "modify": "허용(원문)",
+      "checked": "2026-10-14 bathy.yml 이 license 속성을 읽어 확인",
+      "used_by": [
+        "home",
+        "map",
+        "follow"
+      ]
+    },
+    {
+      "id": "repo-git",
+      "name": "이 저장소 main 의 git 기록",
+      "owner": "측심(이 저장소)",
+      "where": "github.com/jisangj03-dev/incheon-port-analysis · tools-build/ops_stats.py",
+      "license": "저장소 공개 기록",
+      "kogl": "해당 없음(자체 기록)",
+      "commercial": "—",
+      "modify": "—",
+      "checked": "2026-10-14 ops_stats.py 집계",
+      "used_by": [
+        "ai-ops"
       ]
     }
   ]
