@@ -1,0 +1,155 @@
+---
+// 인천항 수요예측 실험실 — 정체성 전환 §3-4 · 방법론 docs/수요예측_방법론_선커밋_20261014.md.
+// 공개 지면(2026-10-14 공개 전환 · 종전 lab/forecast) · 메뉴 = 시뮬레이션.
+// 화면 숫자는 원장·대상 계열 파일에서 빌드 때 읽고(§2-1), 채점은 analysis/forecast_teu.py 와 같은 식이다 — 시험이 둘을 대조한다.
+import { aiMark } from "../../lib/profile";
+import Studio from "../../layouts/Studio.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot, lastUpdated } from "../../lib/content";
+import L from "../../../../data/forecast/lab.json";
+
+const root = repoRoot();
+const csv = (p: string) => {
+  const [head, ...rows] = readFileSync(join(root, p), "utf-8").replace(/^﻿/, "").split(/\r?\n/).filter(Boolean);
+  const k = head.split(",");
+  return rows.map((r) => Object.fromEntries(r.split(",").map((v, i) => [k[i], v])));
+};
+const y: Record<string, number> = {};
+for (const r of csv(L.series.file)) if (r["터미널"] === "컨테이너 합계" && r["당월_천TEU"]) y[r["기준연월"]] = Number(r["당월_천TEU"]);
+const ledger = csv("data/forecast/incheon_container_teu.csv");
+const lastYm = Object.keys(y).sort().at(-1)!;
+const back12 = (ym: string) => `${Number(ym.slice(0, 4)) - 1}${ym.slice(4)}`;
+
+// 목표월·발행별로 B·M1 을 한 줄에
+type Row = { issued: string; origin: string; target: string; h: string; B?: number; M1?: number };
+const byKey = new Map<string, Row>();
+for (const r of ledger) {
+  const key = `${r.origin}|${r.target}`;
+  const row = byKey.get(key) || { issued: r.issued, origin: r.origin, target: r.target, h: r.h };
+  (row as any)[r.model] = Number(r.yhat);
+  byKey.set(key, row);
+}
+const rows = [...byKey.values()].sort((a, b) => (a.origin + a.target < b.origin + b.target ? 1 : -1));
+// 채점(방법론 §4): APE 평균(MAPE) · M1 방향 적중
+const ape: Record<string, number[]> = {}, hit: number[] = [];
+for (const r of ledger) {
+  const a = y[r.target];
+  if (a == null) continue;
+  (ape[r.model] ||= []).push(Math.abs(Number(r.yhat) - a) / a);
+  const p = y[back12(r.target)];
+  if (r.model !== "B" && p != null && a !== p) hit.push(Number(Number(r.yhat) - p > 0 === a - p > 0));
+}
+const pct = (xs?: number[]) => (xs && xs.length ? ((xs.reduce((s, x) => s + x, 0) / xs.length) * 100).toFixed(1) : null);
+const matured = Object.values(ape).reduce((s, xs) => s + xs.length, 0);
+const firstTarget = rows.map((r) => r.target).sort()[0];
+const updated = lastUpdated("data/forecast/incheon_container_teu.csv");
+// 첫 화면 그림 — 실제(최근 24개월) + 가장 최근 발행의 예측 3개월(M1 = 주 계열 · B = 기준선). 숫자는 위 파일에서만.
+const months = Object.keys(y).sort();
+const act = months.slice(-24).map((m) => [m, y[m]]);
+const lastOrigin = rows.map((r) => r.origin).sort().at(-1);
+const fut = rows.filter((r) => r.origin === lastOrigin).sort((a, b) => (a.target < b.target ? -1 : 1));
+const chart = { act, m1: fut.map((r) => [r.target, r.M1 ?? null]), b: fut.map((r) => [r.target, r.B ?? null]), unit: L.series.unit };
+const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s); // 계열은 「YYYY-MM」이라 그대로 · 6자리만 줄표를 넣는다
+---
+<Studio current="notes" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
+  <article class="s-wrap fc" data-sim="forecast">
+    <p class="s-cap">시뮬레이션 · 수요예측 실험실</p>
+    <h1 class="s-prose">인천항 컨테이너, 다음 석 달을 먼저 적어 둡니다.</h1>
+    <p class="s-lead s-prose">{L.series.label} — 마지막 실제값은 <b>{ym(lastYm)} · {y[lastYm]}{L.series.unit}</b>. 점선이 실제값보다 먼저 적은 예측이고, 실제값이 나오면 맞았는지 그대로 채점합니다.</p>
+
+    <figure class="fc-fig" data-chart="forecast" aria-label={`${ym(act[0][0] as string)}부터 ${ym(lastYm)}까지 실제 처리량과 그 뒤 석 달 예측`}>
+      <div id="fc-chart" class="fc-chart"></div>
+      <Trust updated={updated} source={`원장 data/forecast/incheon_container_teu.csv · ${sourceLine("mof-incheon-port-stats")}`} csv={u("/data/forecast-ledger.csv")} csvName="incheon-forecast-ledger.csv" note={`단위 ${L.series.unit} · 예측은 고치지 않는다`} />
+    </figure>
+    <script type="application/json" id="fc-data" set:html={JSON.stringify(chart)}></script>
+
+    <section class="fc-sec" aria-labelledby="h-score">
+      <h2 id="h-score">적중 기록</h2>
+      {matured === 0 ? (
+        <p class="s-lead s-prose" data-score="none">아직 채점할 달이 없습니다 — 첫 채점은 {ym(firstTarget)} 실제값이 들어온 뒤입니다.</p>
+      ) : (
+        <table class="s-table"><thead><tr><th scope="col">모델</th><th scope="col" class="num">MAPE(%)</th><th scope="col" class="num">방향 적중(%)</th></tr></thead>
+          <tbody>
+            {Object.keys(L.models).map((m) => (
+              <tr data-model={m}><th scope="row">{m} — {(L.models as any)[m]}</th><td class="num" data-mape>{pct(ape[m]) ?? "—"}</td><td class="num" data-dir>{m === "B" ? "해당 없음" : hit.length ? ((hit.reduce((s, x) => s + x, 0) / hit.length) * 100).toFixed(1) : "—"}</td></tr>
+            ))}
+          </tbody></table>
+      )}
+    </section>
+
+    <section class="fc-sec" aria-labelledby="h-ledger">
+      <h2 id="h-ledger">예측 원장(덧붙이기만)</h2>
+      <div class="tbl"><table class="s-table">
+        <thead><tr><th scope="col">발행</th><th scope="col">기준월</th><th scope="col">목표월</th><th scope="col" class="num">B</th><th scope="col" class="num">M1</th><th scope="col" class="num">실제</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr><td>{r.issued}</td><td>{r.origin}</td><td>{r.target}</td><td class="num">{r.B ?? "—"}</td><td class="num">{r.M1 ?? "—"}</td><td class="num">{y[r.target] ?? "아직"}</td></tr>
+          ))}
+        </tbody>
+      </table></div>
+      <p class="s-cap">{Object.entries(L.models).map(([k, v]) => `${k} = ${v}`).join(" · ")}. 단위 {L.series.unit}.</p>
+    </section>
+
+    <dl class="s-maker fc-maker" data-maker-note>
+      <dt>왜</dt><dd data-note="why">{L.notes.why}</dd>
+      <dt>어떻게</dt><dd data-note="how">{L.notes.how}</dd>
+      <dt>한계</dt><dd data-note="limits">{L.notes.limits}</dd>
+    </dl>
+    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+  </article>
+  <script>
+    import { textColor } from "../../lib/ds-beer";
+    // 실제 선(먹) 뒤에 예측 점선(주홍 · 주 계열)과 기준선 점선(회색) — 지금 달에 세로 줄 하나. 화면 폭에 맞춰 다시 그린다.
+    const D = JSON.parse(document.getElementById("fc-data")!.textContent || "{}");
+    const host = document.getElementById("fc-chart")!;
+    const fmt = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s);
+    const draw = () => {
+      const all = [...D.act.map((d: any) => d[0]), ...D.m1.map((d: any) => d[0])];
+      const n = all.length, W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 300, Lp = 4, R = W < 600 ? 84 : 120, T = 14, B = 26;
+      const vals = [...D.act, ...D.m1, ...D.b].map((d: any) => d[1]).filter((v: any) => v != null) as number[];
+      const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.12 || 1;
+      const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - ((v - lo + pad) * (H - T - B)) / (hi - lo + 2 * pad);
+      const ia = D.act.length - 1, last = D.act[ia];
+      const pts = (arr: any[], off: number) => [[x(ia), y(last[1])], ...arr.map((d: any, k: number) => [x(off + k), y(d[1])])].map((p) => p.map((q: number) => q.toFixed(1)).join(",")).join(" ");
+      let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
+      g += `<line x1="${x(ia).toFixed(1)}" x2="${x(ia).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-rule)" stroke-dasharray="2 3"/>`;
+      g += `<text x="${Lp}" y="${H - 6}" font-size="12" fill="var(--s-ink-3)">${fmt(D.act[0][0])}</text><text x="${W - R}" y="${H - 6}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">${fmt(all[n - 1])}</text>`;
+      g += `<text x="${(x(ia) - 6).toFixed(1)}" y="${T + 10}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">지금</text>`;
+      g += `<polyline fill="none" stroke="var(--s-ink-2)" stroke-width="2" stroke-linejoin="round" points="${D.act.map((d: any, k: number) => `${x(k).toFixed(1)},${y(d[1]).toFixed(1)}`).join(" ")}"/>`;
+      g += `<polyline fill="none" stroke="var(--s-ink-3)" stroke-width="1.5" stroke-dasharray="2 4" points="${pts(D.b, ia + 1)}"/>`;
+      g += `<polyline fill="none" stroke="var(--s-signal)" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="round" data-main="M1" points="${pts(D.m1, ia + 1)}"/>`;
+      for (const [k, d] of D.m1.entries()) g += `<circle cx="${x(ia + 1 + k).toFixed(1)}" cy="${y(d[1]).toFixed(1)}" r="3.5" fill="var(--s-signal)"/>`;
+      g += `<circle cx="${x(ia).toFixed(1)}" cy="${y(last[1]).toFixed(1)}" r="4" fill="var(--s-ink)"/>`;
+      // 끝 이름표 — 겹치면 아래로 민다
+      const ends = [
+        { y: y(D.m1[D.m1.length - 1][1]), t: `예측 ${D.m1[D.m1.length - 1][1]}`, c: "var(--s-signal)", b: 700, x: x(n - 1) + 8 },
+        { y: y(D.b[D.b.length - 1][1]), t: `기준선 ${D.b[D.b.length - 1][1]}`, c: textColor("var(--s-ink-3)"), b: 500, x: x(n - 1) + 8 },
+      ].sort((a, b) => a.y - b.y);
+      for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 16) ends[k].y = ends[k - 1].y + 16;
+      for (const e of ends) g += `<text x="${e.x.toFixed(1)}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b}" fill="${e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
+      g += `<text x="${(x(ia) - 8).toFixed(1)}" y="${(y(last[1]) + 18).toFixed(1)}" font-size="13" text-anchor="end" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">실제 ${last[1]}</text>`;
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="실제 처리량(실선)과 석 달 예측(점선)">${g}</svg>`;
+      host.dataset.ready = "1";
+    };
+    new ResizeObserver(draw).observe(host);
+    draw();
+  </script>
+</Studio>
+<style>
+  .fc { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+  .fc h1 { margin: var(--s-3) 0 var(--s-4); max-width: 15em; }
+  .fc-fig { margin: var(--s-6) 0 0; }
+  .fc-chart { min-height: 220px; }
+  .fc-chart :global(svg) { display: block; max-width: 100%; }
+  .fc-sec { margin-top: var(--s-8); max-width: 46rem; }
+  .fc-sec h2 { font-size: var(--s-t-h3); margin-bottom: var(--s-4); }
+  .tbl { overflow-x: auto; }
+  .tbl :global(th), .tbl :global(td) { white-space: nowrap; } /* 날짜·숫자가 칸 안에서 쪼개지지 않게(좁으면 표만 옆으로 민다) */
+  .num, :global(td.num) { text-align: right; font-variant-numeric: tabular-nums; }
+  .fc-maker { margin-top: var(--s-8); max-width: 46rem; }
+  .fc [data-ai-mark] { margin-top: var(--s-4); }
+</style>
