@@ -78,7 +78,10 @@ test("계산식 = 파생 스크립트(fx_derive.py 예시 숫자를 브라우저
   await page.goto(`${B}/tools/import-cost.html`, { waitUntil: "networkidle" });
   await page.waitForTimeout(3500);
   const sum = (await page.locator("#cs-body tr.sum td").last().innerText()).replace(/,/g, "");
-  expect(Number(sum)).toBe(E.now.landed);
+  expect(Number(sum)).toBe(E.now.cost); // 원가 = 부가세 제외(채팅 최종 검수 10/15)
+  const paid = (await page.locator("#cs-body tr.paid td").last().innerText()).replace(/,/g, "");
+  expect(Number(paid)).toBe(E.now.landed); // 납부 합계 = 관세·부가세 포함
+  expect(E.now.landed - E.now.cost).toBe(E.now.vat);
 });
 
 test("묘박지: 큰 숫자는 최신의 맑은 날 — 넘겨 보기·구름 많은 날을 눌러도 바뀌지 않는다(채팅 검수 10/14)", async ({ page }) => {
@@ -129,4 +132,21 @@ test("입찰 레이더: 담당자 개인정보 0 · 스냅샷 시각 · 「검�
   await expect(page.locator(".tool__asof")).toContainText(`${R.snapshot} 스냅샷`);
   await expect(page.locator(".br__auto")).toHaveText("자동 수집 · 고르는 규칙 그대로 · 검수 안 함");
   await expect(page.locator("#br-items li")).toHaveCount(R.n);
+});
+
+test("도구 제목 — 가운뎃점(·)이 줄머리에 오지 않는다(360·390·768·1280·1440 · 채팅 최종 검수 10/15)", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "폭을 시험 안에서 바꾼다");
+  const R = JSON.parse(J("data/rooms.json")).rooms.find((r) => r.id === "tools").items.filter((t) => !t.needs && /^\/tools\/.+\.html$/.test(t.href));
+  const bad = [];
+  for (const w of [360, 390, 768, 1280, 1440]) {
+    await page.setViewportSize({ width: w, height: 700 });
+    for (const t of R) {
+      await page.goto(`${B}${t.href}`, { waitUntil: "domcontentloaded" });
+      const n = await page.evaluate(() => { const h = document.querySelector(".tool__q"), r = document.createRange(); let prev = null, out = 0;
+        for (const tn of [...h.childNodes].filter((x) => x.nodeType === 3)) for (let i = 0; i < tn.length; i++) { r.setStart(tn, i); r.setEnd(tn, i + 1); const c = r.getClientRects()[0]; if (!c) continue; if (prev !== null && c.top > prev + 5 && tn.data[i] === "·") out++; prev = c.top; }
+        return out; });
+      if (n) bad.push(`${w} ${t.href}`);
+    }
+  }
+  expect(bad).toEqual([]);
 });

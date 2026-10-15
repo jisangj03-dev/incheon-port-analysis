@@ -9,12 +9,13 @@ interface Props { id: string; who: string; q: string; lead?: string; updated: st
 const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how } = Astro.props;
 // 퍼가기(B7) — 이 지면 주소의 끝 이름 = 퍼가기 지면 이름(og-cards.mjs 가 도구 목록 rooms.json 의 id 로 쓴다)
 const slug = Astro.url.pathname.replace(/\/$/, "").split("/").pop()!.replace(/\.html$/, "");
+// 제목의 「물류·무역」 같은 가운뎃점 묶음이 「·」 앞에서 갈리지 않게 낱말 잇개(U+2060)로 붙인다 — keep-all 만으로는 크롬이 「·」 앞에서 끊었다(채팅 최종 검수 10/15)
 const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측심 도구 — ${q.replace(/"/g, "&quot;")}" width="100%" height="460" style="border:0" loading="lazy"></iframe>`;
 ---
 <article class="s-wrap tool" data-content={`tool-${id}`} data-tool={id}>
   <header class="tool__head">
     <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof">{asOf} 기준</b></>}</p>
-    <h1 class="s-prose tool__q">{q}</h1>
+    <h1 class="s-prose tool__q">{q.replace(/·/g, "\u2060·\u2060")}</h1>
     {lead && <p class="s-lead s-prose tool__lead">{lead}</p>}
   </header>
   <div class="tool__answer"><slot name="answer" /></div>
@@ -34,7 +35,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
 <style>
   .tool { padding-top: var(--s-5); padding-bottom: var(--s-6); }
   .tool__head { max-width: 52rem; }
-  .tool__q { font-size: clamp(26px, 3.2vw, 42px); line-height: 1.25; margin: var(--s-2) 0 var(--s-3); }
+  .tool__q { font-size: clamp(26px, 3.2vw, 42px); line-height: 1.25; margin: var(--s-2) 0 var(--s-3); word-break: keep-all; overflow-wrap: break-word; } /* 「물류·무역」이 가운뎃점에서 갈려 줄머리에 「·」가 오던 것(채팅 최종 검수 10/15) */
   .tool__lead { margin: 0 0 var(--s-4); }
   .tool__asof { color: var(--s-signal); font-weight: 600; }
   .tool__answer { position: relative; }
