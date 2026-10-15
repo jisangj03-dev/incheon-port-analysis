@@ -1,0 +1,318 @@
+---
+// 홈 첫 화면 — 살아 있는 인천 물류 지도(2026-10-14 선장님 판정 「동적인 콘텐츠·목적이 와닿지 않는다」 · 채팅 위임 A·B).
+// 첫 그림 = 빌드 때 그린 정지 해도(같은 투영 · 스크립트 0) → 페이지가 다 뜬 뒤 캔버스가 받아 움직인다(lib/flowmap.ts · 외부 요청 0).
+// 숫자는 data/derived/home_flows.json(tools-build/flows_derive.py)에서만. 흐름은 월 통계를 그린 것 — 실시간 위치가 아니다.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+import { poster, PW, PH } from "../../lib/home-poster";
+import { u } from "../../lib/site";
+import { profile } from "../../lib/profile";
+import { sourceLine } from "../../lib/sources";
+import Contact from "../scene/Contact.astro";
+import { room } from "../../lib/rooms";
+import Trust from "../scene/Trust.astro";
+
+const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
+const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
+const PF = profile();
+// 관문 → 실무 도구(rooms.json tools 방 · gate 칸이 있는 것만) — 관문을 누르면 이어지는 도구
+const TOOLS = ((room("tools")?.items || []) as any[]).filter((t) => t.gate);
+const L = F.months[F.months.length - 1];
+
+// ── 정지 그림(같은 카메라 · 그림 파일로 따로 · lib/home-poster.ts) — 인천 고리는 HTML 로 얹어 CSS 로만 숨 쉰다(SVG 안 움직임은 주 스레드를 쓴다)
+const PO = poster();
+const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+---
+<section class="live" data-content="home-live" aria-labelledby="live-h">
+  <div class="s-wrap live__text">
+    <p class="s-cap live__who">{PF.name} · SCM 작업실 · {PF.affiliation}</p>
+    <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
+    <p class="s-lead s-prose">{L.ym} 수입 신고액 기준(인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천으로 나갑니다.<span class="live__more"> 이 관문을 지나 수도권으로 흐르는 공급망을 공공 데이터로 읽습니다.</span></p>
+    <p class="s-prose live__ask">물류비·재고·수요예측·항만·통관 — 이런 질문을 <b>귀사 숫자로</b> 같이 풀고 싶다면 연락 주세요.</p>
+    <div class="live__cta"><Contact /><a class="s-btn s-btn--ghost live__q" href="#questions">같이 푸는 질문 보기</a></div>
+  </div>
+
+  <div class="live__frame">
+  <div class="live__stage" id="live-stage">
+    <img class="live__poster" src={u("/assets/home-poster.svg")} alt="" width={PW} height={PH} decoding="async" />
+    <span class="live__pulse" aria-hidden="true" style={`--gx:${PO.gate[0] - PW / 2};--gy:${PO.gate[1] - PH / 2}`}></span>
+    <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문을 지나는 교역 흐름 — ${L.ym} 인천공항·인천항 수출입 ${fmt(L.total)}억 달러. 들어오는 것(수입)은 주홍, 나가는 것(수출)은 바다색 점.`}></canvas>
+    <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
+  </div>
+
+  <div class="live__hud" id="fm-hud" aria-live="off">
+    <p class="live__ym"><span id="fm-ym">{L.ym}</span> <span class="live__unit">인천 관문을 지난 수출입</span></p>
+    <p class="live__total"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span></p>
+    <p class="live__split"><span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></p>
+    <p class="live__legend">월 통계를 흐름으로 그린 것 — 실시간 위치가 아닙니다 · <span id="fm-unit">점 하나 ≈ 1억 달러</span><span id="fm-dens" hidden> · 옅은 푸른 결 = 세계은행 선박 밀도(2015~2021 누적)</span></p>
+  </div>
+  <div class="live__ctl" role="group" aria-label="지도 보기">
+    <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
+    <button type="button" class="s-btn s-btn--ghost" data-view="incheon">인천·수도권</button>
+    <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true">둘러보기 멈춤</button>
+    <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel">관문 숫자</button>
+  </div>
+  <aside class="live__panel" id="fm-panel" hidden aria-label="관문별 숫자">
+    <button type="button" class="live__x" id="fm-x" aria-label="닫기">×</button>
+    <h2 class="s-cap" id="fm-p-h">{L.ym} 관문별</h2>
+    <dl class="live__dl" id="fm-p-dl">
+      <dt>인천공항</dt><dd>수입 {fmt(L.air_imp)} · 수출 {fmt(L.air_exp)}<small>억 달러</small></dd>
+      <dt>인천항</dt><dd>수입 {fmt(L.port_imp)} · 수출 {fmt(L.port_exp)}<small>억 달러</small></dd>
+      {L.teu && <><dt>인천항 컨테이너</dt><dd>{F.sea_gates.map((g: any) => `${g.id} ${L.teu[g.id]}`).join(" · ")}<small>천TEU</small></dd></>}
+      <dt>전국 대비</dt><dd>수입 {L.imp_share_pct}% · 수출 {L.exp_share_pct}%</dd>
+    </dl>
+    {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)} title={t.q}>{t.title} →</a></li>)}</ul></>}
+    <p class="s-cap">나라 비중(전국 · {F.partner_months[0]}~{F.partner_months[F.partner_months.length - 1]} · 10개국 안)</p>
+    <ol class="live__bars">
+      {F.partners.slice(0, 6).map((p: any) => <li><span>{p.name}</span><i style={`--w:${p.imp_pct}%`}></i><b>수입 {p.imp_pct}%</b></li>)}
+    </ol>
+  </aside>
+  </div>
+
+  <div class="s-wrap live__foot">
+    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 나라 비중은 전국 기준을 두 관문에 같은 비율로 나눴고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘 다 <b>가정</b>입니다. 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
+    <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
+  </div>
+  <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>
+</section>
+
+<script>
+  import { FlowMap, VIEWS, VIEWS_M, type Cam } from "../../lib/flowmap";
+  const stage = document.getElementById("live-stage") as HTMLElement, cv = document.getElementById("fm") as HTMLCanvasElement;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const lite = matchMedia("(max-width: 720px)").matches; // 좁은 화면 = 가벼운 판(점 절반 · 해상도 1.5배까지)
+  const $ = (id: string) => document.getElementById(id)!;
+  const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  let fm: FlowMap | null = null;
+
+  // 숫자가 돈다 — 달이 바뀌면 이전 값에서 새 값으로 0.7초에 걸쳐
+  const tick = (el: HTMLElement, to: number) => {
+    const from = Number(el.dataset.v ?? el.textContent!.replace(/,/g, "")) || 0, t0 = performance.now();
+    el.dataset.v = String(to);
+    const f = (now: number) => { const k = Math.min(1, (now - t0) / 700), e = 1 - (1 - k) ** 3; el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); };
+    requestAnimationFrame(f);
+  };
+
+  // 이름표 — 우선순위 높은 것부터 놓고 겹치면 뺀다(매 장면)
+  type LB = { el: HTMLElement; lon: number; lat: number; pri: number; near: boolean | null; w: number; h: number; dx: number; dy: number };
+  const LBS: LB[] = [];
+  const mk = (html: string, lon: number, lat: number, pri: number, near: boolean | null, cls = "") => {
+    const el = document.createElement("span"); el.className = `fm-lb ${cls}`; el.dataset.label = ""; el.innerHTML = html; $("fm-labels").append(el);
+    LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8 });
+  };
+  // 글자·숫자판·단추 자리(이름표가 피한다) — 화면 크기가 바뀔 때만 다시 잰다(매 장면 재면 배치 계산이 장면마다 돈다)
+  let fixed: number[][] | null = null;
+  const fixedBoxes = (H: number) => {
+    const sr = stage.getBoundingClientRect();
+    return [...document.querySelectorAll<HTMLElement>(".live__text > *, .live__hud > *, .live__ctl")].map((e) => { const r = e.getBoundingClientRect(); return [r.left - sr.left - 6, r.top - sr.top - 4, r.right - sr.left + 6, r.bottom - sr.top + 4]; }).filter((b) => b[3] > 0 && b[1] < H);
+  };
+  addEventListener("resize", () => { fixed = null; for (const l of LBS) l.w = 0; });
+  const place = (f: FlowMap) => {
+    const near = f.cam.zoom > 6.2, W = f.W, H = f.H;
+    const taken: number[][] = [...(fixed ??= fixedBoxes(H))];
+    for (const l of [...LBS].sort((a, b) => b.pri - a.pri)) {
+      const want = l.near === null || l.near === near;
+      if (!want) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; }
+      if (!l.w) { const r = l.el.getBoundingClientRect(); l.w = r.width; l.h = r.height; }
+      const s = f.screen(l.lon, l.lat);
+      let ok = false, x = 0, y = 0;
+      if (s[0] < 24 || s[0] > W - 24 || s[1] < H * 0.15 || s[1] > H - 24) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; } // 자리가 화면 가장자리·안개 속이면 뺀다
+      for (const [dx, dy] of [[8, -l.h - 4], [8, 4], [-l.w - 8, -l.h - 4], [-l.w - 8, 4]]) {
+        x = s[0] + dx; y = s[1] + dy;
+        if (x < 4 || y < H * 0.12 || x + l.w > W - 4 || y + l.h > H - 4) continue;
+        if (taken.some((t) => x < t[2] && x + l.w > t[0] && y < t[3] && y + l.h > t[1])) continue;
+        ok = true; break;
+      }
+      const v = ok ? "visible" : "hidden";
+      if (l.el.style.visibility !== v) l.el.style.visibility = v;
+      if (ok) { l.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + l.w + 3, y + l.h + 2]); }
+    }
+  };
+
+  async function boot() {
+    const D = await fetch((window as any).__fmsrc).then((r) => r.json());
+    (window as any).__fmdata = D;
+    if (D.density) document.getElementById("fm-dens")!.hidden = false;
+    const F = D.flows;
+    const unit = lite ? 1 : 0.4;
+    const views = cv.clientWidth < 760 || cv.clientWidth / cv.clientHeight < 1.1 ? VIEWS_M : VIEWS;
+    $("fm-unit").textContent = `점 하나 ≈ ${unit}억 달러`;
+    const cam: Cam = { ...views.asia };
+    fm = new FlowMap(cv, D, { unit, monthSec: 7, maxDpr: lite ? 1.5 : 2, lite, onFrame: place, onMonth: (i) => {
+      const m = F.months[i];
+      $("fm-ym").textContent = m.ym;
+      tick($("fm-total"), m.total); tick($("fm-imp"), m.imp_total); tick($("fm-exp"), m.exp_total);
+      panel(i);
+    } }, cam);
+    // 이름표 — 멀리: 나라·인천 / 가까이: 관문·목적지
+    for (const p of F.partners) mk(`<b>${p.name}</b><i>수입 ${p.imp_pct}% · 수출 ${p.exp_pct}%</i>`, p.sea[0][0], p.sea[0][1], p.imp_pct + p.exp_pct, false);
+    mk(`<b class="s-signal">인천</b><i>공항 + 항만</i>`, F.air_gate.lon, F.air_gate.lat, 1000, false, "fm-lb--gate");
+    mk(`<b class="s-signal">인천공항</b><i>하늘 관문</i>`, F.air_gate.lon, F.air_gate.lat, 1000, true, "fm-lb--gate");
+    for (const g of F.sea_gates) mk(`<b class="s-signal">${g.id}</b>`, g.lon, g.lat, 900 - g.lon, true, "fm-lb--gate");
+    for (const d of F.dests) mk(`<b>${d.id === "서울특별시" ? "서울" : d.id}</b><i>창고 ${d.n.toLocaleString("ko-KR")}곳</i>`, d.lon, d.lat, d.n, true);
+    fm.views = views; (window as any).__fm = fm;
+    fm.warm(lite ? 6 : 9);
+    fm.touring = !reduce; fm.draw();
+    stage.dataset.ready = "1";
+    if (!reduce) fm.start(); else $("fm-tour").textContent = "둘러보기", $("fm-tour").setAttribute("aria-pressed", "false");
+    // 보이지 않으면 쉰다
+    new IntersectionObserver(([e]) => { if (!fm) return; if (e.isIntersecting && !reduce && !paused) fm.start(); else fm.stop(); }).observe(stage);
+    document.addEventListener("visibilitychange", () => { if (!fm) return; if (document.hidden) fm.stop(); else if (!reduce && !paused) fm.start(); });
+    addEventListener("resize", () => { fm!.resize(); fm!.draw(); });
+  }
+  let paused = false;
+
+  // ── 조작: 끌면 돌린다(가로 = 방위 · 세로 = 기울기) · 누르면 관문 숫자 · 보기 단추 ──
+  let drag: { x: number; y: number; b: number; p: number; moved: boolean } | null = null;
+  const stopTour = () => { if (!fm) return; fm.touring = false; fm.tour = null; $("fm-tour").textContent = "둘러보기"; $("fm-tour").setAttribute("aria-pressed", "false"); };
+  cv.addEventListener("pointerdown", (e) => { if (!fm) return; drag = { x: e.clientX, y: e.clientY, b: fm.cam.bearing, p: fm.cam.pitch, moved: false }; });
+  addEventListener("pointermove", (e) => {
+    if (!drag || !fm) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+    if (!drag.moved) { drag.moved = true; stopTour(); }
+    fm.cam.bearing = drag.b - dx * 0.25;
+    if (e.pointerType === "mouse") fm.cam.pitch = Math.max(0, Math.min(62, drag.p - dy * 0.2));
+    if (!fm.running) fm.draw();
+  });
+  addEventListener("pointerup", (e) => {
+    if (!drag || !fm) return;
+    const was = drag.moved; drag = null;
+    if (was) return;
+    // 누름 — 가까운 관문(28px)이면 관문 숫자를 연다
+    const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+    const hit = fm.gates.some((g) => { const s = fm!.screen(g.lon, g.lat); return Math.hypot(s[0] - x, s[1] - y) < 28; });
+    if (hit) openPanel(true);
+  });
+  // 바퀴 — 지도 위에서만 줌(Ctrl/⌘ 없이 굴리면 페이지가 내려간다)
+  cv.addEventListener("wheel", (e) => { if (!fm || !(e.ctrlKey || e.metaKey)) return; e.preventDefault(); stopTour(); fm.cam.zoom = Math.max(2.3, Math.min(10.5, fm.cam.zoom - e.deltaY * 0.004)); if (!fm.running) fm.draw(); }, { passive: false });
+  for (const b of document.querySelectorAll<HTMLButtonElement>("[data-view]")) b.addEventListener("click", () => { if (!fm) return; stopTour(); fm.flyTo(fm.views[b.dataset.view!], 3.2); if (!fm.running) { paused = false; fm.start(); } });
+  $("fm-tour").addEventListener("click", () => {
+    if (!fm) return;
+    if (fm.touring) { stopTour(); return; }
+    fm.touring = true; fm.tourT = 0; paused = false; fm.start();
+    $("fm-tour").textContent = "둘러보기 멈춤"; $("fm-tour").setAttribute("aria-pressed", "true");
+  });
+  // 관문 숫자 판 — 달이 바뀌면 같이 바뀐다
+  let D0: any = null;
+  const panel = (i: number) => {
+    if (!D0) D0 = (window as any).__fmdata;
+    const F = D0?.flows; if (!F) return;
+    const m = F.months[i];
+    $("fm-p-h").textContent = `${m.ym} 관문별`;
+    $("fm-p-dl").innerHTML = `<dt>인천공항</dt><dd>수입 ${fmt(m.air_imp)} · 수출 ${fmt(m.air_exp)}<small>억 달러</small></dd>` +
+      `<dt>인천항</dt><dd>수입 ${fmt(m.port_imp)} · 수출 ${fmt(m.port_exp)}<small>억 달러</small></dd>` +
+      (m.teu ? `<dt>인천항 컨테이너</dt><dd>${F.sea_gates.map((g: any) => `${g.id} ${m.teu[g.id] ?? "—"}`).join(" · ")}<small>천TEU</small></dd>` : "") +
+      `<dt>전국 대비</dt><dd>수입 ${m.imp_share_pct}% · 수출 ${m.exp_share_pct}%</dd>`;
+  };
+  const openPanel = (open: boolean) => { $("fm-panel").hidden = !open; $("fm-gates").setAttribute("aria-expanded", String(open)); };
+  $("fm-gates").addEventListener("click", () => openPanel($("fm-panel").hidden === true));
+  $("fm-x").addEventListener("click", () => openPanel(false));
+  addEventListener("keydown", (e) => { if (e.key === "Escape") openPanel(false); });
+
+  // 다 뜬 뒤에 받는다(첫 그림·글꼴을 막지 않게) — 정지 해도가 그동안 같은 자리를 보인다
+  let booted = false;
+  const kick = () => { if (booted) return; booted = true; boot().catch((e) => { stage.dataset.ready = "error"; console.error(e); }); };
+  const go = () => {
+    if (!lite) { "requestIdleCallback" in window ? (window as any).requestIdleCallback(kick, { timeout: 1500 }) : setTimeout(kick, 300); return; }
+    // 좁은 화면 — 정지 해도를 먼저 보이고, 사람이 만지면(스크롤·누름·키) 움직인다(모바일 성능 · 지연 로딩). 정지 그림의 인천 고리는 CSS 로만 숨 쉰다.
+    for (const ev of ["touchstart", "pointerdown", "scroll", "keydown", "wheel"]) addEventListener(ev, kick, { once: true, passive: true });
+    if (location.hash === "#live") kick();
+  };
+  document.readyState === "complete" ? go() : addEventListener("load", go, { once: true });
+</script>
+
+<style>
+  .live { position: relative; }
+  .live__stage { position: relative; height: clamp(560px, calc(100svh - 92px), 980px); overflow: hidden; touch-action: pan-y; }
+  /* 글자 쪽은 종이로 옅게 덮는다(상자 없이 · 오른쪽으로 사라지는 바림) */
+  .live__stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(245,242,235,0.92) 0%, rgba(245,242,235,0.78) 30%, rgba(245,242,235,0) 58%); }
+  .live__poster, .live__cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .live__poster { object-fit: cover; }
+  /* 정지 그림 위 인천 고리 — 그림이 화면을 덮도록 커진 배율(cover)을 컨테이너 단위로 따라간다 */
+  .live__stage { container-type: size; }
+  .live__pulse { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 2px solid #b3361e; border-radius: 50%; pointer-events: none;
+    left: calc(50% + var(--gx) * max(100cqw / 1600, 100cqh / 900)); top: calc(50% + var(--gy) * max(100cqw / 1600, 100cqh / 900));
+    animation: live-pulse 2.2s ease-out infinite; will-change: transform, opacity; }
+  .live__stage[data-ready="1"] .live__pulse { display: none; }
+  @keyframes live-pulse { from { transform: scale(0.4); opacity: 0.9; } to { transform: scale(2.2); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .live__pulse { animation: none; } }
+  .live__cv { opacity: 0; transition: opacity 0.8s ease; cursor: grab; }
+  .live__stage[data-ready="1"] .live__cv { opacity: 1; }
+  .live__labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .live__labels :global(.fm-lb) { position: absolute; left: 0; top: 0; font: 500 13px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; visibility: hidden;
+    text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); will-change: transform; }
+  .live__labels :global(.fm-lb b) { display: block; font-weight: 650; font-size: 14px; }
+  .live__labels :global(.fm-lb i) { display: block; font-style: normal; font-size: 11.5px; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  .live__labels :global(.fm-lb--gate b) { font-size: 15px; }
+  .live__frame { position: relative; }
+  .live__text { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding-top: var(--s-6); pointer-events: none; }
+  .live__text > * { max-width: 40rem; }
+  .live__text a, .live__text button { pointer-events: auto; }
+  .live__text h1 { font-size: clamp(30px, 4.4vw, 60px); margin: var(--s-2) 0 var(--s-3); text-shadow: 0 0 14px var(--s-paper), 0 0 4px var(--s-paper); }
+  .live__text .s-lead, .live__ask { text-shadow: 0 0 8px var(--s-paper), 0 0 3px var(--s-paper); }
+  .live__ask { margin-top: var(--s-3); }
+  .live__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
+  .live__cta :global(.s-contact) { margin: var(--s-4) 0 0; }
+  .live__q { margin-top: var(--s-4); }
+  .live__hud { position: absolute; left: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; pointer-events: none;
+    text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); }
+  .live__hud p { margin: 0; }
+  .live__ym { font-style: italic; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  .live__total b { font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .live__unit { font-size: 13px; color: var(--s-ink-2); margin-left: 6px; }
+  .live__split { font-size: 14px; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  .live__split b { color: var(--s-ink); margin-right: 10px; }
+  .k { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+  .k-in { background: var(--s-signal); } .k-out { background: var(--s-sea-t); }
+  .live__legend { font-size: 12px; color: var(--s-ink-3); margin-top: 4px !important; }
+  .live__ctl { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; max-width: 52%; }
+  .live__ctl .s-btn { background: rgba(245, 242, 235, 0.88); min-height: 40px; padding: 0 14px; font-size: 14px; }
+  .live__panel { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); top: 50%; transform: translateY(-50%); z-index: 3; width: min(340px, calc(100% - 32px));
+    background: var(--s-paper); border-top: 2px solid var(--s-signal); padding: 18px 20px 16px; box-shadow: 0 12px 40px rgba(25, 23, 20, 0.14);
+    max-height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain; } /* 도구 목록이 붙어 판이 길어졌다 — 무대 밖으로 잘리지 않게 */
+  .live__panel h2 { font-size: 13px; font-weight: 600; letter-spacing: 0; margin: 0 40px 0 0; line-height: 1.4; }
+  .live__x { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; border: 0; background: none; font-size: 22px; cursor: pointer; color: var(--s-ink-2); }
+  .live__dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 14px; font-variant-numeric: tabular-nums; }
+  .live__dl dt { color: var(--s-ink-2); font-size: 13px; } .live__dl dd { margin: 0; font-size: 14px; } .live__dl small { color: var(--s-ink-3); margin-left: 4px; }
+  .live__tools { list-style: none; padding: 0; margin: 4px 0 14px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .live__tools a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 10px; border: 1px solid var(--s-rule); text-decoration: none; color: var(--s-signal); font-size: 13.5px; font-weight: 600; background: var(--s-paper); }
+  .live__bars { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 4px; font-size: 13px; }
+  .live__bars li { display: grid; grid-template-columns: 4.5em 1fr auto; align-items: center; gap: 8px; }
+  .live__bars i { display: block; height: 6px; width: var(--w); background: var(--s-signal); border-radius: 1px; }
+  .live__bars b { font-weight: 500; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
+  .live__foot { padding-top: var(--s-4); }
+  /* [2026-10-15 채팅 검수] 낮은 창(1536×640 등)에서 글 블록이 아래 숫자판·연락 단추와 겹쳤다 — 무대 높이가 창 높이만 보고 정해졌기 때문.
+     넓은 화면에서는 글과 무대를 한 칸(grid)에 겹쳐 두고, 글 블록 아래에 숫자판 높이만큼 자리를 남긴다 → 글이 길면 무대가 늘어난다(겹칠 수 없다).
+     시험 = tests/hero.spec.mjs(너비 1280·1440·1536 × 높이 640·720·900 · 겹침 0) */
+  @media (min-width: 721px) {
+    .live { display: grid; grid-template-columns: minmax(0, 1fr); }
+    .live > .live__text, .live > .live__frame { grid-row: 1; grid-column: 1; }
+    .live > .live__foot { grid-row: 2; grid-column: 1; }
+    .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 168px) + 30px); }
+    .live__frame { display: flex; flex-direction: column; }
+    .live__stage { flex: 1 0 auto; height: auto; min-height: clamp(560px, calc(100svh - 92px), 980px); }
+  }
+  @media (max-width: 720px) {
+    /* 좁은 화면 — 글자를 위에 따로 두고(덮지 않는다) 지도를 그 아래 넓게 */
+    .live__text { position: static; padding-top: var(--s-4); pointer-events: auto; }
+    .live__text h1 { font-size: 29px; text-shadow: none; margin-bottom: var(--s-2); }
+    .live__text .s-lead { font-size: 15.5px; line-height: 1.55; text-shadow: none; }
+    .live__ask { font-size: 15px; text-shadow: none; margin-top: var(--s-2); }
+    .live__cta { gap: 8px; }
+    .live__more { display: none; }
+    .live__cta :global(.s-contact) { margin-top: var(--s-3); gap: 8px; }
+    .live__cta :global(.s-btn), .live__q { min-height: 44px; padding: 0 12px; font-size: 14px; }
+    .live__q { margin-top: var(--s-3); }
+    .live__cta { flex-wrap: nowrap; } .live__cta :global(.s-contact) { flex-wrap: nowrap; }
+    .live__stage { height: 72svh; min-height: 520px; max-height: 760px; }
+    .live__stage::after { background: none; }
+    .live__hud { left: 16px; bottom: 70px; }
+    .live__total b { font-size: 30px; }
+    .live__legend { max-width: 22em; }
+    .live__ctl { left: 16px; right: 16px; bottom: 12px; max-width: none; justify-content: flex-start; gap: 6px; }
+    .live__ctl .s-btn { padding: 0 10px; font-size: 13px; min-height: 44px; }
+    .live__panel { top: auto; bottom: 8px; transform: none; left: 16px; right: 16px; width: auto; }
+  }
+</style>

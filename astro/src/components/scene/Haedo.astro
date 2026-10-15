@@ -38,10 +38,16 @@ const geo = { FIT: fitBox(fit), pad, LIMIT: B.limit };
   .haedo :global(.h-pt.top) { fill: var(--s-signal); }
   .haedo :global(.h-pt.to) { fill: var(--s-paper); stroke: var(--s-signal); stroke-width: 2; }
   .haedo__labels { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-  .haedo :global(.h-lb) { position: absolute; transform: translate(0, -50%); white-space: nowrap; font-size: 14px; line-height: 1.2; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); transition: opacity 0.4s; }
+  .haedo__labels :global(.haedo__lines) { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; stroke: var(--s-ink-3); stroke-width: 0.8; }
+  .haedo :global(.h-lb) { position: absolute; white-space: nowrap; font-size: 14px; line-height: 1.2; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); transition: opacity 0.4s; }
   .haedo :global(.h-lb b) { font-weight: 600; }
   .haedo :global(.h-lb i) { font-style: italic; color: var(--s-ink-2); margin-left: 6px; font-variant-numeric: tabular-nums; }
   .haedo :global(.h-lb.to b) { color: var(--s-signal); }
+  /* 화면 밖 점 — 가장자리 방향 표지 */
+  .haedo :global(.h-lb[data-edge="e"] b)::after { content: " →"; }
+  .haedo :global(.h-lb[data-edge="w"] b)::before { content: "← "; }
+  .haedo :global(.h-lb[data-edge="n"] b)::after { content: " ↑"; }
+  .haedo :global(.h-lb[data-edge="s"] b)::after { content: " ↓"; }
   .haedo__grat { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
   .haedo__grat :global(line) { stroke: var(--s-ink-2); }
   .haedo__grat :global(text) { font: 400 11px var(--s-font); fill: var(--s-ink-3); }

@@ -83,7 +83,9 @@ jobs:
           python tools-build/check_ledger.py
           python analysis/forecast_teu.py --selftest
 
-      - name: Lighthouse 13.5.0 (홈·계산기·배치도 · 모바일)
+      - name: Lighthouse 13.5.0 (공개 지면 13 · 모바일 · CI 는 1회 — 3회 중앙값은 세션 출고 검사가 잰다)
+        env:
+          LH_RUNS: "1"
         run: |
           python .claude/skills/webapp-testing/scripts/with_server.py \
             --server "node tests/serve.mjs 4175 astro/dist" --port 4175 \
