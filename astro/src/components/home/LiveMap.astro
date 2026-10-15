@@ -291,6 +291,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__hud { position: absolute; left: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; pointer-events: none;
     text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); }
   .live__hud p { margin: 0; }
+  /* 범례에 밀도 문구가 붙으면 숫자판이 단추 줄 앞까지 늘어난다(CI 글꼴에서 겹침 · QA 247) — 넓은 화면은 단추 줄(최대 52%)과 반대쪽 40% 안에서 꺾는다 */
+  .live__legend { max-width: min(40vw, 30em); }
   .live__ym { font-style: italic; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
   .live__total b { font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .live__unit { font-size: 13px; color: var(--s-ink-2); margin-left: 6px; }
