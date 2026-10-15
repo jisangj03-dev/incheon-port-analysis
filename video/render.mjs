@@ -55,7 +55,10 @@ function camera(R) {
     const s = at((i / FPS) * 1000), [rx, ry, rw, rh] = s.f;
     let zt = Math.min(ZMAX, Math.max(ZMIN, Math.min((0.92 * W) / rw, (0.5 * H) / rh)));
     for (const k of s.k) if (k[5] > 0) zt = Math.min(ZMAX, Math.max(zt, MIN_DIGIT / k[5])); // 보이는 핵심 숫자가 40px 를 넘게
-    const tx = rx + rw / 2, ty = ry + rh / 2;
+    let tx = rx + rw / 2; const ty = ry + rh / 2, wt = W / zt;
+    // 초점 상자가 창보다 넓으면 가운데에 맞춘 창이 숫자를 자른다 → 초점 안의 첫 핵심 숫자(선택자 순서 = 우선순위)가 온전히 들도록 최소한만 민다
+    const key = s.k.find((k) => k[2] < ry + rh && k[2] + k[4] > ry && k[3] + 16 <= wt);
+    if (key) { if (key[1] - 8 < tx - wt / 2) tx = key[1] - 8 + wt / 2; if (key[1] + key[3] + 8 > tx + wt / 2) tx = key[1] + key[3] + 8 - wt / 2; }
     if (cx === undefined) { cx = tx; cy = ty; z = zt; } else { const a = 1 - Math.exp(-2.4 / FPS), b = 1 - Math.exp(-1.8 / FPS); cx += (tx - cx) * a; cy += (ty - cy) * a; z += (zt - z) * b; }
     const w = W / z, h = H / z;
     const x0 = Math.min(W - w, Math.max(0, cx - w / 2)), y0 = Math.min(H - h, Math.max(0, cy - 0.42 * h));
@@ -74,15 +77,15 @@ function place(callouts, R, cam, at) {
 }
 // 시험 ① 화면 핵심 숫자 글자 높이 ≥ 40px(1080 기준) — 카메라 창 안에 온전히 든 숫자 모두
 function digitTest(R, cam, at) {
-  const bad = []; let seen = 0;
+  const bad = [], by = {}; let seen = 0, out = 0, ex = "";
   for (let i = 0; i < cam.length; i += 2) {
     const [x0, y0, z] = cam[i], w = R.size.width / z, h = R.size.height / z, s = at((i / FPS) * 1000);
     for (const [sel, x, y, kw, kh, dh] of s.k) {
-      if (x < x0 || y < y0 || x + kw > x0 + w || y + kh > y0 + h) continue;
-      seen++; if (dh * z < MIN_DIGIT) bad.push(`${sel}@${(i / FPS).toFixed(1)}s ${(dh * z).toFixed(0)}px`);
+      if (x < x0 || y < y0 || x + kw > x0 + w || y + kh > y0 + h) { out++; ex ||= `${sel} [${x},${y},${kw},${kh}] 창 [${x0},${y0},${w.toFixed(0)},${h.toFixed(0)}]`; continue; }
+      seen++; by[sel] = (by[sel] || 0) + 1; if (dh * z < MIN_DIGIT) bad.push(`${sel}@${(i / FPS).toFixed(1)}s ${(dh * z).toFixed(0)}px`);
     }
   }
-  return { seen, bad: [...new Set(bad)].slice(0, 8) };
+  return { seen, by, bad: [...new Set(bad)].slice(0, 8), why: seen ? "" : `창 밖 ${out}회 · 예 ${ex}` };
 }
 // 시험 ② 자막이 보이는 프레임의 자막 대비 ≥ 4.5:1 — 렌더된 mp4 에서 자막 상자 띠의 어두운 바탕(10%)과 밝은 글자(99.5%) 휘도
 const FF = join(HERE, "node_modules/@remotion/compositor-linux-x64-gnu/ffmpeg");
@@ -114,8 +117,8 @@ for (const [id, cap] of Object.entries(CAP)) {
     const callouts = place(Object.entries(k.marks).filter(([m]) => R.marks[m] != null).map(([m, text]) => ({ at: R.marks[m] - t0, text })).sort((a, b) => a.at - b.at), R, cam, at);
     const props = { id, fmt, w: R.size.width, h: R.size.height, clip: `rec/${id}-${fmt}.mp4`, clipMs: R.marks.done - t0, q: c.q, num: c.num, unit: c.unit, eb: "", source: k.source, asof: c.asof, url: `${SITE}${c.href}`, callouts, cam };
     const dt = digitTest(R, cam, at);
-    if (!dt.seen || dt.bad.length) { skipped.push(`${id}-${fmt}: 핵심 숫자 글자 높이 40px 미만(본 ${dt.seen}) ${dt.bad.join(" · ")}`); continue; }
-    props.digit_checked = dt.seen;
+    if (!dt.seen || dt.bad.length) { skipped.push(`${id}-${fmt}: 핵심 숫자 글자 높이 40px 미만(본 ${dt.seen}) ${dt.bad.join(" · ")} ${dt.why}`); continue; }
+    props.digit_checked = dt.seen; props.digit_by = dt.by;
     props.eb = { chokepoint: "포워더 · 수출입 담당", "import-cost": "수입 담당 · 구매", "bid-radar": "물류기업 영업 · 3PL" }[id];
     // 화면에 나오는 글 전부 → 숫자 검사(데이터 밖 숫자가 있으면 그 편은 렌더하지 않는다)
     const shown = [props.q, props.num, props.unit, props.source, props.asof, ...callouts.map((x) => x.text)].join("\n");
@@ -125,6 +128,8 @@ for (const [id, cap] of Object.entries(CAP)) {
   }
 }
 console.log(`렌더 ${jobs.length}편 · 건너뜀 ${skipped.length}`, skipped);
+// REELS_DRY=1 — 시험(숫자 높이)과 자막 자리만 보고 렌더하지 않는다
+if (process.env.REELS_DRY) { for (const j of jobs) console.log(`${j.id}-${j.fmt} 숫자 확인 ${j.digit_checked} ${JSON.stringify(j.digit_by)} · 자막 자리 ${j.callouts.map((c) => c.pos).join(",")}`); process.exit(skipped.length ? 1 : 0); }
 
 // 글꼴 — 사이트와 같은 Pretendard(OFL). 렌더 중 바뀌지 않게 font-display 를 block 으로
 mkdirSync(join(HERE, "public/fonts"), { recursive: true });

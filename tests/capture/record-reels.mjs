@@ -47,7 +47,7 @@ const REELS = {
     }
     focus(".ck__ctl .seg"); await glide(p, ".ck__ctl"); await wait(p, 800); await p.locator(".seg button[data-id=hormuz]").click(); focus(".ck__big"); await glide(p, ".ck__big"); mark("hormuz2"); await wait(p, 2400);
   } },
-  "import-cost": { href: "/tools/import-cost.html", keys: ["#cs-diff", "#wave-v", "#wave-c"], run: async (p, mark, focus) => {
+  "import-cost": { href: "/tools/import-cost.html", keys: ["#cs-diff", "#wave-c", "#wave-v"], run: async (p, mark, focus) => {
     // 3초 답이 주를 넘겨 보다 이번 주로 돌아온 뒤에 표지를 찍는다(자막 숫자 = 화면 숫자 · 2026-10-15 검수: 4초에는 아직 2025-02 주였다)
     focus(".cost__big"); await glide(p, ".cost__big"); await p.waitForFunction(() => !!window.__cost); await wait(p, 150); await p.waitForFunction((n) => (document.getElementById("cs-diff")?.textContent || "").replace(/\s+/g, "") === n, CARDS["import-cost"].num, { timeout: 20000 }); mark("now"); await wait(p, 2600);
     focus("#wave .wave__row"); await glide(p, "#wave"); await wait(p, 1500); mark("wave");
