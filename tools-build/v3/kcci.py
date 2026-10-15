@@ -57,9 +57,10 @@ def main():
     rows = parse_table(cells(h))
     probe["table_rows_on_page"] = len(rows or [])
     # 내려받기 길 후보 — 화면의 액션·스크립트에서 엑셀/내려받기 주소를 모으고, 날짜 칸 이름을 찾아 넣는다
-    dates = [n for n in probe["inputs"] if re.search(r"(st|start|from|bgn|sDate|srch.*Date|Dt)", n, re.I)]
-    ends = [n for n in probe["inputs"] if re.search(r"(end|to|eDate|Ed)", n, re.I)]
-    cands = sorted(set(re.findall(r"['\"](/[^'\"]*(?:[Ee]xcel|[Dd]own)[^'\"]*\.do[^'\"]*)['\"]", h)))[:6]
+    # 2026-10-15 탐색: 날짜 칸 = sDay · eDay(시작 칸 이름을 처음 규칙이 놓쳤다)
+    dates = [n for n in probe["inputs"] if re.search(r"(^sDay$|start|from|bgn|sDate|srch.*Date)", n, re.I)] or ["sDay"]
+    ends = [n for n in probe["inputs"] if re.search(r"(^eDay$|end|eDate)", n, re.I)] or ["eDay"]
+    cands = [c for c in sorted(set(re.findall(r"['\"](/[^'\"]*(?:[Ee]xcel|[Dd]own)[^'\"]*\.do[^'\"]*)['\"]", h))) if "excel" in c.lower()][:3]
     probe["candidates"], probe["date_fields"] = cands, [dates, ends]
     today = datetime.date.today()
     tries = []
@@ -76,7 +77,9 @@ def main():
                 try:
                     import xlrd
                     wb = xlrd.open_workbook(file_contents=b2); sh = wb.sheet_by_index(0)
-                    rr = parse_table([[str(sh.cell_value(i, j)) for j in range(sh.ncols)] for i in range(sh.nrows)])
+                    grid = [[str(sh.cell_value(i, j)) for j in range(sh.ncols)] for i in range(sh.nrows)]
+                    tries[-1]["xls_rows"], tries[-1]["xls_head"] = sh.nrows, grid[:5]
+                    rr = parse_table(grid)
                 except Exception as e: tries[-1]["xls_error"] = str(e)[:120]
             else:
                 rr = parse_table(cells(b2.decode("utf-8", "replace")))
