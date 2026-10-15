@@ -1,0 +1,107 @@
+{
+ "checked": "2026-10-15",
+ "pages": {
+  "imf-portwatch": [
+   {
+    "url": "https://www.imf.org/external/terms.htm",
+    "status": 200,
+    "chars": 0,
+    "excerpts": []
+   },
+   {
+    "url": "https://portwatch.imf.org/pages/data-and-methodology",
+    "status": 200,
+    "chars": 26,
+    "excerpts": []
+   },
+   {
+    "url": "https://portwatch.imf.org/pages/faqs",
+    "status": 200,
+    "chars": 30936,
+    "excerpts": [
+     "en=\"\" data).=\"\" difference=\"\" meaningful=\"\" compositional=\"\" shifts=\"\" those=\"\" observed=\"\" pandemic.<=\"\" <li>official=\"\" reported=\"\" seasonally=\"\" adjusted=\"\" terms,=\"\" adjusted.<br><br><=\"\" li><span=\"\" >2.=\"\" model=\"\" inaccuracies<br><br><=\"\" ul><ul>=\"\" reception=\"\" poor=\"\" places=\"\" lead=\"\" error=\"\" location=\"\" similarly,=\"\" signals=\"\" could=\"\" off.=\"\" both=\"\" factors=\"\" inaccura",
+     "inconsistencies=\"\" outliers=\"\" exist,=\"\" benchmarking=\"\" adequately.<=\"\" indicator?=\"\" mean=\"\" lost=\"\" delayed=\"\" trade?<=\"\" at-risk=\"\" indicator=\"\" (either=\"\" terms).=\"\" cases,=\"\" rerouted=\"\" permanent=\"\" loss=\"\" imports.=\"\" representative=\"\" concentration=\"\" pathway=\"\" (rcp)=\"\" scenarios?<=\"\" rcps=\"\" provide=\"\" trajectories=\"\" greenhouse=\"\" gas=\"\" (ghg)=\"\" concentrations=\"\" 21st=\"",
+     "en=\"\" data).=\"\" difference=\"\" meaningful=\"\" compositional=\"\" shifts=\"\" those=\"\" observed=\"\" pandemic.<=\"\" <li>official=\"\" reported=\"\" seasonally=\"\" adjusted=\"\" terms,=\"\" adjusted.<br><br><=\"\" li><span=\"\" >2.=\"\" model=\"\" inaccuracies<br><br><=\"\" ul><ul>=\"\" reception=\"\" poor=\"\" places=\"\" lead=\"\" error=\"\" location=\"\" similarly,=\"\" signals=\"\" could=\"\" off.=\"\" both=\"\" factors=\"\" inaccura",
+     "inconsistencies=\"\" outliers=\"\" exist,=\"\" benchmarking=\"\" adequately.<=\"\" indicator?=\"\" mean=\"\" lost=\"\" delayed=\"\" trade?<=\"\" at-risk=\"\" indicator=\"\" (either=\"\" terms).=\"\" cases,=\"\" rerouted=\"\" permanent=\"\" loss=\"\" imports.=\"\" representative=\"\" concentration=\"\" pathway=\"\" (rcp)=\"\" scenarios?<=\"\" rcps=\"\" provide=\"\" trajectories=\"\" greenhouse=\"\" gas=\"\" (ghg)=\"\" concentrations=\"\" 21st=\"",
+     "en=\"\" data).=\"\" difference=\"\" meaningful=\"\" compositional=\"\" shifts=\"\" those=\"\" observed=\"\" pandemic.<=\"\" <li>official=\"\" reported=\"\" seasonally=\"\" adjusted=\"\" terms,=\"\" adjusted.<br><br><=\"\" li><span=\"\" >2.=\"\" model=\"\" inaccuracies<br><br><=\"\" ul><ul>=\"\" reception=\"\" poor=\"\" places=\"\" lead=\"\" error=\"\" location=\"\" similarly,=\"\" signals=\"\" could=\"\" off.=\"\" both=\"\" factors=\"\" inaccura",
+     "inconsistencies=\"\" outliers=\"\" exist,=\"\" benchmarking=\"\" adequately.<=\"\" indicator?=\"\" mean=\"\" lost=\"\" delayed=\"\" trade?<=\"\" at-risk=\"\" indicator=\"\" (either=\"\" terms).=\"\" cases,=\"\" rerouted=\"\" permanent=\"\" loss=\"\" imports.=\"\" representative=\"\" concentration=\"\" pathway=\"\" (rcp)=\"\" scenarios?<=\"\" rcps=\"\" provide=\"\" trajectories=\"\" greenhouse=\"\" gas=\"\" (ghg)=\"\" concentrations=\"\" 21st=\""
+    ]
+   }
+  ],
+  "wb-ship-density": [
+   {
+    "url": "https://datacatalogapi.worldbank.org/ddhxext/DatasetView?dataset_unique_id=0037580",
+    "status": 429,
+    "chars": 0,
+    "excerpts": []
+   },
+   {
+    "url": "https://datacatalog.worldbank.org/search/dataset/0037580",
+    "status": 200,
+    "chars": 2916,
+    "excerpts": [
+     "AP and PROBLUE programs. The dataset contains 6 density layers, with vessel types aggregated to suit the needs of the WBG Offshore Wind Development Program: 1) Commercial ships 2) Fishing ships 3) Oil & Gas [note: this is just platforms, rigs, and FPSOs] 4) Passenger ships 5) Leisure vessels 6) GLOBAL ship density layers of all ship categories combined The raster layers were created usin",
+     "- Fishing zip Last Updated : May 3, 2021 Size : 97.0 MB METADATA Ship Density - Passenger zip Last Updated : May 3, 2021 Size : 21.8 MB METADATA Ship Density - Commercial zip Last Updated : May 3, 2021 Size : 458.1 MB METADATA Metadata Coverage & Extent Geographical Coverage Afghanistan , Albania , Algeria , American Samoa , Andorra , Angola , Anguilla , Antigua and Barbuda , Argentina ,",
+     ": Public This dataset is classified as Public under the Access to Information Classification Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shi",
+     "his dataset is classified as Public under the Access to Information Classification Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shipping density , shi",
+     "assified as Public under the Access to Information Classification Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shipping density , shipping routes",
+     "ess to Information Classification Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shipping density , shipping routes , Trade , transportation St",
+     "ion Classification Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shipping density , shipping routes , Trade , transportation Statistics Views ( 33,232 ",
+     "n Policy. Users inside and outside the Bank can access this dataset. License : Creative Commons Attribution 4.0 This dataset is licensed under Creative Commons Attribution 4.0 Contact data@worldbank.org Topics Trade Transport Collections Ukraine datasets Tags offshore wind , seaborne trade , shipping density , shipping routes , Trade , transportation Statistics Views ( 33,232 ) Downloads "
+    ]
+   }
+  ],
+  "copernicus-s2": [
+   {
+    "url": "https://sentinels.copernicus.eu/documents/247904/690755/Sentinel_Data_Legal_Notice",
+    "status": 200,
+    "chars": 56921,
+    "excerpts": []
+   },
+   {
+    "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/",
+    "status": 200,
+    "chars": 5050,
+    "excerpts": [
+     " globally since December 2018. Update Frequency New Sentinel data are added regularly, usually within few hours after they are available on Copernicus OpenHub. License Access to Sentinel data is free, full and open for the broad Regional, National, European and International user community. View Terms and Conditions . Documentation https://github.com/Element84/earth-search Managed By ",
+     "on Copernicus OpenHub. License Access to Sentinel data is free, full and open for the broad Regional, National, European and International user community. View Terms and Conditions . Documentation https://github.com/Element84/earth-search Managed By See all datasets managed by Element 84 . Contact opendata@element84.com How to Cite Sentinel-2 Cloud-Optimized GeoTIFFs was accessed on"
+    ]
+   }
+  ],
+  "kobc-kcci": [
+   {
+    "url": "https://www.kobc.or.kr/ebz/shippinginfo/kcci/gridList.do",
+    "status": 400,
+    "chars": 0,
+    "excerpts": []
+   },
+   {
+    "url": "https://www.kobc.or.kr/ebz/shippinginfo/kcci/view.do",
+    "status": 400,
+    "chars": 0,
+    "excerpts": []
+   }
+  ],
+  "osm": [
+   {
+    "url": "https://www.openstreetmap.org/copyright",
+    "status": 200,
+    "chars": 3196,
+    "excerpts": [
+     "저작권 및 라이선스 | 오픈스트리트맵 오픈스트리트맵 편집 iD (브라우저 내 편집기) 계정으로 편집 원격 제어 (JOSM, Potlatch, Merkaartor) 계정으로 편집 역사 내보내기 GPS 궤적 사용자 일기 커뮤니티 저작권 도움말 기부 소개 더 보기 로그인 가입하기 언어 선택 불러오는 중... 닫기 이 번역에 대한 정보 이 번역한 문서와 영어 원본 사이에 상충하는 경우 영어 문서가 우선합",
+     "저작권 및 라이선스 | 오픈스트리트맵 오픈스트리트맵 편집 iD (브라우저 내 편집기) 계정으로 편집 원격 제어 (JOSM, Potlatch, Merkaartor) 계정으로 편집 역사 내보내기 GPS 궤적 사용자 일기 커뮤니티 저작권 도움말 기부 소개 더 보기 로그인 가입하기 언어 선택 불러오는 중... 닫기 이 번역에 대한 정보 이 번역한 문서와 영어 원본 사이에 상충하는 경우 영어 문서가 우선합니다 저작권 및 라이선스 오픈스트리트맵은 수천 개의 웹사이트, 모바일 앱, 하드웨어 장치에 대한 오픈 맵 데이터를 제공합니다. 오픈스트리트맵은 전세계의 도로, 산책로, 카페, 기차역 등에 대한 지도 데이터를 기여하고 유지 관리",
+     "M, Potlatch, Merkaartor) 계정으로 편집 역사 내보내기 GPS 궤적 사용자 일기 커뮤니티 저작권 도움말 기부 소개 더 보기 로그인 가입하기 언어 선택 불러오는 중... 닫기 이 번역에 대한 정보 이 번역한 문서와 영어 원본 사이에 상충하는 경우 영어 문서가 우선합니다 저작권 및 라이선스 오픈스트리트맵은 수천 개의 웹사이트, 모바일 앱, 하드웨어 장치에 대한 오픈 맵 데이터를 제공합니다. 오픈스트리트맵은 전세계의 도로, 산책로, 카페, 기차역 등에 대한 지도 데이터를 기여하고 유지 관리하는 여러분과 같은 커뮤니티에 의해 구축되었습니다. 오픈스트리트맵 더 알아보기 를 참고해서 매핑을 시작해보세요 ! 오픈스트리트맵 블로그 에서 더 자세한 내용을 읽어보고 주간OSM ",
+     " 배포, 전송 및 사용할 수 있습니다. 데이터를 바꾸거나 데이터를 기초로 작업할 때는 오로지 같은 라이선스에 따라서만 결과를 배포할 수 있습니다. 오픈 데이터 커먼즈의 전체 규정 에서는 당신의 권리와 책임을 설명합니다. 본 문서는 크리에이티브 커먼즈 저작자표시-동일조건변경허락 2.0 (CC BY-SA 2.0) 라이선스에 따라 제공됩니다. OSMF 라이선스 페이지 에서 데이터 사용에 대한 자세한 내용을 알아보세요. 오픈스트리트맵의 기여진을 밝히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License",
+     " 권리와 책임을 설명합니다. 본 문서는 크리에이티브 커먼즈 저작자표시-동일조건변경허락 2.0 (CC BY-SA 2.0) 라이선스에 따라 제공됩니다. OSMF 라이선스 페이지 에서 데이터 사용에 대한 자세한 내용을 알아보세요. 오픈스트리트맵의 기여진을 밝히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐",
+     "-동일조건변경허락 2.0 (CC BY-SA 2.0) 라이선스에 따라 제공됩니다. OSMF 라이선스 페이지 에서 데이터 사용에 대한 자세한 내용을 알아보세요. 오픈스트리트맵의 기여진을 밝히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐색 가능한 지도, 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 ",
+     "(CC BY-SA 2.0) 라이선스에 따라 제공됩니다. OSMF 라이선스 페이지 에서 데이터 사용에 대한 자세한 내용을 알아보세요. 오픈스트리트맵의 기여진을 밝히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐색 가능한 지도, 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 저작권 표시를 표시하는 방식",
+     "자세한 내용을 알아보세요. 오픈스트리트맵의 기여진을 밝히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐색 가능한 지도, 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 저작권 표시를 표시하는 방식에 다른 규칙이 적용됩니다. 자세한 내용은 라이선스 요구 사항 섹션의 저작자표기 지침 에서 확인할 수 있습니다. ",
+     "히는 방법 오픈스트리트맵 데이터를 이용하려면 다음 두 가지를 해야 합니다. OpenStreetMap의 출처를 명시하려면 저희의 저작권 표시를 함께 표시해 주세요. 데이터 활용 시 오픈 데이터베이스 라이선스 (Open Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐색 가능한 지도, 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 저작권 표시를 표시하는 방식에 다른 규칙이 적용됩니다. 자세한 내용은 라이선스 요구 사항 섹션의 저작자표기 지침 에서 확인할 수 있습니다. 일반적으로, 데이터가 오픈 데이터베이스 라이선스",
+     "n Database License)에 따른 것임을 밝혀 주시기 바랍니다. 저작권 표시와 관련하여, 데이터 사용 방식에 따라 서로 다른 (이것이 어떻게 표시되어야 하는지에 대한) 요구 사항 이 적용됩니다. 예를 들어, 탐색 가능한 지도, 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 저작권 표시를 표시하는 방식에 다른 규칙이 적용됩니다. 자세한 내용은 라이선스 요구 사항 섹션의 저작자표기 지침 에서 확인할 수 있습니다. 일반적으로, 데이터가 오픈 데이터베이스 라이선스에 따라 제공된다는 것을 명확히 하기 위해 이 저작권 페이지 로의 링크를 걸 수 있습니다. OSM을 데이터 형태로 배포하는 경우, 라이선스를 명시하고 직접 링크해 주세요. 링크를 걸 수 없는 매체(예: 인쇄물)에서",
+     ", 인쇄된 지도 또는 정적 이미지를 제작했는지에 따라 저작권 표시를 표시하는 방식에 다른 규칙이 적용됩니다. 자세한 내용은 라이선스 요구 사항 섹션의 저작자표기 지침 에서 확인할 수 있습니다. 일반적으로, 데이터가 오픈 데이터베이스 라이선스에 따라 제공된다는 것을 명확히 하기 위해 이 저작권 페이지 로의 링크를 걸 수 있습니다. OSM을 데이터 형태로 배포하는 경우, 라이선스를 명시하고 직접 링크해 주세요. 링크를 걸 수 없는 매체(예: 인쇄물)에서는 페이지의 전체 URL을 포함시켜 주세요(예: https://www.openstreetmap.org/copyright). 이 예시에서는 크레딧이 지도 모서리에 표시됩니다: 저작권 침해 OSM 기여자는 저작권 소유자의 명시적 허가 없",
+     "히 하기 위해 이 저작권 페이지 로의 링크를 걸 수 있습니다. OSM을 데이터 형태로 배포하는 경우, 라이선스를 명시하고 직접 링크해 주세요. 링크를 걸 수 없는 매체(예: 인쇄물)에서는 페이지의 전체 URL을 포함시켜 주세요(예: https://www.openstreetmap.org/copyright). 이 예시에서는 크레딧이 지도 모서리에 표시됩니다: 저작권 침해 OSM 기여자는 저작권 소유자의 명시적 허가 없이 저작권이 있는 자료(예를 들어 Google 지도 또는 인쇄된 지도)에서 데이터를 반입하지 않도록 주의하여야 합니다. 오픈스트리트맵 데이터베이스나 본 사이트에 저작권이 있는 자료가 추가되어 부적절하다고 생각되면 게시 중단 절차 를 참조하거나 온라인 접수 페이지 로 직접 신고해 "
+    ]
+   }
+  ]
+ }
+}
