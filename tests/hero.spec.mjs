@@ -6,6 +6,9 @@ const SIZES = [1280, 1440, 1536].flatMap((w) => [640, 720, 900].map((h) => ({ wi
 
 test("히어로 — 너비 1280·1440·1536 × 높이 640·720·900 에서 글·단추·숫자판·지도 단추 겹침 0", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
+  // CI 에서 홈 지도 움직임이 주 스레드를 막아 9번 여는 동안 90초를 넘었다(QA 185) — 움직임만 끈다(배치는 같다 · 따라가기 시험과 같은 방법)
+  test.setTimeout(240_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   const bad = [];
   for (const vp of SIZES) {
     await page.setViewportSize(vp);
