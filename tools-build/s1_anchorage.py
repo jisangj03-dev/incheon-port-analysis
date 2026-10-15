@@ -13,10 +13,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/s1_anchorage.json")
 STAC = "https://planetarycomputer.microsoft.com/api/stac/v1"
 COUNT = (126.30, 37.27, 126.56, 37.41)  # 배를 세는 상자 — s2_anchorage.py 와 같은 상자(인천대교·항내·갯벌 양식장 제외)
-KDB = 7.0        # 배경보다 이만큼(dB) 밝으면 후보
+KDB = 10.0       # 배경보다 이만큼(dB) 밝으면 후보 — 2026-10-15 진단(9벌 · 12장)으로 정함
 WATER_DB = -15.0  # 배경이 이보다 어두워야 물
 MIN_PX, MAX_PX = 3, 400
-ABS_DB = None    # 배 화소의 절대 밝기 하한(dB) — 진단 뒤 정한다
+ABS_DB = -4.0    # 배 화소의 절대 밝기 하한(dB) — 진단: 하한 없으면 장면당 42~340(얼룩) · −4dB 면 13~102 로 같은 달 S2 사진 배 수(17~58)와 자릿수가 맞다
 DIAG = os.environ.get("S1_DIAG") == "1"
 GRID = [(k, a) for k in (7, 10, 13) for a in (-14, -8, -4)]  # (배경 대비 dB, 절대 dB) — 2026-10-15 첫 실행이 장면당 14~534척(얼룩 오검출 의심)이라 기준을 잰다
 MAX_SCENES = 24  # 한 실행 상한(달 2장 꼴) — 2026-10-15 첫 실행이 40장을 30분 안에 못 읽었다
@@ -55,7 +55,7 @@ def save(frames, end, prev=None):
     frames = frames + [f for k, f in (prev or {}).items() if k not in have]
     out = {"_설명": "Sentinel-1 레이더(VV)로 묘박지 상자 안 밝은 덩어리를 센 것 — 구름·밤과 무관. 부표·작은 섬·양식장이 섞일 수 있고, 붙어 있는 배는 하나로 셀 수 있다.",
            "source": "Copernicus Sentinel-1 RTC · Microsoft Planetary Computer(sentinel-1-rtc)", "credit": f"Contains modified Copernicus Sentinel data {end.year - 1}–{end.year}",
-           "count_box": COUNT, "method": {"kdb": KDB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
+           "count_box": COUNT, "method": {"kdb": KDB, "abs_db": ABS_DB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
            "made": end.isoformat(), "frames": sorted(frames, key=lambda f: f["date"])}
     json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 
@@ -72,10 +72,18 @@ def main():
     print("장면", len(items), start, "~", end)
     frames, prev = [], {}
     if os.path.exists(OUT):
-        for f in json.load(open(OUT, encoding="utf-8")).get("frames", []): prev[f["scene"]] = f
+        P0 = json.load(open(OUT, encoding="utf-8"))
+        if P0.get("method", {}).get("abs_db") == ABS_DB and P0.get("method", {}).get("kdb") == KDB:  # 기준이 바뀌면 지난 장면을 다시 센다
+            for f in P0.get("frames", []): prev[f["scene"]] = f
     import time
     t0 = time.time()
     os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR"); os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif,.tiff")
+    # 한 궤도만 — 오름·내림 궤도는 찍는 시각이 달라(새벽/저녁) 섞으면 척수가 계절처럼 뛴다(진단 10/15) → 달을 가장 많이 덮는 궤도
+    orb = {}
+    for it in items: orb.setdefault(it.properties.get("sat:orbit_state"), set()).add(it.datetime.strftime("%Y-%m"))
+    keep = max(orb, key=lambda k: len(orb[k])) if orb else None
+    items = [it for it in items if it.properties.get("sat:orbit_state") == keep]
+    print("궤도", keep, {k: len(v) for k, v in orb.items()})
     # 달마다 고르게 — 같은 달이면 앞뒤 둘까지(날짜 그래프가 한쪽으로 몰리지 않게)
     by_m = {}
     for it in items: by_m.setdefault(it.datetime.strftime("%Y-%m"), []).append(it)
