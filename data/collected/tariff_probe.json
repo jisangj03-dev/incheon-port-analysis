@@ -53,8 +53,14 @@
    ]
   },
   "관세청 품목번호별 관세율": {
-   "status": "<urlopen error _ssl.c:993: The handshake operation timed out>",
-   "hits": []
+   "status": 200,
+   "hits": [
+    {
+     "id": "15051179",
+     "kind": "fileData",
+     "title": "관세청 _ 품목번호별 관세율표"
+    }
+   ]
   },
   "관세청 HS부호": {
    "status": 200,
