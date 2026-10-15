@@ -1,0 +1,29 @@
+# 미리보기 전용(공개판과 무관) — main 의 pages 빌드가 남긴 인천 바탕지도 캐시(PMTiles)를 이 고아 브랜치에 한 번 올린다.
+# 세션은 Actions 산출물·github.io 에 닿지 못해 git 으로만 받는다. 이 브랜치는 비공개 미리보기(claude.ai 아티팩트) 재료일 뿐 머지하지 않는다.
+# 타일 = ODbL · © OpenStreetMap · Protomaps (공개판 /tiles/ 과 같은 파일)
+name: preview-tiles
+on:
+  push:
+    branches: ["claude/busy-lovelace-e073jj-preview-tiles"]
+    paths: [".github/workflows/preview-tiles.yml"]
+permissions:
+  contents: write
+jobs:
+  copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache/restore@v4
+        with:
+          path: astro/public/tiles
+          key: pmtiles-incheon-none
+          restore-keys: pmtiles-incheon-
+      - name: 고아 브랜치에 커밋
+        run: |
+          ls -la astro/public/tiles
+          test -s astro/public/tiles/incheon.pmtiles || { echo "::error::캐시에 타일이 없다"; exit 1; }
+          mkdir -p tiles && cp astro/public/tiles/incheon.pmtiles astro/public/tiles/incheon.json tiles/
+          sha256sum tiles/incheon.pmtiles | tee -a "$GITHUB_STEP_SUMMARY"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tiles && git commit -m "미리보기 재료 — 인천 바탕지도 PMTiles(main pages 캐시 · ODbL)" && git push
