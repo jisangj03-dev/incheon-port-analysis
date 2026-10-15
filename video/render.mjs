@@ -55,11 +55,31 @@ function camera(R) {
     const s = at((i / FPS) * 1000), [rx, ry, rw, rh] = s.f;
     let zt = Math.min(ZMAX, Math.max(ZMIN, Math.min((0.92 * W) / rw, (0.5 * H) / rh)));
     for (const k of s.k) if (k[5] > 0) zt = Math.min(ZMAX, Math.max(zt, MIN_DIGIT / k[5])); // 보이는 핵심 숫자가 40px 를 넘게
-    let tx = rx + rw / 2; const ty = ry + rh / 2, wt = W / zt;
+    // 초점 상자가 창보다 넓으면 가운데가 아니라 왼쪽에 맞춘다 — 지면 글이 왼쪽 정렬이라 가운데 맞춤은 왼쪽 숫자를 자른다(2026-10-15 프레임 띠: 「−96.5%」 앞자리 잘림)
+    let tx = rw + 16 > W / zt ? rx - 8 + W / zt / 2 : rx + rw / 2; const ty = ry + rh / 2, wt = W / zt;
     // 초점 상자가 창보다 넓으면 가운데에 맞춘 창이 숫자를 자른다 → 초점 안의 첫 핵심 숫자(선택자 순서 = 우선순위)가 온전히 들도록 최소한만 민다
     const key = s.k.find((k) => k[2] < ry + rh && k[2] + k[4] > ry && k[3] + 16 <= wt);
     if (key) { if (key[1] - 8 < tx - wt / 2) tx = key[1] - 8 + wt / 2; if (key[1] + key[3] + 8 > tx + wt / 2) tx = key[1] + key[3] + 8 - wt / 2; }
-    if (cx === undefined) { cx = tx; cy = ty; z = zt; } else { const a = 1 - Math.exp(-2.4 / FPS), b = 1 - Math.exp(-1.8 / FPS); cx += (tx - cx) * a; cy += (ty - cy) * a; z += (zt - z) * b; }
+    // 창 높이 안에 드는 다른 숫자가 창 가장자리에 반쯤 걸리면 — 초점 왼끝(또는 첫 숫자)을 지키는 범위에서 그 숫자를 창 안으로 다 넣거나 밖으로 다 뺀다(반쯤 걸린 숫자는 읽히지 않는다)
+    {
+      // 이번 프레임에 실제로 보일 위아래 범위(위아래·확대는 천천히 따라가므로 목표가 아니라 지금 값으로)
+      const zN = cx === undefined ? zt : z + (zt - z) * (1 - Math.exp(-1.8 / FPS)), cyN = cx === undefined ? ty : cy + (ty - cy) * (1 - Math.exp(-2.4 / FPS));
+      const ht = H / zN, v0 = Math.min(H - ht, Math.max(0, cyN - 0.42 * ht)), v1 = v0 + ht;
+      // 앞 숫자(우선순위)를 지킨 채로 — 뒤 숫자마다 「다 넣기」 → 「다 빼기」 중 앞 숫자를 안 자르고 지면 안에 드는 쪽을 고른다
+      const kept = key ? [[key[1] - 8, key[1] + key[3] + 8]] : [];
+      const fits = (L) => L >= 0 && L + wt <= W && kept.every(([a, b]) => a >= L && b <= L + wt);
+      for (const k of s.k) {
+        if (k === key || k[2] < v0 || k[2] + k[4] > v1) continue;
+        const L = tx - wt / 2, R = L + wt, kl = k[1] - 8, kr = k[1] + k[3] + 8;
+        if (kl >= L && kr <= R) { kept.push([kl, kr]); continue; }   // 이미 다 들어 있다
+        if (!(kl < R && kr > L)) continue;                           // 밖
+        const inL = kr > R ? kr - wt : kl, outL = kr > R ? kl - wt : kr;
+        if (kr - kl <= wt && fits(inL)) { tx = inL + wt / 2; kept.push([kl, kr]); }
+        else if (fits(outL)) tx = outL + wt / 2;
+      }
+    }
+    // 옆 이동은 빨리(시정수 0.2초 — 숫자가 반쯤 걸린 채 오래 머물지 않게) · 위아래·확대는 차분히(0.4~0.55초)
+    if (cx === undefined) { cx = tx; cy = ty; z = zt; } else { const ax = 1 - Math.exp(-5 / FPS), a = 1 - Math.exp(-2.4 / FPS), b = 1 - Math.exp(-1.8 / FPS); cx += (tx - cx) * ax; cy += (ty - cy) * a; z += (zt - z) * b; }
     const w = W / z, h = H / z;
     const x0 = Math.min(W - w, Math.max(0, cx - w / 2)), y0 = Math.min(H - h, Math.max(0, cy - 0.42 * h));
     cam.push([+x0.toFixed(1), +y0.toFixed(1), +z.toFixed(3)]);
@@ -77,10 +97,15 @@ function place(callouts, R, cam, at) {
 }
 // 시험 ① 화면 핵심 숫자 글자 높이 ≥ 40px(1080 기준) — 카메라 창 안에 온전히 든 숫자 모두
 function digitTest(R, cam, at) {
-  const bad = [], by = {}; let seen = 0, out = 0, ex = "";
+  const bad = [], by = {}, cut = {}; let seen = 0, out = 0, ex = "";
   for (let i = 0; i < cam.length; i += 2) {
     const [x0, y0, z] = cam[i], w = R.size.width / z, h = R.size.height / z, s = at((i / FPS) * 1000);
-    for (const [sel, x, y, kw, kh, dh] of s.k) {
+    for (const [j, [sel, x, y, kw, kh, dh]] of s.k.entries()) {
+      const id = `${sel}:${j}`;
+      // 세로로는 창 안인데 옆으로 잘린 숫자 = 실패(읽히지 않는 숫자가 화면에 걸린다)
+      const moving = i >= 2 && Math.abs(cam[i][0] - cam[i - 2][0]) > 2;
+      if (!moving && y >= y0 && y + kh <= y0 + h && x < x0 + w && x + kw > x0 && (x < x0 || x + kw > x0 + w)) { cut[id] = (cut[id] || 0) + 2; if (cut[id] > 15) bad.push(`${sel}@${(i / FPS).toFixed(1)}s 옆 잘림 0.5초 넘게`); continue; }
+      cut[id] = 0;
       if (x < x0 || y < y0 || x + kw > x0 + w || y + kh > y0 + h) { out++; ex ||= `${sel} [${x},${y},${kw},${kh}] 창 [${x0},${y0},${w.toFixed(0)},${h.toFixed(0)}]`; continue; }
       seen++; by[sel] = (by[sel] || 0) + 1; if (dh * z < MIN_DIGIT) bad.push(`${sel}@${(i / FPS).toFixed(1)}s ${(dh * z).toFixed(0)}px`);
     }
