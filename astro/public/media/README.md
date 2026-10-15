@@ -12,3 +12,9 @@
 | hero-960.mp4 | 1293778 | 그 밖 |
 | hero-poster.webp | 179192 | 첫 그림(LCP) 넓은 화면 |
 | hero-poster-720.webp | 50938 | 첫 그림(LCP) 모바일 |
+
+# 위성으로 본 인천 묘박지 — `s2/*.jpg`
+
+- 무엇: Copernicus Sentinel-2 L2A 실제색(TCI) — 인천 앞바다 창(126.30~126.62E · 37.20~37.45N) · 달마다 구름이 가장 적은 장면 하나
+- 원본: AWS Open Data `sentinel-cogs`(계정 불필요) · 타일 52SBG · 처리 = `tools-build/v3/s2_anchorage.py`(창 읽기 · 폭 1400 화소 · JPEG q78)
+- 표기: **Contains modified Copernicus Sentinel data(연도)** — 지면 신뢰 꼬리에 같이 적는다

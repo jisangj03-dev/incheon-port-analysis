@@ -1,0 +1,28 @@
+{
+ "fetched": "2026-10-15",
+ "catalog": [
+  {
+   "url": "https://datacatalogapi.worldbank.org/ddhxext/DatasetView?dataset_unique_id=0037580",
+   "status": 429
+  },
+  {
+   "url": "https://datacatalogapi.worldbank.org/ddhxext/ResourceView?dataset_unique_id=0037580",
+   "status": 404
+  },
+  {
+   "url": "https://datacatalogfiles.worldbank.org/ddh-published/0037580/DR0045406/shipdensity_global.zip",
+   "status": 206
+  }
+ ],
+ "download": "200 534907276",
+ "tif": "shipdensity_global.tif",
+ "crs": "EPSG:4326",
+ "res_deg": 0.005,
+ "nodata": 2147483647.0,
+ "url": "https://datacatalogfiles.worldbank.org/ddh-published/0037580/DR0045406/shipdensity_global.zip",
+ "shape": [
+  480,
+  580
+ ],
+ "nonzero": 156385
+}

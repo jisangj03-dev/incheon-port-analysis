@@ -1,0 +1,43 @@
+# 위성 묘박지 SAR(P1 ④ · 2026-10-15) — Sentinel-1 RTC(Planetary Computer · 익명 서명 · 키 0)로 묘박지 배 세기. 세션은 바깥 위성 자료에 못 닿아 Actions 에서 돈다.
+name: s1-anchorage
+on:
+  workflow_dispatch:
+    inputs:
+      diag:
+        description: "기준값 진단(1) — 결과 파일 대신 data/collected/s1_diag.json"
+        required: false
+        default: "0"
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/s1_anchorage.py", ".github/workflows/s1-anchorage.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: s1-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  s1:
+    if: startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -q numpy==2.5.3 scipy==1.18.1 rasterio==1.5.1 pystac-client==0.8.5 planetary-computer==1.0.0
+      - run: python tools-build/s1_anchorage.py --selftest
+      - name: 장면 받기·배 세기(12달)
+        timeout-minutes: 30
+        env:
+          S1_DIAG: ${{ inputs.diag || '0' }}
+        run: python tools-build/s1_anchorage.py --months 12 2>&1 | tee /tmp/log.txt; { echo "## S1"; echo '```'; tail -40 /tmp/log.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: 결과 커밋(그 브랜치에)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/derived/s1_anchorage.json data/collected/s1_diag.json 2>/dev/null || true
+          git diff --cached --quiet && exit 0
+          git commit -m "위성 묘박지 SAR — s1-anchorage 워크플로(Sentinel-1 RTC · 배 자리·척수)"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push

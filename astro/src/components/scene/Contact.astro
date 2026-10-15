@@ -1,0 +1,29 @@
+---
+// 연락처 — LinkedIn(앞) · 메일(뒤)(정체성 개정 ② · 10/14 선장님 결정). 값은 data/profile.json 한 곳에서.
+// 메일 주소는 지면 원문에 평문으로 두지 않는다 — 사용자·도메인을 뒤집어 갈라 두고, 누를 때만 mailto 로 조립한다(외부 요청 0).
+// 비어 있는 연락처(LinkedIn 주소 미정 등)는 지면에서 뺀다.
+import { profile } from "../../lib/profile";
+const C = profile().contact;
+const rev = (s: string) => [...s].reverse().join("");
+const hasMail = !!(C.mail && C.mail.user && C.mail.domain);
+// ask = 「문의 틀로 메일」 단추도 단다(홈 첫 화면·소개 · 2026-10-15 P2) — 지면 끝 연락 꼬리는 둘만
+interface Props { ask?: boolean }
+const { ask = false } = Astro.props;
+---
+<p class="s-contact" data-contact>
+  {C.linkedin && <a class="s-btn" href={C.linkedin} rel="me noopener" data-c="linkedin">LinkedIn</a>}
+  {hasMail && <a class:list={["s-btn", { "s-btn--ghost": !!C.linkedin }]} href="#mail" data-c="mail" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>메일 보내기</a>}
+  {hasMail && ask && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>문의 틀로 메일</a>}
+</p>
+<script>
+  for (const a of document.querySelectorAll<HTMLAnchorElement>("[data-c=mail]")) {
+    // [2026-10-15 P2 「사업」] 문의 틀 — 제목·적을 칸을 미리 채운다(양식 서버 없음 · 외부 요청 0 · 보내는 것은 사람의 메일 프로그램)
+    const ASK = { s: "[측심 문의] 우리 회사 숫자로 돌려 보기", b: "회사·하는 일:\n궁금한 질문(지면 주소가 있으면 같이):\n품목(HS 코드 알면)·관문(인천항/인천공항 등):\n물량·기간(대략):\n원하는 결과(표·그림·숫자 하나 등):\n" };
+    const open = () => { const r = (s: string) => [...s].reverse().join(""); a.href = `mailto:${r(a.dataset.a || "")}@${r(a.dataset.b || "")}` + (a.dataset.ask ? `?subject=${encodeURIComponent(ASK.s)}&body=${encodeURIComponent(ASK.b)}` : ""); };
+    // 누르는 순간(마우스·키보드·터치)에만 조립한다 — 원문 HTML 에는 주소가 없다
+    a.addEventListener("pointerdown", open); a.addEventListener("keydown", (e) => { if (e.key === "Enter") open(); }); a.addEventListener("click", open);
+  }
+</script>
+<style>
+  .s-contact { display: flex; flex-wrap: wrap; gap: var(--s-3); margin: var(--s-5) 0 0; }
+</style>
