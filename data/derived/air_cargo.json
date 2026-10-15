@@ -1,0 +1,502 @@
+{
+ "_설명": "인천공항 국제선 항공화물(직화물+환적화물+우편물 · 여객기+화물기) 나라별 도착·출발 톤 — 인천국제공항공사 항공사별 노선별 운송실적. 반기 갱신.",
+ "source": "인천국제공항공사_항공사별 노선별 운송실적(공공데이터포털 15062056 · 이용허락범위 제한 없음)",
+ "portal_updated": "2026-08-20",
+ "fetched": "2026-10-15",
+ "months": [
+  "2026-01",
+  "2026-02",
+  "2026-03",
+  "2026-04",
+  "2026-05",
+  "2026-06"
+ ],
+ "through": "2026-06",
+ "total_in_t": 751210,
+ "total_out_t": 741999,
+ "countries": {
+  "미국": {
+   "in_t": 92299,
+   "out_t": 213205,
+   "in_pct": 12.3,
+   "out_pct": 28.7,
+   "freighter_pct": 75.2
+  },
+  "중국": {
+   "in_t": 184126,
+   "out_t": 86008,
+   "in_pct": 24.5,
+   "out_pct": 11.6,
+   "freighter_pct": 74.7
+  },
+  "일본": {
+   "in_t": 68466,
+   "out_t": 74079,
+   "in_pct": 9.1,
+   "out_pct": 10.0,
+   "freighter_pct": 67.7
+  },
+  "홍콩": {
+   "in_t": 75077,
+   "out_t": 38875,
+   "in_pct": 10.0,
+   "out_pct": 5.2,
+   "freighter_pct": 83.1
+  },
+  "베트남": {
+   "in_t": 51673,
+   "out_t": 51769,
+   "in_pct": 6.9,
+   "out_pct": 7.0,
+   "freighter_pct": 61.9
+  },
+  "독일": {
+   "in_t": 39767,
+   "out_t": 25606,
+   "in_pct": 5.3,
+   "out_pct": 3.5,
+   "freighter_pct": 83.8
+  },
+  "태국": {
+   "in_t": 32044,
+   "out_t": 18374,
+   "in_pct": 4.3,
+   "out_pct": 2.5,
+   "freighter_pct": 22.2
+  },
+  "싱가포르": {
+   "in_t": 23200,
+   "out_t": 25956,
+   "in_pct": 3.1,
+   "out_pct": 3.5,
+   "freighter_pct": 31.1
+  },
+  "대만": {
+   "in_t": 16045,
+   "out_t": 23083,
+   "in_pct": 2.1,
+   "out_pct": 3.1,
+   "freighter_pct": 29.8
+  },
+  "말레이시아": {
+   "in_t": 17811,
+   "out_t": 13753,
+   "in_pct": 2.4,
+   "out_pct": 1.9,
+   "freighter_pct": 56.7
+  },
+  "네덜란드": {
+   "in_t": 17497,
+   "out_t": 11169,
+   "in_pct": 2.3,
+   "out_pct": 1.5,
+   "freighter_pct": 77.0
+  },
+  "이탈리아": {
+   "in_t": 18353,
+   "out_t": 9308,
+   "in_pct": 2.4,
+   "out_pct": 1.3,
+   "freighter_pct": 74.1
+  },
+  "캐나다": {
+   "in_t": 8419,
+   "out_t": 14669,
+   "in_pct": 1.1,
+   "out_pct": 2.0,
+   "freighter_pct": 44.4
+  },
+  "튀르키예": {
+   "in_t": 9807,
+   "out_t": 11398,
+   "in_pct": 1.3,
+   "out_pct": 1.5,
+   "freighter_pct": 39.2
+  },
+  "필리핀": {
+   "in_t": 7375,
+   "out_t": 12466,
+   "in_pct": 1.0,
+   "out_pct": 1.7,
+   "freighter_pct": 5.8
+  },
+  "영국": {
+   "in_t": 5213,
+   "out_t": 10980,
+   "in_pct": 0.7,
+   "out_pct": 1.5,
+   "freighter_pct": 51.2
+  },
+  "프랑스": {
+   "in_t": 9390,
+   "out_t": 5849,
+   "in_pct": 1.2,
+   "out_pct": 0.8,
+   "freighter_pct": 15.9
+  },
+  "카타르": {
+   "in_t": 5793,
+   "out_t": 8567,
+   "in_pct": 0.8,
+   "out_pct": 1.2,
+   "freighter_pct": 76.3
+  },
+  "스페인": {
+   "in_t": 8311,
+   "out_t": 5530,
+   "in_pct": 1.1,
+   "out_pct": 0.7,
+   "freighter_pct": 69.0
+  },
+  "오스트리아": {
+   "in_t": 911,
+   "out_t": 12772,
+   "in_pct": 0.1,
+   "out_pct": 1.7,
+   "freighter_pct": 84.7
+  },
+  "아제르바이잔": {
+   "in_t": 4876,
+   "out_t": 7091,
+   "in_pct": 0.6,
+   "out_pct": 1.0,
+   "freighter_pct": 100.0
+  },
+  "인도네시아": {
+   "in_t": 4428,
+   "out_t": 7510,
+   "in_pct": 0.6,
+   "out_pct": 1.0,
+   "freighter_pct": 9.8
+  },
+  "아랍에미리트": {
+   "in_t": 3984,
+   "out_t": 7663,
+   "in_pct": 0.5,
+   "out_pct": 1.0,
+   "freighter_pct": 15.0
+  },
+  "노르웨이": {
+   "in_t": 9961,
+   "out_t": 628,
+   "in_pct": 1.3,
+   "out_pct": 0.1,
+   "freighter_pct": 100.0
+  },
+  "룩셈부르크": {
+   "in_t": 3080,
+   "out_t": 6066,
+   "in_pct": 0.4,
+   "out_pct": 0.8,
+   "freighter_pct": 100.0
+  },
+  "호주": {
+   "in_t": 2148,
+   "out_t": 6628,
+   "in_pct": 0.3,
+   "out_pct": 0.9,
+   "freighter_pct": 2.6
+  },
+  "핀란드": {
+   "in_t": 4079,
+   "out_t": 2671,
+   "in_pct": 0.5,
+   "out_pct": 0.4,
+   "freighter_pct": 0.0
+  },
+  "인도": {
+   "in_t": 2255,
+   "out_t": 3715,
+   "in_pct": 0.3,
+   "out_pct": 0.5,
+   "freighter_pct": 16.6
+  },
+  "멕시코": {
+   "in_t": 2978,
+   "out_t": 2907,
+   "in_pct": 0.4,
+   "out_pct": 0.4,
+   "freighter_pct": 77.7
+  },
+  "벨기에": {
+   "in_t": 5514,
+   "out_t": 0,
+   "in_pct": 0.7,
+   "out_pct": 0.0,
+   "freighter_pct": 100.0
+  },
+  "하와이": {
+   "in_t": 378,
+   "out_t": 4030,
+   "in_pct": 0.1,
+   "out_pct": 0.5,
+   "freighter_pct": 0.0
+  },
+  "스위스": {
+   "in_t": 2462,
+   "out_t": 1349,
+   "in_pct": 0.3,
+   "out_pct": 0.2,
+   "freighter_pct": 54.4
+  },
+  "몽골": {
+   "in_t": 573,
+   "out_t": 2708,
+   "in_pct": 0.1,
+   "out_pct": 0.4,
+   "freighter_pct": 8.0
+  },
+  "폴란드": {
+   "in_t": 1161,
+   "out_t": 1570,
+   "in_pct": 0.2,
+   "out_pct": 0.2,
+   "freighter_pct": 0.0
+  },
+  "체코": {
+   "in_t": 1723,
+   "out_t": 999,
+   "in_pct": 0.2,
+   "out_pct": 0.1,
+   "freighter_pct": 0.0
+  },
+  "덴마크": {
+   "in_t": 1203,
+   "out_t": 1302,
+   "in_pct": 0.2,
+   "out_pct": 0.2,
+   "freighter_pct": 0.0
+  },
+  "우즈베키스탄": {
+   "in_t": 401,
+   "out_t": 1924,
+   "in_pct": 0.1,
+   "out_pct": 0.3,
+   "freighter_pct": 2.5
+  },
+  "뉴질랜드": {
+   "in_t": 1312,
+   "out_t": 810,
+   "in_pct": 0.2,
+   "out_pct": 0.1,
+   "freighter_pct": 0.0
+  },
+  "투르크메니스탄": {
+   "in_t": 539,
+   "out_t": 1579,
+   "in_pct": 0.1,
+   "out_pct": 0.2,
+   "freighter_pct": 69.3
+  },
+  "헝가리": {
+   "in_t": 662,
+   "out_t": 1244,
+   "in_pct": 0.1,
+   "out_pct": 0.2,
+   "freighter_pct": 0.0
+  },
+  "브라질": {
+   "in_t": 178,
+   "out_t": 1523,
+   "in_pct": 0.0,
+   "out_pct": 0.2,
+   "freighter_pct": 100.0
+  },
+  "카자흐스탄": {
+   "in_t": 94,
+   "out_t": 1317,
+   "in_pct": 0.0,
+   "out_pct": 0.2,
+   "freighter_pct": 16.5
+  },
+  "페루": {
+   "in_t": 1341,
+   "out_t": 0,
+   "in_pct": 0.2,
+   "out_pct": 0.0,
+   "freighter_pct": 100.0
+  },
+  "괌": {
+   "in_t": 144,
+   "out_t": 1055,
+   "in_pct": 0.0,
+   "out_pct": 0.1,
+   "freighter_pct": 0.0
+  },
+  "에티오피아": {
+   "in_t": 363,
+   "out_t": 641,
+   "in_pct": 0.0,
+   "out_pct": 0.1,
+   "freighter_pct": 42.1
+  },
+  "칠레": {
+   "in_t": 898,
+   "out_t": 0,
+   "in_pct": 0.1,
+   "out_pct": 0.0,
+   "freighter_pct": 100.0
+  },
+  "스리랑카": {
+   "in_t": 426,
+   "out_t": 452,
+   "in_pct": 0.1,
+   "out_pct": 0.1,
+   "freighter_pct": 0.0
+  },
+  "마카오": {
+   "in_t": 657,
+   "out_t": 92,
+   "in_pct": 0.1,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "네팔": {
+   "in_t": 205,
+   "out_t": 525,
+   "in_pct": 0.0,
+   "out_pct": 0.1,
+   "freighter_pct": 0.0
+  },
+  "캄보디아": {
+   "in_t": 494,
+   "out_t": 205,
+   "in_pct": 0.1,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "포르투갈": {
+   "in_t": 634,
+   "out_t": 19,
+   "in_pct": 0.1,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "라오스": {
+   "in_t": 238,
+   "out_t": 95,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "미얀마": {
+   "in_t": 196,
+   "out_t": 118,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "브루나이": {
+   "in_t": 6,
+   "out_t": 57,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "키르기즈스탄": {
+   "in_t": 7,
+   "out_t": 49,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "사이판": {
+   "in_t": 0,
+   "out_t": 39,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "오만": {
+   "in_t": 22,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "아르메니아": {
+   "in_t": 15,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "레바논": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "방글라데시": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "나이지리아": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "이집트": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "사우디아라비아": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "지부티": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "한국": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "남수단": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "그리스": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "조지아": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  },
+  "크로아티아": {
+   "in_t": 0,
+   "out_t": 0,
+   "in_pct": 0.0,
+   "out_pct": 0.0,
+   "freighter_pct": 0.0
+  }
+ }
+}
