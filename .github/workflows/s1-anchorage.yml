@@ -14,7 +14,7 @@ jobs:
   s1:
     if: startsWith(github.ref_name, 'claude/')
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -23,6 +23,7 @@ jobs:
       - run: pip install -q numpy==2.5.3 scipy==1.18.1 rasterio==1.5.1 pystac-client==0.8.5 planetary-computer==1.0.0
       - run: python tools-build/s1_anchorage.py --selftest
       - name: 장면 받기·배 세기(12달)
+        timeout-minutes: 30
         run: python tools-build/s1_anchorage.py --months 12 2>&1 | tee /tmp/log.txt; { echo "## S1"; echo '```'; tail -40 /tmp/log.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: 결과 커밋(그 브랜치에)
         if: always()

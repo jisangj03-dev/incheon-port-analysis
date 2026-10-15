@@ -16,7 +16,8 @@ COUNT = (126.30, 37.27, 126.56, 37.41)  # 배를 세는 상자 — s2_anchorage.
 KDB = 7.0        # 배경보다 이만큼(dB) 밝으면 후보
 WATER_DB = -15.0  # 배경이 이보다 어두워야 물
 MIN_PX, MAX_PX = 3, 400
-MAX_SCENES = 40  # 한 실행 상한(12달 · 장면 대략 달 2~5)
+MAX_SCENES = 24  # 한 실행 상한(달 2장 꼴) — 2026-10-15 첫 실행이 40장을 30분 안에 못 읽었다
+TIME_BUDGET = 1300  # 초 — 넘으면 거기까지 쓰고 끝낸다(중간 저장)
 
 
 def detect(vv, transform_xy, kdb=KDB, water_db=WATER_DB):
@@ -36,6 +37,17 @@ def detect(vv, transform_xy, kdb=KDB, water_db=WATER_DB):
     return out
 
 
+def save(frames, end, prev=None):
+    """중간 저장 — 시간 한도에 끊겨도 읽은 데까지 남는다. 지난 파일의 장면 중 이번에 안 읽은 것도 그대로 둔다(사고 127 · 줄지 않게)."""
+    have = {f["scene"] for f in frames}
+    frames = frames + [f for k, f in (prev or {}).items() if k not in have]
+    out = {"_설명": "Sentinel-1 레이더(VV)로 묘박지 상자 안 밝은 덩어리를 센 것 — 구름·밤과 무관. 부표·작은 섬·양식장이 섞일 수 있고, 붙어 있는 배는 하나로 셀 수 있다.",
+           "source": "Copernicus Sentinel-1 RTC · Microsoft Planetary Computer(sentinel-1-rtc)", "credit": f"Contains modified Copernicus Sentinel data {end.year - 1}–{end.year}",
+           "count_box": COUNT, "method": {"kdb": KDB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
+           "made": end.isoformat(), "frames": sorted(frames, key=lambda f: f["date"])}
+    json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+
+
 def main():
     import pystac_client, planetary_computer, rasterio
     from rasterio.warp import transform_bounds, transform as wtransform
@@ -49,7 +61,15 @@ def main():
     frames, prev = [], {}
     if os.path.exists(OUT):
         for f in json.load(open(OUT, encoding="utf-8")).get("frames", []): prev[f["scene"]] = f
-    for it in items[-MAX_SCENES:]:
+    import time
+    t0 = time.time()
+    os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR"); os.environ.setdefault("CPL_VSIL_CURL_ALLOWED_EXTENSIONS", ".tif,.tiff")
+    # 달마다 고르게 — 같은 달이면 앞뒤 둘까지(날짜 그래프가 한쪽으로 몰리지 않게)
+    by_m = {}
+    for it in items: by_m.setdefault(it.datetime.strftime("%Y-%m"), []).append(it)
+    pick = [x for m in sorted(by_m) for x in (by_m[m][:1] + by_m[m][-1:] if len(by_m[m]) > 1 else by_m[m])][-MAX_SCENES:]
+    for it in pick:
+        if time.time() - t0 > TIME_BUDGET: print("시간 상한 — 여기까지"); break
         if it.id in prev: frames.append(prev[it.id]); continue
         a = it.assets.get("vv")
         if not a: continue
@@ -66,18 +86,12 @@ def main():
                 lo, la = wtransform(crs, "EPSG:4326", [X], [Y]); return [round(lo[0], 4), round(la[0], 4)]
             ships = detect(vv, xy)
             frames.append({"date": it.datetime.date().isoformat(), "scene": it.id, "orbit": it.properties.get("sat:orbit_state"), "valid_pct": round(valid, 1), "n": len(ships), "ships": ships})
-            print(it.id, it.datetime.date(), "배", len(ships))
+            print(it.id, it.datetime.date(), "배", len(ships), f"{time.time() - t0:.0f}초", flush=True)
+            save(frames, end, prev)
         except Exception as e:
             print(it.id, "읽기 실패", type(e).__name__, str(e)[:120])
+    save(frames, end, prev)
     frames.sort(key=lambda f: f["date"])
-    # 사고 127 교훈 — 지난 파일보다 장면이 줄면 덮어쓰지 않는다
-    if os.path.exists(OUT) and len(frames) < len(json.load(open(OUT, encoding="utf-8")).get("frames", [])):
-        print("지난 파일보다 장면이 적다 — 지킨다"); return 1
-    out = {"_설명": "Sentinel-1 레이더(VV)로 묘박지 상자 안 밝은 덩어리를 센 것 — 구름·밤과 무관. 부표·작은 섬·양식장이 섞일 수 있고, 붙어 있는 배는 하나로 셀 수 있다.",
-           "source": "Copernicus Sentinel-1 RTC · Microsoft Planetary Computer(sentinel-1-rtc)", "credit": f"Contains modified Copernicus Sentinel data {end.year - 1}–{end.year}",
-           "count_box": COUNT, "method": {"kdb": KDB, "water_db": WATER_DB, "min_px": MIN_PX, "max_px": MAX_PX, "median_px": 31},
-           "made": end.isoformat(), "frames": frames}
-    json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print("프레임", len(frames), "→", OUT); return 0 if frames else 1
 
 
