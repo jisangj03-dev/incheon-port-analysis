@@ -1,4 +1,5 @@
-// 시안 ③ 지도 — 해도 색으로 다시 칠한 내장 PMTiles 바탕 + 장소 넷(크기 = 마지막 달 처리량). 셰입맵처럼 덜어 낸다:
+import { placeLabels, boxesOf } from "./label-place";
+// 지도 — 해도 색으로 다시 칠한 내장 PMTiles 바탕 + 장소 넷(크기 = 마지막 달 처리량). 셰입맵처럼 덜어 낸다:
 // 길·건물·라벨 층은 빼고, 땅·물·해안선만. 글리프 서버가 없어 이름은 HTML 표지로 단다(외부 요청 0).
 type Place = { id: string; label: string; kind: string; lon: number; lat: number; approx?: boolean; v: number | null; values?: (number | null)[] | null };
 const $ = (id: string) => document.getElementById(id)!;
@@ -37,6 +38,10 @@ export async function initDsMap() {
     maxBounds: [[125.9, 37.0], [127.4, 37.9]], dragRotate: false, pitchWithRotate: false,
   });
   map.scrollZoom.disable();
+  const LB: { el: HTMLElement; lon: number; lat: number; r: () => number; pri: number }[] = [];
+  const curR: Record<string, number> = {};
+  const layer = document.createElement("div"); layer.className = "ds-labels"; map.getContainer().append(layer);
+  const lineSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGSVGElement; lineSvg.setAttribute("class", "ds-lines"); layer.append(lineSvg);
   // 장소 넷이 다 들어오게 — 화면 폭에 맞춰 둘레를 잡는다
   const MD0 = JSON.parse(document.getElementById("ds-map-months")?.textContent || "null");
   const lons = P.map((p) => p.lon).concat(MD0 ? [MD0.to.lon] : []), lats = P.map((p) => p.lat).concat(MD0 ? [MD0.to.lat] : []);
@@ -66,7 +71,7 @@ export async function initDsMap() {
       map.addLayer({ id: "flow-to", type: "circle", source: { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [MD.to.lon, MD.to.lat] } } } as any,
         paint: { "circle-radius": 4, "circle-color": C.paper, "circle-stroke-color": C.signal, "circle-stroke-width": 2 } });
       const el = document.createElement("div"); el.className = "ds-label"; el.innerHTML = `<b>${MD.to.label}</b><em>수도권 대표 지점</em>`;
-      new ml.Marker({ element: el, anchor: "left", offset: [10, 0] }).setLngLat([MD.to.lon, MD.to.lat]).addTo(map);
+      LB.push({ el, lon: MD.to.lon, lat: MD.to.lat, r: () => 5, pri: 1e6 }); layer.append(el);
     }
     map.addLayer({ id: "dots", type: "circle", source: "places", paint: {
       "circle-radius": ["get", "r"], "circle-color": ["case", ["get", "top"], C.signal, C.ink], "circle-opacity": 0.85,
@@ -75,13 +80,30 @@ export async function initDsMap() {
       const el = document.createElement("div");
       el.className = "ds-label";
       el.innerHTML = `<b>${p.id}</b>${p.v != null ? `<i data-v="${p.id}">${p.v}<small>천TEU</small></i>` : `<em>${p.kind === "air" ? "항공 · 컨테이너 아님" : ""}</em>`}${p.approx ? "<em>개략 위치</em>" : ""}`;
-      // 가까운 이웃이 동쪽에 있으면 이름을 왼쪽에 단다 — 겹침 방지
-      const left = P.some((q) => q !== p && Math.abs(q.lat - p.lat) < 0.04 && Math.abs(q.lon - p.lon) < 0.04 && q.lon > p.lon);
-      const r = 4 + radius(p.v);
-      if (left) el.style.textAlign = "right";
-      new ml.Marker({ element: el, anchor: left ? "right" : "left", offset: [left ? -r : r, 0] }).setLngLat([p.lon, p.lat]).addTo(map);
+      // 자리는 배치기가 잡는다(값 큰 점 먼저 · 막히면 멀리 + 지시선 — 채팅 검수 ①: 390 에서 인천공항·남항·국제여객부두가 겹쳤다)
+      LB.push({ el, lon: p.lon, lat: p.lat, r: () => curR[p.id] ?? radius(p.v), pri: p.v ?? 0.5 }); layer.append(el);
     }
+    relayout();
   });
+  // 이름표 덮개 층 — 지도가 움직이면 다시 놓는다(한 프레임에 한 번)
+  let raf = 0;
+  map.on("move", () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(relayout); });
+  map.on("resize", () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(relayout); });
+  map.once("idle", relayout);
+  (document as any).fonts?.addEventListener?.("loadingdone", () => relayout());
+  function relayout() {
+    const host = map.getContainer() as HTMLElement;
+    const items = LB.map((l) => { const q = map.project([l.lon, l.lat]); return { el: l.el, x: q.x, y: q.y, r: l.r() + 1, pri: l.pri }; });
+    const block = boxesOf(host, host.querySelectorAll(".ds-grat text, .maplibregl-ctrl-group, .maplibregl-ctrl-attrib"));
+    const placed = placeLabels(host, items, { lines: lineSvg, block });
+    // 수심 숫자는 장식이다 — 이름표·점과 겹치면 숨긴다
+    const labelBoxes = placed.slice(block.length);
+    for (const d of host.querySelectorAll<HTMLElement>(".ds-depth")) {
+      d.style.visibility = "visible";
+      const [b] = boxesOf(host, [d]);
+      if (b && labelBoxes.some((p) => Math.min(b.r, p.r) > Math.max(b.l, p.l) && Math.min(b.b, p.b) > Math.max(b.t, p.t))) d.style.visibility = "hidden";
+    }
+  }
   // 등심선(라이선스 확인된 것만 지면에 박힌다) — 아주 옅은 선 + 몇 군데에만 기울임 수심 숫자
   const bathy = JSON.parse(document.getElementById("ds-bathy")?.textContent || "null");
   if (bathy) map.once("style.load", () => {
@@ -114,8 +136,11 @@ export async function initDsMap() {
     (map.getSource("flows") as any)?.setData(flowsAt(i));
     document.getElementById("ds-ym")!.textContent = MD.months[i];
     for (const p of P) { const n = document.querySelector(`[data-v="${p.id}"]`); const v = valAt(p, i); if (n) n.innerHTML = `${v ?? "—"}<small>천TEU</small>`; }
+    for (const p of P) curR[p.id] = radius(valAt(p, i));
+    relayout();
     if (slider) slider.value = String(i);
     $("ds-map").dataset.month = MD.months[i];
+    const ps = (window as any).__mapPlay; if (ps) { ps.i = i; ps.frames++; }
   };
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let timer: any = null, dashT: any = null;
@@ -127,15 +152,21 @@ export async function initDsMap() {
     let k = 0; dashT = setInterval(() => { if (map.getLayer("flow")) map.setPaintProperty("flow", "line-dasharray", DASH[(k = (k + 1) % DASH.length)]); }, 90);
   };
   const stop = () => { clearInterval(timer); clearInterval(dashT); timer = dashT = null; play && (play.textContent = "재생", play.setAttribute("aria-pressed", "true")); };
-  slider?.addEventListener("input", () => { stop(); setMonth(Number(slider.value)); });
-  play?.addEventListener("click", () => (timer ? stop() : start()));
-  // 첫 화면은 마지막 달을 잠깐 보인 뒤 처음부터 돈다
-  map.once("idle", () => { if (reduce) stop(); else setTimeout(() => { if (!timer && play?.getAttribute("aria-pressed") !== "true") start(); }, 2500); });
+  // [2026-10-15 P0] 만지면(달 막대·끌기·확대) 멈췄다가 6초 뒤 다시 돈다 · 「멈춤」 단추로 멈춘 것(held)은 그대로 — 첫 장면(해도 그림)의 상태를 이어받는다
+  const PS = ((window as any).__mapPlay ||= { held: reduce, i: MD ? MD.months.length - 1 : 0, frames: 0 });
+  let rt: any = 0;
+  const touch = () => { stop(); clearTimeout(rt); if (!PS.held && !reduce) rt = setTimeout(() => { if (!timer && !PS.held) start(); }, 6000); };
+  slider?.addEventListener("input", () => { touch(); setMonth(Number(slider.value)); });
+  play?.addEventListener("click", () => { clearTimeout(rt); if (timer) { PS.held = true; stop(); } else { PS.held = false; start(); } });
+  for (const ev of ["dragstart", "zoomstart", "rotatestart", "pitchstart"]) map.on(ev, (e: any) => { if (e.originalEvent) touch(); });
+  // 첫 장면에서 흐르던 달에서 이어 돈다
+  map.once("idle", () => { (window as any).__mapPosterStop?.(); if (MD && PS.i != null) setMonth(PS.i); if (reduce || PS.held) stop(); else start(); });
   // 다 그린 뒤(idle) 상태를 적는다 — 시험이 이것을 기다렸다가 화면 픽셀을 잰다
   map.once("idle", () => {
     const base = has && map.isSourceLoaded("protomaps");
     (window as any).__dsmap = { tiles: has, base, places: P.length, errors: errs };
     $("ds-map").dataset.ready = base ? "tiles" : has ? "tiles-failed" : "no-tiles";
+    relayout();
   });
 }
 

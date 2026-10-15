@@ -1,0 +1,118 @@
+---
+// 도구 · 초크포인트 충격(2차 · 실무 질문 Q6) — 바다 길목 통항(IMF PortWatch 일별 → 주 평균) × 그 길목을 지나는 나라와의 교역(관세청 국가별 · 전국 · 최근 12달).
+// 경유 표·단순 비례 가정 = 선커밋 §5. 인천×나라 원천이 없어 전국 기준 — 같은 화면에 인천 관문 몫을 따로 적는다.
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/chokepoints.json"), "utf-8"));
+const P = D.points as any[];
+// 첫 그림 = 2023 같은 달보다 가장 크게 줄어든 길목(없으면 호르무즈)
+const ranked = P.filter((p) => p.vs_base_pct != null).sort((a, b) => a.vs_base_pct - b.vs_base_pct);
+const F = ranked[0] || P[0];
+const ym = (s: string) => `${s.slice(0, 4)}-${s.slice(4, 6)}`;
+const VW = 1000, VH = 220, pad = { l: 40, r: 8, t: 12, b: 22 };
+const line = (p: any) => {
+  const w = p.weeks as [string, number][], hi = Math.max(10, ...w.map((x) => x[1])) * 1.08;
+  const X = (i: number) => pad.l + (i / Math.max(1, w.length - 1)) * (VW - pad.l - pad.r), Y = (v: number) => pad.t + (1 - v / hi) * (VH - pad.t - pad.b);
+  return { d: w.map((x, i) => `${i ? "L" : "M"}${X(i).toFixed(1)} ${Y(x[1]).toFixed(1)}`).join(""), base: p.base_2023_same_month != null ? Y(p.base_2023_same_month).toFixed(1) : null,
+    yrs: w.map((x, i) => (x[0].slice(5, 7) === "01" && Number(x[0].slice(8, 10)) <= 7 ? [X(i).toFixed(1), x[0].slice(0, 4)] : null)).filter(Boolean) as string[][],
+    ticks: [0, 0.5, 1].map((k) => [Y(hi * k / 1.08).toFixed(1), Math.round(hi * k / 1.08)]) };
+};
+const L0 = line(F);
+const sign = (v: number) => (v > 0 ? `+${v}` : `${v}`);
+const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.months };
+---
+<Studio title="초크포인트 충격 — 바다 길목이 막히면 어느 교역이 흔들리나" description="IMF PortWatch 길목 통항과 관세청 국가별 수출입으로, 호르무즈·홍해·믈라카·대만해협이 막히면 한국 교역의 어느 몫이 그 길을 지나는지 본다." current="tools" ogImage="/og/tool-chokepoint.jpg" lateFonts>
+  <ToolShell id="choke" who="포워더 · 수출입 담당 · 구매" asOf={F.asof}
+    q="바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?"
+    lead={`${F.ko} 통항이 2023년 같은 달보다 ${F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}. 이 길목을 지나는 나라와의 교역은 한국 수입의 ${F.imp_pct}% · 수출의 ${F.exp_pct}%(전국 · 최근 12달). 인천 관문은 전국 수입의 ${D.incheon_imp_share_pct}%를 받습니다(${D.incheon_ym}).`}
+    updated={D.fetched} source={`${sourceLine("imf-portwatch")} · ${sourceLine("kcs-nation")}`} csv={u("/data/chokepoint.csv")} csvName="chokepoint-shock.csv" note="통항 = 주 평균 · 교역 = 전국 · 최근 12달"
+    how={`PortWatch 길목별 일별 통항(AIS 추정)을 주 평균으로 그리고, 지금(마지막 28일 평균)을 2023년 같은 달 평균(사태 전)과 견줬다. 교역 몫 = 관세청 국가별 수출입(${ym(D.months[0])}~${ym(D.months[1])} 합)에서 그 길목을 보통 지나는 나라(선커밋 경유 표)의 몫.`}
+    limits="나라 → 길목 경유는 보통 항로의 가정이다(항공·환적·우회는 따지지 않는다). 중국·일본·미주는 표에 없다. 「흔들리는 액수」는 통항이 줄어든 비율만큼 교역도 준다는 단순 비례 가정이고 실제 손실이 아니다. 인천 관문만의 몫이 아니라 전국 기준이다(인천×나라 공개 자료가 없다). 통항 급감의 원인은 이 지면이 확인하지 않는다(보도로만 확인).">
+    <div slot="answer" class="ck">
+      <p class="ck__big"><b id="ck-pct" data-og-num={`${F.ko} 통항 · 2023년 같은 달 대비`} class={F.vs_base_pct != null && F.vs_base_pct < -10 ? "dn" : ""}>{F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}</b>
+        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 지금 하루 <b id="ck-now">{F.now28}</b>척</span></p>
+      <figure class="ck__fig" id="ck-fig">
+        <div class="ck__plot">
+        <div class="ax" id="ck-axis" data-furniture>{L0.ticks.map(([y, v]) => <span class="ax__y" style={`top:${((Number(y) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{L0.yrs.map(([x, y]) => <span class="ax__x" style={`left:${((Number(x) / VW) * 100).toFixed(2)}%`}>{y}</span>)}</div>
+        <svg viewBox={`0 0 ${VW} ${VH}`} preserveAspectRatio="none" class="ck__svg" aria-hidden="true">
+          <g id="ck-grid">{L0.ticks.map(([y]) => <line x1={pad.l} x2={VW - pad.r} y1={y} y2={y} class="g" />)}</g>
+          {L0.base && <line id="ck-base" x1={pad.l} x2={VW - pad.r} y1={L0.base} y2={L0.base} class="b" />}
+          <path id="ck-line" d={L0.d} class="ln" />
+        </svg>
+        </div>
+        <figcaption class="s-cap">하루 통항 척수(주 평균) · 점선 = 2023년 같은 달 평균 · 마지막 날 {F.asof}</figcaption>
+      </figure>
+      <div class="ck__trade">
+        <p class="ck__share"><span>이 길목을 지나는 나라와의 교역(전국 · 12달)</span> 수입 <b id="ck-imp">{F.imp_pct}%</b> · 수출 <b id="ck-exp">{F.exp_pct}%</b> · 월 <b id="ck-month">{F.monthly_musd.toLocaleString("ko-KR")}</b>백만 달러</p>
+        <ol class="ck__bars" id="ck-bars">{F.top.map((t: any) => <li><span>{t.name}</span><i style={`--w:${((t.musd / F.top[0].musd) * 100).toFixed(1)}%`}></i><b>{t.musd.toLocaleString("ko-KR")}</b></li>)}</ol>
+      </div>
+    </div>
+    <div slot="controls" class="ck__ctl">
+      <div class="seg" role="group" aria-label="길목 고르기">{P.map((p) => <button type="button" class={p.id === F.id ? "s-btn" : "s-btn s-btn--ghost"} data-id={p.id} aria-pressed={p.id === F.id ? "true" : "false"}>{p.ko}</button>)}</div>
+      <label class="ck__slider">통항이 줄어든 만큼(%) <input id="ck-x" type="range" min="0" max="100" step="5" value="50" aria-label="통항 감소 비율" /></label>
+      <p class="ck__shock" aria-live="polite" data-furniture>통항이 <b id="ck-xv">50</b>% 줄면 → 흔들리는 월 교역 ≈ <b id="ck-hit">—</b>백만 달러 <small>(단순 비례 가정 · 실제 손실 아님)</small></p>
+    </div>
+  </ToolShell>
+  <script type="application/json" id="ck-data" set:html={JSON.stringify(client)}></script>
+  <script>
+    const C = JSON.parse(document.getElementById("ck-data")!.textContent!), $ = (id: string) => document.getElementById(id)!;
+    const x = $("ck-x") as HTMLInputElement; let cur = C.points.find((p: any) => p.id === document.querySelector<HTMLElement>(".seg [aria-pressed=true]")!.dataset.id);
+    const sign = (v: number) => (v > 0 ? `+${v}` : `${v}`), fmt = (v: number) => Math.round(v).toLocaleString("ko-KR");
+    const shock = () => { $("ck-xv").textContent = x.value; $("ck-hit").textContent = fmt((cur.monthly_musd * Number(x.value)) / 100); };
+    const show = (p: any) => {
+      cur = p; const s = p.svg;
+      $("ck-pct").textContent = p.vs_base_pct != null ? `${sign(p.vs_base_pct)}%` : "—"; $("ck-pct").className = p.vs_base_pct != null && p.vs_base_pct < -10 ? "dn" : "";
+      $("ck-name").textContent = p.ko; $("ck-now").textContent = String(p.now28); $("ck-imp").textContent = `${p.imp_pct}%`; $("ck-exp").textContent = `${p.exp_pct}%`; $("ck-month").textContent = fmt(p.monthly_musd);
+      $("ck-line").setAttribute("d", s.d); const b = document.getElementById("ck-base"); if (b) { if (s.base) { b.setAttribute("y1", s.base); b.setAttribute("y2", s.base); b.style.display = ""; } else b.style.display = "none"; }
+      $("ck-axis").innerHTML = s.ticks.map(([y, v]: any) => `<span class="ax__y" style="top:${((Number(y) / 220) * 100).toFixed(2)}%">${v}</span>`).join("") + s.yrs.map(([xx, y]: any) => `<span class="ax__x" style="left:${((Number(xx) / 1000) * 100).toFixed(2)}%">${y}</span>`).join("");
+      $("ck-grid").innerHTML = s.ticks.map(([y]: any) => `<line x1="40" x2="992" y1="${y}" y2="${y}" class="g"/>`).join("");
+      $("ck-bars").innerHTML = p.top.map((t: any) => `<li><span>${t.name}</span><i style="--w:${((t.musd / p.top[0].musd) * 100).toFixed(1)}%"></i><b>${fmt(t.musd)}</b></li>`).join("");
+      const fig = $("ck-fig"); fig.classList.remove("go"); void fig.offsetWidth; fig.classList.add("go");
+      if (p.vs_base_pct != null && p.vs_base_pct < 0) x.value = String(Math.min(100, Math.round(-p.vs_base_pct / 5) * 5));
+      shock();
+    };
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.addEventListener("click", () => {
+      for (const y of document.querySelectorAll<HTMLButtonElement>(".seg button")) { const on = y === b; y.setAttribute("aria-pressed", String(on)); y.classList.toggle("s-btn--ghost", !on); }
+      show(C.points.find((p: any) => p.id === b.dataset.id));
+    });
+    x.addEventListener("input", shock);
+    const go = () => { show(cur); (window as any).__choke = { show }; };
+    document.readyState === "complete" ? setTimeout(go, 150) : addEventListener("load", () => setTimeout(go, 150), { once: true });
+  </script>
+</Studio>
+<style>
+  .ck { display: grid; gap: var(--s-3); }
+  .ck__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .ck__big > b { font-size: clamp(38px, 5vw, 64px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .ck__big > b.dn { color: var(--s-signal); }
+  .ck__big > span { color: var(--s-ink-2); } .ck__big > span b { color: var(--s-ink); }
+  .ck__fig { margin: 0; }
+  .ck__plot { position: relative; }
+  .ax { position: absolute; inset: 0; pointer-events: none; font: 500 11px var(--s-font); color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .ax :global(.ax__y) { position: absolute; left: 0; transform: translateY(-55%); } .ax :global(.ax__x) { position: absolute; bottom: 0; transform: translateX(2px); }
+  .ck__svg { display: block; width: 100%; height: clamp(150px, 24vh, 220px); }
+  .ck__svg :global(.g) { stroke: var(--s-rule); vector-effect: non-scaling-stroke; }
+  .ck__svg :global(.t) { font: 500 11px var(--s-font); fill: var(--s-ink-3); }
+  .ck__svg .b { stroke: #191714; stroke-width: 1.2; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+  .ck__svg .ln { fill: none; stroke: var(--s-signal); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .ck__fig.go .ln { animation: ck-draw 1.3s ease-out both; }
+  @keyframes ck-draw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .ck__trade { display: grid; gap: var(--s-2); }
+  .ck__share { margin: 0; font-variant-numeric: tabular-nums; } .ck__share span { color: var(--s-ink-2); margin-right: 6px; } .ck__share b { font-size: 19px; }
+  .ck__bars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; font-variant-numeric: tabular-nums; font-size: 13.5px; }
+  .ck__bars :global(li) { display: grid; grid-template-columns: 7.5rem 1fr 4.5rem; gap: 8px; align-items: center; }
+  .ck__bars :global(i) { display: block; height: 8px; background: var(--s-ink-3); width: var(--w); transform-origin: left; animation: ck-bar 0.8s 0.3s ease-out both; }
+  .ck__bars :global(b) { text-align: right; font-weight: 600; }
+  @keyframes ck-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .ck__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
+  .seg { display: flex; flex-wrap: wrap; } .seg .s-btn { min-height: 44px; }
+  .ck__slider { flex: 1; min-width: 220px; display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); } .ck__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
+  .ck__shock { flex-basis: 100%; margin: 0; font-variant-numeric: tabular-nums; } .ck__shock b { font-size: 20px; } .ck__shock small { color: var(--s-ink-3); }
+  @media (max-width: 720px) { .ck__bars { grid-template-columns: 1fr; } .ck__bars :global(li) { grid-template-columns: 7.5rem 1fr 4rem; } }
+  @media (prefers-reduced-motion: reduce) { .ck__fig.go .ln, .ck__bars :global(i) { animation: none; } }
+</style>

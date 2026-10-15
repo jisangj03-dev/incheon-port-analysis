@@ -1,28 +1,32 @@
 ---
-// 도구 목록 — 종전 404(개편 전 기준선 「tools/ 목록 404」).
-import Base from "../../layouts/Base.astro";
+// 도구(구조 넷 ② · 2026-10-14 선장님 최종 위임 — 「시뮬레이션」 자리를 실무 도구가 받는다) — 실무 질문 하나 = 도구 하나.
+// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기(/tools/logistics-cost.html 등)는 주소만 열려 있다(메뉴 밖).
+// [바뀐 것] 종전 이 주소는 /sim/ 으로 돌려보내는 리디렉트였다 — 발행 주소를 바꾸지 않고 내용을 도구 목록으로 채웠다.
+import Studio from "../../layouts/Studio.astro";
+import { room } from "../../lib/rooms";
 import { u } from "../../lib/site";
-const tools = [
-  { href: "/tools/logistics-cost.html", k: "셀러", t: "3PL 견적 비교 계산기", d: "견적 셋을 한 화면에서 — 5칸이면 건당 총비용, 월 몇 건부터 어느 쪽이 싼지 손익분기 그래프. 숨은 비용 4종 경고." },
-  { href: "/tools/simulate.html", k: "셀러", t: "물류비 시뮬레이션(몬테카를로)", d: "물량 변동과 견적서의 '모름' 칸 폭만큼 4,000번 흔들어 — 어느 견적이 가장 쌀 확률과 건당 비용의 폭." },
-  { href: "/tools/warehouse-map.html", k: "실무자", t: "인천 물류창고 구·동 배치도", d: "등록 물류창고를 구·군 칸에 — 개소·면적·냉동냉장 면적을 바꿔 보기." },
-];
+const R = room("tools"), S = room("sim");
 ---
-<Base title="셀러 물류 도구" description="셀러·물류 실무자를 위한 측심 도구 — 3PL 견적 비교 계산기(건당 총비용·손익분기)와 인천 물류창고 배치도. 입력값은 서버로 가지 않는다." path="/tools/" surface="light">
-  <div class="wrap" style="padding-top:2.5rem">
-    <p class="eyebrow">도구</p>
-    <h1>숫자는 당신이 넣고, 계산은 여기서</h1>
-    <p class="lede" style="max-width:60ch">도구에는 금액·요율 상수가 없습니다. 입력값은 브라우저 밖으로 나가지 않습니다.</p>
-    <div class="tg">
-      {tools.map((t) => <a class="tc" href={u(t.href)}><span class="tc__k">{t.k}</span><strong>{t.t}</strong><span>{t.d}</span><span class="tc__go">열기 →</span></a>)}
-    </div>
-  </div>
-</Base>
+<Studio title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
+  <article class="s-wrap hub" data-content="tools">
+    <p class="s-cap">도구</p>
+    <h1 class="s-prose">{R.title}</h1>
+    <p class="s-lead s-prose">{R.lead} 모든 도구는 공공 1차 데이터로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
+    <ol class="s-index">
+      {(R.items || []).map((r: any) => <li><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
+    </ol>
+    <section class="aux">
+      <h2 class="s-cap">보조 · {S.title}</h2>
+      <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
+    </section>
+  </article>
+</Studio>
 <style>
-  .tg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; margin-top: 1.5rem; }
-  .tc { display: flex; flex-direction: column; gap: 0.4rem; padding: 1.4rem; border-radius: var(--r-lg); background: var(--hull); border: 1px solid var(--hair-strong); text-decoration: none; color: var(--text); }
-  .tc:hover { border-color: var(--sonar); }
-  .tc strong { font-size: 1.25rem; color: var(--ink); }
-  .tc__k { font-size: 0.78rem; font-weight: 700; color: var(--sonar); letter-spacing: 0.08em; }
-  .tc__go { margin-top: auto; font-weight: 700; color: var(--sonar); }
+  .hub { padding-top: var(--s-8); padding-bottom: var(--s-6); }
+  .hub h1 { margin: var(--s-3) 0 var(--s-4); }
+  .hub .s-index { margin-top: var(--s-7); }
+  .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
+  .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
+  .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }
+  .aux a { min-height: 44px; display: inline-flex; align-items: center; }
 </style>
