@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "한 일만(비우면 전부) — terms|portwatch|density|osm|apis|s2|kcci|iiac|radar"
+        description: "한 일만(비우면 전부) — terms|portwatch|density|osm|apis|s2|kcci|iiac|radar|dart"
         required: false
         default: ""
   push:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [terms, portwatch, density, osm, apis, s2, kcci, iiac, radar]
+        job: [terms, portwatch, density, osm, apis, s2, kcci, iiac, radar, dart]
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -48,6 +48,7 @@ jobs:
         working-directory: tools-build/v3
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          OPENDART_KEY: ${{ matrix.job == 'dart' && secrets.OPENDART_KEY || '' }}  # ③-나 · dart 일에만 넘긴다
         run: |
           set -o pipefail
           case "${{ matrix.job }}" in
@@ -60,15 +61,19 @@ jobs:
             kcci) pip install -q xlrd==2.0.2 && python kcci.py && python fx_derive.py ;;
             iiac) python iiac_cargo.py && (cd ../.. && python tools-build/flows_derive.py) ;;
             radar) python bid_radar.py --selftest && python bid_radar.py ;;
+            dart) python dart_firms.py --selftest && python dart_firms.py ;;
           esac 2>&1 | tee /tmp/log.txt
           echo "## ${{ matrix.job }}" >> "$GITHUB_STEP_SUMMARY"; tail -40 /tmp/log.txt >> "$GITHUB_STEP_SUMMARY"
       - name: 키가 산출물에 없는지
         if: inputs.only == '' || inputs.only == matrix.job
         env:
           K: ${{ secrets.DATA_GO_KR_KEY }}
+          K2: ${{ secrets.OPENDART_KEY }}
         run: |
-          [ -z "$K" ] && exit 0
-          if grep -rqF "$K" data/ 2>/dev/null; then echo "::error::키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
+          for k in "$K" "$K2"; do
+            [ -z "$k" ] && continue
+            if grep -rqF "$k" data/ content-queue/ /tmp/log.txt 2>/dev/null; then echo "::error::키 원문이 산출물·로그에 있다 — 커밋하지 않는다"; exit 1; fi
+          done
       - name: 결과 묶기(저장소 기준 경로 그대로)
         if: always() && (inputs.only == '' || inputs.only == matrix.job)
         run: |

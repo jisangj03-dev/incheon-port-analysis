@@ -4,14 +4,16 @@ import json, os, re, sys, time, urllib.parse, urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 UA = "Mozilla/5.0 (X11; Linux x86_64) sounding-v3-collect/1.0 (+https://github.com/jisangj03-dev/incheon-port-analysis)"
 KEY = os.environ.get("DATA_GO_KR_KEY", "")
+DART_KEY = os.environ.get("OPENDART_KEY", "")  # OpenDART(③-나) — 이것도 어디에도 찍지 않는다
 
 
 def scrub(s):
     s = str(s)
-    if KEY:
-        for k in {KEY, urllib.parse.quote(KEY, safe=""), urllib.parse.quote_plus(KEY)}:
-            s = s.replace(k, "***")
-    return re.sub(r"(serviceKey=)[^&\s\"']+", r"\1***", s, flags=re.I)
+    for K in (KEY, DART_KEY):
+        if K:
+            for k in {K, urllib.parse.quote(K, safe=""), urllib.parse.quote_plus(K)}:
+                s = s.replace(k, "***")
+    return re.sub(r"((?:serviceKey|crtfc_key)=)[^&\s\"']+", r"\1***", s, flags=re.I)
 
 
 def get(url, params=None, tries=3, timeout=60, binary=False, headers=None):
