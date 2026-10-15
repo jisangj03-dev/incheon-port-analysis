@@ -29,16 +29,19 @@ test("라벨 겹침 0 — 움직이는 지도(달 처음·끝)", async ({ page }
 });
 
 test("라벨 겹침 0 — 공급망 따라가기 단계마다", async ({ page }) => {
+  // [2026-10-15 · QA 142·147·155] CI(소프트웨어 렌더링)에서 1440 지도 루프가 주 스레드를 막아 단계 확인 자체가 15초 넘게 안 돌아왔다(모바일 lite 는 통과).
+  // 이 시험이 보는 것은 「전환이 끝난 뒤」의 꼬리표 배치다 → 동작 줄이기로 연다: 지면 설계상 루프가 안 돌고 카메라는 목표로 바로 가며 스크롤마다 한 번 그린다
+  // (동작 줄이기 독자가 보는 바로 그 최종 화면). 단계 고르기는 시험이 같은 스크롤 위치에서 직접 부른다. 판정(단계 일치 · 겹침 0)은 그대로다
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`${B}/map/follow.html`, { waitUntil: "networkidle" });
+  let seen = 0;
   for (const id of await page.locator(".st[data-s]").evaluateAll((a) => a.map((x) => x.getAttribute("data-s")))) {
     await page.evaluate((id) => { const el = document.querySelector(`[data-s="${id}"]`); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); }, id);
-    // [2026-10-15 · QA 142·147] CI 합성기가 굶으면 스크롤 뒤 rAF 가 늦어 단계 번호가 5초 넘게 안 바뀌고, 지도 카메라도 안 움직여 꼬리표 자리가 안 잡혔다
-    // → 확인할 때마다 단계 고르기(pick)와 지도 한 걸음(홈 지도 시험과 같은 손 틱)을 직접 부른다. 판정(단계 일치 · 겹침 0)은 그대로다
-    const tick = () => page.evaluate(() => { const w = window; w.__followPick?.(); const f = w.__trip; if (f) { f.step(0.25); f.o?.camStep ? f.o.camStep(f, 0.25) : f.camStep?.(0.25); f.draw(); } });
-    await expect.poll(async () => { await tick(); return page.getAttribute(".story", "data-step"); }, { timeout: 15_000 }).toBe(id);
-    // 꼬리표는 0.5초에 걸쳐 나타나고 사라진다(장면마다 위치를 다시 잡는다) — 전환이 끝나기를 최대 15초 기다린다. 끝난 뒤에도 겹치면 실패
-    await expect.poll(async () => { await tick(); return (await overlaps(page)).out; }, { timeout: 15_000, message: `따라가기 ${id} 라벨 겹침` }).toEqual([]);
+    await expect.poll(async () => { await page.evaluate(() => window.__followPick?.()); return page.getAttribute(".story", "data-step"); }, { timeout: 10_000 }).toBe(id);
+    await expect.poll(async () => (await overlaps(page)).out, { timeout: 10_000, message: `따라가기 ${id} 라벨 겹침` }).toEqual([]);
+    seen += (await overlaps(page)).n;
   }
+  expect(seen, "따라가기 꼬리표가 보여야 겹침 0 이 뜻이 있다").toBeGreaterThan(5); // 2026-10-15 실측 9(단계마다 1~2)
 });
 
 test("라벨 겹침 0 — 선박 리플레이 달 처음·끝 · 맥주 게임 막대 양 끝", async ({ page }) => {
