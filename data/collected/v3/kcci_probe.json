@@ -36,16 +36,13 @@
   ]
  ],
  "used": {
-  "path": "/ebz/shippinginfo/timeseries/gridList.do?mId=0304000000",
+  "path": "/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000",
   "fields": [
    "mId",
    "sDay",
    "eDay"
   ],
-  "status": 200,
-  "type": "text/html; charset=UTF-8",
-  "size": 3169466,
-  "head": "<!DOCTYPE html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n<html lang=\"ko-KR\">\n\n<head>\n\t\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n<script>\n\tvar yh = {\n\t\t\"mId\": \"0304000000\""
+  "size": 46592
  },
  "tries": [
   {
@@ -152,123 +149,6 @@
      "1391.0"
     ]
    ]
-  },
-  {
-   "path": "/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000",
-   "fields": [
-    "mId",
-    "sDay",
-    "eDay"
-   ],
-   "status": 200,
-   "type": "",
-   "size": 46592,
-   "head": "d0cf11e0a1b11ae1000000000000000000000000000000003e000300feff090006000000000000000000000001000000590000000000000000100000feffffff00000000feffffff0000000058000000",
-   "xls_rows": 198,
-   "xls_head": [
-    [
-     "KOBC CONTAINER COMPOSITE INDEX TIMESERIES",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     "",
-     ""
-    ],
-    [
-     "번호",
-     "DATE",
-     "KCCI",
-     "KUWI",
-     "KUEI",
-     "KNEI",
-     "KMDI",
-     "KMEI",
-     "KAUI",
-     "KLEI",
-     "KLWI",
-     "KSAI",
-     "KWAI",
-     "KCI",
-     "KJI",
-     "KSEI"
-    ],
-    [
-     "196",
-     "20261012",
-     "4654.0",
-     "8258.0",
-     "11609.0",
-     "3431.0",
-     "3730.0",
-     "8885.0",
-     "5047.0",
-     "6803.0",
-     "5568.0",
-     "4119.0",
-     "4613.0",
-     "55.0",
-     "234.0",
-     "1624.0"
-    ],
-    [
-     "195",
-     "20261006",
-     "4629.0",
-     "8194.0",
-     "11201.0",
-     "3555.0",
-     "3806.0",
-     "8730.0",
-     "4952.0",
-     "7084.0",
-     "5710.0",
-     "4061.0",
-     "4648.0",
-     "54.0",
-     "233.0",
-     "1622.0"
-    ],
-    [
-     "194",
-     "20260928",
-     "4678.0",
-     "8000.0",
-     "11294.0",
-     "3751.0",
-     "4016.0",
-     "8627.0",
-     "4885.0",
-     "8063.0",
-     "6211.0",
-     "3819.0",
-     "4701.0",
-     "54.0",
-     "236.0",
-     "1391.0"
-    ]
-   ]
-  },
-  {
-   "path": "/ebz/shippinginfo/timeseries/gridList.do?mId=0304000000",
-   "fields": [
-    "mId",
-    "sDay",
-    "eDay"
-   ],
-   "status": 200,
-   "type": "text/html; charset=UTF-8",
-   "size": 3169466,
-   "head": "<!DOCTYPE html>\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n<html lang=\"ko-KR\">\n\n<head>\n\t\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n<script>\n\tvar yh = {\n\t\t\"mId\": \"0304000000\""
   }
  ]
 }
