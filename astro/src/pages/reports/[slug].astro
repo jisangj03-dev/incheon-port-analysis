@@ -4,6 +4,12 @@
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import Updated from "../../components/Updated.astro";
+import { sourceLine } from "../../lib/sources";
+import { profile } from "../../lib/profile";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+
 import Interactive from "../../components/report/Interactive.astro";
 import ReportChart from "../../components/report/ReportChart.astro";
 import { REPORT_WIDGET } from "../../lib/report-data";
@@ -24,11 +30,13 @@ const date = written(body);
 const updated = lastUpdated(`reports/${entry.id}.md`);
 const path = `/reports/${entry.id}.html`;
 const { Content } = await render(entry);
+const SRC = JSON.parse(readFileSync(join(repoRoot(), "data/sources.json"), "utf-8")).sources.filter((s: any) => (s.used_by || []).includes(entry.id)).map((s: any) => sourceLine(s.id));
+const PF = profile();
 const kind = no ? `보고서 ${no}` : "정리형 스냅샷";
 const jsonld = [{
   "@context": "https://schema.org", "@type": "Report", headline: t, name: t, inLanguage: "ko",
   description: concl || undefined, datePublished: date || undefined, dateModified: updated || undefined,
-  author: { "@type": "Person", name: BRAND.author }, publisher: { "@type": "Organization", name: BRAND.name },
+  author: { "@type": "Person", name: PF.name }, publisher: { "@type": "Organization", name: BRAND.name },
   url: abs(path), isAccessibleForFree: true,
 }];
 ---
@@ -62,6 +70,7 @@ const jsonld = [{
 
     <section class="rpt__layer wrap" aria-labelledby="l3">
       <h2 id="l3" class="rpt__lh"><span>③</span> 원문 · 근거 · 출처</h2>
+      <p class="muted" data-sources>출처와 이용허락 — {SRC.length ? SRC.join(" / ") : "출처 대장에 행이 없다"} · <a href={u("/data.html")}>출처 대장</a></p>
       <details class="fold" id="original">
         <summary>발행본 전문 펼치기 — 판정 기준·표·재현 방법·표기</summary>
         <div class="fold__body doc narrow-doc" data-pagefind-body>

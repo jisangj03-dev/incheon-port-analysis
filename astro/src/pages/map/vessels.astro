@@ -1,11 +1,12 @@
 ---
 // 선박 리플레이(정체성 §3-3) — 월 집계 — 개별 선박 아님. 원천 = 해양수산부 항만별 선박입출항실적(Actions 수집 · 키는 시크릿 · 달마다 자동 갱신은 아직 없다).
 // 숫자 = data/derived/vessel_replay.json(tools-build/vessel_derive.py). 달 막대 하나 + 재생 — 2015년부터 지금까지 외항선 입항이 흐른다.
-import Studio from "../../../layouts/Studio.astro";
-import Trust from "../../../components/scene/Trust.astro";
-import { sourceLine } from "../../../lib/sources";
-import { lastUpdated, repoRoot } from "../../../lib/content";
-import { u } from "../../../lib/site";
+import { aiMark } from "../../lib/profile";
+import Studio from "../../layouts/Studio.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { sourceLine } from "../../lib/sources";
+import { lastUpdated, repoRoot } from "../../lib/content";
+import { u } from "../../lib/site";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -14,12 +15,11 @@ const L = V.latest;
 const upd = lastUpdated("data/derived/vessel_replay.json");
 const n = V.months.length;
 ---
-<Studio title="선박 리플레이 — 측심" current="map">
+<Studio title="선박 리플레이 — 항만별 외항선 입항, 2015년부터" description="해양수산부 항만별 선박입출항실적으로 인천·부산·평택당진·경인항의 외항선 입항을 달마다 다시 돌려 본다. 월 집계 — 개별 선박 아님." current="map">
   <article class="s-wrap vr" data-content="ds-vessels">
     <p class="s-cap">지도 · 선박 리플레이 · 월 집계 — 개별 선박 아님</p>
     <h1 class="s-prose">인천항에 외항선이 한 달 {L.incheon}척 들어왔습니다.</h1>
     <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct}%</b>.</p>
-    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
 
     <figure class="replay" id="replay" aria-label={`${V.months[0]}부터 ${V.months[n - 1]}까지 항만별 외항선 입항 척수`}>
       <div class="replay__now"><span id="vr-ym" class="vr-ym">{L.ym}</span><span class="vr-v"><i id="vr-inc">{L.incheon}</i><small>척 · 인천</small></span><span class="vr-b">부산 <i id="vr-bus">{L.busan}</i>척</span></div>
@@ -29,8 +29,9 @@ const n = V.months.length;
         <input id="vr-m" type="range" min="0" max={n - 1} value={n - 1} step="1" aria-label="달 고르기" />
       </div>
       <p class="s-cap" data-v1>원천 {V.source_rows}행 · {V.source_months[0]}~{V.source_months[1]} · 외항 = 국적선 + 외국선 · 연안선은 따로 뺐다.</p>
-      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/lab/data/vessel-replay.csv")} csvName="vessel-replay.csv" note="월 집계 · 입항 척수" />
+      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" note="월 집계 · 입항 척수" />
     </figure>
+    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
     <script type="application/json" id="vr-data" set:html={JSON.stringify({ months: V.months, s: V.ocean_arrivals })}></script>
 
     <dl class="s-maker" data-maker-note>
@@ -38,15 +39,17 @@ const n = V.months.length;
       <dt>어떻게</dt><dd data-note="how">해양수산부 항만별 선박입출항실적을 GitHub Actions 가 받는다(키는 저장소 시크릿). 달마다 자동으로 다시 받는 장치는 아직 없다 — 숫자는 갱신일 기준이다. 항만·선종별 월 합계에서 국적선과 외국선을 더해 외항선으로 본다. 계산 = {V.command}.</dd>
       <dt>한계</dt><dd data-note="limits">개별 선박의 항적이 아니다 — 원천이 월 합계만 준다. 척수는 배의 크기를 보지 않는다(큰 배 한 척 = 작은 배 한 척). 「경인」은 경인항으로, 인천항과 따로 집계된다.</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>AI 정리 · 검수 전</p>
+    <p class="s-cap" data-ai-mark>{aiMark()}</p>
   </article>
   <script>
     const D = JSON.parse(document.getElementById("vr-data")!.textContent || "{}");
     const host = document.getElementById("vr-chart")!, slider = document.getElementById("vr-m") as HTMLInputElement, play = document.getElementById("vr-play") as HTMLButtonElement;
-    const LINES = [["부산", "var(--s-ink-2)", 1.5], ["평택.당진", "var(--s-sea)", 1.5], ["경인", "var(--s-sea-2)", 1.5], ["인천", "var(--s-signal)", 2.5]] as const;
+    // 인천이 주인공 — 주홍 굵은 선을 맨 마지막(맨 앞)에 · 부산은 회색 대비선(2026-10-14 채팅 검수: 부산 선만 보이고 인천이 안 보였다)
+    const LINES = [["부산", "var(--s-ink-3)", 1.25], ["평택.당진", "var(--s-sea)", 1.25], ["경인", "var(--s-sea-2)", 1.25], ["인천", "var(--s-signal)", 3]] as const;
     const max = Math.max(...Object.values(D.s as Record<string, number[]>).flat());
+    // 오른쪽 여백 R 은 끝 이름표(「평택·당진 421」)가 칸 안에 들어오는 폭
     const draw = (i: number) => {
-      const W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 320, Lp = 4, R = W < 600 ? 56 : 80, T = 10, B = 26, n = D.months.length;
+      const W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 280, Lp = 4, R = W < 600 ? 96 : 112, T = 10, B = 26, n = D.months.length;
       const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - (v * (H - T - B)) / max;
       let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
       g += `<text x="${Lp}" y="${H - 6}" font-size="12" fill="var(--s-ink-3)">${D.months[0].slice(0, 4)}</text><text x="${W - R}" y="${H - 6}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">${D.months[n - 1].slice(0, 4)}</text>`;
@@ -54,14 +57,14 @@ const n = V.months.length;
       for (const [p, c, w] of LINES) {
         const v = D.s[p] as number[];
         g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-opacity="0.25" points="${v.map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
-        g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round" points="${v.slice(0, i + 1).map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
+        g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"${p === "인천" ? ' data-main="인천"' : ""} points="${v.slice(0, i + 1).map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
         g += `<circle cx="${x(i)}" cy="${y(v[i])}" r="${p === "인천" ? 4 : 3}" fill="${c}"/>`;
         ends.push({ y: y(v[i]), t: `${p === "평택.당진" ? "평택·당진" : p} ${v[i]}`, c, b: p === "인천" });
       }
       ends.sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
-      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
-      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`;
+      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i]}척 · 부산 ${D.s["부산"][i]}척">${g}</svg>`;
       document.getElementById("vr-ym")!.textContent = D.months[i];
       document.getElementById("vr-inc")!.textContent = String(D.s["인천"][i]);
       document.getElementById("vr-bus")!.textContent = String(D.s["부산"][i]);
