@@ -82,6 +82,9 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
 <script>
   import { FlowMap, VIEWS, VIEWS_M, type Cam } from "../../lib/flowmap";
   const stage = document.getElementById("live-stage") as HTMLElement, cv = document.getElementById("fm") as HTMLCanvasElement;
+  // 글 블록이 숫자판 높이만큼 아래 자리를 남긴다(--live-hud) — 범례가 두 줄로 꺾이면 고정값(168px)을 넘어 연락 단추와 겹쳤다(QA · hero.spec) → 실제 높이로
+  { const hud = document.getElementById("fm-hud"), live = stage.closest(".live") as HTMLElement | null;
+    if (hud && live) { const fit = () => live.style.setProperty("--live-hud", `${Math.ceil(hud.offsetHeight)}px`); fit(); if ("ResizeObserver" in window) new ResizeObserver(fit).observe(hud); } }
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const lite = matchMedia("(max-width: 720px)").matches; // 좁은 화면 = 가벼운 판(점 절반 · 해상도 1.5배까지)
   const $ = (id: string) => document.getElementById(id)!;
@@ -324,7 +327,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live { display: grid; grid-template-columns: minmax(0, 1fr); }
     .live > .live__text, .live > .live__frame { grid-row: 1; grid-column: 1; }
     .live > .live__foot { grid-row: 2; grid-column: 1; }
-    .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 168px) + 30px); }
+    .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 192px) + 30px); }
     .live__frame { display: flex; flex-direction: column; }
     .live__stage { flex: 1 0 auto; height: auto; min-height: clamp(560px, calc(100svh - 92px), 980px); }
   }
