@@ -1,0 +1,31 @@
+{
+ "checked": "2026-10-15",
+ "key_present": true,
+ "queries": {
+  "관세청 관세율": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  },
+  "관세율표": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  },
+  "관세청 품목번호별 관세율": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  },
+  "관세청 HS부호": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  },
+  "FTA 협정세율": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  },
+  "관세청 관세율 기본": {
+   "status": "<urlopen error timed out>",
+   "hits": []
+  }
+ },
+ "datasets": {}
+}
