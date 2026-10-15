@@ -137,6 +137,8 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   :global(.ds-labels .ds-label) { position: absolute; }
   :global(.ds-lines) { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; stroke: var(--s-ink-3); stroke-width: 0.8; }
   .ds-map-box:has(#ds-map[data-ready]) .ds-poster { display: none; }
+  /* [2026-10-15 P0] 넓은 화면은 maplibre 가 스스로 뜬다 — 다 그리기(data-ready) 전에는 지도 쪽 이름표·눈금을 숨겨 해도 그림의 것과 겹치지 않게(QA 224 라벨 겹침) */
+  .ds-map:not([data-ready]) :global(.ds-labels), .ds-map:not([data-ready]) :global(.ds-grat) { visibility: hidden; }
   :global(.ds-label) { font: 500 13px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); pointer-events: none; }
   :global(.ds-label b) { display: block; font-weight: 600; font-size: 14px; letter-spacing: -0.01em; }
   /* 데이터 숫자 = 해도 수심 표기처럼 작은 기울임 · 상자 없음 */
