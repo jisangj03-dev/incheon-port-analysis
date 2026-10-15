@@ -42,7 +42,7 @@ async function render(box: HTMLElement, cfg: Cfg, st: Record<string, string>, se
   try { plotMod = plotMod || (await import("@observablehq/plot")); } catch { say.textContent = "차트를 불러오지 못했다 — CSV 로 같은 값을 볼 수 있다."; return; }
   const Plot = plotMod;
   const width = Math.max(300, Math.min(940, out.clientWidth || 640));
-  const base = { width, height: 300, marginLeft: 60, style: { background: "transparent", color: C.ink, fontFamily: "inherit", fontSize: "12px" } };
+  const base = { width, height: 300, marginLeft: 60, marginRight: 40, marginBottom: 44, /* 날짜 눈금은 「Jan」/「2025」 두 줄 — 둘째 줄과 마지막 눈금이 칸 밖으로 잘리지 않게(2026-10-14 눈 검사) */ style: { background: "transparent", color: C.ink, fontFamily: "inherit", fontSize: "12px" } };
   const date = (ym: string) => new Date(`${ym}-01T00:00:00`);
   let chart: any;
 
