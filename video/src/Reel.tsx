@@ -4,7 +4,10 @@ import React, { useEffect, useState } from "react";
 import { AbsoluteFill, OffthreadVideo, Sequence, staticFile, useCurrentFrame, interpolate, spring, useVideoConfig, delayRender, continueRender } from "remotion";
 
 export const FPS = 30, INTRO = 75, OUTRO = 90;
-export type ReelProps = { id: string; fmt: "portrait" | "square"; w: number; h: number; clip: string; clipMs: number; q: string; num: string; unit: string; eb: string; source: string; asof: string; url: string; callouts: { at: number; text: string }[] };
+export type ReelProps = { id: string; fmt: "portrait" | "square"; w: number; h: number; clip: string; clipMs: number; q: string; num: string; unit: string; eb: string; source: string; asof: string; url: string;
+  callouts: { at: number; text: string; pos?: "top" | "bottom" }[]; cam?: number[][] /* 녹화 프레임마다 [x0, y0, z] — render.mjs 가 초점 기록으로 만든 따라가기 카메라 */ };
+// 자막 상자 자리(render.mjs 의 대비 시험이 같은 값을 쓴다)
+export const CAP = { portrait: { bottom: 210, top: 120, font: 46 }, square: { bottom: 120, top: 60, font: 40 } };
 
 const C = { paper: "#f5f2eb", ink: "#191714", ink2: "#3a352e", ink3: "#5b554c", signal: "#b3361e", rule: "#d9d3c7" };
 const FONT = '"Pretendard Variable", Pretendard, "Noto Sans CJK KR", sans-serif';
@@ -32,17 +35,22 @@ const Intro: React.FC<ReelProps> = (p) => {
 };
 
 const Clip: React.FC<ReelProps> = (p) => {
-  const f = useCurrentFrame(), ms = (f / FPS) * 1000;
+  const f = useCurrentFrame(), ms = (f / FPS) * 1000, sq = p.fmt === "square", C2 = CAP[p.fmt];
   const cur = [...p.callouts].reverse().find((c) => c.at <= ms);
-  const since = cur ? ms - cur.at : 0;
+  // [채팅 검수 #55] 자막은 처음부터 불투명 상자 · 바뀔 때는 상자 통째로 4프레임(0.13초) 미끄러져 들어온다(반투명 글자 겹침 0)
+  const fin = cur ? Math.min(1, ((ms - cur.at) / 1000) * FPS / 4) : 1;
+  const [x0, y0, z] = p.cam?.[Math.min(f, (p.cam?.length || 1) - 1)] || [0, 0, 1];
+  const bottom = (cur?.pos || "bottom") === "bottom";
   return (
-    <AbsoluteFill style={{ background: C.paper, fontFamily: FONT }}>
-      <OffthreadVideo src={staticFile(p.clip)} />
+    <AbsoluteFill style={{ background: C.paper, fontFamily: FONT, overflow: "hidden" }}>
+      <div style={{ position: "absolute", left: 0, top: 0, width: p.w, height: p.h, transformOrigin: "0 0", transform: `scale(${z}) translate(${-x0}px, ${-y0}px)` }}>
+        <OffthreadVideo src={staticFile(p.clip)} style={{ width: p.w, height: p.h }} />
+      </div>
       {cur && (
-        <div style={{ position: "absolute", left: 40, right: 40, bottom: p.fmt === "square" ? 120 : 210, background: C.ink, color: "#fff", padding: "22px 30px", fontSize: p.fmt === "square" ? 40 : 46, fontWeight: 700, lineHeight: 1.35,
-          boxShadow: "0 10px 30px rgba(0,0,0,.25)", opacity: interpolate(since, [0, 220], [0, 1], { extrapolateRight: "clamp" }), transform: `translateY(${interpolate(since, [0, 220], [16, 0], { extrapolateRight: "clamp" })}px)`, wordBreak: "keep-all" }}>{cur.text}</div>
+        <div data-cap style={{ position: "absolute", left: 40, right: 40, ...(bottom ? { bottom: C2.bottom } : { top: C2.top }), background: C.ink, color: "#fff", padding: "22px 30px", fontSize: C2.font, fontWeight: 700, lineHeight: 1.35,
+          boxShadow: "0 10px 30px rgba(0,0,0,.25)", transform: `translateY(${(1 - fin) * (bottom ? 24 : -24)}px)`, wordBreak: "keep-all" }}>{cur.text}</div>
       )}
-      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, background: "rgba(245,242,235,.96)", borderTop: `2px solid ${C.rule}`, padding: p.fmt === "square" ? "18px 40px" : "26px 40px", fontSize: p.fmt === "square" ? 24 : 28, color: C.ink2, lineHeight: 1.4 }}>
+      <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, background: C.paper, borderTop: `2px solid ${C.rule}`, padding: sq ? "18px 40px" : "26px 40px", fontSize: sq ? 24 : 28, color: C.ink2, lineHeight: 1.4 }}>
         출처 {p.source} · <b style={{ color: C.signal }}>{p.asof}</b>
       </div>
     </AbsoluteFill>

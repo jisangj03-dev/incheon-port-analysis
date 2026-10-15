@@ -3,7 +3,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { Reel, ReelProps, INTRO, OUTRO, FPS } from "./Reel";
 
-const blank: ReelProps = { id: "x", fmt: "portrait", w: 1080, h: 1920, clip: "", clipMs: 1000, q: "", num: "", unit: "", eb: "", source: "", asof: "", url: "", callouts: [] };
+const blank: ReelProps = { id: "x", fmt: "portrait", w: 1080, h: 1920, clip: "", clipMs: 1000, q: "", num: "", unit: "", eb: "", source: "", asof: "", url: "", callouts: [], cam: [] };
 const dur = (p: ReelProps) => INTRO + Math.ceil((p.clipMs / 1000) * FPS) + OUTRO;
 
 export const Root: React.FC = () => (
