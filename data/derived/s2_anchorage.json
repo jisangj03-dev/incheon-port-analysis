@@ -42,6 +42,18 @@
    "h": 1371
   },
   {
+   "date": "2026-01-11",
+   "scene": "S2B_52SBG_20260111_0_L2A",
+   "tile_cloud_pct": 17.4,
+   "aoi_cloud_pct": 3.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 38,
+   "low_confidence": true,
+   "img": "/media/s2/20260111.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
    "date": "2026-02-25",
    "scene": "S2C_52SBG_20260225_0_L2A",
    "tile_cloud_pct": 0.8,
