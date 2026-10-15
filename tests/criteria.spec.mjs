@@ -104,6 +104,13 @@ test("기준 9 — sitemap.xml · robots.txt 200, 블로그 /79 링크(계산기
   // 기준 24 — 뉴스레터(물류로그 beehiiv · 2026-10-12 선장님 지정)
   const nl = await (await page.request.get(`${BASE}/go/newsletter.html`)).text();
   expect(nl).toContain("logisticslog.beehiiv.com/subscribe");
+  // [2026-10-15 P1 ⑤] 「차단됨」 — 구독 링크는 새 창(틀 안에서 beehiiv 로 넘어가지 않게) · 이동 지면 손 링크는 최상위 창 · 이동 지면 200
+  expect(nl).toMatch(/href="https:\/\/logisticslog\.beehiiv\.com\/subscribe[^"]*"[^>]*target="_top"/);
+  expect((await page.request.get(`${BASE}/go/newsletter.html`)).status()).toBe(200);
+  await page.goto(`${BASE}/`);
+  const a = page.locator("footer a[data-newsletter]");
+  await expect(a).toHaveAttribute("target", "_blank");
+  await expect(a).toHaveAttribute("rel", /noopener/);
 });
 
 test("기준 16 — 보고서마다 출처 대장에 행이 있다", async () => {
