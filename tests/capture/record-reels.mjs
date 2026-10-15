@@ -5,7 +5,7 @@
 // Remotion(video/)이 이 녹화와 표지로 자막을 맞춘다. 외부 요청은 막는다(비콘 포함 — 영상에 필요 없다).
 //   node tests/capture/record-reels.mjs [dist]      시험 서버를 스스로 띄웠다 내린다
 import { chromium } from "@playwright/test";
-import { mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdirSync, writeFileSync, rmSync, readFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
@@ -18,6 +18,7 @@ for (let i = 0; i < 50; i++) { try { if ((await fetch(`${base}/`)).ok) break; } 
 
 const FORMATS = { portrait: { viewport: { width: 432, height: 768 }, scale: 2.5, size: { width: 1080, height: 1920 } }, square: { viewport: { width: 720, height: 720 }, scale: 1.5, size: { width: 1080, height: 1080 } } };
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
+const CARDS = JSON.parse(readFileSync(join(dist, "og/cards.json"), "utf-8")).cards; // 카드를 찍을 때 지면에서 읽은 값(자막과 같은 출처)
 const wait = (p, ms) => p.waitForTimeout(ms);
 const glide = (p, sel) => p.evaluate((s) => { const el = document.querySelector(s); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 80, behavior: "smooth" }); }, sel);
 const top = (p) => p.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
@@ -30,7 +31,8 @@ const REELS = {
     await glide(p, ".ck__ctl"); await wait(p, 600); await p.locator(".seg button[data-id=hormuz]").click(); mark("hormuz2"); await wait(p, 2400);
   } },
   "import-cost": { href: "/tools/import-cost.html", run: async (p, mark) => {
-    await glide(p, ".cost__big"); await wait(p, 4200); mark("now");
+    // 3초 답이 주를 넘겨 보다 이번 주로 돌아온 뒤에 표지를 찍는다(자막 숫자 = 화면 숫자 · 2026-10-15 검수: 4초에는 아직 2025-02 주였다)
+    await glide(p, ".cost__big"); await p.waitForFunction(() => !!window.__cost); await wait(p, 150); await p.waitForFunction((n) => (document.getElementById("cs-diff")?.textContent || "").replace(/\s+/g, "") === n, CARDS["import-cost"].num, { timeout: 20000 }); mark("now"); await wait(p, 2600);
     await glide(p, "#wave"); await wait(p, 1500); mark("wave");
     const r = p.locator("#wave-r"); const n = await r.locator("option").count();
     if (n > 1) { await r.selectOption({ index: 1 }); mark("route"); await wait(p, 2400); }
