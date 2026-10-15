@@ -11,7 +11,7 @@
       "kogl": "미확인",
       "commercial": "허용(포털 메타 기준)",
       "modify": "허용(포털 메타 기준)",
-      "checked": "2026-07 수집 때 포털 화면 · 유형 번호는 미확인",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15157693 「인천항만공사_인천항 공컨테이너 화물 통계정보 조회 서비스」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음. 그 화면에 수집 API 경로(1192000/SsopCargContnImxprt2) 표기가 없어 같은 서비스인지 [미확인] — 공공누리 유형은 「미확인」 유지",
       "used_by": [
         "report_01_공컨테이너_물동량",
         "report_02_공컨테이너_비율",
@@ -33,14 +33,15 @@
       "kogl": "미확인",
       "commercial": "미확인",
       "modify": "미확인",
-      "checked": "미확인 — 다음 수집 때 게시글의 공공누리 마크를 기록한다",
+      "checked": "2026-10-14 kogl-check 워크플로 — 게시판(menuIdx=1700) 목록 화면에 공공누리 마크 없음 · 글은 첨부 파일(hwpx)뿐이라 유형 표기를 찾지 못함 → 「미확인」 유지",
       "used_by": [
         "report_02_공컨테이너_비율",
         "report_05_컨테이너_수지",
         "report_11_터미널별_처리량",
         "report_12_터미널별_장기창",
         "물동량",
-        "map"
+        "map",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -48,13 +49,14 @@
       "name": "관세청 항구·공항별 수출입실적",
       "owner": "관세청",
       "where": "공공데이터포털 apis.data.go.kr/1220000/porttrade",
-      "license": "공공데이터포털 이용허락범위 「제한 없음」",
-      "kogl": "미확인",
-      "commercial": "허용(포털 메타 기준)",
-      "modify": "허용(포털 메타 기준)",
-      "checked": "2026-08 수집 때 포털 화면",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15101636 「관세청_항구 공항별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
-        "report_08_관세청_인천항_수출입신고"
+        "report_08_관세청_인천항_수출입신고",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -62,11 +64,11 @@
       "name": "관세청 시도별 품목별 수출입실적",
       "owner": "관세청",
       "where": "공공데이터포털 15101641 · apis.data.go.kr/1220000/sidoitemtrade",
-      "license": "공공데이터포털 이용허락범위 「제한 없음」",
-      "kogl": "미확인",
-      "commercial": "허용(포털 메타 기준)",
-      "modify": "허용(포털 메타 기준)",
-      "checked": "2026-10-12 포털 화면(도구탐색_20261012)",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15101641 「관세청_시도별 품목별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
         "report_13_인천_품목별_수출입"
       ]
@@ -76,14 +78,15 @@
       "name": "국토교통부 물류창고업 등록현황",
       "owner": "국토교통부 · 국가물류통합정보센터",
       "where": "공공데이터포털 15083282 · nlic.go.kr",
-      "license": "공공데이터포털 이용허락범위 「제한 없음」(집계표 화면 메타) — 행 단위 원자료의 재배포 조건은 미확인이라 상호·주소는 공개하지 않는다",
-      "kogl": "미확인",
-      "commercial": "허용(집계표 · 포털 메타 기준)",
-      "modify": "허용(집계표 · 포털 메타 기준)",
-      "checked": "2026-09-30 포털 화면",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인) — 행 단위 원자료의 재배포 조건은 따로 보지 않았으므로 상호·주소는 공개하지 않는다",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15083282 「국토교통부_물류창고업등록정보_20250701」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
         "물류창고",
-        "tool:warehouse-map"
+        "tool:warehouse-map",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -113,7 +116,8 @@
       "used_by": [
         "map",
         "home",
-        "follow"
+        "follow",
+        "수도권 배송 등시선"
       ]
     },
     {
@@ -135,13 +139,14 @@
       "name": "관세청 품목별 국가별 수출입실적",
       "owner": "관세청",
       "where": "공공데이터포털 apis.data.go.kr/1220000/nitemtrade",
-      "license": "공공데이터포털 이용허락범위 「제한 없음」",
-      "kogl": "미확인",
-      "commercial": "허용(포털 메타 기준)",
-      "modify": "허용(포털 메타 기준)",
-      "checked": "2026-10-12 예약 수집(collect.yml) · 유형 번호는 미확인",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15100475 「관세청_품목별 국가별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
-        "follow"
+        "follow",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -149,11 +154,11 @@
       "name": "해양수산부 항만별 선박입출항실적",
       "owner": "해양수산부",
       "where": "공공데이터포털 15059059 · apis.data.go.kr/1192000/SsopVsslEtryndHarbor2/YM",
-      "license": "공공데이터포털 이용허락범위 「제한 없음」",
-      "kogl": "미확인",
-      "commercial": "허용(포털 메타 기준)",
-      "modify": "허용(포털 메타 기준)",
-      "checked": "2026-10-14 vessel.yml 수집 · 월·항만·선종 합계(개별 선박 아님) · 유형 번호는 미확인",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15059059 「해양수산부_항만별 선박입출항실적 통계정보」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
         "vessels"
       ]
@@ -186,6 +191,204 @@
       "checked": "2026-10-14 ops_stats.py 집계",
       "used_by": [
         "ai-ops"
+      ]
+    },
+    {
+      "id": "naturalearth",
+      "name": "Natural Earth 1:50m 땅 면(홈 살아 있는 지도·공급망 따라가기의 먼 바탕)",
+      "owner": "Natural Earth(naturalearthdata.com)",
+      "where": "world-atlas 2.0.2(npm · ISC · Natural Earth 4.1.0 을 TopoJSON 으로 다시 묶은 것 · 묶음 SHA-256 고정 · tools-build/world_land.py)",
+      "license": "퍼블릭 도메인(naturalearthdata.com/about/terms-of-use)",
+      "kogl": "해당 없음(퍼블릭 도메인)",
+      "commercial": "허용",
+      "modify": "허용",
+      "checked": "2026-10-14",
+      "used_by": [
+        "홈 살아 있는 지도",
+        "공급망 따라가기"
+      ]
+    },
+    {
+      "id": "imf-portwatch",
+      "name": "IMF PortWatch — 항만 일별 입항(선종별)·추정 수출입량 · 초크포인트 일별 통항",
+      "owner": "IMF · University of Oxford",
+      "where": "portwatch.imf.org(ArcGIS 피처 서비스 · Daily_Ports_Data · Daily_Chokepoints_Data)",
+      "license": "IMF 저작권·이용 약관(imf.org/external/terms.htm) — 자료(data) 부분은 추출 허용 · 비상업 이용 · 상업 재사용은 허락 필요(2차 정리 · 원문 대조 [미확인] → terms-check 워크플로)",
+      "kogl": "해당 없음(IMF 약관)",
+      "commercial": "허락 필요 — 이 작업실은 판매 0(커리어 사이트)이라 비상업 범위",
+      "modify": "추정·가공 표기 조건으로 허용으로 읽음 [미확인]",
+      "checked": "2026-10-14 terms-check — imf.org 약관 화면 본문 추출 0자(스크립트 렌더) · FAQ 30,936자 받았으나 약관 문장 없음 → 원문 대조 [미확인] 그대로. 지면에 「IMF PortWatch」 출처 · 추정치 표기",
+      "used_by": [
+        "인천항 일일 맥박",
+        "초크포인트 충격"
+      ]
+    },
+    {
+      "id": "wb-ship-density",
+      "name": "World Bank — Global Shipping Traffic Density(AIS 2015-01~2021-02 · 0.005° 격자)",
+      "owner": "World Bank(IMF 세계 해상무역 모니터링 협력)",
+      "where": "datacatalog.worldbank.org 0037580",
+      "license": "CC BY 4.0",
+      "kogl": "해당 없음(CC BY 4.0)",
+      "commercial": "허용(출처 표기)",
+      "modify": "허용(출처 표기 · 가공 표시)",
+      "checked": "2026-10-14 terms-check — 카탈로그 화면 원문 「License : Creative Commons Attribution 4」 확인(data/collected/v3/terms_check.json)",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "copernicus-s2",
+      "name": "Copernicus Sentinel-2 L2A(AWS 공개 데이터 · sentinel-cogs)",
+      "owner": "ESA · 유럽연합 Copernicus",
+      "where": "registry.opendata.aws/sentinel-2-l2a-cogs · earth-search STAC",
+      "license": "Copernicus Sentinel 데이터 이용 약관 — 무료·전면 이용 허용, 「Contains modified Copernicus Sentinel data [연도]」 표기",
+      "kogl": "해당 없음",
+      "commercial": "허용",
+      "modify": "허용(가공 표기)",
+      "checked": "2026-10-14 terms-check — AWS 레지스트리 원문 「Access to Sentinel data is free, full and open」 확인 · 법적 고지 PDF 는 본문 추출 0자 [미확인]",
+      "used_by": [
+        "위성으로 본 인천 묘박지"
+      ]
+    },
+    {
+      "id": "iiac-air-country",
+      "name": "인천국제공항공사 국가별 항공 통계 서비스",
+      "owner": "인천국제공항공사",
+      "where": "공공데이터포털 15095071「인천국제공항공사_국가별 항공 통계 서비스」",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 세션이 데이터 상세 15095071 화면을 읽음 — 이용허락범위 제한 없음(data/collected/v3/api_probe.json · spec.license_text) · 조회 연산 getTotalNumberOfFlight(국가별 도착·출발 편수 · 화물기 pax_cargo=N) — 세션에서 연결이 끊겨 응답 미확인 · 2026-10-15 선장님: 파일데이터 15062056 으로 대체 — API 는 크론 재시험만, 미등록이면 버린다(선장님 손 목록에서 뺌)",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "iiac-freighter",
+      "name": "인천국제공항공사 화물기 정기운항편 일정 정보",
+      "owner": "인천국제공항공사",
+      "where": "공공데이터포털 15095051「인천국제공항공사_화물기 정기운항편 일정 정보」",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 세션이 데이터 상세 15095051 화면을 읽음 — 이용허락범위 제한 없음(data/collected/v3/api_probe.json · spec.license_text) · 운항 일정 조회(getCgoFltSchedArrivals)는 이 키로 HTTP 403 — 활용 신청 대상이 「화물기 정기운항편 현황 상세 조회(15114086)」일 수 있다 [미확인] · 2026-10-15 선장님: 파일데이터 15062056 으로 대체 — API 는 크론 재시험만, 미등록이면 버린다(선장님 손 목록에서 뺌)",
+      "used_by": [
+        "홈 인천 관문 라이브"
+      ]
+    },
+    {
+      "id": "iiac-route-cargo",
+      "name": "인천국제공항공사 항공사별 노선별 운송실적(월별 · 국가별 · 여객기/화물기 · 직화물+환적+우편)",
+      "owner": "인천국제공항공사",
+      "where": "공공데이터포털 15062056「인천국제공항공사_항공사별 노선별 운송실적」(파일데이터 CSV · 로그인 없이 다운로드 · 반기 갱신)",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(2026-10-15 선장님 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-15 선커밋(데이터 반영 전) — 반기 갱신이라 지면에 「○○년 ○월까지」를 적는다 · 홈 하늘 아크를 관세청 비중 대체에서 실측 항공화물로",
+      "used_by": [
+        "홈 인천 관문 라이브(하늘 아크)"
+      ]
+    },
+    {
+      "id": "kcs-exchange",
+      "name": "관세청 관세환율 정보",
+      "owner": "관세청",
+      "where": "공공데이터포털 15101230「관세청_관세환율정보(GW)」 · apis.data.go.kr/1220000/retrieveTrifFxrtInfo",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 2026-10-14 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-14 세션이 데이터 상세 15101230 화면을 읽음 — 이용허락범위 제한 없음(data/collected/v3/api_probe.json · spec.license_text)",
+      "used_by": [
+        "환율 파도 · 수입원가 계산기"
+      ]
+    },
+    {
+      "id": "kcs-nation",
+      "name": "관세청 국가별 수출입실적",
+      "owner": "관세청",
+      "where": "공공데이터포털 · apis.data.go.kr/1220000/nationtrade",
+      "license": "공공데이터포털 이용허락범위 — 데이터 상세 화면 대조 [미확인](같은 관세청 GW 묶음 15101641·15101230 은 「제한 없음」)",
+      "kogl": "미확인",
+      "commercial": "미확인",
+      "modify": "미확인",
+      "checked": "2026-10-14 선장님 활용 승인(관세청 6종) · 세션이 호출해 국가 237곳 응답 확인",
+      "used_by": [
+        "초크포인트 충격"
+      ]
+    },
+    {
+      "id": "kobc-kcci",
+      "name": "한국해양진흥공사 KCCI 지수(한국형 컨테이너 운임지수 · 항로 13)",
+      "owner": "한국해양진흥공사",
+      "where": "공공데이터포털 15131881「한국해양진흥공사_KCCI지수」(파일데이터 · 로그인 없이 다운로드)",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(메타 수정일 2026-09-04 · 2026-10-15 선장님 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-15 선커밋(데이터 반영 전) — 표기 「한국해양진흥공사 KCCI(공공데이터포털)」 · 지수는 달러 운임이 아니다 · 발표 매주 월 14시 · 파일 날짜가 늦으면 「마지막 반영 주」를 그대로 적는다",
+      "used_by": [
+        "환율 파도 · 수입원가 계산기(운임 파도)"
+      ]
+    },
+    {
+      "id": "pps-bid",
+      "name": "조달청 나라장터 입찰공고정보서비스(용역)",
+      "owner": "조달청",
+      "where": "공공데이터포털 15129394「조달청_나라장터 입찰공고정보서비스」 · apis.data.go.kr/1230000/ad/BidPublicInfoService/getBidPblancListInfoServc",
+      "license": "공공데이터포털 이용허락범위 「제한 없음」(데이터 상세 화면 · 메타 수정일 2026-06-29 · 2026-10-15 확인)",
+      "kogl": "유형 표시 없음",
+      "commercial": "허용(이용허락범위 「제한 없음」)",
+      "modify": "허용(이용허락범위 「제한 없음」)",
+      "checked": "2026-10-15 세션이 데이터 상세 15129394 화면을 읽음 — 이용허락범위 제한 없음 · 응답의 담당자 이름·전화·메일 칸은 받지도 싣지도 않는다(선커밋 ③-가) · 키는 Actions 빌드 때만",
+      "used_by": [
+        "입찰 레이더"
+      ]
+    },
+    {
+      "id": "kakaomobility-navi",
+      "name": "카카오모빌리티 길찾기 API(미래 운행 정보 · 자동차) — 등시선 내비 대조 통계만",
+      "owner": "카카오모빌리티",
+      "where": "apis-navi.kakaomobility.com/v1/future/directions · Actions(navi-check)가 빌드 때만 호출 · 키 = Actions 비밀 KAKAO_REST_KEY(앱 1598413)",
+      "license": "카카오 디벨로퍼스 운영정책 — 길찾기 결과 저장·캐싱 금지 쪽(데브톡 답변 인용 · 원문 사이트는 세션에서 닿지 않아 원문 대조 [미확인]) → 경로·OD별 시간·거리 저장 0 · 오차 통계만 싣는다",
+      "kogl": "해당 없음",
+      "commercial": "무료 쿼터 안 · 제휴 없이 이용 가능(카카오모빌리티 데브톡 답변 · 선장님 전달 2026-10-15) · 한 실행 호출 상한 60(코드)",
+      "modify": "원 응답을 싣지 않는다(통계로만 가공)",
+      "checked": "2026-10-15 세션 — 검색으로 운영정책 인용·쿼터표 요약 확인(미래 운행 정보 길찾기 일 5,000건) · 원문 [미확인]",
+      "used_by": [
+        "수도권 배송 등시선"
+      ]
+    },
+    {
+      "id": "searoute-marnet",
+      "name": "searoute 1.5.0 해상 경로망(Eurostat MARNET 기반) — 초크포인트 우회 거리",
+      "owner": "searoute 개발자 · Eurostat",
+      "where": "pypi searoute==1.5.0 · tools-build/choke_detour.py 가 빌드 때 계산(지면은 계산 결과만)",
+      "license": "Apache-2.0(라이브러리 메타데이터 원문 확인 2026-10-15)",
+      "kogl": "해당 없음",
+      "commercial": "허용(Apache-2.0)",
+      "modify": "허용(Apache-2.0)",
+      "checked": "2026-10-15 세션이 설치한 패키지 METADATA 의 License 줄을 읽음",
+      "used_by": [
+        "초크포인트 충격"
+      ]
+    },
+    {
+      "id": "kcs-tariff",
+      "name": "관세청 품목번호별 관세율표(기본·WTO·FTA 협정세율 · HSK 10단위)",
+      "owner": "관세청",
+      "where": "공공데이터포털 파일 데이터 15051179(XLSX) · tools-build/tariff_fetch.py 가 Actions 빌드 때 받아 지금 유효한 줄만 류별로 나눔",
+      "license": "공공누리 제1유형(출처표시) — 데이터 상세 화면(2026-10-15 Actions 가 읽음)",
+      "kogl": "제1유형",
+      "commercial": "허용(출처표시)",
+      "modify": "허용(출처표시)",
+      "checked": "2026-10-15 tariff-probe 워크플로가 화면 메타를 읽음 · 시트 2.12 · 38만 줄",
+      "used_by": [
+        "환율 파도 · 수입원가 계산기"
       ]
     }
   ]

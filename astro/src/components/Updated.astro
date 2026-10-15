@@ -1,6 +1,7 @@
 ---
 // 「마지막 갱신일」 꼬리표 — 차트·지도·표 위젯마다 하나(기준 14 · 빌드 검사가 누락을 센다: data-updated).
+// 「마지막 갱신 YYYY-MM-DD」는 한 덩어리로 묶어 줄바꿈하지 않는다(2026-10-14 채팅 검수 — inline-flex 라 「마지막/갱신/2026-/10-14」로 쪼개졌다).
 interface Props { date: string; source?: string }
 const { date, source } = Astro.props;
 ---
-<span class="updated" data-updated={date}>마지막 갱신 <time datetime={date}>{date}</time>{source && <> · {source}</>}</span>
+<span class="updated" data-updated={date}><span class="updated__k">마지막 갱신 <time datetime={date}>{date}</time></span>{source && <> · {source}</>}</span>

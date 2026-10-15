@@ -1,12 +1,12 @@
 // 맥주 게임(정체성 전환 정본 §3-1) — G1 규칙 파일 · G2 재현 · G3 증폭비·비용 고정 · G4 서버·쿠키·외부 요청 0 · G5 360px · G6 만든 사람 노트·AI 표기
-// · §2-1 화면 수치 = 데이터 파일. 지면은 lab/(SOUNDING_LAB=1 빌드에만) — 공개 배포물에는 없다.
+// · §2-1 화면 수치 = 데이터 파일. 지면 = /sim/beer-game.html(2026-10-14 공개 전환).
 import { test, expect } from "@playwright/test";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const req = createRequire(import.meta.url);
 const B = req("../assets/js/beer-game.js"), R = req("../data/sim/beer-game.json");
-const PAGE = "/incheon-port-analysis/lab/beer-game.html";
+const PAGE = "/incheon-port-analysis/sim/beer-game.html";
 
 test("G1: 규칙 상수는 data/ 파일 하나 · 출처(Sterman 1989, Management Science 35(3))", () => {
   expect(R.stages.map((s) => s.id)).toEqual(["retailer", "wholesaler", "distributor", "factory"]);
@@ -42,7 +42,7 @@ test("G4: 주소 값 ↔ 판 설정(서버 0) · 이상한 값은 잘라 낸다"
 });
 
 test("§2-1: 지면에 보이는 숫자는 전부 규칙 파일에 있다", () => {
-  const r = check(readFileSync("astro/dist/lab/beer-game.html", "utf-8"), [readFileSync("data/sim/beer-game.json", "utf-8")]);
+  const r = check(readFileSync("astro/dist/sim/beer-game.html", "utf-8"), [readFileSync("data/sim/beer-game.json", "utf-8")]);
   expect(r.checked).toBeGreaterThan(5);
   expect(r.bad).toEqual([]);
 });

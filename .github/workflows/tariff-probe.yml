@@ -1,0 +1,47 @@
+# HS 관세율 자동 채움(P1 ② · 2026-10-15) — 공공데이터포털에서 관세율표 원천 찾기. 세션은 data.go.kr 에 못 닿는다. 키 = DATA_GO_KR_KEY(로그·산출물에 안 찍는다).
+name: tariff-probe
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/tariff_probe.py", "tools-build/tariff_fetch.py", ".github/workflows/tariff-probe.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: tariff-probe-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 찾기·명세·시험 호출
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        timeout-minutes: 10
+        run: python tools-build/tariff_probe.py 2>&1 | tee /tmp/log.txt
+      - name: 관세율표 파일 받기(15051179 · 키 불필요 · 열 이름·표본만)
+        if: always()
+        timeout-minutes: 8
+        run: pip install -q openpyxl==3.1.5 && python tools-build/tariff_fetch.py --build 2>&1 | tee -a /tmp/log.txt
+      - name: 키가 산출물·로그에 없는지
+        if: always()
+        env:
+          K: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          [ -z "$K" ] && exit 0
+          if grep -rqF "$K" data/ /tmp/log.txt 2>/dev/null; then echo "::error::키 원문이 산출물·로그에 있다 — 커밋하지 않는다"; exit 1; fi
+      - name: 결과 커밋(그 브랜치에 · 중간 결과도)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/collected/tariff_probe.json data/collected/tariff_head.json data/derived/tariff data/derived/tariff_codes.json
+          git diff --cached --quiet && exit 0
+          git commit -m "관세율표 원천 탐색 — tariff-probe 워크플로(후보·명세·시험 호출 · 키 0)"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
