@@ -14,6 +14,9 @@ import datetime as dt
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):  # 운영자 콘솔(cp949)에서 한글 출력이 터지지 않게(boot_check 「운영자 콘솔 안전」)
+    sys.stdout.reconfigure(encoding="utf-8")
+
 ROOT = Path(__file__).resolve().parent.parent
 SERIES = ROOT / "analysis" / "terminal_monthly_long.csv"
 LEDGER = ROOT / "data" / "forecast" / "incheon_container_teu.csv"

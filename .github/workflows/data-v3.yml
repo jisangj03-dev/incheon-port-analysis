@@ -1,0 +1,122 @@
+# 실무 도구 v3 데이터(2026-10-14 선장님 최종 위임) — 이 클라우드 세션은 PortWatch·세계은행·Geofabrik 이 막혀 Actions 에서 받고 가공한다.
+# 일마다 하나씩(병렬) → 결과 파일을 산출물로 넘기고 → 마지막 일이 그 브랜치에 한 번 커밋한다. 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
+# 자동 갱신: 매주 월(PortWatch 일별 · 입찰 레이더 스냅샷) · 매월 17일(나머지) — 예약 실행은 기본 브랜치에서 돌고 PR 을 연다(공개 전환 뒤).
+name: data-v3
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "한 일만(비우면 전부) — terms|portwatch|density|osm|apis|s2|kcci|iiac|radar|dart"
+        required: false
+        default: ""
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/v3/**", ".github/workflows/data-v3.yml", "tools-build/requirements-geo.txt"]
+  schedule:
+    - cron: "17 1 * * 1"
+    - cron: "41 2 17 * *"
+permissions:
+  contents: write
+  pull-requests: write
+concurrency:
+  group: data-v3-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  fetch:
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [terms, portwatch, density, osm, apis, s2, kcci, iiac, radar, dart]
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ matrix.job == 'dart' && 60 || 40 }}  # dart = 기업개황 3천여 건
+    steps:
+      - uses: actions/checkout@v5
+        if: inputs.only == '' || inputs.only == matrix.job
+      - uses: actions/setup-python@v6
+        if: inputs.only == '' || inputs.only == matrix.job
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tools-build/requirements-geo.txt
+      - name: 판정 v3 도구(고정판) · 실행 증명
+        if: inputs.only == '' || inputs.only == matrix.job
+        run: |
+          pip install -q -r tools-build/requirements-geo.txt
+          python tools-build/geo_proof.py | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: 받기·가공 — ${{ matrix.job }}
+        if: inputs.only == '' || inputs.only == matrix.job
+        working-directory: tools-build/v3
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+          OPENDART_KEY: ${{ matrix.job == 'dart' && secrets.OPENDART_KEY || '' }}  # ③-나 · dart 일에만 넘긴다
+        run: |
+          set -o pipefail
+          case "${{ matrix.job }}" in
+            terms) python terms_check.py ;;
+            portwatch) python portwatch.py && python pulse_derive.py ;;
+            density) python ship_density.py ;;
+            osm) python osm_iso.py ;;
+            apis) python kr_apis.py && python race_derive.py && python fx_derive.py ;;
+            s2) python s2_anchorage.py --months 12 ;;
+            kcci) pip install -q xlrd==2.0.2 && python kcci.py && python fx_derive.py ;;
+            iiac) python iiac_cargo.py && (cd ../.. && python tools-build/flows_derive.py) ;;
+            radar) python bid_radar.py --selftest && python bid_radar.py ;;
+            dart) python dart_firms.py --selftest && python dart_firms.py ;;
+          esac 2>&1 | tee /tmp/log.txt
+          echo "## ${{ matrix.job }}" >> "$GITHUB_STEP_SUMMARY"; tail -40 /tmp/log.txt >> "$GITHUB_STEP_SUMMARY"
+      - name: 키가 산출물에 없는지
+        if: inputs.only == '' || inputs.only == matrix.job
+        env:
+          K: ${{ secrets.DATA_GO_KR_KEY }}
+          K2: ${{ secrets.OPENDART_KEY }}
+        run: |
+          for k in "$K" "$K2"; do
+            [ -z "$k" ] && continue
+            if grep -rqF "$k" data/ content-queue/ /tmp/log.txt 2>/dev/null; then echo "::error::키 원문이 산출물·로그에 있다 — 커밋하지 않는다"; exit 1; fi
+          done
+      - name: 결과 묶기(저장소 기준 경로 그대로)
+        if: always() && (inputs.only == '' || inputs.only == matrix.job)
+        run: |
+          git add -N . >/dev/null 2>&1 || true
+          F=$(git status --porcelain --untracked-files=all -- data/collected/v3 data/derived astro/public/media/s2 | awk '{print $2}')
+          echo "$F"; [ -n "$F" ] && tar -cf /tmp/out.tar $F || tar -cf /tmp/out.tar --files-from /dev/null
+      - uses: actions/upload-artifact@v4
+        if: always() && (inputs.only == '' || inputs.only == matrix.job)
+        with:
+          name: v3-${{ matrix.job }}
+          path: /tmp/out.tar
+          retention-days: 7
+  commit:
+    needs: fetch
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: v3-*
+          path: /tmp/v3
+      - name: 합쳐서 커밋(그 브랜치에 · 예약 실행이면 PR)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          for t in /tmp/v3/*/out.tar; do tar -tf "$t" | head -20; tar -xf "$t"; done
+          ls -la data/collected/v3 data/derived astro/public/media/s2 2>/dev/null | head -60
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python3 tools-build/v3/choke_derive.py || echo "초크포인트 파생 실패 — 지난 파일 유지"
+          # B10 콘텐츠 큐 — 기준일이 바뀐 도구만 초안(LinkedIn·블로그·Threads). 데이터 밖 숫자가 있으면 그 초안은 안 쓴다 · 게시 0(선장님)
+          python3 tools-build/content_queue.py || echo "::warning::콘텐츠 큐 — 데이터 밖 숫자로 버린 초안이 있다(로그)"
+          git add data/collected/v3 data/derived astro/public/media/s2 content-queue 2>/dev/null || true
+          git diff --cached --quiet && { echo "바뀐 것 없음" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          if [ "$EVENT" = "schedule" ]; then
+            b="bot/data-v3-$(date -u +%Y%m%d)"; git checkout -b "$b"
+            git commit -m "데이터 v3 자동 갱신 — data-v3 워크플로($(date -u +%F))"
+            git push -u origin "$b"
+            gh pr create --title "데이터 v3 자동 갱신 $(date -u +%F)" --body "data-v3 예약 실행이 받은 원천 갱신(PortWatch·밀도·등시선·공공데이터포털·입찰 레이더) + 갱신된 도구의 콘텐츠 큐 초안(content-queue/ · 게시 = 선장님). 검토 뒤 머지." --base "${GITHUB_REF_NAME}" --head "$b" || true
+          else
+            git commit -m "데이터 v3 — data-v3 워크플로 결과(PortWatch · 세계은행 밀도 · OSM 등시선 · 공공데이터포털 탐색 · 약관 원문)"
+            # 세션도 같은 파생 파일을 고치는 일이 있다(2026-10-15 #12: import_cost.json 충돌로 커밋 실패) — 충돌하면 방금 받은 쪽(봇)을 쓴다
+            git pull -q --rebase -X theirs origin "${GITHUB_REF_NAME}" && git push
+          fi

@@ -19,7 +19,16 @@ function planted(rel: string): string {
   } catch { return lastUpdated(rel); }
 }
 
-export function rooms() { return raw().rooms as { id: string; kind: string; title: string; lead: string; href: string }[]; }
+export type Item = { title: string; lead: string; href: string; q?: string; who?: string; gate?: string };
+// 항목의 needs = 데이터 파일(상대 경로). 그 파일이 없거나 ok=false(선커밋 폐기 규칙 · 예: 표본 5곳 미만)면 목록에서 뺀다 — 없는 지면으로 가는 링크를 만들지 않는다
+export function ready(it: { needs?: string }): boolean {
+  if (!it.needs) return true;
+  try { return JSON.parse(readFileSync(join(repoRoot(), it.needs), "utf-8")).ok !== false; } catch { return false; }
+}
+export function rooms() {
+  return (raw().rooms as { id: string; kind: string; title: string; lead: string; href: string; items?: (Item & { needs?: string })[] }[]).map((r) => (r.items ? { ...r, items: r.items.filter(ready) } : r));
+}
+export const room = (id: string) => rooms().find((r) => r.id === id)!;
 export function route() { return raw().route; }
 
 export function notes(): Note[] {

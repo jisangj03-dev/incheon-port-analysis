@@ -1,0 +1,61 @@
+# 도구 시연 영상(⑤ · 선커밋 docs/측심_전권위임_단계기준_선커밋_20261015.md ⑤-상세) — 사이트를 빌드하고 도구 지면을 조작하며 녹화 →
+# Remotion(4.0.530 고정 · video/)으로 합성 → mp4 를 산출물로 남긴다. 게시 = 선장님(여기서는 어디에도 올리지 않는다) · 돈 0(로컬 렌더).
+name: reels
+on:
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "한 편만(비우면 셋) — chokepoint|import-cost|bid-radar"
+        required: false
+        default: ""
+  push:
+    branches: ["claude/**"]
+    paths: ["video/**", "tests/capture/record-reels.mjs", ".github/workflows/reels.yml"]
+permissions:
+  contents: read
+concurrency:
+  group: reels-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            video/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+        working-directory: video
+      - name: 사이트 빌드 · 도구 카드(자막 숫자의 출처 og/cards.json)
+        run: |
+          npm run site:build
+          npx playwright install --with-deps chromium
+          npm run site:og
+      - name: 녹화(도구 지면 조작 · 고해상도 스크린샷을 찍은 시각대로 엮음)
+        env:
+          REELS_ONLY: ${{ inputs.only }}
+          FFMPEG: video/node_modules/@remotion/compositor-linux-x64-gnu/ffmpeg
+        run: node tests/capture/record-reels.mjs
+      - name: 합성 · 렌더(자막 숫자 검사를 통과한 편만)
+        env:
+          REELS_ONLY: ${{ inputs.only }}
+        working-directory: video
+        run: |
+          node render.mjs
+          echo "## 도구 시연 영상" >> "$GITHUB_STEP_SUMMARY"
+          node -e 'const m=require("./out/manifest.json");for(const x of m.made)console.log(`- ${x.file} · ${x.seconds}초 · ${x.q} · ${x.num} ${x.unit}`);if(m.skipped.length)console.log("- 건너뜀: "+m.skipped.join(" / "))' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reels
+          path: video/out/
+          retention-days: 30

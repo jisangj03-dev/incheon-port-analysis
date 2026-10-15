@@ -1,0 +1,16 @@
+{
+  "name": "sounding-video",
+  "private": true,
+  "description": "측심 도구 시연 영상(⑤) — Playwright 녹화를 Remotion 으로 합성. 렌더는 Actions(reels.yml). 버전 고정.",
+  "scripts": {
+    "render": "node render.mjs"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.530",
+    "@remotion/renderer": "4.0.530",
+    "@remotion/bundler": "4.0.530",
+    "remotion": "4.0.530",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

@@ -9,6 +9,7 @@
   · ai_coauthored      본문에 「Co-Authored-By: Claude」 꼬리가 있는 커밋 — AI 세션이 만든 것
   · bot_routine        github-actions[bot] 이 만든 커밋 — 예약·자동 루틴(수집·추출)
   · human_only         둘 다 아닌 커밋 — 사람이 직접 만든 것
+  · corrections      제목에 정정·되돌림이 적힌 커밋(정정·바로잡·되돌·롤백·Revert·fix) — 반대 지표(틀린 것을 고친 횟수 · 하한)
   · prs_merged         제목 끝 「(#번호)」 커밋 수(스쿼시 머지) + 「Merge pull request #」 병합 커밋 수
   · first_day / last_day  기간
 """
@@ -21,7 +22,7 @@ SEP = "\x1e"
 
 def count(log_text):
     commits = [c for c in log_text.split(SEP) if c.strip()]
-    s = {"commits_total": 0, "ai_coauthored": 0, "bot_routine": 0, "human_only": 0, "prs_merged": 0, "days": set()}
+    s = {"commits_total": 0, "ai_coauthored": 0, "bot_routine": 0, "human_only": 0, "corrections": 0, "prs_merged": 0, "days": set()}
     for c in commits:
         head, _, body = c.strip().partition("\n")
         parts = head.split("\x1f")
@@ -35,6 +36,7 @@ def count(log_text):
         s["commits_total"] += 1
         s["days"].add(date)
         if re.search(r"\(#\d+\)\s*$", subject): s["prs_merged"] += 1
+        if re.search(r"정정|바로잡|되돌|롤백|^Revert|\bfix", subject, re.I): s["corrections"] += 1
         ai = bool(re.search(r"^Co-Authored-By:\s*Claude", body, re.M | re.I))
         bot = author_kind == "bot"
         s["ai_coauthored"] += ai
@@ -65,7 +67,8 @@ def main():
     s.update({"ref": ref, "ref_sha": sha, "counted": datetime.date.today().isoformat(),
               "command": f"python tools-build/ops_stats.py --ref {ref}",
               "human_share_pct": round(100 * s["human_only"] / s["commits_total"], 1) if s["commits_total"] else None,
-              "ai_share_pct": round(100 * s["ai_coauthored"] / s["commits_total"], 1) if s["commits_total"] else None})
+              "ai_share_pct": round(100 * s["ai_coauthored"] / s["commits_total"], 1) if s["commits_total"] else None,
+              "corrections_pct": round(100 * s["corrections"] / s["commits_total"], 1) if s["commits_total"] else None})
     json.dump(s, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(s, ensure_ascii=False))
     return 0
@@ -75,11 +78,12 @@ def selftest():
     t = SEP.join([
         "", "a\x1f2026-10-01\x1fperson\x1f지도 고침 (#30)\x1f1\n\nCo-Authored-By: Claude Opus <x>\n",
         "b\x1f2026-10-02\x1fbot\x1f수집 결과\x1f1\n",
-        "c\x1f2026-10-02\x1fperson\x1f오타\x1f1\n",
+        "c\x1f2026-10-02\x1fperson\x1f수치 정정\x1f1\n",
         "d\x1f2026-10-03\x1fperson\x1fMerge pull request #31 from x\x1f2\n",
     ])
     s = count(t)
     assert (s["commits_total"], s["ai_coauthored"], s["bot_routine"], s["human_only"], s["prs_merged"], s["active_days"]) == (3, 1, 1, 1, 2, 2), s
+    assert s["corrections"] == 1, s
     print("selftest 1/1 ok"); return 0
 
 
