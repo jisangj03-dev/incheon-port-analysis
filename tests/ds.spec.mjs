@@ -164,7 +164,8 @@ test("공급망 따라가기: 단계 · 데이터 없음 구간 · 반대 지표
   for (const s of D.steps.filter((x) => !x.data)) await expect(page.locator(`[data-s="${s.id}"]`)).toContainText("이 구간 데이터 없음");
   await expect(page.locator(".counter")).toContainText("반대 지표");
   await page.evaluate(() => { const el = document.querySelector('[data-s="customs"]'); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); });
-  await expect.poll(() => page.getAttribute(".story", "data-step"), { timeout: 5_000 }).toBe("customs");
+  // [2026-10-15 · QA 149] CI 합성기가 굶으면 스크롤 뒤 rAF 가 늦어 5초 안에 단계가 안 넘어갔다 → 같은 스크롤 위치에서 단계 고르기를 직접 부른다(판정 그대로)
+  await expect.poll(async () => { await page.evaluate(() => window.__followPick?.()); return page.getAttribute(".story", "data-step"); }, { timeout: 15_000 }).toBe("customs");
 });
 
 // 선박 리플레이(§3-3) — 월 집계라고 적었다 · 원천 행 수·기간이 수집 CSV 와 맞다(V1) · 막대·재생으로 달이 바뀐다 · 반대 지표
