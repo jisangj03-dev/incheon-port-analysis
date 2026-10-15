@@ -16,6 +16,40 @@ def fetch(url, binary=False, timeout=60):
         b = r.read(); return b if binary else b.decode("utf-8", "replace")
 
 
+def build(blob, out):
+    """2단계 — 지금 유효한 줄(적용개시일 ≤ 오늘 ≤ 적용만료일)만 HS 2단위(류)별 파일로: data/derived/tariff/<류>.json = {품목번호: {구분: 세율 | "종량"}}.
+    종가세(관세율 %)만 계산기에 쓴다 — 단위당세액(종량세)·기준가격이 있는 줄은 "종량" 으로 표시만. 구분 코드별 줄 수는 tariff_codes.json."""
+    import openpyxl, datetime
+    today = datetime.date.today().strftime("%Y%m%d")
+    wb = openpyxl.load_workbook(io.BytesIO(blob), read_only=True)
+    ws = wb.worksheets[-1]  # 마지막 시트 = 가장 새 판(2026-10-15 실측: 시트 1.1 · 2.12 — 같은 열)
+    rows = ws.iter_rows(values_only=True); head = [str(c) for c in next(rows)]
+    ix = {k: head.index(k) for k in ("품목번호", "관세율구분", "관세율", "단위당세액", "기준가격", "적용국가구분", "적용개시일", "적용만료일")}
+    by, codes, n_all, n_now = {}, collections.Counter(), 0, 0
+    for r in rows:
+        n_all += 1
+        hs = str(r[ix["품목번호"]] or "").strip(); code = str(r[ix["관세율구분"]] or "").strip()
+        if len(hs) != 10 or not code: continue
+        a, b = str(r[ix["적용개시일"]] or "0"), str(r[ix["적용만료일"]] or "99999999")
+        if not (a <= today <= b): continue
+        n_now += 1; codes[code] += 1
+        rate = r[ix["관세율"]]
+        val = "종량" if (r[ix["단위당세액"]] not in (None, "", 0) or r[ix["기준가격"]] not in (None, "")) else (float(rate) if rate not in (None, "") else None)
+        if val is None: continue
+        d = by.setdefault(hs[:2], {}).setdefault(hs, {})
+        # 같은 품목·같은 구분이 둘이면(기간 겹침 등) 낮은 세율이 아니라 먼저 나온 것을 둔다 — 겹침 수는 따로 센다
+        if code in d: out.setdefault("dup", 0); out["dup"] += 1; continue
+        d[code] = int(val) if isinstance(val, float) and val.is_integer() else val
+    od = os.path.join(ROOT, "data/derived/tariff"); os.makedirs(od, exist_ok=True)
+    for ch, m in by.items():
+        json.dump(m, open(os.path.join(od, f"{ch}.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    json.dump({"source": "관세청_품목번호별 관세율표(공공데이터포털 15051179 · 공공누리 제1유형 출처표시)", "sheet": ws.title, "asof": today,
+               "rows_all": n_all, "rows_now": n_now, "hs10": sum(len(m) for m in by.values()), "chapters": sorted(by), "codes": dict(codes.most_common())},
+              open(os.path.join(ROOT, "data/derived/tariff_codes.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    out["build"] = {"chapters": len(by), "hs10": sum(len(m) for m in by.values()), "codes": len(codes)}
+    print("관세율표 스냅샷", out["build"])
+
+
 def main():
     out = {"data_id": DID, "steps": []}
     h = fetch(f"https://www.data.go.kr/data/{DID}/fileData.do")
@@ -48,6 +82,8 @@ def main():
             except Exception as e:
                 out["steps"].append({"url": u, "error": str(e)[:160]})
         if blob: break
+    if blob and "--build" in sys.argv:
+        build(blob, out)
     if blob:
         import openpyxl
         wb = openpyxl.load_workbook(io.BytesIO(blob), read_only=True)
