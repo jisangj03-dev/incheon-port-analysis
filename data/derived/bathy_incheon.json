@@ -1,5 +1,5 @@
 {
- "retrieved": "2026-10-14",
+ "retrieved": "2026-10-15",
  "bbox": [
   126.2,
   37.15,
@@ -78,46 +78,7 @@
   20,
   50
  ],
- "features": 69,
- "last_attempt": {
-  "retrieved": "2026-10-14",
-  "tried": [
-   {
-    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/srtm15plus",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://coastwatch.pfeg.noaa.gov/erddap/griddap/etopo180",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/ETOPO_2022_v1_15s",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/GEBCO_2020",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/srtm15plus",
-    "error": "HTTP Error 403: "
-   },
-   {
-    "url": "https://upwell.pfeg.noaa.gov/erddap/griddap/etopo180",
-    "error": "HTTP Error 403: "
-   }
-  ],
-  "why": "라이선스 문구가 accept 에 맞는 격자를 받지 못했다"
- },
  "min_extent_deg": 0.02,
  "simplify_deg": 0.0006,
- "refined": "393줄 → 69줄(같은 자료를 다시 거름 · --refine)"
+ "features": 62
 }
