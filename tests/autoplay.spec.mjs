@@ -19,8 +19,10 @@ test("홈: 손대지 않아도 지도가 받아져 돌고(수도권 첫 화면) 
   await page.locator("#fm").scrollIntoViewIfNeeded(); // 좁은 화면은 지도가 글 아래에 있다 — 화면 밖 좌표엔 손이 안 닿는다
   const box = await page.locator("#fm").boundingBox();
   const cx = box.x + box.width * 0.7, cy = box.y + box.height * 0.6;
+  const n0 = await page.evaluate(() => window.__fmStops || 0);
   await page.mouse.move(cx, cy); await page.mouse.down(); await page.mouse.move(cx + 60, cy, { steps: 4 }); await page.mouse.up();
-  expect((await st()).tour, "끌었는데 둘러보기가 안 멈췄다").toBe(false);
+  // 끌면 멈춘다 — CI 부하로 끌기 자체가 6초를 넘기면 이미 다시 돌고 있을 수 있어 「멈춘 기록」으로 본다
+  expect(await page.evaluate(() => window.__fmStops || 0), "끌었는데 둘러보기가 안 멈췄다").toBeGreaterThan(n0);
   // 6초 뒤 다시
   const ms = await page.evaluate(() => window.__fmResumeMs);
   expect(ms).toBe(6000);
@@ -73,8 +75,11 @@ test("선박 리플레이: 클릭 없이 달이 흐른다 · 동작 줄이기면
 });
 
 // [2026-10-15 P0 · 단추 다섯] 지도 단추(아시아·수도권·인천·멈춤·관문 숫자)가 숫자판·범례와 겹치지 않는다 — 좁은 화면에서 두 줄로 넘쳐 범례를 덮었다
-test("홈: 지도 단추가 숫자판·범례와 겹치지 않는다", async ({ page }) => {
+for (const w of [0, 320]) test(`홈: 지도 단추가 숫자판·범례와 겹치지 않는다${w ? ` · ${w}px` : ""}`, async ({ page }, info) => {
+  if (w && info.project.name !== "iphone-13") return;
+  if (w) await page.setViewportSize({ width: w, height: 640 });
   await page.goto(`${B}/`, { waitUntil: "load" });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), "가로 넘침").toBeLessThanOrEqual(0);
   const r = await page.evaluate(() => {
     const box = (e) => e.getBoundingClientRect();
     const btns = [...document.querySelectorAll(".live__ctl .s-btn")].map(box), hud = [...document.querySelectorAll(".live__hud > p")].map(box);

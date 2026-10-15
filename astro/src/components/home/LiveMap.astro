@@ -183,7 +183,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const resume = () => { if (!fm || hold || reduce) return; fm.touring = true; fm.tourT = 0; stage.dataset.touring = "1"; };
   const stopTour = () => {
     if (!fm) return;
-    fm.touring = false; fm.tour = null; stage.dataset.touring = "0";
+    fm.touring = false; fm.tour = null; stage.dataset.touring = "0"; (window as any).__fmStops = ((window as any).__fmStops || 0) + 1; // 시험 손잡이 — 멈춘 횟수
     clearTimeout(resumeT); if (!hold && !reduce) resumeT = window.setTimeout(resume, RESUME_MS);
   };
   (window as any).__fmResumeMs = RESUME_MS;
@@ -349,5 +349,10 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__ctl { flex-wrap: nowrap; }
     .live__ctl .s-btn { white-space: nowrap; flex: 0 0 auto; }
     .live__panel { top: auto; bottom: 8px; transform: none; left: 16px; right: 16px; width: auto; }
+  }
+  /* 아주 좁은 화면(320) — 단추 다섯이 한 줄에 들게 여백을 줄인다(출고 검사 가로 넘침 0) */
+  @media (max-width: 360px) {
+    .live__ctl { gap: 4px; }
+    .live__ctl .s-btn { padding: 0 7px; font-size: 12.5px; }
   }
 </style>
