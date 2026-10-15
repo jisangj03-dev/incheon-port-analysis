@@ -1,7 +1,7 @@
 // 도구 시연 영상 녹화(⑤ · 선커밋 ⑤-상세) — 빌드된 사이트의 도구 지면을 조작하며 Playwright 로 녹화한다.
 // 편마다 세로(9:16)·정사각(1:1) 두 판 · 조작한 시각(ms)을 표지로 남긴다 → video/public/rec/<편>-<판>.mp4 · .json
 // [2026-10-15 실측] Playwright recordVideo·CDP 화면 중계는 헤드리스에서 기기 배율(DPR)을 무시해 432px 로 찍힌다 → 고해상도 스크린샷을
-// 쉬지 않고 찍어(초당 12~16장) 찍은 시각대로 ffmpeg 로 엮는다(30fps 로 채움). 조작은 실제 시각으로 돈다.
+// 쉬지 않고 찍어(초당 12~16장) 찍은 시각대로 ffmpeg 로 엮는다(출력 -r 30 으로 채움 · Remotion 동봉 ffmpeg 에는 fps 필터가 없다). 조작은 실제 시각으로 돈다.
 // Remotion(video/)이 이 녹화와 표지로 자막을 맞춘다. 외부 요청은 막는다(비콘 포함 — 영상에 필요 없다).
 //   node tests/capture/record-reels.mjs [dist]      시험 서버를 스스로 띄웠다 내린다
 import { chromium } from "@playwright/test";
@@ -68,7 +68,7 @@ for (const [id, R] of Object.entries(REELS)) {
       shots.forEach(([at, buf], i) => { const f = `f${String(i).padStart(5, "0")}.jpg`; writeFileSync(join(tmp, f), buf); const nx = i + 1 < shots.length ? shots[i + 1][0] : marks.done; lines.push(`file '${f}'`, `duration ${Math.max(0.001, (nx - at) / 1000).toFixed(3)}`); });
       lines.push(`file 'f${String(shots.length - 1).padStart(5, "0")}.jpg'`);
       writeFileSync(join(tmp, "list.txt"), lines.join("\n") + "\n");
-      const r = spawnSync(FFMPEG, ["-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", join(tmp, "list.txt"), "-vf", `scale=${F.size.width}:${F.size.height}:flags=lanczos,fps=30`, "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-movflags", "+faststart", join(OUT, `${id}-${fmt}.mp4`)], { stdio: "inherit" });
+      const r = spawnSync(FFMPEG, ["-loglevel", "error", "-y", "-f", "concat", "-safe", "0", "-i", join(tmp, "list.txt"), "-vf", `scale=${F.size.width}:${F.size.height}:flags=lanczos`, "-r", "30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20", "-movflags", "+faststart", join(OUT, `${id}-${fmt}.mp4`)], { stdio: "inherit" });
       if (r.status !== 0) throw new Error(`ffmpeg ${r.status}`);
       writeFileSync(join(OUT, `${id}-${fmt}.json`), JSON.stringify({ id, fmt, size: F.size, fps_captured: +(shots.length / (marks.done / 1000)).toFixed(1), marks }, null, 1));
       console.log(`녹화 ${id}-${fmt} ${(marks.done / 1000).toFixed(1)}초 · ${shots.length}장(${(shots.length / (marks.done / 1000)).toFixed(1)}/초)`, Object.keys(marks).join(" "));
