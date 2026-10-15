@@ -19,7 +19,9 @@ function planted(rel: string): string {
   } catch { return lastUpdated(rel); }
 }
 
-export function rooms() { return raw().rooms as { id: string; kind: string; title: string; lead: string; href: string }[]; }
+export type Item = { title: string; lead: string; href: string; q?: string; who?: string; gate?: string };
+export function rooms() { return raw().rooms as { id: string; kind: string; title: string; lead: string; href: string; items?: Item[] }[]; }
+export const room = (id: string) => rooms().find((r) => r.id === id)!;
 export function route() { return raw().route; }
 
 export function notes(): Note[] {

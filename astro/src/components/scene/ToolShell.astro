@@ -1,0 +1,47 @@
+---
+// 실무 도구 한 장의 꼴(2026-10-14 선장님 최종 위임 · 판정 기준 선커밋 §2) — 실무 질문 한 줄 → 3초 답(움직이는 그림 · 슬롯 "answer") →
+// 조작(슬롯 "controls") → 원문·CSV·갱신일(Trust) → 참고용·자문 아님 → (지면 끝 연락은 Base 의 AskTail).
+// 첫 화면에 질문·숫자·그림이 다 들어오게 머리를 짧게 둔다. 그림은 정지 화면 먼저, 움직임은 스크립트가 받은 뒤.
+import Trust from "./Trust.astro";
+import { aiMark } from "../../lib/profile";
+import { abs } from "../../lib/site";
+interface Props { id: string; who: string; q: string; lead?: string; updated: string; asOf?: string; source: string; csv: string; csvName: string; note?: string; advice?: boolean; limits: string; how: string }
+const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how } = Astro.props;
+// 퍼가기(B7) — 이 지면 주소의 끝 이름 = 퍼가기 지면 이름(og-cards.mjs 가 도구 목록 rooms.json 의 id 로 쓴다)
+const slug = Astro.url.pathname.replace(/\/$/, "").split("/").pop()!.replace(/\.html$/, "");
+const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측심 도구 — ${q.replace(/"/g, "&quot;")}" width="100%" height="460" style="border:0" loading="lazy"></iframe>`;
+---
+<article class="s-wrap tool" data-content={`tool-${id}`} data-tool={id}>
+  <header class="tool__head">
+    <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof">{asOf} 기준</b></>}</p>
+    <h1 class="s-prose tool__q">{q}</h1>
+    {lead && <p class="s-lead s-prose tool__lead">{lead}</p>}
+  </header>
+  <div class="tool__answer"><slot name="answer" /></div>
+  <div class="tool__controls"><slot name="controls" /></div>
+  <slot />
+  <footer class="tool__foot">
+    <Trust updated={updated} source={source} csv={csv} csvName={csvName} note={note} />
+    <details class="tool__embed"><summary>퍼가기 — 이 도구의 카드를 내 글에 싣기</summary><label>복사해서 붙여 넣는 코드(분석 스크립트 없음)<textarea readonly rows="3">{embedCode}</textarea></label></details>
+    {advice && <p class="tool__advice"><b>참고용입니다.</b> 이 계산은 공개 자료로 만든 어림이며 법률·세무·관세 자문이 아닙니다. 실제 거래는 관세사·세무사 등 자격자에게 확인하세요.</p>}
+    <dl class="s-maker" data-maker-note>
+      <dt>어떻게</dt><dd data-note="how">{how}</dd>
+      <dt>한계</dt><dd data-note="limits">{limits}</dd>
+    </dl>
+    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+  </footer>
+</article>
+<style>
+  .tool { padding-top: var(--s-5); padding-bottom: var(--s-6); }
+  .tool__head { max-width: 52rem; }
+  .tool__q { font-size: clamp(26px, 3.2vw, 42px); line-height: 1.25; margin: var(--s-2) 0 var(--s-3); }
+  .tool__lead { margin: 0 0 var(--s-4); }
+  .tool__asof { color: var(--s-signal); font-weight: 600; }
+  .tool__answer { position: relative; }
+  .tool__controls { margin: var(--s-4) 0 var(--s-5); }
+  .tool__foot { margin-top: var(--s-6); max-width: 52rem; display: grid; gap: var(--s-4); }
+  .tool__embed { font-size: var(--s-t-cap); color: var(--s-ink-2); } .tool__embed summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+  .tool__embed textarea { width: 100%; box-sizing: border-box; margin-top: 4px; font: 12px/1.5 ui-monospace, monospace; color: var(--s-ink); background: transparent; border: 1px solid var(--s-rule); padding: 6px; }
+  .tool__advice { border-left: 3px solid var(--s-signal); padding-left: var(--s-4); margin: 0; }
+  @media (max-width: 720px) { .tool { padding-top: var(--s-4); } .tool__q { font-size: 24px; } .tool__lead { font-size: 15.5px; } }
+</style>
