@@ -55,7 +55,8 @@ function camera(R) {
     const s = at((i / FPS) * 1000), [rx, ry, rw, rh] = s.f;
     let zt = Math.min(ZMAX, Math.max(ZMIN, Math.min((0.92 * W) / rw, (0.5 * H) / rh)));
     for (const k of s.k) if (k[5] > 0) zt = Math.min(ZMAX, Math.max(zt, MIN_DIGIT / k[5])); // 보이는 핵심 숫자가 40px 를 넘게
-    let tx = rx + rw / 2; const ty = ry + rh / 2, wt = W / zt;
+    // 초점 상자가 창보다 넓으면 가운데가 아니라 왼쪽에 맞춘다 — 지면 글이 왼쪽 정렬이라 가운데 맞춤은 왼쪽 숫자를 자른다(2026-10-15 프레임 띠: 「−96.5%」 앞자리 잘림)
+    let tx = rw + 16 > W / zt ? rx - 8 + W / zt / 2 : rx + rw / 2; const ty = ry + rh / 2, wt = W / zt;
     // 초점 상자가 창보다 넓으면 가운데에 맞춘 창이 숫자를 자른다 → 초점 안의 첫 핵심 숫자(선택자 순서 = 우선순위)가 온전히 들도록 최소한만 민다
     const key = s.k.find((k) => k[2] < ry + rh && k[2] + k[4] > ry && k[3] + 16 <= wt);
     if (key) { if (key[1] - 8 < tx - wt / 2) tx = key[1] - 8 + wt / 2; if (key[1] + key[3] + 8 > tx + wt / 2) tx = key[1] + key[3] + 8 - wt / 2; }
@@ -81,6 +82,8 @@ function digitTest(R, cam, at) {
   for (let i = 0; i < cam.length; i += 2) {
     const [x0, y0, z] = cam[i], w = R.size.width / z, h = R.size.height / z, s = at((i / FPS) * 1000);
     for (const [sel, x, y, kw, kh, dh] of s.k) {
+      // 세로로는 창 안인데 옆으로 잘린 숫자 = 실패(읽히지 않는 숫자가 화면에 걸린다)
+      if (y >= y0 && y + kh <= y0 + h && x < x0 + w && x + kw > x0 && (x < x0 || x + kw > x0 + w)) { bad.push(`${sel}@${(i / FPS).toFixed(1)}s 옆 잘림`); continue; }
       if (x < x0 || y < y0 || x + kw > x0 + w || y + kh > y0 + h) { out++; ex ||= `${sel} [${x},${y},${kw},${kh}] 창 [${x0},${y0},${w.toFixed(0)},${h.toFixed(0)}]`; continue; }
       seen++; by[sel] = (by[sel] || 0) + 1; if (dh * z < MIN_DIGIT) bad.push(`${sel}@${(i / FPS).toFixed(1)}s ${(dh * z).toFixed(0)}px`);
     }
