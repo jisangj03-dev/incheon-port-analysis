@@ -69,6 +69,9 @@ def derive(src, qual):
         ports[name] = {"ko": KO[name], "judge": judge(s), "check": mof_check(name, s), "days": s[-KEEP:]}
     inc = ports.get("Incheon")
     if not inc or not inc["judge"]: return None
+    # 원천 질의가 실패해 지난 자료를 지킨 항만(portwatch.py carried)은 마지막 날이 인천보다 이르다 — 지면이 「○까지」로 밝힌다
+    for p in ports.values():
+        if p["days"] and p["days"][-1]["d"] < inc["days"][-1]["d"]: p["stale_to"] = p["days"][-1]["d"]
     return {"_설명": "IMF PortWatch 일별 입항(AIS 기반 추정) — 인천·부산·평택. 「평소」 = 최근 7일 ÷ 그 앞 91일(선커밋 §4). 교역량은 모델 추정치(톤).",
             "source": src.get("source"), "fetched": src.get("fetched"), "asof": inc["days"][-1]["d"],
             "quality": qual, "rule": {"recent": RECENT, "base": BASE, "threshold_pct": THR},
@@ -96,7 +99,9 @@ def selftest():
     assert derive({"ports": {"Incheon": rows}}, {"verdict": "품질 부족"}) is None
     flat = [{"date": day(i), "portcalls": 10} for i in range(98)]
     assert derive({"ports": {"Incheon": flat}}, {"verdict": "사용"})["ports"]["Incheon"]["judge"]["word"] == "평소 수준"
-    print("selftest 3/3 ok"); return 0
+    late = derive({"ports": {"Incheon": rows, "Busan": rows[:-3]}}, {"verdict": "사용"})["ports"]
+    assert late["Busan"]["stale_to"] == rows[-4]["date"] and "stale_to" not in late["Incheon"], late["Busan"].get("stale_to")
+    print("selftest 4/4 ok"); return 0
 
 
 if __name__ == "__main__":
