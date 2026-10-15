@@ -1,12 +1,12 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-15 16:25",
+ "snapshot": "2026-10-15 17:07",
  "window_days": 21,
- "scanned": 8038,
- "n": 34,
+ "scanned": 8090,
+ "n": 35,
  "group_counts": {
-  "운송·배송": 16,
+  "운송·배송": 17,
   "보관·창고": 7,
   "통관·무역": 5,
   "항만·해운·항공": 6
@@ -350,6 +350,18 @@
    "presmptPrce": 25000000,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773756&bidPbancOrd=000",
    "group": "통관·무역"
+  },
+  {
+   "bidNtceNo": "R26BK01773881",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "국립민속박물관 세계민속관 개관(상설전시관 1 개편) 국외유물 반입 운송",
+   "ntceInsttNm": "문화체육관광부 국립민속박물관",
+   "dminsttNm": "문화체육관광부 국립민속박물관",
+   "bidNtceDt": "2026-10-15 16:30:48",
+   "bidClseDt": "2026-10-27 10:00:00",
+   "presmptPrce": 43636367,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773881&bidPbancOrd=000",
+   "group": "운송·배송"
   },
   {
    "bidNtceNo": "R26BK01771797",
