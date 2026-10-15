@@ -115,8 +115,12 @@ def main():
     prev = json.load(open(old, encoding="utf-8")) if os.path.exists(old) else {}
     by, carried, prev_last, new_last = merge_ports(by, prev.get("ports", {}), datef)
     out["ports"], out["counts"], out["carried"] = by, {k: len(v) for k, v in by.items()}, carried
-    if not by.get("Incheon") or "Incheon" in carried or (prev_last and new_last and new_last < prev_last):
-        say("항만 자료가 덜 왔다 — 지난 파일을 지킨다", out["counts"], "새 마지막", new_last, "지난", prev_last); rc = 1
+    if not by.get("Incheon") or "Incheon" in carried:
+        # 원천 장애(2026-10-15: 세 항만 모두 400) — 지난 파일을 지키고 경고만. 지면은 「○ 기준」으로 날짜를 이미 밝힌다(가짜 실시간 아님)
+        say("인천 자료를 못 받았다 — 지난 파일을 지킨다", out["counts"], "지난", prev_last)
+        print(f"::warning::PortWatch 인천 질의 실패(원천 장애로 보임) — 지난 파일({prev_last}까지)을 지킨다")
+    elif prev_last and new_last and new_last < prev_last:
+        say("새로 받은 자료가 지난 파일보다 이르다 — 지난 파일을 지킨다", out["counts"], "새 마지막", new_last, "지난", prev_last); rc = 1  # 거꾸로 간 자료는 빨강
     else:
         write("data/collected/v3/portwatch_ports.json", out)
         if carried: print(f"::warning::PortWatch {', '.join(carried)} 질의 실패 — 그 항만은 지난 자료를 지켰다 {carried}")
