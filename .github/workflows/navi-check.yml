@@ -1,0 +1,52 @@
+# 등시선 내비 대조(2026-10-15 · 선커밋 = 공개전개편 판정기준 「① 내비 대조」) — 카카오모빌리티 미래 운행 정보 길찾기와 우리 도착 분을 견준다.
+# 이 일 하나에만 KAKAO_REST_KEY 를 넘긴다. 경로·OD별 시간은 남기지 않고 오차 통계만 커밋한다(약관 · 저장·캐싱 금지 쪽).
+# 호출 상한은 코드에 있다(tools-build/navi_check.py MAX_CALLS = 60 · 25일 안 결과가 있으면 0). 예약 실행 없음 — 손으로 돌리거나 이 파일·스크립트가 바뀔 때만.
+name: navi-check
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "25일 안 결과가 있어도 다시(호출 60 안)"
+        required: false
+        default: "no"
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/navi_check.py", ".github/workflows/navi-check.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: navi-check
+  cancel-in-progress: false
+jobs:
+  navi:
+    if: startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 자체 시험
+        run: python tools-build/navi_check.py --selftest
+      - name: 대조(통계만)
+        env:
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
+        run: |
+          set -o pipefail
+          python tools-build/navi_check.py $([ "${{ inputs.force }}" = "yes" ] && echo --force) 2>&1 | tee /tmp/log.txt
+          { echo "## 내비 대조"; echo '```'; tail -20 /tmp/log.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: 키가 산출물·로그에 없는지
+        env:
+          K: ${{ secrets.KAKAO_REST_KEY }}
+        run: |
+          [ -z "$K" ] && exit 0
+          if grep -rqF "$K" data/ /tmp/log.txt 2>/dev/null; then echo "::error::키 원문이 산출물·로그에 있다 — 커밋하지 않는다"; exit 1; fi
+      - name: 결과 커밋(그 브랜치에 · 통계 파일 하나)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/derived/navi_check.json
+          git diff --cached --quiet && { echo "바뀐 것 없음" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          git commit -m "등시선 내비 대조 — 오차 통계만(navi-check 워크플로 · 경로·OD별 시간 저장 0)"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
