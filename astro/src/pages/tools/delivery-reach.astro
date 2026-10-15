@@ -1,0 +1,96 @@
+---
+// 도구 · 수도권 배송 등시선(실무 질문 Q2) — 인천 물류단지·관문에서 1·2·3시간 안에 닿는 수도권. 빌드 때 계산한 격자(OSM · 자유 흐름 속도).
+// 첫 그림 = 서버에서 그린 도시 도착 분 표(스크립트 0) · 지도는 받은 뒤 0→180분으로 번진다. 숫자 = data/derived/isochrones.json.
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { STEPS } from "../../lib/reach-map";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const I = JSON.parse(readFileSync(join(repoRoot(), "data/derived/isochrones.json"), "utf-8"));
+const first = I.origins.findIndex((o: any) => o.kind === "물류단지");
+const O = I.origins[first < 0 ? 0 : first];
+const rows = Object.entries(O.cities as Record<string, number | null>).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
+const in1 = O.cities_within["1h"], in2 = O.cities_within["2h"];
+const seoul = O.cities["서울시청"];
+---
+<Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 혼잡 미반영 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
+  <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 출발하면 서울시청까지 ${seoul ?? "—"}분, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳.`}
+    updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="자유 흐름 속도 가정 · 혼잡 미반영"
+    how={`OSM 대한민국 추출에서 수도권 도로만 읽어 도로 등급별 속도(고속 ${I.speeds_kmh.motorway} · 간선 ${I.speeds_kmh.trunk} · 주간선 ${I.speeds_kmh.primary} · 일반 ${I.speeds_kmh.residential} km/h)로 엮고, 출발지에서 가장 빠른 길을 풀었다(scipy 다익스트라). 칸 크기 ${I.step}°.`}
+    limits="혼잡·신호·상하차·통행 제한(화물차)을 반영하지 않아 실제보다 짧게 나온다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다.">
+    <div slot="answer" class="reach">
+      <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
+        <p class="reach__t" data-furniture><b id="reach-min">180</b><span>분 안</span></p>
+        <p class="reach__legend" data-furniture>{STEPS.map((b) => <span><i style={`background:rgba(${b.c.join(",")},${b.a})`}></i>{b.max}</span>)}<span>분</span></p>
+      </div>
+      <ol class="reach__list" id="reach-list" aria-label="수도권 도시까지 도착 분">
+        {rows.map(([n, m]) => <li data-city={n}><span>{n}</span><b data-og-num={n === "서울시청" ? "분 · 서울시청까지" : undefined}>{m ?? "—"}</b><small>분</small></li>)}
+      </ol>
+    </div>
+    <div slot="controls" class="reach__ctl">
+      <label>출발지 <select id="reach-o" class="s-input">{I.origins.map((o: any, i: number) => <option value={i} selected={o === O}>{o.name}{o.kind === "관문" ? " (관문)" : ""}</option>)}</select></label>
+      <div class="seg" role="group" aria-label="도로 사정 가정" data-furniture>{[[1, "자유 흐름"], [1.5, "×1.5 가정"], [2, "×2 가정"]].map(([k, l]) => <button type="button" class={k === 1 ? "s-btn" : "s-btn s-btn--ghost"} data-k={k} aria-pressed={k === 1 ? "true" : "false"}>{l}</button>)}</div>
+      <button type="button" class="s-btn s-btn--ghost" id="reach-play">다시 번지기</button>
+      <label class="reach__slider">문턱 <input id="reach-t" type="range" min="0" max="180" step="5" value="180" aria-label="도착 분 문턱" /></label>
+      <p class="s-cap reach__note" data-furniture>「×1.5·×2 가정」은 막히는 시간대를 어림하려고 모든 길의 시간을 같은 배율로 늘린 것입니다 — 실측 혼잡 자료가 아닙니다.</p>
+    </div>
+  </ToolShell>
+  <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/reach-geo.json") })}></script>
+  <script>
+    import { ReachMap } from "../../lib/reach-map";
+    const M = JSON.parse(document.getElementById("reach-meta")!.textContent!);
+    const cv = document.getElementById("reach-cv") as HTMLCanvasElement, sel = document.getElementById("reach-o") as HTMLSelectElement, sl = document.getElementById("reach-t") as HTMLInputElement;
+    let rm: ReachMap | null = null;
+    const list = (o: any, k = 1) => {
+      const ol = document.getElementById("reach-list")!, rows = Object.entries(o.cities as Record<string, number | null>).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
+      ol.innerHTML = rows.map(([n, m]) => `<li data-city="${n}"><span>${n}</span><b>${m == null ? "—" : Math.round(m * k)}</b><small>분</small></li>`).join("");
+    };
+    const mark = (r: ReachMap) => {
+      document.getElementById("reach-min")!.textContent = String(r.t);
+      const o = r.iso.origins[r.o];
+      for (const li of document.querySelectorAll<HTMLElement>("#reach-list li")) { const m = o.cities[li.dataset.city!]; li.classList.toggle("on", m != null && m * r.k <= r.t); }
+    };
+    const boot = async () => {
+      const [iso, geo] = await Promise.all([fetch(M.src).then((r) => r.json()), fetch(M.geo).then((r) => r.json()).catch(() => null)]);
+      rm = new ReachMap(cv, iso, geo); rm.setOrigin(Number(sel.value)); rm.onFrame = mark; (window as any).__reach = rm;
+      cv.closest(".reach__map")!.setAttribute("data-ready", "1");
+      rm.play(3.2);
+    };
+    sel.addEventListener("change", () => { if (!rm) return; rm.setOrigin(Number(sel.value)); list(rm.iso.origins[rm.o], rm.k); rm.play(3.2); sl.value = "180"; });
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.addEventListener("click", () => {
+      if (!rm) return; rm.k = Number(b.dataset.k); for (const x of document.querySelectorAll<HTMLButtonElement>(".seg button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
+      list(rm.iso.origins[rm.o], rm.k); rm.play(2.4); sl.value = "180";
+    });
+    document.getElementById("reach-play")!.addEventListener("click", () => { rm?.play(3.2); sl.value = "180"; });
+    sl.addEventListener("input", () => { if (!rm) return; cancelAnimationFrame(rm.raf); rm.t = Number(sl.value); rm.draw(); });
+    addEventListener("resize", () => { if (rm) { rm.resize(); rm.draw(); } });
+    const go = () => ("requestIdleCallback" in window ? (window as any).requestIdleCallback(() => boot(), { timeout: 1200 }) : setTimeout(boot, 200));
+    document.readyState === "complete" ? go() : addEventListener("load", go, { once: true });
+  </script>
+</Studio>
+<style>
+  .reach { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--s-5); align-items: start; }
+  .reach__map { position: relative; height: min(68vh, 620px); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); background: #f3efe5; }
+  .reach__map canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .reach__t { position: absolute; left: 14px; top: 10px; margin: 0; text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper); }
+  .reach__t b { font-size: clamp(36px, 4vw, 52px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .reach__t span { margin-left: 6px; color: var(--s-ink-2); }
+  .reach__legend { position: absolute; left: 14px; bottom: 8px; margin: 0; font-size: 13px; color: var(--s-ink-2); text-shadow: 0 0 4px var(--s-paper); }
+  .reach__legend { display: flex; gap: 0; align-items: center; }
+  .reach__legend i { display: inline-block; width: 26px; height: 10px; margin: 0 3px 0 0; vertical-align: middle; }
+  .reach__legend span + span { margin-left: 4px; }
+  .reach__legend span { white-space: nowrap; }
+  .reach__note { flex-basis: 100%; margin: 0; }
+  .seg { display: flex; } .seg .s-btn { min-height: 44px; }
+  .reach__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; max-height: min(68vh, 620px); overflow: auto; }
+  .reach__list li { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--s-rule); color: var(--s-ink-3); transition: color 0.3s; }
+  .reach__list li.on { color: var(--s-ink); }
+  .reach__list li b { font-size: 17px; } .reach__list li small { color: var(--s-ink-3); }
+  .reach__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
+  .reach__ctl label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .reach__slider { flex: 1; min-width: 200px; } .reach__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
+  @media (max-width: 760px) { .reach { grid-template-columns: 1fr; } .reach__map { height: 56vh; } .reach__list { max-height: none; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); } }
+</style>

@@ -1,0 +1,39 @@
+---
+// 도구 공유 카드 틀(B6 · 전권 위임 ④) — 1200×630 하나. 빌드 뒤 tests/capture/og-cards.mjs 가 도구 지면마다 질문·큰 숫자·3초 답·기준일을
+// **그 지면에서 읽어** 이 틀에 채우고 찍는다(og/tool-<id>.jpg). 틀은 숫자를 만들지 않는다 → 카드와 지면이 갈라질 수 없다. 찍은 뒤 이 HTML 은 지운다.
+import { u, BRAND } from "../../lib/site";
+---
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" /><meta name="robots" content="noindex" /><title>도구 카드 틀</title>
+  <link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} />
+  <style>
+    html, body { margin: 0; }
+    body { width: 1200px; height: 630px; overflow: hidden; background: #f5f2eb; color: #191714; font-family: "Pretendard Variable", Pretendard, "Noto Sans CJK KR", sans-serif; word-break: keep-all; }
+    .c { position: relative; box-sizing: border-box; width: 1200px; height: 630px; padding: 56px 72px 48px; display: flex; flex-direction: column; border-top: 10px solid #b3361e; }
+    .grid { position: absolute; inset: 0; opacity: .5; pointer-events: none; }
+    .eb { position: relative; font-size: 22px; font-weight: 600; color: #5b554c; letter-spacing: .02em; }
+    h1 { position: relative; margin: 14px 0 0; font-size: 46px; line-height: 1.24; letter-spacing: -0.03em; font-weight: 800; max-width: 1050px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .num { position: relative; margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+    .num b { font-size: 112px; line-height: 1; font-weight: 800; letter-spacing: -0.04em; color: #b3361e; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .num span { font-size: 26px; font-weight: 600; color: #3a352e; }
+    p { position: relative; margin: 16px 0 0; font-size: 24px; line-height: 1.5; color: #3a352e; max-width: 1050px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .foot { position: relative; margin-top: auto; display: flex; justify-content: space-between; font-size: 19px; color: #5b554c; }
+    .foot strong { color: #191714; font-weight: 800; font-size: 22px; }
+  </style>
+</head>
+<body>
+  <div class="c">
+    <svg class="grid" viewBox="0 0 1200 630" preserveAspectRatio="none" aria-hidden="true">
+      {Array.from({ length: 7 }, (_, k) => <path d={`M${560 + k * 90} 640 C ${700 + k * 70} 420, ${820 + k * 50} 260, 1210 ${120 + k * 40}`} fill="none" stroke="#191714" stroke-opacity="0.07" stroke-width="1.5" />)}
+    </svg>
+    <div class="eb" id="og-eb">도구</div>
+    <h1 id="og-q"></h1>
+    <div class="num"><b id="og-num"></b><span id="og-unit"></span></div>
+    <p id="og-lead"></p>
+    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span id="og-asof"></span></div>
+  </div>
+</body>
+</html>

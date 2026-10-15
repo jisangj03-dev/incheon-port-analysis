@@ -30,6 +30,17 @@ A 는 이쪽이 지금 할 수 있는 것, C 는 아직 안 본 축이다.
 
 **[인계 · 2026-10-14] 맥주 게임 = 측심 세션 몫**(클라우드 세션 ad6a21f7). 1차(구조·규칙 데이터 `data/sim/beer-game.json`·엔진·시험 지면 `lab/beer-game.html`·시험)는 #40 으로 머지됨. 남은 것 = 시각 마감·메뉴 연결(디자인 기준이 선 뒤) · 검수 뒤 「AI 정리 · 〈실명〉 검수」 표기 · 공개 전환 — **jota 야간 루틴은 맥주 게임에 손대지 않는다.** 정본 = `docs/측심_정체성전환_판정기준_선커밋_20261014.md` §3-1.
 
+**[2026-10-14 밤 · 지금 참인 것] 정체성 전환이 공개 직전이다 — PR 쌓기, 선장님이 순서대로 머지하면 공개된다.**
+머지 순서 #43 → #44 → #46 → #45 → #47 → #48(1차 콘텐츠 · lab) → #49(공개 전환) · **일반 머지**(스쿼시하면 다음 PR 충돌).
+#49 가 머지되면 main = 공개: 구조 넷(지도·시뮬레이션·노트·소개) · 실명은 `data/profile.json` 한 곳 · 옛 주소는 돌려보낸다.
+선장님이 볼 것 셋(AI 표기 전제 · 커넥터스 기고 주소 · 첫 화면)과 출고 검사표는 #49 설명 맨 위. LinkedIn·메일·공공누리 7곳은 10/14 채팅 검수로 닫혔다(공공누리 확인 5 · 미확인 유지 2 — `data/collected/kogl_check.json`). Cloudflare 비콘은 채팅이 준 코드로 채웠다(cf992c8 · 출고 검사 ② = 비콘 하나만 허용). 경위 = 작업기록 10-14 · 위임문 「[10/14 밤]」.
+
+**[2026-10-14 밤 늦게 · 지금 참인 것] 선장님 최종 검사 = #49 머지 보류**(「동적인 콘텐츠를 원했고 사이트 목적이 있는데 와닿지 않는다」). 그 답이 **#50 — #49 위에 쌓은 PR**(브랜치 `claude/busy-lovelace-e073jj-alive` · base = #49 브랜치)이다 — A 홈 첫 화면 = 살아 있는 인천 물류 지도(`lib/flowmap.ts` · 자체 원근 캔버스 · 외부 요청 0) · B 목적이 보이게(첫 문장 「한국 수입의 46.4%가 인천으로」 · 같이 푸는 질문 `data/questions.json` · 모든 지면 끝 연락 꼬리 `AskTail` · 소개 이력서급) · C 체험(맥주 게임 직접 해 보기 점수·공유 카드 · 따라가기 = 스크롤 지도 여행). 머지 순서 = #49 → #50(일반 머지). 조작 GIF·판정 캡처 = 검수 그림 브랜치 `alive/`(3328e5b · #50 설명 맨 위). 흐름 숫자 = `tools-build/flows_derive.py` → `data/derived/home_flows.json`(가정 둘을 파일과 화면에 적음). 먼 바탕 = `tools-build/world_land.py`(Natural Earth · world-atlas 2.0.2 고정).
+**[2026-10-14 늦은 밤 · 지금 참인 것] 실무 도구 전환 = #51(브랜치 `claude/busy-lovelace-e073jj-tools` → #50 위) — 머지 순서 #43→…→#50→#51.** 메뉴 = 지도 · **도구** · 노트 · 소개. 도구 여섯(맥박 · 등시선 · 트리맵 레이스 · 수입원가 · 초크포인트 · 묘박지) · 데이터 = `data-v3` 워크플로(Actions · 매주 월 · 매월 17일 · 예약 실행은 PR). 진행판 = `docs/위임문_다음세션_20261012.md` 맨 위. 선장님 손 = 인천공항 API 키 미등록 · KCCI 조건 · 머지.
+**[2026-10-15 · 지금 참인 것] 전권 위임 ①③④⑤ 끝 — PR 넷을 #51 위에 더 쌓았다: #52(KCCI · 인천공항 파일) → #53(입찰 레이더 · OpenDART 미달) → #54(도구 공유 카드 · 퍼가기 · 콘텐츠 큐) → #55(도구 시연 영상 3편 · reels.yml).** 머지 순서 #43→…→#51→#52→#53→#54→#55 · 일반 머지. 단계 기준 정본 = `docs/측심_전권위임_단계기준_선커밋_20261015.md` · 경위 = 위임문 진행판·작업기록. **남은 것: ② 배포 실물 검사(머지 감지 뒤 · 아직 머지 전)** · OpenDART 인증키는 10/15 Actions 비밀 `OPENDART_KEY` 로 등록됨(선장님 손에서 뺌 · ③-나 기업 카드는 새 PR 로). data-v3 는 쌓인 브랜치에 push 할 때마다 봇 커밋을 얹는다 — 아래 브랜치에서 위로 합쳐 둔다(사고 127 = 위성 묘박지 덜 온 달 덮어쓰기 · 막이 넣음).
+**[2026-10-15 오후 · 지금 참인 것] #44~#51 의 base 를 전부 `main` 으로 바꿨다** — 저장소 설정 `delete_branch_on_merge = false` 라 머지해도 다음 PR 의 base 가 저절로 main 으로 바뀌지 않는다. 지금은 순서대로 누르기만 하면 된다(#43→#44→#46→#45→#47→#48→#49→#50 · 일반 머지 · 로컬에서 차례로 머지해 보니 충돌 0). 스택 빌드 실측으로 보면 공개판이 실제로 바뀌는 머지는 셋이다 — #43(방법론 문서 1쪽 추가) · #48(데이터 출처표 2줄) · **#49(실명·새 메뉴 「지도·시뮬레이션·노트·소개」 · 지면 +9 · 83쪽 바뀜)**. #49 는 pages 배포가 끝나는 즉시 공개된다. #52~#55 의 base 는 그대로 쌓여 있다. **[10/15 09:10 인계] 정본 = `docs/위임문_다음세션_20261012.md` 맨 위 「★ 현재 정본 — 10/15 인계」(지금 상태 · 다음 한 걸음 · 선장님 손 · 재개 단락).** **미리보기(공개 직전 최종판 · 같은 주소)** = 비공개 claude.ai 아티팩트 https://claude.ai/artifact/KvVcm3otX6pHRsQyscrScb — 스택 맨 위(#55 머리) 빌드 · 첫 쪽 = 실제 홈 · 지도 타일 메모리 읽기(미리보기만) · #51 이 머지·닫히면 지운다. **#44~#55 base = main · 13 PR 차례 머지 모의 충돌 0**(10/15 오후). 기업 카드 = **미달**(10/15 재수집: 사업보고서 제출 3,206곳 중 인천·물류 1곳 < 5 → 싣지 않음 · PR 없음).
+**부트 검사 실패 4 — 이번 일과 무관한 기존 상태**: `chart_11`·`chart_12`·`judge_11`·`judge_12` 의 「실물」 인수시험이 10개월 창을 하드코딩했는데 데이터가 2026-08 까지 늘어 11개월이 됐다(판정 글의 창 · 선커밋 기준 소관 — 세션이 임의로 고치지 않는다 · 운영자 판단 대기).
+
 **3) 마지막 세션이 어디서 멈췄나 (2026-10-12 53차 · 측심 공개 뒤 A항 PR · 머지 대기).**
 
 **① 공개됐다 — main 머지 = 즉시 공개.** PR 설명 맨 위에 「공개 화면 변화」 한 줄을 적는다. Search Console 소유권 파일 `astro/public/googledd0ee48b82282e37.html` 은 지우지 않는다(채팅 커밋).
@@ -139,7 +150,7 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 - 보고서 **#01~#09 발행 완료.** #08·#09 는 검수(통독·대조) 미수행을 표기 행이 적고 있다 — 검수하면 그 행을 갱신한다(`review_pick.py --log`).
 - 저작 구조 **B — AI가 생성하고 사람이 운영한다.** 표기 의무(§2.2)가 성립 조건.
 
-### 검사·생성 장치 — 47종(모드 2). `--selftest`가 있는 것은 매 세션 발화 확인
+### 검사·생성 장치 — 48종(모드 2). `--selftest`가 있는 것은 매 세션 발화 확인
 > **이 수는 아래 목록의 이름 개수**이고, `boot_check` 의 「`--selftest` N개」와 **다른 수다**
 > (그쪽은 세는 쪽 둘을 포함하고 `--check` 만 가진 장치는 뺀다). **같게 만들려 하지 마라.**
 
@@ -155,7 +166,7 @@ STATUS 를 고치기 전에 `python analysis/status_archive.py --check` 로 여�
 **`collect_09_backfill.py`** · **`chart_09_backfill.py`** · **`check_counts.py`** ·
 **`basis_10_monthly_floor.py`** · **`judge_10_monthly.py`** ·
 **`check_jekyll.py`** · **`check_private.py`** · **`check_site_facts.py`** · **`session_snapshot.py`** · **`status_archive.py`** · **`check_refs.py`** ·
-**`channels.py`** · **`channel_post.py`** · **`channel_queue.py`** · **`channel_inflow.py`** · **`check_claims.py`** · **`check_session_surface.py`** · **`check_marks.py`** · **`build_featured_card.py`** · **`judge_11_terminal.py`** · **`chart_11_terminal_plan.py`** · **`judge_12_terminal_long.py`** · **`chart_12_share_long.py`** · **`geocode.py`** · **`collect_warehouses.py`** · **`check_cost_tool.py`** · **`judge_sido_item.py`** · **`warehouse_map.py`** · **`env_limits.py`**
+**`channels.py`** · **`channel_post.py`** · **`channel_queue.py`** · **`channel_inflow.py`** · **`check_claims.py`** · **`check_session_surface.py`** · **`check_marks.py`** · **`build_featured_card.py`** · **`judge_11_terminal.py`** · **`chart_11_terminal_plan.py`** · **`judge_12_terminal_long.py`** · **`chart_12_share_long.py`** · **`geocode.py`** · **`collect_warehouses.py`** · **`check_cost_tool.py`** · **`judge_sido_item.py`** · **`warehouse_map.py`** · **`env_limits.py`** · **`forecast_teu.py`**(수요예측 실험실 채점 · 2026-10-14)
 
 
 **각 장치가 무엇을 보고 무엇을 못 보는지는 `docs/장치.md` 가 든다** — 라운드마다 자라 STATUS 상한을 네 번 밀었다. **목록과 수는 여기, 설명은 그쪽이다.**

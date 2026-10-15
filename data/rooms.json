@@ -1,46 +1,156 @@
 {
-  "_설명": "측심 SCM 작업실의 콘텐츠 목록 하나(2026-10-14 · 디자인 「해도」 장면 부품 체계). 홈은 이 파일만 읽어 방·노트를 자동 배치한다. 새 콘텐츠 = 여기에 한 줄 + 장면 부품 하나. 노트 단계: 초안(심었다) → 갱신 중(자라는 중 · 달마다 숫자가 바뀐다) → 정본(선커밋 기준으로 판정을 마쳤다). 단계는 사람이 정한다 — 날짜는 파일 기록(git)에서 자동.",
+  "_설명": "측심 SCM 작업실의 콘텐츠 목록 하나(2026-10-14 · 디자인 「해도」 장면 부품 체계). 홈·지도·시뮬레이션·노트 지면은 이 파일만 읽어 방·콘텐츠·노트를 자동 배치한다. 새 콘텐츠 = 여기에 한 줄 + 장면 부품 하나. 노트 단계: 초안(심었다) → 갱신 중(자라는 중 · 달마다 숫자가 바뀐다) → 정본(선커밋 기준으로 판정을 마쳤다). 단계는 사람이 정한다 — 날짜는 파일 기록(git)에서 자동.",
   "rooms": [
     {
       "id": "map",
       "kind": "map",
       "title": "지도",
       "lead": "항만·공항을 잇는 수도권 공급망의 문을 한 장에.",
-      "href": "/lab/ds/map.html"
+      "href": "/map.html",
+      "items": [
+        {
+          "title": "공급망 따라가기",
+          "lead": "전기기기 하나가 해외에서 인천을 거쳐 수도권으로 오는 길을 구간마다 숫자로.",
+          "href": "/map/follow.html"
+        },
+        {
+          "title": "선박 리플레이",
+          "lead": "2015년부터 지금까지 항만별 외항선 입항을 달마다 다시 돌려 봅니다.",
+          "href": "/map/vessels.html"
+        }
+      ]
     },
     {
-      "id": "sim",
-      "kind": "sim",
-      "title": "시뮬레이션",
-      "lead": "맥주 게임 — 오는 중인 물건을 잊으면 공장이 얼마나 흔들리는지 직접 움직여 봅니다.",
-      "href": "/lab/ds/beer.html"
+      "id": "tools",
+      "kind": "tools",
+      "title": "도구",
+      "lead": "일하다 다시 찾아오는 인천 실데이터 도구 — 실무 질문 하나에 움직이는 답 하나.",
+      "href": "/tools/",
+      "items": [
+        {
+          "id": "port-pulse",
+          "title": "인천항 일일 맥박",
+          "q": "지금 인천항에 배가 평소보다 많이 들어오나?",
+          "who": "포워더 · 선사 · 터미널",
+          "lead": "IMF PortWatch 일별 입항으로 최근 7일을 직전 13주와 견주고, 부산·평택과 나란히 봅니다.",
+          "href": "/tools/port-pulse.html",
+          "gate": "port"
+        },
+        {
+          "id": "delivery-reach",
+          "title": "수도권 배송 등시선",
+          "q": "인천 창고에서 수도권 어디까지 1·2·3시간에 닿나?",
+          "who": "풀필먼트 · 셀러 · 3PL",
+          "lead": "인천 물류단지·항만·공항에서 도로로 1·2·3시간 안에 닿는 범위가 번져 나갑니다(OSM 도로 · 혼잡 미반영).",
+          "href": "/tools/delivery-reach.html",
+          "gate": "land"
+        },
+        {
+          "id": "trade-race",
+          "title": "품목 트리맵 레이스",
+          "q": "인천은 무엇을 사고파나 — 해마다 어떻게 바뀌었나?",
+          "who": "수출입 담당 · MD · 영업",
+          "lead": "인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치됩니다(관세청).",
+          "href": "/tools/trade-race.html",
+          "gate": "all"
+        },
+        {
+          "id": "import-cost",
+          "title": "환율 파도 · 수입원가 계산기",
+          "q": "환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?",
+          "who": "수입 담당 · 셀러 · 구매",
+          "lead": "관세청 관세환율(주간)로 같은 물건의 과세가격·관세·부가세를 주마다 다시 계산합니다. 참고용 · 자문 아님.",
+          "href": "/tools/import-cost.html",
+          "gate": "air"
+        },
+        {
+          "id": "chokepoint",
+          "title": "초크포인트 충격",
+          "q": "바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?",
+          "who": "포워더 · 수출입 담당 · 구매",
+          "lead": "호르무즈·홍해·믈라카·대만해협 통항(IMF PortWatch)과 그 길을 지나는 나라와의 교역 몫(관세청 국가별 · 전국)을 같이 봅니다.",
+          "href": "/tools/chokepoint.html",
+          "gate": "port"
+        },
+        {
+          "id": "anchorage",
+          "title": "위성으로 본 묘박지",
+          "q": "인천 앞바다 묘박지에 배가 얼마나 기다리나?",
+          "who": "선사 · 터미널",
+          "lead": "달마다 가장 맑은 Sentinel-2 위성 사진을 넘기며 먼바다에 보인 배를 어림합니다.",
+          "href": "/tools/anchorage.html",
+          "gate": "port"
+        },
+        {
+          "id": "bid-radar",
+          "title": "공공입찰 레이더",
+          "q": "공공기관은 요즘 어떤 물류·무역 용역을 사려 하나?",
+          "who": "물류기업 영업 · 3PL · 포워더 · 컨설팅",
+          "lead": "나라장터 용역 입찰공고에서 물류·무역 공고만 골라 마감 가까운 순으로 봅니다(빌드 때 스냅샷 · 목록은 검수 안 함).",
+          "href": "/tools/bid-radar.html"
+        }
+      ]
     },
     {
       "id": "notes",
       "kind": "notes",
       "title": "노트",
       "lead": "날짜를 박은 기록. 초안에서 정본으로 자랍니다. 틀린 것은 지우지 않고 고쳐 적습니다.",
-      "href": "#notes"
+      "href": "/notes.html",
+      "items": [
+        {
+          "title": "AI 운영실 1쪽",
+          "lead": "이 작업실을 AI 와 어떻게 돌리는지, 저장소 기록으로 잰 숫자.",
+          "href": "/notes/ai-ops.html"
+        }
+      ]
+    },
+    {
+      "id": "sim",
+      "kind": "sim",
+      "title": "연구용 시뮬레이션",
+      "lead": "공급망을 손으로 움직여 보는 연구 노트 — 맥주 게임과 수요예측 실험실(보조 지면).",
+      "href": "/sim/",
+      "items": [
+        {
+          "title": "맥주 게임",
+          "lead": "오는 중인 물건을 잊으면 공장이 얼마나 흔들리는지 직접 움직여 봅니다.",
+          "href": "/sim/beer-game.html"
+        },
+        {
+          "title": "수요예측 실험실",
+          "lead": "실제값이 나오기 전에 예측을 먼저 적어 두고, 달마다 기준선과 오차를 겨룹니다.",
+          "href": "/sim/forecast.html"
+        }
+      ]
     },
     {
       "id": "about",
       "kind": "about",
       "title": "소개",
       "lead": "누가 왜 만드는지, 어디로 연락하면 되는지.",
-      "href": "#about"
+      "href": "/about.html"
     }
   ],
   "notes": [
     {
       "id": "note-port-yoy",
       "stage": "초안",
-      "href": "/lab/ds/note.html",
-      "file": "astro/src/pages/lab/ds/note.astro",
+      "href": "/notes/port-yoy.html",
+      "file": "astro/src/pages/notes/port-yoy.astro",
       "links": [
         "물동량",
         "report_11_터미널별_처리량"
       ],
       "title": "인천항 컨테이너는 작년 같은 달보다 줄었나 — 달마다 다시 재는 노트"
+    },
+    {
+      "id": "note-ai-ops",
+      "stage": "갱신 중",
+      "href": "/notes/ai-ops.html",
+      "file": "astro/src/pages/notes/ai-ops.astro",
+      "links": [],
+      "title": "AI 운영실 1쪽 — 이 작업실은 AI 와 어떻게 일하나"
     },
     {
       "id": "물동량",

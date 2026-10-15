@@ -1,0 +1,165 @@
+{
+ "_설명": "인천 앞바다 창(경위도 상자) — 달마다 가장 맑은 Sentinel-2 L2A 장면의 실제색 · 물 위 근적외선 밝은 덩어리 수(위성에 보인 배 어림).",
+ "source": "Copernicus Sentinel-2 L2A(AWS Open Data · sentinel-cogs) — Contains modified Copernicus Sentinel data",
+ "tile": "52SBG",
+ "aoi": [
+  126.3,
+  37.2,
+  126.62,
+  37.45
+ ],
+ "made": "2026-10-15",
+ "count_box": [
+  126.3,
+  37.27,
+  126.56,
+  37.41
+ ],
+ "method": "세는 상자(먼바다 · 인천대교·항내·갯벌 양식장 제외) 안에서 큰 땅 400m · 자료 가장자리 100m · 구름을 빼고, B08 > 1500 이고 주변 중앙값보다 600 넘게 밝은 덩어리 중 3~300 화소(10m) · 450m 넘게 긴 것과 식생·맨땅이 대부분인 것은 뺀다",
+ "frames": [
+  {
+   "date": "2025-11-12",
+   "scene": "S2B_52SBG_20251112_0_L2A",
+   "tile_cloud_pct": 1.1,
+   "aoi_cloud_pct": 0.5,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 22,
+   "low_confidence": false,
+   "img": "/media/s2/20251112.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2025-12-17",
+   "scene": "S2C_52SBG_20251217_0_L2A",
+   "tile_cloud_pct": 1.4,
+   "aoi_cloud_pct": 0.2,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 41,
+   "low_confidence": false,
+   "img": "/media/s2/20251217.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-01-11",
+   "scene": "S2B_52SBG_20260111_0_L2A",
+   "tile_cloud_pct": 17.4,
+   "aoi_cloud_pct": 3.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 38,
+   "low_confidence": true,
+   "img": "/media/s2/20260111.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-02-25",
+   "scene": "S2C_52SBG_20260225_0_L2A",
+   "tile_cloud_pct": 0.8,
+   "aoi_cloud_pct": 0.7,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 17,
+   "low_confidence": false,
+   "img": "/media/s2/20260225.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-03-12",
+   "scene": "S2B_52SBG_20260312_0_L2A",
+   "tile_cloud_pct": 0.9,
+   "aoi_cloud_pct": 0.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 22,
+   "low_confidence": false,
+   "img": "/media/s2/20260312.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-04-08",
+   "scene": "S2A_52SBG_20260408_0_L2A",
+   "tile_cloud_pct": 0.1,
+   "aoi_cloud_pct": 0.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 30,
+   "low_confidence": false,
+   "img": "/media/s2/20260408.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-05-01",
+   "scene": "S2B_52SBG_20260501_0_L2A",
+   "tile_cloud_pct": 0.0,
+   "aoi_cloud_pct": 0.0,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 58,
+   "low_confidence": false,
+   "img": "/media/s2/20260501.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-06-15",
+   "scene": "S2C_52SBG_20260615_0_L2A",
+   "tile_cloud_pct": 2.8,
+   "aoi_cloud_pct": 0.3,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 41,
+   "low_confidence": false,
+   "img": "/media/s2/20260615.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-07-30",
+   "scene": "S2B_52SBG_20260730_0_L2A",
+   "tile_cloud_pct": 18.1,
+   "aoi_cloud_pct": 10.4,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 162,
+   "low_confidence": true,
+   "img": "/media/s2/20260730.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-08-04",
+   "scene": "S2C_52SBG_20260804_0_L2A",
+   "tile_cloud_pct": 6.8,
+   "aoi_cloud_pct": 1.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 25,
+   "low_confidence": false,
+   "img": "/media/s2/20260804.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-09-23",
+   "scene": "S2C_52SBG_20260923_0_L2A",
+   "tile_cloud_pct": 5.6,
+   "aoi_cloud_pct": 0.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 28,
+   "low_confidence": false,
+   "img": "/media/s2/20260923.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-10-08",
+   "scene": "S2B_52SBG_20261008_0_L2A",
+   "tile_cloud_pct": 0.0,
+   "aoi_cloud_pct": 0.0,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 26,
+   "low_confidence": false,
+   "img": "/media/s2/20261008.jpg",
+   "w": 1400,
+   "h": 1371
+  }
+ ]
+}
