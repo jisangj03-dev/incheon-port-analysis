@@ -18,7 +18,7 @@ const TOOLS = {
     act: async (p) => { await p.waitForTimeout(3500); const a = await p.locator("#cs-body tr.sum td").last().innerText(); await p.fill("input[name=duty_pct]", "0"); await expect(p.locator("#cs-body tr.sum td").last()).not.toHaveText(a); } },
   chokepoint: { data: ["data/derived/chokepoints.json", "data/derived/choke_detour.json"], answer: "#ck-fig", num: "#ck-pct", asof: true,
     act: async (p) => { const a = await p.locator("#ck-imp").innerText(); await p.locator(".seg button[data-id=taiwan]").click(); await expect(p.locator("#ck-name")).toHaveText(/대만/); await expect(p.locator("#ck-imp")).not.toHaveText(a); const h = await p.locator("#ck-hit").innerText(); await p.locator("#ck-x").fill("10"); await expect(p.locator("#ck-hit")).not.toHaveText(h); } },
-  anchorage: { data: ["data/derived/s2_anchorage.json"], answer: "#anc-fig", num: "#anc-n", asof: true,
+  anchorage: { data: ["data/derived/s2_anchorage.json", ...["data/derived/s1_anchorage.json"].filter((f) => existsSync(f))], answer: "#anc-fig", num: "#anc-n", asof: true,
     act: async (p) => { await p.locator("#anc-play").click(); await p.locator(".anc__bars button").first().click(); await expect(p.locator("#anc-date")).toHaveText(JSON.parse(J("data/derived/s2_anchorage.json")).frames[0].date); } },
   "bid-radar": { data: ["data/derived/bid_radar.json"], answer: "#br-fig", num: "#br-n", asof: true,
     act: async (p) => { const R = JSON.parse(J("data/derived/bid_radar.json")), g = R.groups.find((x) => R.group_counts[x] !== R.n); await p.locator(`.br__ctl .seg button[data-g="${g}"]`).click(); await expect(p.locator("#br-shown")).toHaveText(String(R.group_counts[g])); await expect(p.locator("#br-items li:visible")).toHaveCount(R.group_counts[g]); } },
