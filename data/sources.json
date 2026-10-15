@@ -376,6 +376,20 @@
       "used_by": [
         "초크포인트 충격"
       ]
+    },
+    {
+      "id": "kcs-tariff",
+      "name": "관세청 품목번호별 관세율표(기본·WTO·FTA 협정세율 · HSK 10단위)",
+      "owner": "관세청",
+      "where": "공공데이터포털 파일 데이터 15051179(XLSX) · tools-build/tariff_fetch.py 가 Actions 빌드 때 받아 지금 유효한 줄만 류별로 나눔",
+      "license": "공공누리 제1유형(출처표시) — 데이터 상세 화면(2026-10-15 Actions 가 읽음)",
+      "kogl": "제1유형",
+      "commercial": "허용(출처표시)",
+      "modify": "허용(출처표시)",
+      "checked": "2026-10-15 tariff-probe 워크플로가 화면 메타를 읽음 · 시트 2.12 · 38만 줄",
+      "used_by": [
+        "환율 파도 · 수입원가 계산기"
+      ]
     }
   ]
 }

@@ -223,3 +223,19 @@ test("등시선: 화물차 판 = cities_truck", async ({ page }) => {
   const sel = Number(await page.locator("#reach-o").inputValue()), O = I.origins[sel];
   await expect(page.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(O.cities_truck["서울시청"]));
 });
+
+// [2026-10-15 P1 ②] HS 코드 → 관세율표 — 기본·WTO 중 낮은 쪽이 관세율 칸에 · FTA 는 원산지증명이 있을 때만 고를 수 있다
+test("수입원가: HS 코드 → 관세율표 자동 채움 · 원산지증명", async ({ page }) => {
+  const T = JSON.parse(J("data/derived/tariff/84.json"))["8471300000"];
+  test.skip(!T, "관세율표 스냅샷 없음");
+  await page.goto(`${B}/tools/import-cost.html`);
+  await page.waitForFunction(() => !!window.__cost); await page.waitForTimeout(3000);
+  await page.fill("input[name=hs]", "8471300000");
+  const lowAC = Math.min(...["A", "C"].filter((k) => typeof T[k] === "number").map((k) => T[k]));
+  await expect(page.locator("input[name=duty_pct]")).toHaveValue(String(lowAC));
+  await expect(page.locator("select[name=rate_pick] option:disabled").first()).toContainText("원산지증명 필요");
+  await page.locator("input[name=co]").check();
+  await expect(page.locator("select[name=rate_pick] option:disabled")).toHaveCount(0);
+  await page.fill("input[name=hs]", "0000000000");
+  await expect(page.locator("#cs-hs-note")).toContainText("찾지 못했습니다");
+});
