@@ -62,7 +62,8 @@ def fetch(now):
 def main():
     now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).replace(tzinfo=None)
     rows = fetch(now)
-    if rows is None: say("수집 실패 — 지난 파일을 지킨다"); return 1
+    # 원천에 못 닿으면(시간 초과 등) 빨강이 아니라 경고 — 지난 파일을 지키고 끝낸다(portwatch·iiac 와 같은 규칙)
+    if rows is None: say("::warning::나라장터 원천 질의 실패 — 지난 파일을 지킨다"); return 0
     items = pick(rows, now)
     say("공고", len(rows), "→ 물류·무역", len(items))
     if len(items) < 5: say("5건 미만 — 싣지 않는다(선커밋 폐기 규칙) · 지난 파일 유지"); return 1
