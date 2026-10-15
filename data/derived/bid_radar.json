@@ -1,9 +1,9 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-15 14:15",
+ "snapshot": "2026-10-15 15:08",
  "window_days": 21,
- "scanned": 7868,
+ "scanned": 7942,
  "n": 32,
  "group_counts": {
   "운송·배송": 16,
@@ -256,18 +256,6 @@
    "group": "항만·해운·항공"
   },
   {
-   "bidNtceNo": "R26BK01762296",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2027~2028년 선거물품 집중보관 용역",
-   "ntceInsttNm": "중앙선거관리위원회 대구광역시선거관리위원회",
-   "dminsttNm": "중앙선거관리위원회 대구광역시선거관리위원회",
-   "bidNtceDt": "2026-10-08 14:28:33",
-   "bidClseDt": "2026-10-23 10:00:00",
-   "presmptPrce": 70000000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01762296&bidPbancOrd=000",
-   "group": "보관·창고"
-  },
-  {
    "bidNtceNo": "R26BK01764168",
    "bidNtceOrd": "000",
    "bidNtceNm": "2026 국내 할랄인증 표준·가이드 제작 및 수출 확대 로드맵 수립 연구",
@@ -290,6 +278,18 @@
    "presmptPrce": 518216364,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01764865&bidPbancOrd=000",
    "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01762296",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027~2028년 선거물품 집중보관 용역",
+   "ntceInsttNm": "중앙선거관리위원회 대구광역시선거관리위원회",
+   "dminsttNm": "중앙선거관리위원회 대구광역시선거관리위원회",
+   "bidNtceDt": "2026-10-08 14:28:33",
+   "bidClseDt": "2026-10-23 10:00:00",
+   "presmptPrce": 70000000,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01762296&bidPbancOrd=000",
+   "group": "보관·창고"
   },
   {
    "bidNtceNo": "R26BK01767707",
