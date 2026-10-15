@@ -11,6 +11,8 @@ const PAGES = ["/", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/
 const MAIN = { "/map/vessels.html": "#vr-chart svg", "/sim/forecast.html": "#fc-chart[data-ready] svg", "/sim/beer-game.html": "#wave[data-ready] svg" };
 
 for (const p of PAGES) test(`눈 검사 — ${p}`, async ({ page }, info) => {
+  // [2026-10-15 P0] 지면이 클릭 없이 돈다(선박 리플레이는 첫 달부터 다시) — 눈 검사는 설계 화면(마지막 달 · 정지)을 본다 → 동작 줄이기로 연다
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(encodeURI(`${B}${p}`), { waitUntil: "networkidle" });
   if (MAIN[p]) await page.waitForSelector(MAIN[p]);
   await page.waitForTimeout(300);
