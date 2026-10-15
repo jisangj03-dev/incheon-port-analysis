@@ -16,7 +16,7 @@ const TOOLS = {
     act: async (p) => { await p.waitForSelector("#race-box[data-ready='1']"); await p.evaluate(() => window.__race.stop()); const a = await p.locator("#race-total").innerText(); await p.locator(".seg button[data-k=imp]").click(); await expect(p.locator("#race-k")).toHaveText("수입"); await expect(p.locator("#race-total")).not.toHaveText(a); } },
   "import-cost": { data: ["data/derived/import_cost.json"], answer: "#cs-fig", num: "#cs-diff", asof: true, advice: true,
     act: async (p) => { await p.waitForTimeout(3500); const a = await p.locator("#cs-body tr.sum td").last().innerText(); await p.fill("input[name=duty_pct]", "0"); await expect(p.locator("#cs-body tr.sum td").last()).not.toHaveText(a); } },
-  chokepoint: { data: ["data/derived/chokepoints.json"], answer: "#ck-fig", num: "#ck-pct", asof: true,
+  chokepoint: { data: ["data/derived/chokepoints.json", "data/derived/choke_detour.json"], answer: "#ck-fig", num: "#ck-pct", asof: true,
     act: async (p) => { const a = await p.locator("#ck-imp").innerText(); await p.locator(".seg button[data-id=taiwan]").click(); await expect(p.locator("#ck-name")).toHaveText(/대만/); await expect(p.locator("#ck-imp")).not.toHaveText(a); const h = await p.locator("#ck-hit").innerText(); await p.locator("#ck-x").fill("10"); await expect(p.locator("#ck-hit")).not.toHaveText(h); } },
   anchorage: { data: ["data/derived/s2_anchorage.json"], answer: "#anc-fig", num: "#anc-n", asof: true,
     act: async (p) => { await p.locator("#anc-play").click(); await p.locator(".anc__bars button").first().click(); await expect(p.locator("#anc-date")).toHaveText(JSON.parse(J("data/derived/s2_anchorage.json")).frames[0].date); } },
@@ -197,4 +197,18 @@ test("등시선: 시간대 배율 = reach_slots.json · 상하차 분 더하기"
   const a = await first();
   await page.fill("#reach-prep", "30");
   await expect.poll(first).toBe(a + 30);
+});
+
+// [2026-10-15 P1 ③] 초크포인트 — 우회 거리·일수 · 운임 충격(실측) · 품목 · 경유 규칙이 길목마다 바뀐다 · 항공 포함 표기
+test("초크포인트: 우회·운임 충격·품목·경유 규칙 · 항공 포함 표기", async ({ page }) => {
+  await page.goto(`${B}/tools/chokepoint.html`);
+  const D = JSON.parse(J("data/derived/chokepoints.json"));
+  await expect(page.locator("main")).toContainText("항공·해상을 가르지 않는다");
+  for (const p of D.points) {
+    await page.locator(`.seg button[data-id=${p.id}]`).click();
+    const m = page.locator("#ck-more");
+    if (p.detour?.extra_nm != null) await expect(m).toContainText(`+${p.detour.extra_days}일`);
+    if (p.shock) await expect(m).toContainText(`+${p.shock.routes[0].pct}%`);
+    await expect(m.locator("summary")).toContainText(`${p.rule.countries.length}곳`);
+  }
 });
