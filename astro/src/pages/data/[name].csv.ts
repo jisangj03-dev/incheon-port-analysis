@@ -71,6 +71,12 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: I.origins.flatMap((o: any) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 도착_분: m ?? "" }))),
       note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정 · 혼잡 미반영 · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
   },
+  // 공공입찰 레이더 — 스냅샷 공고 한 줄씩(담당자 개인정보 칸 없음 · 목록 검수 안 함)
+  "bid-radar": () => {
+    const R = J("data/derived/bid_radar.json");
+    return { rows: R.items.map((x: any) => ({ 묶음: x.group, 공고번호: x.bidNtceNo, 차수: x.bidNtceOrd, 공고명: x.bidNtceNm, 공고기관: x.ntceInsttNm, 수요기관: x.dminsttNm, 공고일시: x.bidNtceDt, 마감일시: x.bidClseDt, 추정가격_원: x.presmptPrce ?? "", 나라장터: x.bidNtceDtlUrl })),
+      note: `${R.source} · ${R.snapshot} 스냅샷(그 뒤 마감·정정됐을 수 있음) · 고르는 규칙 = 선커밋 ③-가 · 자동 수집 · 검수 안 함 · 계산 tools-build/v3/bid_radar.py` };
+  },
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);

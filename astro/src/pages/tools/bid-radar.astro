@@ -1,0 +1,105 @@
+---
+// 도구 · 공공입찰 레이더(정체성 2차 · 10/15 전권 위임 ③) — 나라장터 입찰공고(용역) 중 물류·무역 공고를 빌드 때 스냅샷으로.
+// 고르는 규칙 = 선커밋 docs/측심_전권위임_단계기준_선커밋_20261015.md ③-가(여기서 바꾸지 않는다). 키는 Actions 빌드 때만 · 지면 실행 중 0.
+// 목록은 사람이 검수하지 않는다 — 목록 위에 그렇게 적는다. 스냅샷 시각을 머리에 두고, 지금 시각이 마감을 넘긴 공고는 흐리게 「마감 지남」.
+import Studio from "../../layouts/Studio.astro";
+import ToolShell from "../../components/scene/ToolShell.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/bid_radar.json"), "utf-8"));
+const I = D.items as any[], G = D.groups as string[], GC = D.group_counts as Record<string, number>;
+const top = Math.max(1, ...G.map((g) => GC[g]));
+const won = (v: number | null) => (v == null ? "—" : `${v.toLocaleString("ko-KR")}원`);
+const lead = G.reduce((a, g) => (GC[g] > GC[a] ? g : a), G[0]);
+---
+<Studio title="공공입찰 레이더 — 공공기관은 어떤 물류·무역 용역을 사려 하나" description="조달청 나라장터 용역 입찰공고에서 물류·무역 공고만 골라, 빌드 때 스냅샷으로 마감 가까운 순으로 보여 줍니다." current="tools" lateFonts>
+  <ToolShell id="bid-radar" who="물류기업 영업 · 3PL · 포워더 · 컨설팅" asOf={`${D.snapshot} 스냅샷`}
+    q="공공기관은 요즘 어떤 물류·무역 용역을 사려 하나?"
+    lead={`나라장터 용역 공고 ${D.scanned.toLocaleString("ko-KR")}건(지난 ${D.window_days}일) 가운데 물류·무역 말이 걸리고 스냅샷 때 마감 전이던 공고 ${D.n}건. 가장 많은 묶음은 ${lead}(${GC[lead]}건). 스냅샷 뒤 마감·정정됐을 수 있으니 응찰 전 나라장터 원문을 확인하세요.`}
+    updated={D.snapshot.slice(0, 10)} source={sourceLine("pps-bid")} csv={u("/data/bid-radar.csv")} csvName="bid-radar.csv" note={`${D.snapshot} 스냅샷 · 마감 가까운 순`}
+    how={`빌드 때 조달청 입찰공고정보서비스(용역)를 지난 ${D.window_days}일 치 불러, 공고명에 넣는 말이 있고 빼는 말이 없으며 스냅샷 시각에 마감 전인 공고만 남겼다(같은 공고의 차수는 마지막 하나). 묶음은 공고명에 걸린 첫 넣는 말로 정했다. 규칙은 데이터를 보기 전에 적었고, 엉뚱한 공고가 섞인 것을 본 뒤 빼는 말을 더한 경위도 같은 문서에 있다.`}
+    limits="공고명 낱말로만 고른다 — 이름에 물류 말이 없는 물류 공고는 빠지고, 낱말만 같은 엉뚱한 공고가 섞일 수 있다. 용역만 본다(물품·공사 제외). 실시간이 아니다 — 스냅샷 뒤 새로 뜬 공고는 없고, 정정·취소·마감은 반영되지 않는다. 담당자 이름·전화·메일은 받지도 싣지도 않는다(개인정보). 응찰 자격·조건은 나라장터 원문이 정본이다.">
+    <div slot="answer" class="br">
+      <p class="br__big"><b id="br-n">{D.n}</b><span>건 · 마감 전 물류·무역 용역 공고<br /><small>{D.snapshot} 스냅샷 · 지난 {D.window_days}일 공고</small></span></p>
+      <figure class="br__fig" id="br-fig">
+        <ol class="br__bars">{G.map((g) => <li><span>{g}</span><i style={`--w:${((GC[g] / top) * 100).toFixed(1)}%`}></i><b>{GC[g]}</b></li>)}</ol>
+        <figcaption class="s-cap">묶음별 공고 수 · 공고명에 걸린 첫 넣는 말 기준</figcaption>
+      </figure>
+    </div>
+    <div slot="controls" class="br__ctl">
+      <div class="seg" role="group" aria-label="묶음 고르기">
+        <button type="button" class="s-btn" data-g="" aria-pressed="true">전체</button>
+        {G.map((g) => <button type="button" class="s-btn s-btn--ghost" data-g={g} aria-pressed="false">{g}</button>)}
+      </div>
+      <label class="br__sort">정렬 <select id="br-sort"><option value="close">마감 가까운 순</option><option value="price">추정가격 큰 순</option></select></label>
+    </div>
+    <section class="br__list" aria-labelledby="br-list-h">
+      <h2 id="br-list-h" class="br__h">공고 목록 <span class="br__auto">자동 수집 · 고르는 규칙 그대로 · 검수 안 함</span></h2>
+      <p class="s-cap" aria-live="polite">보이는 공고 <b id="br-shown">{D.n}</b>건</p>
+      <ol id="br-items">
+        {I.map((x) => (
+          <li data-g={x.group} data-close={x.bidClseDt} data-price={x.presmptPrce ?? 0}>
+            <p class="br__meta"><span class="br__g">{x.group}</span> 마감 <time datetime={x.bidClseDt.replace(" ", "T")}>{x.bidClseDt.slice(0, 16)}</time><em class="br__gone" hidden> · 마감 지남</em></p>
+            <h3><a href={x.bidNtceDtlUrl} rel="noopener noreferrer">{x.bidNtceNm}</a></h3>
+            <p class="br__org">{x.ntceInsttNm}{x.dminsttNm && x.dminsttNm !== x.ntceInsttNm && <> → {x.dminsttNm}</>} · 추정가격 {won(x.presmptPrce)} · 공고 {x.bidNtceNo}-{x.bidNtceOrd}</p>
+          </li>
+        ))}
+      </ol>
+      <details class="br__rule">
+        <summary>고르는 규칙(선커밋 · 데이터 보기 전)</summary>
+        <p><b>넣는 말</b> {D.include.join(" · ")}</p>
+        <p><b>빼는 말</b> {D.exclude.join(" · ")}</p>
+      </details>
+    </section>
+  </ToolShell>
+  <script>
+    const list = document.getElementById("br-items")!, items = [...list.querySelectorAll<HTMLLIElement>("li")];
+    const shown = document.getElementById("br-shown")!, sort = document.getElementById("br-sort") as HTMLSelectElement;
+    let g = "";
+    const apply = () => {
+      const order = [...items].sort((a, b) => (sort.value === "price" ? Number(b.dataset.price) - Number(a.dataset.price) : a.dataset.close!.localeCompare(b.dataset.close!)));
+      for (const li of order) { li.hidden = !!g && li.dataset.g !== g; list.appendChild(li); }
+      shown.textContent = String(items.filter((li) => !li.hidden).length);
+    };
+    // 지금 시각이 마감을 넘긴 공고는 흐리게 — 스냅샷을 「지금 떠 있는」처럼 보이지 않게(가짜 실시간 금지)
+    const now = Date.now();
+    for (const li of items) if (Date.parse(li.dataset.close!.replace(" ", "T") + "+09:00") <= now) { li.classList.add("gone"); li.querySelector<HTMLElement>(".br__gone")!.hidden = false; }
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".br__ctl .seg button")) b.addEventListener("click", () => {
+      for (const y of document.querySelectorAll<HTMLButtonElement>(".br__ctl .seg button")) { const on = y === b; y.setAttribute("aria-pressed", String(on)); y.classList.toggle("s-btn--ghost", !on); }
+      g = b.dataset.g || ""; apply();
+    });
+    sort.addEventListener("change", apply);
+  </script>
+</Studio>
+<style>
+  .br { display: grid; gap: var(--s-3); }
+  .br__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
+  .br__big > b { font-size: clamp(38px, 5vw, 64px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; color: var(--s-signal); }
+  .br__big > span { color: var(--s-ink-2); } .br__big small { color: var(--s-ink-3); font-size: var(--s-t-cap); }
+  .br__fig { margin: 0; }
+  .br__bars { list-style: none; margin: 0 0 var(--s-2); padding: 0; display: grid; gap: 6px; font-variant-numeric: tabular-nums; max-width: 40rem; }
+  .br__bars li { display: grid; grid-template-columns: 7.5rem 1fr 3rem; gap: 8px; align-items: center; }
+  .br__bars i { display: block; height: 10px; background: var(--s-ink-3); width: var(--w); transform-origin: left; animation: br-bar 0.8s 0.2s ease-out both; }
+  .br__bars li:first-child i { background: var(--s-signal); }
+  .br__bars b { text-align: right; font-weight: 600; }
+  @keyframes br-bar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  .br__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
+  .seg { display: flex; flex-wrap: wrap; } .seg .s-btn { min-height: 44px; }
+  .br__sort { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); } .br__sort select { min-height: 44px; font: inherit; font-size: 15px; color: var(--s-ink); }
+  .br__list { max-width: 52rem; }
+  .br__h { font-size: var(--s-t-h3); margin: 0 0 var(--s-2); display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .br__auto { font-size: var(--s-t-cap); font-weight: 500; color: var(--s-ink-2); border: 1px solid var(--s-rule); padding: 2px 8px; }
+  #br-items { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; }
+  #br-items li { border-top: 1px solid var(--s-rule); padding: var(--s-3) 0; }
+  #br-items li.gone { opacity: 0.55; }
+  #br-items h3 { font-size: 17px; line-height: 1.4; margin: 2px 0; overflow-wrap: anywhere; }
+  #br-items h3 a { color: var(--s-ink); }
+  .br__meta, .br__org { margin: 0; font-size: var(--s-t-cap); color: var(--s-ink-2); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .br__g { font-weight: 600; color: var(--s-ink); margin-right: 6px; }
+  .br__rule { margin-top: var(--s-4); font-size: var(--s-t-cap); color: var(--s-ink-2); } .br__rule summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
+  @media (max-width: 720px) { .br__bars li { grid-template-columns: 6.5rem 1fr 2.5rem; } }
+  @media (prefers-reduced-motion: reduce) { .br__bars i { animation: none; } }
+</style>

@@ -20,6 +20,8 @@ const TOOLS = {
     act: async (p) => { const a = await p.locator("#ck-imp").innerText(); await p.locator(".seg button[data-id=taiwan]").click(); await expect(p.locator("#ck-name")).toHaveText(/대만/); await expect(p.locator("#ck-imp")).not.toHaveText(a); const h = await p.locator("#ck-hit").innerText(); await p.locator("#ck-x").fill("10"); await expect(p.locator("#ck-hit")).not.toHaveText(h); } },
   anchorage: { data: ["data/derived/s2_anchorage.json"], answer: "#anc-fig", num: "#anc-n", asof: true,
     act: async (p) => { await p.locator("#anc-play").click(); await p.locator(".anc__bars button").first().click(); await expect(p.locator("#anc-date")).toHaveText(JSON.parse(J("data/derived/s2_anchorage.json")).frames[0].date); } },
+  "bid-radar": { data: ["data/derived/bid_radar.json"], answer: "#br-fig", num: "#br-n", asof: true,
+    act: async (p) => { const R = JSON.parse(J("data/derived/bid_radar.json")), g = R.groups.find((x) => R.group_counts[x] !== R.n); await p.locator(`.br__ctl .seg button[data-g="${g}"]`).click(); await expect(p.locator("#br-shown")).toHaveText(String(R.group_counts[g])); await expect(p.locator("#br-items li:visible")).toHaveCount(R.group_counts[g]); } },
 };
 
 for (const [id, T] of Object.entries(TOOLS)) {
@@ -113,4 +115,18 @@ test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달
   const want = Math.round(1000 * (K.weeks[K.weeks.length - 1][1] / K.weeks[i0][1]));
   await page.click("#wave-apply");
   await expect(page.locator("input[name=freight]")).toHaveValue(String(want));
+});
+
+test("입찰 레이더: 담당자 개인정보 0 · 스냅샷 시각 · 「검수 안 함」 · 키 0 · CSV = 목록(선커밋 ③-가)", async ({ page, request }) => {
+  const raw = J("data/derived/bid_radar.json"), R = JSON.parse(raw);
+  expect(raw).not.toMatch(/Ofcl|TelNo|Email|serviceKey/);
+  expect(R.n).toBeGreaterThanOrEqual(5);
+  for (const x of R.items) expect(x.bidClseDt.slice(0, 16) > R.snapshot, `${x.bidNtceNo} 스냅샷 때 이미 마감`).toBe(true);
+  const csv = await (await request.get(`${B}/data/bid-radar.csv`)).text();
+  expect(csv).not.toMatch(/Ofcl|TelNo|Email|serviceKey/);
+  expect(csv.trim().split(/\r?\n/).length - 2).toBe(R.n);
+  await page.goto(`${B}/tools/bid-radar.html`, { waitUntil: "networkidle" });
+  await expect(page.locator(".tool__asof")).toContainText(`${R.snapshot} 스냅샷`);
+  await expect(page.locator(".br__auto")).toHaveText("자동 수집 · 고르는 규칙 그대로 · 검수 안 함");
+  await expect(page.locator("#br-items li")).toHaveCount(R.n);
 });
