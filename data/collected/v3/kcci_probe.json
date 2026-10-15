@@ -1,0 +1,154 @@
+{
+ "checked": "2026-10-15",
+ "page": "https://www.kobc.or.kr/ebz/shippinginfo/timeseries/gridList.do?mId=0304000000",
+ "status": 200,
+ "size": 110556,
+ "forms": [
+  "<form id=\"list\" name=\"list\" action=\"/ebz/shippinginfo/timeseries/gridList.do?mId=0304000000\" method=\"post\">\n\t\t\t\t\t\n\n\t\t\t\t\t<div class=\"Monthsel\">\n\t\t\t\t\t\t<label>Date</label>\n\t\t\t\t\t\t<div class=\"moninwrap\">\n\t\t\t\t\t\t\t<p class=\"MonthPicker\">\n\t\t\t\t\t\t\t\t<!--year month -->\n                                <label for=\"sDay\" class=\"hidden\" >시작일</label>\n\t\t\t\t\t\t\t\t<input id=\"sDay\" name=\"sDay\" data-ismindatefor=\"eDay\" readOnly=\"readOnly\" placeholder=\"시작일\" type=\"text\" class=\"date\" value=\"2026-09-14\"/>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<b> ~ </b>\n\t\t\t\t\t\t\t<p class=\"MonthPicker\">\n                                <label for=\"eDay\" class=\"hidden\" >종료일</label>\n\t\t\t\t\t\t\t\t<input id=\"eDay\" name=\"eDay\" readOnly=\"readOnly\" data-ismaxdatefor=\"sDay\" placeholder=\"종료일\" type=\"text\" class=\"date\" value=\"2026-10-15\"/>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<!--버튼태그위치-->\n\t\t\t\t\t\t<button type=\"submit\" class=\"calSearch\" value=\"검색\" title=\"검색하기\"></button>\n\t\t\t\t\t</div>\n\n\t\t\t\t</form>",
+  "<form id=\"researchForm\" name=\"researchForm\" action=\"/ebz/shippinginfo/satisfaction/voteSatis.do\" method=\"POST\" onsubmit=\"return false;\">\n\t\t\t<input type=\"hidden\" value=\"shippinginfo\" name=\"siteCode\" id=\"siteCode\" >\n\t\t\t<input type=\"hidden\" value=\"0304000000\" name=\"mId\" id=\"mId\" >\n\t\t    <p class=\"satit\">이 페이지에서 제공하는 정보에 대해 만족하셨습니까?</p>\n\t\t    <div class=\"satis-chk\">\n\t\t        <span class=\"radioWrap\">\n\t\t            <input type=\"radio\" id=\"researchPoint5\" name=\"researchPoint\" value=\"5\" checked=\"checked\">\n\t\t            <label for=\"researchPoint5\" class=\"research_label\" >매우만족</label>\n\t\t        </span>\n\t\t        <span class=\"radioWrap\">\n\t\t            <input type=\"radio\" id=\"researchPoint4\" name=\"researchPoint\" value=\"4\"> \n\t\t            <label for=\"researchPoint4\" class=\"research_label\" >만족</label>\n\t\t        </span>\n\t\t        <span class=\"radioWrap\">\n\t\t            <input type=\"radio\" id=\"researchPoint3\" name=\"researchPoint\" value=\"3\">\n\t\t            <label for=\"researchPoint3\" class=\"research_label\" >보통</label>\n\t\t        </span>\n\t\t        <span class=\"radioWrap\">\n\t\t            <input type=\"radio\" id=\"researchPoint2\" name=\"researchPoint\" value=\"2\" >\n\t\t            <label for=\"researchPoint2\" class=\"research_label\" >불만족</label>\n\t\t        </span>\n\t\t        <span class=\"radioWrap\">\n\t\t            <input type=\"radio\" id=\"researchPoint1\" name=\"researchPoint\" value=\"1\">\n\t\t            <label for=\"researchPoint1\" class=\"research_label\" >매우불만족</label>\n\t\t        </span>\n\t\t    </div>\n\t\t    \n\t\t    <di"
+ ],
+ "inputs": [
+  "eDay",
+  "mId",
+  "regBtn",
+  "researchContent",
+  "researchPoint",
+  "sDay",
+  "siteCode"
+ ],
+ "script_bits": [
+  "\">Download</button>",
+  "<!-- <button class=\"fDown m2\" onclick=\"location.href='/cmm/fms/FileDown.do?atchFileId=FILE_000000000002180&fileSn=0'\">표준기술서</button> -->",
+  "<button class=\"fDown m1\"",
+  "<div class=\"FileDown\">",
+  "onclick=\"excelDownload('/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000', '/ebz/shippinginfo/timeseries/gridList.do?mId=0304000000')"
+ ],
+ "table_rows_on_page": 4,
+ "candidates": [
+  "/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000"
+ ],
+ "date_fields": [
+  [
+   "sDay"
+  ],
+  [
+   "eDay"
+  ]
+ ],
+ "used": {
+  "path": "/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000",
+  "fields": [
+   "mId",
+   "sDay",
+   "eDay"
+  ],
+  "size": 46592
+ },
+ "tries": [
+  {
+   "path": "/ebz/shippinginfo/timeseries/excel/download.do?mId=0304000000",
+   "fields": [
+    "mId",
+    "sDay",
+    "eDay"
+   ],
+   "status": 200,
+   "type": "",
+   "size": 46592,
+   "head": "d0cf11e0a1b11ae1000000000000000000000000000000003e000300feff090006000000000000000000000001000000590000000000000000100000feffffff00000000feffffff0000000058000000",
+   "xls_rows": 198,
+   "xls_head": [
+    [
+     "KOBC CONTAINER COMPOSITE INDEX TIMESERIES",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     "",
+     ""
+    ],
+    [
+     "번호",
+     "DATE",
+     "KCCI",
+     "KUWI",
+     "KUEI",
+     "KNEI",
+     "KMDI",
+     "KMEI",
+     "KAUI",
+     "KLEI",
+     "KLWI",
+     "KSAI",
+     "KWAI",
+     "KCI",
+     "KJI",
+     "KSEI"
+    ],
+    [
+     "196",
+     "20261012",
+     "4654.0",
+     "8258.0",
+     "11609.0",
+     "3431.0",
+     "3730.0",
+     "8885.0",
+     "5047.0",
+     "6803.0",
+     "5568.0",
+     "4119.0",
+     "4613.0",
+     "55.0",
+     "234.0",
+     "1624.0"
+    ],
+    [
+     "195",
+     "20261006",
+     "4629.0",
+     "8194.0",
+     "11201.0",
+     "3555.0",
+     "3806.0",
+     "8730.0",
+     "4952.0",
+     "7084.0",
+     "5710.0",
+     "4061.0",
+     "4648.0",
+     "54.0",
+     "233.0",
+     "1622.0"
+    ],
+    [
+     "194",
+     "20260928",
+     "4678.0",
+     "8000.0",
+     "11294.0",
+     "3751.0",
+     "4016.0",
+     "8627.0",
+     "4885.0",
+     "8063.0",
+     "6211.0",
+     "3819.0",
+     "4701.0",
+     "54.0",
+     "236.0",
+     "1391.0"
+    ]
+   ]
+  }
+ ]
+}

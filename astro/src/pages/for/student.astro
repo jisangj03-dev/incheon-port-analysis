@@ -1,22 +1,5 @@
 ---
-import Persona from "../../layouts/Persona.astro";
-import { u } from "../../lib/site";
+// 옛 사람별 입구(/for/student.html · 개편 기준 12) — 정체성 전환(2026-10-14)으로 입구 넷을 구조 넷(지도 · 시뮬레이션 · 노트 · 소개)으로 바꿨다. 주소는 살린다.
+import Redirect from "../../layouts/Redirect.astro";
 ---
-<Persona who="학생" title="인천 물류, 처음부터" description="인천항 빈 컨테이너 이야기를 #01부터 순서대로 — 그리고 TEU·공컨·환적·보세창고·3PL 같은 말의 뜻." path="/for/student.html">
-  <p class="lede">한 가지 질문이 어떻게 다음 질문을 낳았는지, 편 순서대로 읽으면 보인다.</p>
-  <ol class="pl">
-    <li><a href={u("/reports/report_01_공컨테이너_물동량.html")}><strong>#01 관찰</strong><span>빈 컨테이너가 많다</span></a></li>
-    <li><a href={u("/reports/report_02_공컨테이너_비율.html")}><strong>#02 검증</strong><span>전체의 몇 %인가</span></a></li>
-    <li><a href={u("/reports/report_03_공컨테이너_수출입방향.html")}><strong>#03 방향</strong><span>어느 쪽으로 나가는가</span></a></li>
-    <li><a href={u("/reports/report_07_공컨테이너_표본외검증.html")}><strong>#07 표본외 검증</strong><span>기준을 먼저 커밋하고 새 데이터로 다시 잰다</span></a></li>
-    <li><a href={u("/reports/report_09_공컨테이너_시계열연장.html")}><strong>#09 FAIL 공개</strong><span>우리 기준이 깨진 것도 그대로 싣는다</span></a></li>
-  </ol>
-  <h2>말 풀이</h2>
-  <dl class="gl">
-    <dt>TEU</dt><dd>20피트 컨테이너 1개를 1로 세는 단위. 40피트는 2 TEU.</dd>
-    <dt>공컨 · 적컨</dt><dd>빈 컨테이너와 화물이 실린 컨테이너.</dd>
-    <dt>환적</dt><dd>다른 항구로 가는 화물을 이 항구에서 배를 바꿔 싣는 것.</dd>
-    <dt>보세창고</dt><dd>세관 신고가 끝나기 전의 외국 물품을 관세를 내지 않은 상태로 두는 창고.</dd>
-    <dt>3PL · 풀필먼트</dt><dd>보관·포장·출고 같은 물류 업무를 맡아 주는 업체(3자 물류)와, 주문 처리까지 묶은 서비스.</dd>
-  </dl>
-</Persona>
+<Redirect path="/for/student.html" to="/" label="첫 화면" />

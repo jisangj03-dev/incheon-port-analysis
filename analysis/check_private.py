@@ -4,6 +4,8 @@
 왜 있는가
 ---------
 **[2026-09-01 운영자 지시] 사이트 어디에도 운영자 실명이 들어가지 않는다.**
+**[2026-10-14 개정 · 정체성 전환 §5-4] 실명 공개 확정 — 실명은 `data/profile.json` 한 곳에만 산다.**
+지면은 그 파일에서 읽는다. 그 밖의 자리에 실명이 나오면 지금도 유출로 막는다(아래 `NAME_HOME`).
 그날 실측으로 **공개 대상 11곳**에 있었다(발행본 3편 · README · about 둘 · verify 둘 ·
 전 페이지 푸터 · CITATION). 전부 지웠다.
 
@@ -111,11 +113,17 @@ def tracked(root):
     return [p for p in out.stdout.decode("utf-8", "replace").split("\0") if p]
 
 
+# [2026-10-14 정체성 전환 §5-4 · 공개 전환 PR] **실명 공개 확정** — 단, 실명이 사는 곳은 이 파일 하나다.
+#   지면은 모두 이 파일에서 읽는다(손으로 적지 않는다). 그 밖의 추적 파일에 실명이 나오면 종전대로 유출로 막는다.
+#   이메일은 이 파일에도 **원문으로 두지 않는다**(사용자·도메인을 갈라 둔다 · 화면에서도 누를 때만 조립) — 원문 검사는 그대로다.
+NAME_HOME = ("data/profile.json",)
+
+
 def scan_text(rel, text):
     """(종류, 줄번호, 발췌) 목록."""
     hits = []
     for i, line in enumerate(text.splitlines(), 1):
-        if _NAME in line:
+        if _NAME in line and rel.replace(os.sep, "/") not in NAME_HOME:
             hits.append(("실명", i, line.strip()[:90]))
         if _MAIL in line:
             hits.append(("이메일", i, line.strip()[:90]))
@@ -249,6 +257,9 @@ def selftest():
     # 잡아야 하는 것 넷
     chk("실명을 잡는다", [k for k, _, _ in scan_text("a", "검수 · 발행: " + _NAME)], ["실명"])
     chk("이메일을 잡는다", [k for k, _, _ in scan_text("a", "문의 " + _MAIL)], ["이메일"])
+    chk("실명은 프로필 파일 한 곳에서만 통과한다", [k for k, _, _ in scan_text("data/profile.json", '"name": "' + _NAME + '"')], [])
+    chk("프로필 파일이라도 이메일 원문은 잡는다", [k for k, _, _ in scan_text("data/profile.json", _MAIL)], ["이메일"])
+    chk("프로필 밖 지면 소스의 실명은 잡는다", [k for k, _, _ in scan_text("astro/src/pages/about.astro", _NAME)], ["실명"])
     chk("공개 식별자 목록의 값은 통과시킨다",
         [k for k, _, _ in scan_text("a", "tok" + 'en: "' + next(iter(PUBLIC_IDS)) + '"')], [])
     chk("목록에 없는 token 리터럴은 잡는다",

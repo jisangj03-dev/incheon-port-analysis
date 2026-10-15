@@ -1,5 +1,6 @@
 // 해도 장면을 화면 비율에 맞춘다 — 맞출 범위(FIT)를 여백(pad)을 빼고 가득 채운다. 이름표·점 크기·선 굵기·가장자리 눈금은 화면 픽셀로.
 // pad.tText 에 선택자를 주면 그 글자 덩어리 높이만큼 위를 비운다(글자 뒤로 지도가 숨지 않게).
+import { placeLabels, boxesOf } from "./label-place";
 const BB = [126.0, 37.0, 127.4, 37.9], KX = 1000 / (BB[2] - BB[0]), KY = KX / Math.cos((37.44 * Math.PI) / 180);
 
 export function initHaedo(fig: HTMLElement, onFit?: (s: number) => void) {
@@ -26,7 +27,8 @@ export function initHaedo(fig: HTMLElement, onFit?: (s: number) => void) {
       vy = Math.min(Math.max(vy, fy1 - chh + pad.b / s), fy0 - pad.t / s); vy = Math.min(Math.max(vy, ly0), ly1 - chh);
     }
     sea.setAttribute("viewBox", `${vx.toFixed(1)} ${vy.toFixed(1)} ${(W / s).toFixed(1)} ${(H / s).toFixed(1)}`);
-    for (const el of fig.querySelectorAll<HTMLElement>("[data-x]")) {
+    // 덧그림 이름표(점 이름표가 아닌 것)는 정한 자리에
+    for (const el of fig.querySelectorAll<HTMLElement>("[data-x]:not([data-lb])")) {
       el.style.left = `${(Number(el.dataset.x) - vx) * s + Number(el.dataset.off || 10)}px`; el.style.top = `${(Number(el.dataset.y) - vy) * s}px`;
     }
     // 점 크기·선 굵기는 화면 픽셀로 고정 — 선에 vector-effect 를 쓰면 대시(그려지는 효과)가 화면 픽셀로 계산돼 끊긴다
@@ -41,10 +43,40 @@ export function initHaedo(fig: HTMLElement, onFit?: (s: number) => void) {
     const lstep = W < 600 ? 10 : 5;
     for (let m = Math.ceil((lon(0) * 60) / lstep) * lstep; m <= lon(W) * 60; m += lstep) { const x = X(m / 60); if (x > 60 && x < W - 60) g += `<line x1="${x}" x2="${x}" y1="${H}" y2="${H - 8}"/><text x="${x + 3}" y="${H - 12}">${dm(m / 60)}E</text>`; }
     grat.setAttribute("viewBox", `0 0 ${W} ${H}`); grat.innerHTML = g;
+    // 점 이름표 — 충돌 회피(값 큰 점 먼저 · 막히면 멀리 + 지시선 · 눈금 글자도 피한다 · 채팅 검수 ①)
+    const host = fig.querySelector(".haedo__labels") as HTMLElement;
+    let lines = host.querySelector<SVGSVGElement>(".haedo__lines");
+    if (!lines) { lines = document.createElementNS("http://www.w3.org/2000/svg", "svg") as SVGSVGElement; lines.setAttribute("class", "haedo__lines"); host.prepend(lines); }
+    const all = [...fig.querySelectorAll<HTMLElement>("[data-lb]")].map((el) => {
+      const r = Number(el.dataset.off || 10) - 6;
+      return { el, x: (Number(el.dataset.x) - vx) * s, y: (Number(el.dataset.y) - vy) * s, r, pri: el.classList.contains("to") ? 1e6 : r };
+    });
+    // 화면 밖 점(세로로 긴 폰에서 서울 등) — 지시선 대신 그 쪽 가장자리에 방향 표지(「서울 →」)를 단다
+    const edge: { l: number; t: number; r: number; b: number }[] = [];
+    for (const it of all) {
+      const out = it.x < 0 ? "w" : it.x > W ? "e" : it.y < 0 ? "n" : it.y > H ? "s" : "";
+      if (out) it.el.dataset.edge = out; else delete it.el.dataset.edge;
+      if (!out) continue;
+      const w = it.el.offsetWidth, h = it.el.offsetHeight, m = 8;
+      const l = out === "e" ? W - w - m : out === "w" ? m : Math.min(Math.max(it.x - w / 2, m), W - w - m);
+      const t = out === "s" ? H - h - m : out === "n" ? m : Math.min(Math.max(it.y - h / 2, m), H - h - m);
+      it.el.style.left = `${l.toFixed(1)}px`; it.el.style.top = `${t.toFixed(1)}px`; it.el.style.transform = "none";
+      edge.push({ l, t, r: l + w, b: t + h });
+    }
+    const items = all.filter((it) => !it.el.dataset.edge);
+    // 덧그림 꼬리표 가운데 지금 단계에 보이는 것(data-show ∋ 가장 가까운 [data-step] 의 단계)도 같은 배치기로 — 점 이름표 다음 순위(채팅 검수 ① · 따라가기 「하늘」에서 겹쳤다)
+    const step = (fig.closest("[data-step]") as HTMLElement | null)?.dataset.step;
+    for (const el of fig.querySelectorAll<HTMLElement>("[data-x][data-show]")) {
+      if (!step || !(el.dataset.show || "").split(" ").includes(step)) continue;
+      items.push({ el, x: (Number(el.dataset.x) - vx) * s, y: (Number(el.dataset.y) - vy) * s, r: 2, pri: -1 });
+    }
+    placeLabels(host, items, { lines, block: [...edge, ...boxesOf(host, grat.querySelectorAll("text")), ...boxesOf(host, document.querySelectorAll(G.pad.tText || "__none"))] });
     fig.dataset.fit = "1";
     onFit?.(s);
   };
   new ResizeObserver(fit).observe(fig);
+  // 글꼴이 늦게 붙으면 글자 폭이 바뀐다 — 이름표를 다시 놓는다(겹침 0)
+  (document as any).fonts?.addEventListener?.("loadingdone", fit);
   fit();
   return fit;
 }

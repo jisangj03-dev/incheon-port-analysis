@@ -1,8 +1,12 @@
 ---
 // 모든 지면의 그릇(기준 10 「레이아웃 없는 지면 0」). 머리: 제목·설명·OG·정본 주소·구조화 데이터(기준 9 · AI 검색 인용).
-// 바닥: 신뢰 지면(기준 15) · 뉴스레터 구독(기준 24 · 물류로그 beehiiv) · 출처·라이선스 고지. 외부 요청은 Cloudflare 분석 하나(기준 17).
+// [2026-10-14 공개 전환 · 정체성 §5-4] 해도 디자인 — 머리 「측심 SCM 작업실」 + 넷(지도·시뮬레이션·노트·소개) · 바닥 = 고지·출처·연락.
+// 외부 요청은 Cloudflare 분석 비콘 하나(site.ts CF_BEACON · 2026-10-14 채팅이 코드를 줬다 — 비콘 토큰은 공개 지면에 그대로 실리는 공개 식별자다).
 import "../styles/global.css";
+import "../styles/studio.css";
 import { BRAND, NAV, u, abs, REPO, ISSUES, CF_BEACON, newsletterHref, newsletterLabel } from "../lib/site";
+import { profile } from "../lib/profile";
+import AskTail from "../components/scene/AskTail.astro";
 
 interface Props {
   title?: string;
@@ -16,16 +20,25 @@ interface Props {
   wide?: boolean;
   /** Pretendard 를 붙일까. 도구 지면(밝은 작업 화면)은 시스템 서체로 간다 — 글자 묶음 열몇 개를 안 받는다(기준 10 성능). */
   fonts?: boolean;
+  /** 해도 시안 지면(장면 부품 · 큰 제목) — body.studio */
+  studio?: boolean;
+  /** 머리 메뉴에서 지금 있는 곳(지도·시뮬레이션·노트·소개) */
+  current?: "map" | "tools" | "sim" | "notes" | "about" | "home";
+  /** 지면 끝 「이 분석을 우리 회사 숫자로」 연락 꼬리(기본 켬 · 리디렉트·틀 지면은 끈다) */
+  ask?: boolean;
+  /** 좁은 화면에서 글꼴 CSS 를 사람이 만진 뒤에 붙인다(홈 · 2026-10-14 실측: 글꼴 규칙 216개를 붙이는 배치 계산이 모바일 TBT 의 2/3) */
+  lateFonts?: boolean;
 }
-const { title, description = BRAND.description, path, ogImage = "/assets/og.jpg", surface = "dark", type = "article", noindex = false, jsonld = [], wide = false, fonts = surface !== "light" } = Astro.props;
+const { title, description = BRAND.description, path, ogImage = "/assets/og.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
+const P = profile();
 const fullTitle = title ? `${title} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 const canonical = abs(path);
-const cur = (href: string) => (href === "/" ? path === "/" || path === "/index.html" : path.startsWith(href.replace(/\.html$/, "")));
+const cur = (n: { id: string; href: string }) => (current ? current === n.id : path.startsWith(n.href.replace(/\.html$/, "").replace(/#.*$/, "")) && n.href !== "/");
 const ld = [
   { "@context": "https://schema.org", "@type": "WebSite", name: BRAND.name, alternateName: BRAND.latin, url: abs("/"), inLanguage: "ko", description: BRAND.description },
   ...jsonld,
 ];
-const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== "1"; // 로컬 성능 측정 때만 끈다
+const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== "1" && !!CF_BEACON.token; // 로컬 성능 측정 때만 끈다 · 토큰이 비면 0
 ---
 <!doctype html>
 <html lang="ko">
@@ -36,12 +49,26 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
   {noindex && <meta name="robots" content="noindex" />}
-  <meta name="theme-color" content={surface === "light" ? "#f6f9fb" : "#0b1a26"} />
+  <meta name="theme-color" content="#f5f2eb" />
   <link rel="icon" type="image/svg+xml" href={u("/assets/favicon.svg")} />
   <link rel="apple-touch-icon" href={u("/assets/apple-touch-icon.png")} />
-  <!-- 글꼴 CSS(동적 부분집합 92묶음 · 56KB)는 첫 화면을 막지 않게 비동기로 붙인다. 스크립트가 없으면 noscript 로. -->
-  {fonts && <link rel="preload" href={u("/fonts/pretendard/pretendard.css")} as="style" onload="this.onload=null;this.rel='stylesheet'" />}
+  <!-- 글꼴 CSS(본문 Pretendard 동적 부분집합 · 제목 Noto Serif KR 700 · 둘 다 OFL)는 첫 그림이 찍힌 뒤 붙인다 — 2026-10-14 출고 검사:
+       비동기 preload 로도 글꼴 30여 묶음(약 700KB)이 첫 그림과 같은 때 받아져 모바일 성능이 61 이었다(글꼴을 막으면 99).
+       font-display: optional 이라 늦게 온 글꼴은 그 화면에서 쓰지 않고(밀림 0) 다음 화면부터 캐시로 쓴다. 스크립트가 없으면 noscript 로. -->
+  <script is:inline define:vars={{ FONT_CSS: [fonts && u("/fonts/pretendard/pretendard.css"), u("/fonts/noto-serif-kr/noto-serif-kr-700.css")].filter(Boolean), LATE: lateFonts }}>
+    // 첫 그림(first-contentful-paint)이 찍힌 뒤에 붙인다 — load 가 첫 그림보다 빠른 가벼운 지면에서 load 에 붙이면 그 CSS 가 첫 그림을 붙잡았다(시뮬레이션 지면 100 → 76).
+    let done = false;
+    const go = () => { if (done) return; done = true; for (const h of FONT_CSS) { const l = document.createElement("link"); l.rel = "stylesheet"; l.href = h; document.head.append(l); } };
+    // 좁은 화면의 홈은 만진 뒤에(스크롤·누름·키) — font-display: optional 이라 그 화면의 글자는 어차피 시스템 글꼴로 남고, 다음 화면부터 캐시로 쓴다
+    if (LATE && matchMedia("(max-width: 720px)").matches) { for (const e of ["touchstart", "pointerdown", "scroll", "keydown", "wheel"]) addEventListener(e, go, { once: true, passive: true }); }
+    else {
+      try { new PerformanceObserver((list, o) => { if (list.getEntriesByName("first-contentful-paint").length) { o.disconnect(); setTimeout(go, 0); } }).observe({ type: "paint", buffered: true }); } catch { addEventListener("load", go, { once: true }); }
+      setTimeout(go, 4000);
+    }
+  </script>
   {fonts && <noscript><link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} /></noscript>}
+  <noscript><link rel="stylesheet" href={u("/fonts/noto-serif-kr/noto-serif-kr-700.css")} /></noscript>
+  <script is:inline>if (new URLSearchParams(location.search).get("type") === "sans") document.documentElement.dataset.type = "sans";</script>
   <meta property="og:type" content={type} />
   <meta property="og:site_name" content={BRAND.name} />
   <meta property="og:locale" content="ko_KR" />
@@ -59,51 +86,34 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
     <Fragment set:html={`<!-- Cloudflare Web Analytics --><script type='module' src='${CF_BEACON.src}' data-cf-beacon='{"token": "${CF_BEACON.token}"}'></script><!-- End Cloudflare Web Analytics -->`} />
   )}
 </head>
-<body data-surface={surface}>
+<body data-surface={surface} class:list={[{ studio }]}>
   <a class="skip" href="#main">본문으로 건너뛰기</a>
-  <header class="mast">
-    <div class="wrap mast__in">
-      <a class="brand" href={u("/")} aria-label={`${BRAND.name} 첫 화면`}>
-        <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="square"><path d="M32 4v34M23 12h9M23 21h9M23 30h9M10 60h44" /></g><path fill="currentColor" d="M24 38h16l-3 18H27z" /></svg>
-        <span class="brand__name">{BRAND.name}</span>
-        <span class="brand__sub">{BRAND.latin}</span>
-      </a>
-      <nav aria-label="사이트">
-        {NAV.map((n) => <a href={u(n.href)} aria-current={cur(n.href) ? "page" : undefined}>{n.label}</a>)}
-      </nav>
-    </div>
+  <header class="s-wrap s-mast">
+    <a class="s-mark" href={u("/")} aria-label={`${BRAND.name} 첫 화면`}>{BRAND.name}<small>{BRAND.tagline}</small></a>
+    <nav class="s-nav" aria-label="주 메뉴">
+      {NAV.map((n) => <a href={u(n.href)} aria-current={cur(n) ? "page" : undefined}>{n.label}</a>)}
+    </nav>
   </header>
-  <main id="main" tabindex="-1" class={wide ? "" : ""}>
+  <main id="main" tabindex="-1">
     <slot />
   </main>
-  <footer class="foot">
-    <div class="wrap foot__in">
-      <div class="foot__brand">
-        <p><strong>{BRAND.name} · {BRAND.latin}</strong><br />{BRAND.lede}</p>
-        <p><a class="btn" href={newsletterHref()} data-newsletter>{newsletterLabel()}</a></p>
-      </div>
-      <div>
-        <h2>믿을 수 있나</h2>
-        <ul>
-          <li><a href={u("/about.html")} data-trust>방법론 · 출처 · 필명과 자격</a></li>
-          <li><a href={u("/data.html")}>데이터 출처와 이용허락</a></li>
-          <li><a href={ISSUES}>오류 신고</a></li>
-        </ul>
-      </div>
-      <div>
-        <h2>둘러보기</h2>
-        <ul>
-          <li><a href={u("/reports/")}>보고서</a></li>
-          <li><a href={u("/tools/")}>셀러 물류 도구</a></li>
-          <li><a href={REPO}>원시 데이터와 재현 코드</a></li>
-        </ul>
-      </div>
-      <p class="foot__legal">
-        이 사이트의 내용은 공공 1차 데이터를 정리한 정보이며 <strong>법률·세무·관세 자문이 아닙니다.</strong>
-        AI로 만든 장면에는 화면 안에 「AI 생성 장면」을 표기합니다. 발행된 보고서의 주소는 바꾸지 않고, 오류는 지우지 않고 정정 표기로 남깁니다.
-        글꼴 Pretendard(OFL-1.1).
-      </p>
+  {ask && !noindex && <AskTail />}
+  <footer class="s-wrap s-foot foot">
+    <hr class="s-rule" />
+    <div class="foot__grid">
+      <p class="foot__who"><b>{BRAND.name}</b> — {P.name}의 {BRAND.tagline}. 수도권 공급망이 인천을 어떻게 지나는지 공공 1차 데이터로 잽니다.</p>
+      <ul class="foot__links">
+        <li><a href={u("/about.html")} data-trust>소개 · 연락</a></li>
+        <li><a href={u("/data.html")}>데이터 출처와 이용허락</a></li>
+        <li><a href={REPO}>원시 데이터와 재현 코드</a></li>
+        <li><a href={ISSUES}>틀린 곳 알리기</a></li>
+        <li><a href={newsletterHref()} data-newsletter target="_blank" rel="noopener" aria-label={`${newsletterLabel()} (새 창)`}>{newsletterLabel()} ↗</a></li>
+      </ul>
     </div>
+    <p class="foot__legal">
+      공공 1차 데이터를 정리한 정보이며 <strong>법률·세무·관세 자문이 아닙니다.</strong> AI가 정리한 글·그림 가운데 검수를 마친 것에 「AI 정리 · {P.name} 검수」를 답니다.
+      발행한 주소는 바꾸지 않고, 오류는 지우지 않고 고쳐 적습니다. 글꼴 Pretendard · Noto Serif KR(OFL-1.1) · 지도 © OpenStreetMap 기여자.
+    </p>
   </footer>
   <slot name="after" />
 </body>

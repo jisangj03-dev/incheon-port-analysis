@@ -241,7 +241,8 @@ const jsonld = [{
   .be__text { font-size: 0.9rem; color: var(--ink); font-weight: 600; margin: 0.2rem 0 0.5rem; }
   .be__chart { min-height: 40px; overflow: hidden; }
   .be__chart :global(svg) { max-width: 100%; height: auto; }
-  .cc-after { max-width: 760px; margin-top: 2.5rem; }
+  /* 첫 화면 밖 — 보일 때 조판한다(2026-10-14 출고 검사 · 모바일 성능: 첫 그림 전 스타일·레이아웃이 주범) */
+  .cc-after { max-width: 760px; margin-top: 2.5rem; content-visibility: auto; contain-intrinsic-size: auto 900px; }
   .cc-next li { margin: 0.4rem 0; }
   .cc-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; display: block; overflow-x: auto; }
   .cc-table th, .cc-table td { border: 1px solid var(--hair); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; }

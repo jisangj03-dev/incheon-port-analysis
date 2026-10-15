@@ -1,0 +1,16 @@
+---
+// 옛 주소 돌려보내기(정체성 전환 · 「기존 주소는 유지」) — 주소는 살아 있고, 새 자리로 바로 넘긴다.
+// meta refresh(스크립트 없이도) + 사람이 누를 링크 · 검색 색인 제외(noindex).
+import Base from "./Base.astro";
+import { u } from "../lib/site";
+interface Props { path: string; to: string; label: string; why?: string }
+const { path, to, label, why } = Astro.props;
+---
+<Base title={`${label}(으)로 옮겼습니다`} description={`이 주소의 내용은 ${label}(으)로 옮겼습니다.`} path={path} noindex studio>
+  <Fragment slot="head"><meta http-equiv="refresh" content={`0;url=${u(to)}`} /></Fragment>
+  <div class="s-wrap" style="padding-top:64px;padding-bottom:64px" data-redirect={to}>
+    <p class="s-cap">옮긴 주소</p>
+    <h1 class="s-prose">{label}(으)로 옮겼습니다</h1>
+    <p class="s-lead s-prose">{why || "사이트를 지도 · 시뮬레이션 · 노트 · 소개 넷으로 다시 짰습니다."} 바로 넘어가지 않으면 <a href={u(to)}>여기를 누르세요</a>.</p>
+  </div>
+</Base>
