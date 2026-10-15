@@ -71,3 +71,19 @@ test("선박 리플레이: 클릭 없이 달이 흐른다 · 동작 줄이기면
   expect(await p2.evaluate(() => window.__vrPlay.on)).toBe(false);
   await ctx.close();
 });
+
+// [2026-10-15 P0 · 단추 다섯] 지도 단추(아시아·수도권·인천·멈춤·관문 숫자)가 숫자판·범례와 겹치지 않는다 — 좁은 화면에서 두 줄로 넘쳐 범례를 덮었다
+test("홈: 지도 단추가 숫자판·범례와 겹치지 않는다", async ({ page }) => {
+  await page.goto(`${B}/`, { waitUntil: "load" });
+  const r = await page.evaluate(() => {
+    const box = (e) => e.getBoundingClientRect();
+    const btns = [...document.querySelectorAll(".live__ctl .s-btn")].map(box), hud = [...document.querySelectorAll(".live__hud > p")].map(box);
+    const hit = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
+    const right = document.querySelector(".live__stage").getBoundingClientRect().right;
+    return { rows: new Set(btns.map((b) => Math.round(b.top))).size, tall: btns.filter((b) => b.height > 52).length, out: btns.filter((b) => b.right > right + 1).length, overlaps: btns.flatMap((b, i) => hud.filter((h) => hit(b, h)).map(() => i)) };
+  });
+  expect(r.overlaps, "단추가 숫자판·범례를 덮는다").toEqual([]);
+  expect(r.rows, "단추가 두 줄로 넘친다").toBe(1);
+  expect(r.tall, "단추 글자가 두 줄로 꺾인다").toBe(0);
+  expect(r.out, "단추가 화면 밖으로 나간다").toBe(0);
+});
