@@ -1,42 +1,13 @@
 ---
-// 측심 디자인 시스템 「해도」 시안 레이아웃(2026-10-14 · docs/측심_디자인시스템_20261014.md).
-// lab/ds/ 시안 지면만 쓴다 — 공개 지면은 Base.astro 그대로(공개 화면 변화 0). 분석·외부 요청 0 · noindex.
-import "../styles/studio.css";
-import { u } from "../lib/site";
-interface Props { title: string; current?: "map" | "sim" | "notes" | "about" | "home" }
-const { title, current = "home" } = Astro.props;
-const NAV = [
-  ["map", "지도", "/lab/ds/map.html"],
-  ["sim", "시뮬레이션", "/lab/ds/beer.html"],
-  ["notes", "노트", "/lab/ds/index.html#notes"],
-  ["about", "소개", "/lab/ds/index.html#about"],
-] as const;
+// 해도 지면 레이아웃 — Base(머리·OG·구조화 데이터·머리 메뉴·바닥)를 그대로 쓰고 장면 부품 글꼴 크기(body.studio)만 켠다(2026-10-14 공개 전환 · 레이아웃 하나로).
+// lab/ 시안 지면은 noindex · 공개 지면은 Base 의 정본 주소·OG 를 받는다.
+import Base from "./Base.astro";
+interface Props { title: string; current?: "map" | "sim" | "notes" | "about" | "home"; description?: string; noindex?: boolean; path?: string; ogImage?: string; jsonld?: Record<string, unknown>[] }
+const { title, current = "home", description, noindex, ogImage, jsonld } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const path = Astro.props.path ?? ((Astro.url.pathname.startsWith(base) ? Astro.url.pathname.slice(base.length) : Astro.url.pathname) || "/");
+const isLab = path.startsWith("/lab/");
 ---
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="robots" content="noindex" />
-  <title>{title}</title>
-  <link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} />
-  {/* 제목 명조(확정 · 토큰 --s-font-head) — 명조 CSS 는 늘 붙인다. 비교용 ?type=sans 는 토큰만 고딕으로. */}
-  <link rel="stylesheet" href={u("/fonts/noto-serif-kr/noto-serif-kr-700.css")} />
-  <script is:inline>
-    if (new URLSearchParams(location.search).get("type") === "sans") document.documentElement.dataset.type = "sans";
-  </script>
-</head>
-<body class="studio">
-  <header class="s-wrap s-mast">
-    <a class="s-mark" href={u("/lab/ds/index.html")}>측심<small>SCM 작업실</small></a>
-    <nav class="s-nav" aria-label="주 메뉴">
-      {NAV.map(([id, label, href]) => <a href={u(href)} aria-current={current === id ? "page" : undefined}>{label}</a>)}
-    </nav>
-  </header>
-  <main><slot /></main>
-  <footer class="s-wrap s-foot">
-    <hr class="s-rule" />
-    <p style="margin-top:16px">공공 1차 데이터로 잽니다 · 법률·세무 자문이 아닙니다 · 시안(공개 전)</p>
-  </footer>
-</body>
-</html>
+<Base title={title} description={description} path={path} studio current={current} noindex={noindex ?? isLab} ogImage={ogImage} jsonld={jsonld}>
+  <slot />
+</Base>

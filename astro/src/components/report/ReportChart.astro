@@ -61,7 +61,7 @@ const cfg = w ? { ...w, data: D } : null;
   initReportCharts();
 </script>
 <style>
-  .rc { background: color-mix(in srgb, var(--hull) 70%, transparent); border: 1px solid var(--hair); border-radius: var(--r-lg); padding: 1rem 1.2rem; max-width: 980px; }
+  .rc { border-top: 1px solid var(--hair); padding: 1rem 0 0; max-width: 980px; } /* 해도 — 상자 없음(2026-10-14 채팅 검수 · 눈 검사) */
   .rc__ctrl { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: center; }
   .rc__ctrl label { font-size: 0.88rem; color: var(--mist); display: inline-flex; align-items: center; gap: 0.35rem; }
   .rc select { min-height: 40px; font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--deep); border: 1px solid var(--hair-strong); border-radius: var(--r-sm); padding: 0.2rem 0.4rem; }

@@ -40,39 +40,40 @@
   "pairs": [
     {
       "name": "home-vs-stripe-press",
-      "ours": "/lab/ds/index.html",
+      "ours": "/",
       "ref": "https://press.stripe.com/"
     },
     {
       "name": "type-serif-vs-sans",
-      "ours": "/lab/ds/index.html",
-      "ref": "/lab/ds/index.html?type=sans"
+      "ours": "/",
+      "ref": "/?type=sans"
     },
     {
       "name": "beer-vs-ncase",
-      "ours": "/lab/ds/beer.html",
+      "ours": "/sim/beer-game.html",
       "ref": "https://ncase.me/"
     },
     {
       "name": "beer-vs-ciechanowski",
-      "ours": "/lab/ds/beer.html",
+      "ours": "/sim/beer-game.html",
       "ref": "https://ciechanow.ski/"
     },
     {
       "name": "map-vs-shipmap",
-      "ours": "/lab/ds/map.html",
+      "ours": "/map.html",
       "ref": "https://www.shipmap.org/"
     },
     {
       "name": "note-vs-maggieappleton",
-      "ours": "/lab/ds/note.html",
+      "ours": "/notes/port-yoy.html",
       "ref": "https://maggieappleton.com/garden"
     },
     {
       "name": "note-vs-owid",
-      "ours": "/lab/ds/note.html",
+      "ours": "/notes/port-yoy.html",
       "ref": "https://ourworldindata.org/grapher/co2-emissions-per-capita"
     }
   ],
-  "_pairs_설명": "왼쪽 = lab 시안(로컬 빌드) · 오른쪽 = 기준(밖 주소 또는 '/'로 시작하면 같은 로컬 빌드 — 글꼴 두 안 비교용). 1440·390 첫 화면 + 전체 페이지(--full)."
+  "_run": "2026-10-14 채팅 검수 — 수요예측 해도화 · 선박 인천 주인공 · 눈 검사 뒤 캡처 갱신",
+  "_pairs_설명": "왼쪽 = 공개 전환 빌드(로컬 · 2026-10-14 공개 주소로) · 오른쪽 = 기준(밖 주소 또는 '/'로 시작하면 같은 로컬 빌드 — 글꼴 두 안 비교용). 1440·390 첫 화면 + 전체 페이지(--full)."
 }

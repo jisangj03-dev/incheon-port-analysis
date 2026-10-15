@@ -30,7 +30,7 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
       const res = await page.goto(p, { waitUntil: "load" });
       expect(res.status(), "지면 응답").toBe(p.endsWith("404.html") ? 200 : 200);
       // 10 레이아웃 없는 지면 0
-      await expect(page.locator("header.mast"), "상단 바").toHaveCount(1);
+      await expect(page.locator("header.s-mast"), "상단 바").toHaveCount(1);
       await expect(page.locator("footer.foot"), "바닥글").toHaveCount(1);
       // 9 description·OG 누락 0
       const meta = await page.evaluate(() => ({
@@ -61,21 +61,36 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
   }
 });
 
-test("기준 2·12 — 첫 화면(스크롤 0)에 도구 링크·사람별 입구 넷·상단 메뉴 「도구」", async ({ page }) => {
+// 정체성 전환(2026-10-14 · docs/측심_정체성전환_판정기준_선커밋_20261014.md §2·§5-4) — 종전 기준 2·12(도구 링크·사람별 입구 넷)를 대신한다.
+test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · 크몽·셀러 입구 0", async ({ page }) => {
   await watch(page);
   await page.goto(`${BASE}/`);
+  await expect(page.locator("header.s-mast nav a")).toHaveText(["지도", "시뮬레이션", "노트", "소개"]);
+  const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
   const vh = page.viewportSize().height;
-  const inView = async (loc) => { const b = await loc.boundingBox(); return !!b && b.y >= 0 && b.y + b.height <= vh; };
-  expect(await inView(page.locator("[data-tool-link]")), "도구 링크가 첫 화면 안").toBe(true);
-  const who = page.locator("[data-persona]");
-  await expect(who).toHaveCount(4);
-  for (let i = 0; i < 4; i++) expect(await inView(who.nth(i)), `입구 ${i + 1} 첫 화면 안`).toBe(true);
-  await expect(page.locator("header.mast nav a", { hasText: "도구" })).toHaveCount(1);
-  // 입구마다 한 번 눌러 200
-  for (let i = 0; i < 4; i++) {
-    const href = await who.nth(i).getAttribute("href");
-    const r = await page.request.get(href);
-    expect(r.status(), href).toBe(200);
+  const lead = page.locator(".hero__text .s-lead");
+  await expect(lead).toContainText(P.name);
+  const b = await lead.boundingBox();
+  expect(b && b.y + b.height <= vh, "실명 한 줄이 첫 화면 안").toBe(true);
+  const html = await page.content();
+  for (const w of ["kmong", "크몽", "data-persona", "/for/"]) expect(html, w).not.toContain(w);
+  // 메뉴마다 한 번 눌러 200
+  for (const href of await page.locator("header.s-mast nav a").evaluateAll((a) => a.map((x) => x.getAttribute("href")))) {
+    expect((await page.request.get(href)).status(), href).toBe(200);
+  }
+});
+
+test("기존 주소 유지 — 옛 목록·입구·크몽 주소는 살아 있고 새 자리로 넘긴다", async ({ page }) => {
+  const MOVED = { "/reports/": "/notes.html", "/tools/": "/sim/", "/for/pro.html": "/", "/for/press.html": "/", "/for/student.html": "/", "/go/kmong-829076.html": "/", "/go/kmong-824011.html": "/" };
+  for (const [from, to] of Object.entries(MOVED)) {
+    const html = await (await page.request.get(`${BASE}${from}`)).text();
+    expect(html, from).toContain(`url=${BASE}${to}"`);
+    expect(html, `${from} 색인 제외`).toContain('name="robots" content="noindex');
+  }
+  // 남이 링크한 계산기 주소는 그대로 열린다(정체성 §3-6 · 블로그 /79)
+  for (const p of ["/tools/logistics-cost.html", "/tools/simulate.html", "/tools/warehouse-map.html"]) {
+    const html = await (await page.request.get(`${BASE}${p}`)).text();
+    expect(html, p).not.toContain('http-equiv="refresh"');
   }
 });
 

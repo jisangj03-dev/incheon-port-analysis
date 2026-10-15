@@ -13,6 +13,9 @@
   --s-signal: #b3361e;      /* 신호 한 색 — 인천 강조에만 · 5.4:1 */
   --s-sea: #5d7a86;         /* 다른 계열 데이터 */
   --s-sea-2: #a8bbc1;
+  /* 글자용 짝 색 — 선·면 색 sea · sea-2 는 종이 대비 4.09 · 1.78 이라 글자에 못 쓴다(채팅 검수 ② · 4.5:1). 선 끝 라벨은 이것으로. */
+  --s-sea-t: #3f5964;       /* 6.65:1 */
+  --s-sea-2-t: #5a6f78;     /* 4.72:1 */
 
   /* 글꼴 — 한글은 Pretendard(저장소 내장 · 외부 요청 0) · 숫자는 표 정렬 */
   --s-font: "Pretendard Variable", Pretendard, -apple-system, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;

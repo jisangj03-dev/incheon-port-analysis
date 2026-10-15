@@ -104,5 +104,5 @@ function liveChart(inc: number[], mine: number[], weeks: number) {
   const max = Math.max(1, ...inc, ...mine);
   const x = (i: number) => P + (i * (W - P - Rt)) / Math.max(1, weeks - 1), y = (v: number) => H - P - (v * (H - 2 * P)) / max;
   const line = (v: number[], c: string, w: number, dash = "") => v.length ? `<polyline fill="none" stroke="${c}" stroke-width="${w}" ${dash ? `stroke-dasharray="${dash}"` : ""} vector-effect="non-scaling-stroke" points="${v.map((a, i) => `${x(i).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/><text x="${(x(v.length - 1) + 8).toFixed(1)}" y="${(y(v[v.length - 1]) + 5).toFixed(1)}" font-size="14" fill="${c}">${c.includes("signal") ? "내 주문" : "들어온 주문"}</text>` : "";
-  return `<svg viewBox="0 0 ${W} ${H}" role="img"><line x1="${P}" y1="${H - P}" x2="${W - Rt}" y2="${H - P}" stroke="var(--s-rule, #ccc)"/>${line(inc, "var(--s-ink-3, #888)", 1.5, "5 4")}${line(mine, "var(--s-signal, #b3361e)", 2.5)}</svg>`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="지금까지 들어온 주문과 내 주문"><line x1="${P}" y1="${H - P}" x2="${W - Rt}" y2="${H - P}" stroke="var(--s-rule, #ccc)"/>${line(inc, "var(--s-ink-3, #888)", 1.5, "5 4")}${line(mine, "var(--s-signal, #b3361e)", 2.5)}</svg>`;
 }

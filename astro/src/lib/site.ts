@@ -2,11 +2,11 @@
 export const BRAND = {
   name: "측심",
   latin: "SOUNDING",
-  tagline: "인천 물류를 잰다",
-  lede: "인천 물류를 공공 데이터로 잰다 — 그리고 내 물류비도.",
+  tagline: "SCM 작업실",
+  lede: "수도권 공급망이 인천을 어떻게 지나는지, 실제 데이터를 움직여 보여 줍니다.",
   description:
-    "인천 물류를 공공 1차 데이터로 재는 허브. 항만 물동량·물류창고·품목별 수출입 보고서와 셀러 물류비 계산기 · 원시 데이터와 재현 코드 공개.",
-  author: "물류로그", // 필명만 — 실명 금지(지침 §2.2-3)
+    "측심 — 수도권 공급망이 인천을 어떻게 지나는지 공공 1차 데이터로 재는 SCM 작업실. 지도·시뮬레이션·노트 · 원시 데이터와 재현 코드 공개.",
+  author: "측심", // 실명은 data/profile.json 한 곳(정체성 §5-4) — 여기 적지 않는다
 };
 
 export const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -23,8 +23,9 @@ export const ISSUES = `${REPO}/issues/new`;
 export const OUT: Record<string, { live: boolean; url: string; label: string }> = {
   criteria: { live: true, url: "https://logisticsforeveryone.tistory.com/78", label: "셀러 물류비 판정 기준(블로그)" },
   sheet: { live: true, url: "https://logisticsforeveryone.tistory.com/79", label: "무료 3PL 견적 비교표(엑셀 · 블로그 /79)" },
+  // [2026-10-14 정체성 전환] 크몽 판매 동선은 걷었다 — 옛 주소(/go/kmong-…)는 살아 있되 첫 화면으로 돌려보낸다(live:false).
   "kmong-829076": { live: false, url: "https://kmong.com/gig/829076", label: "정산·마진 시트(크몽)" },
-  "kmong-824011": { live: true, url: "https://kmong.com/gig/824011", label: "광고 주간 리포트(크몽)" },
+  "kmong-824011": { live: false, url: "https://kmong.com/gig/824011", label: "광고 주간 리포트(크몽)" },
   blog: { live: true, url: "https://logisticsforeveryone.tistory.com/", label: "블로그" },
   // 뉴스레터(물류로그 · beehiiv) — 2026-10-12 선장님 지정. 클릭은 /go/newsletter.html 방문 수로 센다(기준 24·29).
   newsletter: { live: true, url: "https://logisticslog.beehiiv.com/subscribe?utm_source=sounding&utm_medium=site&utm_campaign=footer", label: "뉴스레터(물류로그)" },
@@ -33,21 +34,15 @@ export const go = (id: string) => u(`/go/${id}.html`);
 export const newsletterHref = () => (OUT.newsletter.live ? go("newsletter") : go("blog"));
 export const newsletterLabel = () => (OUT.newsletter.live ? "뉴스레터 구독" : "새 글 받아보기");
 
+// 구조 넷(정체성 §2) — 지도(본체) · 시뮬레이션 · 노트 · 소개
 export const NAV = [
-  { href: "/reports/", label: "보고서" },
-  { href: "/tools/", label: "도구" },
-  { href: "/map.html", label: "지도" },
-  { href: "/data.html", label: "데이터" },
-  { href: "/about.html", label: "신뢰" },
-];
-
-/** 사람별 입구(기준 12 · A1). */
-export const PERSONAS = [
-  { key: "seller", who: "셀러", need: "택배비·3PL 견적이 맞는지", href: "/tools/logistics-cost.html", cta: "견적 비교 계산기" },
-  { key: "pro", who: "물류 실무자 · 채용 담당자", need: "인천 창고·항만 현황을 한눈에", href: "/for/pro.html", cta: "현황 보기" },
-  { key: "press", who: "기자 · 연구자", need: "출처가 붙은 숫자와 원자료", href: "/for/press.html", cta: "근거 자료" },
-  { key: "student", who: "학생", need: "인천 물류를 처음부터", href: "/for/student.html", cta: "처음 읽을 것" },
+  { id: "map", href: "/map.html", label: "지도" },
+  { id: "sim", href: "/sim/", label: "시뮬레이션" },
+  { id: "notes", href: "/notes.html", label: "노트" },
+  { id: "about", href: "/about.html", label: "소개" },
 ];
 
 /** Cloudflare Web Analytics — 공개 화면 외부 요청 0 의 유일한 예외(기준 17 · 28). 공개되는 값이라 비밀값이 아니다. */
+// [2026-10-14 공개 전환] 채팅 지시: 「Cloudflare 분석 1개 자리만 비워 두기 — 코드는 채팅이 나중에 준다」. 토큰이 비면 비컨을 싣지 않는다(외부 요청 0).
+//   이전 토큰(d508…7)은 check_private PUBLIC_IDS 에 근거와 함께 남아 있다 — 되살리려면 이 한 줄.
 export const CF_BEACON = { src: "https://static.cloudflareinsights.com/beacon.min.js", token: "d50802d5e62b45baa1de6d74ea63add7" };

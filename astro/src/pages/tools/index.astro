@@ -1,28 +1,5 @@
 ---
-// 도구 목록 — 종전 404(개편 전 기준선 「tools/ 목록 404」).
-import Base from "../../layouts/Base.astro";
-import { u } from "../../lib/site";
-const tools = [
-  { href: "/tools/logistics-cost.html", k: "셀러", t: "3PL 견적 비교 계산기", d: "견적 셋을 한 화면에서 — 5칸이면 건당 총비용, 월 몇 건부터 어느 쪽이 싼지 손익분기 그래프. 숨은 비용 4종 경고." },
-  { href: "/tools/simulate.html", k: "셀러", t: "물류비 시뮬레이션(몬테카를로)", d: "물량 변동과 견적서의 '모름' 칸 폭만큼 4,000번 흔들어 — 어느 견적이 가장 쌀 확률과 건당 비용의 폭." },
-  { href: "/tools/warehouse-map.html", k: "실무자", t: "인천 물류창고 구·동 배치도", d: "등록 물류창고를 구·군 칸에 — 개소·면적·냉동냉장 면적을 바꿔 보기." },
-];
+// 옛 셀러 도구 목록(/tools/) — 정체성 전환(2026-10-14)으로 셀러 입구를 뺐다. 계산기 주소(/tools/logistics-cost.html 등)는 그대로 열린다(§3-6).
+import Redirect from "../../layouts/Redirect.astro";
 ---
-<Base title="셀러 물류 도구" description="셀러·물류 실무자를 위한 측심 도구 — 3PL 견적 비교 계산기(건당 총비용·손익분기)와 인천 물류창고 배치도. 입력값은 서버로 가지 않는다." path="/tools/" surface="light">
-  <div class="wrap" style="padding-top:2.5rem">
-    <p class="eyebrow">도구</p>
-    <h1>숫자는 당신이 넣고, 계산은 여기서</h1>
-    <p class="lede" style="max-width:60ch">도구에는 금액·요율 상수가 없습니다. 입력값은 브라우저 밖으로 나가지 않습니다.</p>
-    <div class="tg">
-      {tools.map((t) => <a class="tc" href={u(t.href)}><span class="tc__k">{t.k}</span><strong>{t.t}</strong><span>{t.d}</span><span class="tc__go">열기 →</span></a>)}
-    </div>
-  </div>
-</Base>
-<style>
-  .tg { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 1rem; margin-top: 1.5rem; }
-  .tc { display: flex; flex-direction: column; gap: 0.4rem; padding: 1.4rem; border-radius: var(--r-lg); background: var(--hull); border: 1px solid var(--hair-strong); text-decoration: none; color: var(--text); }
-  .tc:hover { border-color: var(--sonar); }
-  .tc strong { font-size: 1.25rem; color: var(--ink); }
-  .tc__k { font-size: 0.78rem; font-weight: 700; color: var(--sonar); letter-spacing: 0.08em; }
-  .tc__go { margin-top: auto; font-weight: 700; color: var(--sonar); }
-</style>
+<Redirect path="/tools/" to="/sim/" label="시뮬레이션" why="도구 목록은 시뮬레이션 지면으로 옮겼습니다 — 계산기 주소는 그대로입니다." />
