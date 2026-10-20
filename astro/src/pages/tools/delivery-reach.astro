@@ -6,7 +6,7 @@ import ToolShell from "../../components/scene/ToolShell.astro";
 import { u } from "../../lib/site";
 import { sourceLine } from "../../lib/sources";
 import { STEPS } from "../../lib/reach-map";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 const I = JSON.parse(readFileSync(join(repoRoot(), "data/derived/isochrones.json"), "utf-8"));
@@ -15,12 +15,21 @@ const O = I.origins[first < 0 ? 0 : first];
 const rows = Object.entries(O.cities as Record<string, number | null>).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
 const in1 = O.cities_within["1h"], in2 = O.cities_within["2h"];
 const seoul = O.cities["서울시청"];
+// 내비 대조(카카오모빌리티 미래 운행 정보 · 통계만 · tools-build/navi_check.py) — 없거나 미달이면 「미실시」를 그대로 적는다(선커밋 ① 내비 대조)
+const NP = join(repoRoot(), "data/derived/navi_check.json");
+const NV = existsSync(NP) ? JSON.parse(readFileSync(NP, "utf-8")) : null;
+const pct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
+const navi = NV?.status === "ok"
+  ? `카카오 내비(미래 출발시각 · 승용 · 추천 경로 · ${NV.pairs.length}쌍 · ${NV.made})와 견주면 우리 값은 ` +
+    Object.entries(NV.slots).map(([k, v]: [string, any]) => `${k} 중앙값 ${pct(v.median_pct)}(범위 ${pct(v.min_pct)}~${pct(v.max_pct)})`).join(" · ") +
+    " — 음수면 우리가 짧게 잡은 것. 약관대로 경로·쌍별 시간은 저장하지 않고 통계만 싣는다."
+  : `내비 대조 미실시${NV?.reason ? `(${NV.reason})` : ""}.`;
 ---
 <Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 혼잡 미반영 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
   <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 출발하면 서울시청까지 ${seoul ?? "—"}분, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳.`}
     updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="자유 흐름 속도 가정 · 혼잡 미반영"
     how={`OSM 대한민국 추출에서 수도권 도로만 읽어 도로 등급별 속도(고속 ${I.speeds_kmh.motorway} · 간선 ${I.speeds_kmh.trunk} · 주간선 ${I.speeds_kmh.primary} · 일반 ${I.speeds_kmh.residential} km/h)로 엮고, 출발지에서 가장 빠른 길을 풀었다(scipy 다익스트라). 칸 크기 ${I.step}°.`}
-    limits="혼잡·신호·상하차·통행 제한(화물차)을 반영하지 않아 실제보다 짧게 나온다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다.">
+    limits={`혼잡·신호·상하차·통행 제한(화물차)을 반영하지 않아 실제보다 짧게 나온다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
     <div slot="answer" class="reach">
       <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
         <p class="reach__t" data-furniture><b id="reach-min">180</b><span>분 안</span></p>

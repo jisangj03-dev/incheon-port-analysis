@@ -2,7 +2,7 @@
 // ① 실무 질문이 첫 화면 맨 위 ② 3초 답(움직이는 그림 + 숫자)이 1440·390 첫 화면 안 ③ 조작하면 답이 바뀐다 ④ 원문·CSV·갱신일
 // ⑥ 계산 도구는 지면 안에 「참고용 · 자문 아님」 ⑦ 「○일 기준」 ⑨ 외부 요청 0(CF 비콘 예외) · 지면 숫자 = 데이터 파일 · 오류 0 · 가로 넘침 0.
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis";
 const J = (f) => readFileSync(f, "utf-8");
@@ -10,7 +10,7 @@ const COMMON = ["data/rooms.json", "data/sources.json", "data/profile.json", "da
 const TOOLS = {
   "port-pulse": { data: ["data/derived/port_pulse.json"], answer: "#pl-fig", num: "#pl-pct", asof: true,
     act: async (p) => { const a = await p.locator("#pl-word").innerText(); await p.locator(".pulse__cmp button[data-port=Busan]").click(); await expect(p.locator("#pl-word")).not.toHaveText(a); } },
-  "delivery-reach": { data: ["data/derived/isochrones.json"], answer: ".reach__map", num: "#reach-min",
+  "delivery-reach": { data: ["data/derived/isochrones.json", ...(existsSync("data/derived/navi_check.json") ? ["data/derived/navi_check.json"] : [])], answer: ".reach__map", num: "#reach-min",
     act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg button[data-k='2']").click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
   "trade-race": { data: ["data/derived/trade_race.json", "data/hs2_short.json"], answer: "#race-box", num: "#race-total",
     act: async (p) => { await p.waitForSelector("#race-box[data-ready='1']"); await p.evaluate(() => window.__race.stop()); const a = await p.locator("#race-total").innerText(); await p.locator(".seg button[data-k=imp]").click(); await expect(p.locator("#race-k")).toHaveText("수입"); await expect(p.locator("#race-total")).not.toHaveText(a); } },
@@ -149,4 +149,16 @@ test("도구 제목 — 가운뎃점(·)이 줄머리에 오지 않는다(360·3
     }
   }
   expect(bad).toEqual([]);
+});
+
+// [2026-10-15 선커밋 ① 내비 대조] 등시선 「한계」 칸 — 대조가 ok 면 시간대마다 중앙값·범위, 아니면 「내비 대조 미실시」 · 쌍별 시간·경로는 파일에 없다(약관)
+test("등시선: 내비 대조 표기 = navi_check.json · 쌍별 값 저장 0", async ({ page }) => {
+  await page.goto(`${B}/tools/delivery-reach.html`);
+  const NV = existsSync("data/derived/navi_check.json") ? JSON.parse(J("data/derived/navi_check.json")) : null;
+  const body = page.locator("main");
+  if (NV?.status === "ok") {
+    for (const [k, v] of Object.entries(NV.slots)) await expect(body).toContainText(`${k} 중앙값 ${v.median_pct > 0 ? "+" : ""}${v.median_pct}%`);
+    for (const pr of NV.pairs) expect(Object.keys(pr).sort(), "쌍에는 이름만 — 시간·거리·경로 없음").toEqual(["from", "to"]);
+    expect(JSON.stringify(NV)).not.toMatch(/"(duration|distance|sections|roads|vertexes)"/);
+  } else await expect(body).toContainText("내비 대조 미실시");
 });
