@@ -52,7 +52,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 = 그 달 관문 교역액(월 통계 · 실시간 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span> · 원 = 물류창고 등록 개소<span id="fm-dens" hidden> · 회녹 결 = 선박 통행 밀도(2015~21)</span></p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
-      <button type="button" class="s-btn s-btn--ghost" data-view="sudo">수도권</button>
+      <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="incheon" aria-label="인천 관문">인천<span class="lg">&nbsp;관문</span></button>
       <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true" aria-label="둘러보기 멈춤"><span class="lg">둘러보기&nbsp;</span>멈춤</button>
       <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel">관문 숫자</button>
@@ -89,7 +89,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
 </section>
 
 <script>
-  import { FlowMap, VIEWS, VIEWS_M, fitCam, heroPts, gatePts, HERO_CAM, HERO_M, HERO_M_NARROW, type Cam } from "../../lib/flowmap";
+  import { FlowMap, VIEWS, VIEWS_M, fitCam, regionPts, gatePts, REGION_CAM, HERO_CAM, HERO_M, HERO_M_NARROW, type Cam } from "../../lib/flowmap";
   import { reduced, pace, paused, setPaused } from "../../lib/motion";
   const stage = document.getElementById("live-stage") as HTMLElement, cv = document.getElementById("fm") as HTMLCanvasElement;
   // [2026-10-20 · docs/품질기준.md Q7] 동작 줄이기 = 점은 느리게 계속 흐르고 카메라·반짝임만 멈춘다 · 멈춤은 단추로(기억)
@@ -163,7 +163,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     // [2026-10-20] 보기 = 지도 칸 모양에 맞춘 카메라 — 수도권 = 인천 관문(서)·서울·김포·광주·이천·안성(경부·영동축)이 한 장에 · 인천 관문 = 공항·항만·창고 몰린 구
     const fit = (): Record<string, Cam> => {
       const W = cv.clientWidth || 800, H = cv.clientHeight || 600, narrow = W < 640, M = narrow ? HERO_M_NARROW : HERO_M;
-      return { asia: { ...(narrow ? VIEWS_M : VIEWS).asia, ox: 0, oy: 0.04 }, sudo: fitCam(HERO_CAM, W, H, heroPts(D), M), incheon: fitCam({ ...HERO_CAM, zoom: 11, pitch: 50, bearing: 18 }, W, H, gatePts(D), M) };
+      return { asia: { ...(narrow ? VIEWS_M : VIEWS).asia, ox: 0, oy: 0.04 }, sudo: fitCam(REGION_CAM, W, H, regionPts(D), M), incheon: fitCam({ ...HERO_CAM, zoom: 11, pitch: 50, bearing: 18 }, W, H, gatePts(D), M) };
     };
     let views = fit(); viewNow = "sudo";
     $("fm-unit").textContent = `점 하나 ≈ ${unit}억 달러`;

@@ -12,7 +12,7 @@ const R_EARTH_M = 40075016.7; // 적도 둘레 — 메르카토르 1 = 이 길�
  *  홈 첫 화면이 인천(서)·서울·경부·영동축(동)을 한 장에 담게(2026-10-20 · 글 기둥과 지도 칸이 나뉜 뒤 캔버스 모양이 폭마다 다르다) */
 export function fitCam(base: Cam, W: number, H: number, pts: number[][], m = { l: 0.08, r: 0.08, t: 0.2, b: 0.18 }): Cam {
   const o = [0, 0, 0];
-  for (let z = base.zoom; z > 4; z -= 0.05) {
+  for (let z = base.zoom; z > 2.2; z -= 0.05) { // 하한 2.2 — 동북아 첫 화면이 좁은 화면에서 4 까지로는 안 맞아 맞추기 전 값으로 돌아갔다(2026-10-20)
     const c: Cam = { ...base, zoom: z, ox: 0, oy: 0 };
     let ok = false;
     for (let it = 0; it < 4; it++) {
@@ -34,6 +34,13 @@ export const HERO_IDS = ["서울특별시", "김포", "광주", "이천", "안�
 export function heroPts(D: { flows: any; sudo?: any }): number[][] {
   const F = D.flows, S = D.sudo, pts: number[][] = [[F.air_gate.lon, F.air_gate.lat], ...F.sea_gates.slice(0, 1).map((g: any) => [g.lon, g.lat])];
   for (const id of HERO_IDS) { const d = (S?.dests ?? F.dests ?? []).find((x: any) => x.id === id && !String(x.basis || "").startsWith("가정")); if (d) pts.push([d.lon, d.lat]); }
+  return pts;
+}
+/** [2026-10-20 · 홈 내륙 흐름을 걷은 뒤] 첫 화면 = 동북아 — 관측된 흐름(교역국 ↔ 인천 관문)이 보이는 넓이. 인천 관문 둘 + 가까운 교역국(중국·일본)의 출발 자리(데이터 파일) */
+export const REGION_CAM: Cam = { lon: 129.5, lat: 34.5, zoom: 5.2, pitch: 34, bearing: 0 };
+export function regionPts(D: { flows: any }): number[][] {
+  const F = D.flows, pts: number[][] = [[F.air_gate.lon, F.air_gate.lat], ...F.sea_gates.slice(0, 1).map((g: any) => [g.lon, g.lat])];
+  for (const p of F.partners) if (p.name === "중국" || p.name === "일본") { pts.push(p.air); pts.push(p.sea[0]); }
   return pts;
 }
 /** 인천 관문 가까이(둘러보기 두 번째 장면) — 공항 · 항만 셋 · 인천 물류창고가 몰린 두 구(자리는 데이터 파일에서) */
@@ -78,7 +85,7 @@ type Data = {
   /** [2026-10-15 P0] 수도권 물류 흐름 층(tools-build/corridors_derive.py) — 관문→목적지 고속도로 길 · 구간 굵기 · 거점 · 경기 밀집지(몫은 가정) */
   sudo?: { dests: any[]; routes: Record<string, number[][]>; corridors: { w: number; pts: number[][] }[]; hubs: any[]; labels: any[] } | null;
 };
-type Leg = { pts: Float32Array; n: number; dur: number };
+type Leg = { pts: Float32Array; n: number; dur: number; tail: number; head: number }; // head·tail = 첫·마지막 원래 구간이 차지하는 초(바다 길이면 부두 ↔ 해상망 끝 마디 직선)
 const DT = 1 / 30; // 경로 표본 간격(초)
 
 /** 경유점 → 매끈한 곡선(캣멀–롬) → 일정한 속도(km/s)로 시간 표본. 높이 h(t) 를 받으면 아크. */
@@ -115,7 +122,9 @@ function legFrom(ll: number[][], speedKm: number, arc = 0): Leg {
     pts[i * 3 + 1] = dense[j][1] + (dense[j + 1][1] - dense[j][1]) * f;
     pts[i * 3 + 2] = arc ? arc * flat * 4 * u * (1 - u) : 0;
   }
-  return { pts, n, dur };
+  const k0 = Math.max(0, (P.length - 2) * 12), tail = P.length > 2 && L > 0 ? (dur * (L - cum[Math.min(k0, cum.length - 1)])) / L : 0;
+  const head = P.length > 2 && L > 0 ? (dur * cum[Math.min(12, cum.length - 1)]) / L : 0;
+  return { pts, n, dur, tail, head };
 }
 
 /** 대권(큰 원) 경유점 — 하늘 길. 경도는 끊기지 않게 이어 붙인다. */
@@ -140,7 +149,8 @@ function bend(a: number[], b: number[], k = 0.18) {
   return [a, [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2], c, [(c[0] + b[0]) / 2, (c[1] + b[1]) / 2], b];
 }
 
-const SPEED = { sea: 950, air: 2600, land: 15 }; // km/s(그림 속도 — 실제 속도 아님)
+// km/s(그림 속도 — 실제 속도 아님) · [2026-10-20] 첫 화면이 동북아로 바뀌어 바다·하늘 점이 화면을 1~3초에 건너게 늦췄다(종전 950·2600 = 눈에 안 보였다)
+const SPEED = { sea: 320, air: 700, land: 15 };
 // [2026-10-15 공개 전 개편 P0] 첫 화면 = 수도권(sudo) · 둘러보기는 수도권 안에서만(sudo ↔ 인천 관문) · 「아시아」는 단추로만
 export const VIEWS: Record<string, Cam> = {
   asia: { lon: 122.5, lat: 30.5, zoom: 3.0, pitch: 46, bearing: -10, ox: 0.17, oy: 0.04 },
@@ -363,10 +373,16 @@ export class FlowMap {
         const age = this.t - this.pt[i];
         // [2026-10-20 · Q3] 가까이 보는 화면에서는 바다 위 구간을 그리지 않는다 — 해상망 끝 마디 → 부두는 계산한 길이 아니라 직선이라(섬을 가로지른다).
         //   들어오는 점은 부두에서 나타나 수도권으로 퍼지고, 나가는 점은 부두에서 사라진다(그 앞뒤 바다 길은 「아시아」 보기에서)
-        if (near && this.gates[this.gMeta[R.g].g].kind === "sea" && (R.dir === 0 ? age < this.legsG[R.g].dur : age > this.legsL[R.l].dur)) continue;
-        this.pos(r, age, o); const h = P(o[0], o[1], o[2], o2); const x1 = h[0], y1 = h[1];
+        // [2026-10-20 · 홈 내륙 흐름을 걷은 뒤] 가까이 보는 화면에서도 계산한 길 위의 점은 그린다 — 바다는 해상망(searoute) 끝 마디까지,
+        //   마디 → 부두 직선(섬을 가로지른다)만 뺀다. 하늘 길은 가까이서 높이를 눌러 대권 경로를 땅 위에 그린다(높게 그리면 화면 밖으로 나갔다)
+        if (near && this.gates[this.gMeta[R.g].g].kind === "sea") {
+          const G = this.legsG[R.g], Lw = this.legsL[R.l];
+          if (R.dir === 0 ? age > G.dur - G.tail : age < Lw.dur + G.head) continue; // 들어오는 길 = 끝이 부두 · 나가는 길(뒤집힌 길) = 처음이 부두
+        }
+        const hz = near ? 0.06 : 1;
+        this.pos(r, age, o); const h = P(o[0], o[1], o[2] * hz, o2); const x1 = h[0], y1 = h[1];
         if (x1 < -20 || x1 > W + 20 || y1 < -20 || y1 > H + 20) continue;
-        this.pos(r, Math.max(0, age - TAIL), o); P(o[0], o[1], o[2], o);
+        this.pos(r, Math.max(0, age - TAIL), o); P(o[0], o[1], o[2] * hz, o);
         // 같은 길 위 점이 한 줄로 겹치지 않게 진행 방향의 옆으로 조금 비킨다(띠)
         let ddx = x1 - o[0], ddy = y1 - o[1]; const len = Math.hypot(ddx, ddy) || 1, j = this.pj[i] * spread;
         // 꼬리는 화면에서 최대 maxTail px — 가까이 볼 때 빠른 하늘 길 점이 화면을 가로지르는 빛줄기가 되지 않게
@@ -386,7 +402,9 @@ export class FlowMap {
       ctx.fill(); heads.length = 0;
     }
     // 관문 — 고리가 도착할 때 반짝인다
+    const detG = c.zoom > (this.o.detailZoom ?? 0);
     this.gates.forEach((g, gi) => {
+      if (near && g.kind === "sea" && gi > 0 && !detG) return; // 이름표가 가까이서만 뜨는 부두군(남항·국제여객부두) — 원도 그때만(이름 없는 표식 0)
       P(mx(g.lon), my(g.lat), 0, o);
       const r0 = near ? (g.kind === "air" ? 6 : 4.5) : 3.5, a = this.o.calm ? 0 : this.arrive[gi];
       ctx.beginPath(); ctx.arc(o[0], o[1], r0 + a * 7, 0, Math.PI * 2); ctx.strokeStyle = `rgba(179,54,30,${0.25 + 0.5 * a})`; ctx.lineWidth = 1.5; ctx.stroke();

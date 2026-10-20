@@ -7,7 +7,7 @@ import { labelHits } from "./label-hits.mjs";
 const B = "/incheon-port-analysis";
 test.setTimeout(120_000);
 
-test("홈: 손대지 않아도 지도가 받아져 돌고(수도권 첫 화면) · 끌면 멈췄다가 6초 뒤 다시 · 멈춤 단추는 그대로", async ({ page }) => {
+test("홈: 손대지 않아도 지도가 받아져 돌고(동북아 첫 화면) · 끌면 멈췄다가 6초 뒤 다시 · 멈춤 단추는 그대로", async ({ page }) => {
   await page.goto(`${B}/`, { waitUntil: "load" });
   // 아무 입력 없이 — 좁은 화면 포함
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
@@ -15,7 +15,7 @@ test("홈: 손대지 않아도 지도가 받아져 돌고(수도권 첫 화면) 
   await expect.poll(async () => (await st()).run, { timeout: 10_000, message: "손대지 않았는데 지도가 안 돈다" }).toBe(true);
   const s0 = await st();
   expect(s0.tour, "둘러보기가 켜져 있지 않다").toBe(true);
-  expect(s0.zoom, "첫 화면이 수도권(가까이)이 아니다").toBeGreaterThan(7);
+  expect(s0.zoom, "첫 화면이 동북아가 아니다(2026-10-20 · 관측된 흐름이 보이는 넓이)").toBeLessThan(7);
   // 끌기 — 카메라가 멈춘다
   await page.locator("#fm").scrollIntoViewIfNeeded(); // 좁은 화면은 지도가 글 아래에 있다 — 화면 밖 좌표엔 손이 안 닿는다
   const box = await page.locator("#fm").boundingBox();

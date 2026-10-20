@@ -80,7 +80,9 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await page.evaluate(() => { window.__fm.t += 7; }); await tick(0.05);
   await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 10_000 });
   // [2026-10-15 P0] 첫 화면 = 수도권(가까이) · 「아시아」 → 멀리 · 「인천 관문」 → 더 가까이(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
-  expect((await st()).zoom, "첫 화면이 수도권이 아니다").toBeGreaterThan(7);
+  // [2026-10-20] 첫 화면 = 동북아(관측된 흐름 — 교역국 ↔ 인천 관문 — 이 보이는 넓이 · 내륙 배분 흐름을 걷은 뒤) · 인천 관문 가까이보다 멀다
+  expect((await st()).zoom, "첫 화면이 동북아가 아니다").toBeLessThan(7);
+  expect((await st()).zoom).toBeGreaterThan(3);
   await page.locator("[data-view=asia]").click();
   await page.evaluate(() => { window.__fm.t += 4; }); await tick(0.05);
   await expect.poll(async () => (await st()).zoom, { timeout: 10_000 }).toBeLessThan(4);

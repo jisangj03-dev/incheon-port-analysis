@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./content";
-import { projector, mx, my, VIEWS, fitCam, heroPts, HERO_CAM, HERO_M, type Cam } from "./flowmap";
+import { projector, mx, my, VIEWS, fitCam, regionPts, REGION_CAM, HERO_M, type Cam } from "./flowmap";
 
 export const PW = 1200, PH = 900; // [2026-10-20] 지도 칸(7단) 모양에 가깝게 — 캔버스가 받기 전 첫 그림도 인천·서울·경부축이 한 장에
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
@@ -12,7 +12,7 @@ const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
  */
 export function poster(view?: Cam) {
   const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
-  if (!view) view = fitCam(HERO_CAM, PW, PH, heroPts({ flows: F, sudo: J("data/derived/sudo_corridors.json") }), HERO_M);
+  if (!view) view = fitCam(REGION_CAM, PW, PH, regionPts({ flows: F }), HERO_M);
   const PJ = projector(view, PW, PH).fn, o = [0, 0, 0];
   const pt = (lon: number, lat: number) => { PJ(mx(lon), my(lat), 0, o); return `${o[0].toFixed(0)},${o[1].toFixed(0)}`; };
   const inView = (r: number[]) => { for (let i = 0; i < r.length; i += 8) { PJ(mx(r[i]), my(r[i + 1]), 0, o); if (o[0] > -200 && o[0] < PW + 200 && o[1] > -200 && o[1] < PH + 200) return true; } return false; };
