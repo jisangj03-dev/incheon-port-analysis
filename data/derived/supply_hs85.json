@@ -109,7 +109,7 @@
       "share_pct": 5.5
      }
     ],
-    "scope": "전 품목 · 수입 신고 금액 기준(통관 관문별)"
+    "scope": "전 품목 · 수입 신고 금액 기준(관세청 항구·공항별 = 입항지 기준 · 통관 세관 기준이 아니다)"
    },
    "source": "kcs-porttrade"
   },
@@ -117,9 +117,9 @@
    "id": "firms",
    "title": "인천 소재 수입자",
    "data": {
-    "ym": "202608",
-    "imp_kusd": 2665776,
-    "share_of_incheon_imports_pct": 45.2,
+    "ym": "202609",
+    "imp_kusd": 3250047,
+    "share_of_incheon_imports_pct": 49.9,
     "item": "전기기기와 그 부분품, 녹음기ㆍ음성 재생기ㆍ텔레비전의 영상과 음성의 기록기ㆍ재생기와 이들의 부분품ㆍ부속품",
     "scope": "인천광역시에 사업장이 있는 수입자 기준 — 어느 항구로 들어왔는지는 이 표가 말하지 않는다"
    },
@@ -151,7 +151,7 @@
   "busan_pct": 19.6,
   "ym": "202607"
  },
- "computed": "2026-10-14",
+ "computed": "2026-10-20",
  "command": "python tools-build/supply_derive.py",
  "inputs": [
   "data/collected/nitemtrade.csv",

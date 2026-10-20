@@ -68,9 +68,9 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       <dt>전국 대비</dt><dd>수입 {L.imp_share_pct}% · 수출 {L.exp_share_pct}%</dd>
     </dl>
     {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)} title={t.q}>{t.title} →</a></li>)}</ul></>}
-    <p class="s-cap">나라 비중(전국 · {F.partner_months[0]}~{F.partner_months[F.partner_months.length - 1]} · 10개국 안)</p>
+    <p class="s-cap">{F.partners[0]?.imp_nat_pct != null ? `나라별 몫 — 전국 수입 대비 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}` : `나라별 몫 — 주요 10개국 합을 100으로 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}`}</p>
     <ol class="live__bars">
-      {F.partners.slice(0, 6).map((p: any) => <li><span>{p.name}</span><i style={`--w:${p.imp_pct}%`}></i><b>수입 {p.imp_pct}%</b></li>)}
+      {F.partners.slice(0, 6).map((p: any) => { const v = p.imp_nat_pct ?? p.imp_pct; return <li><span>{p.name}</span><i style={`--w:${v}%`}></i><b>수입 {v}%</b></li>; })}
     </ol>
   </aside>
   </div>

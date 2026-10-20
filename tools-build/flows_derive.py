@@ -97,11 +97,19 @@ def derive():
                   "teu": {g: t.get(g) for g in SEA_GATES} if t else None})
     # ③ 나라 비중 — 전국 · 10개국 · 가장 최근 석 달 합(수입·수출 따로)
     nt = [r for r in rows("data/collected/nitemtrade.csv") if r["hsCd2"] == "-"]
-    nym = sorted({r["reqYm"] for r in nt})[-3:]
+    nmp = os.path.join(ROOT, "data/collected/v3/nation_months.json")
+    NM = json.load(open(nmp, encoding="utf-8"))["months"] if os.path.exists(nmp) else {}
+    both = sorted({r["reqYm"] for r in nt} & set(NM))  # 전국 분모가 있는 달로 맞춘다(없으면 품목 원천의 마지막 석 달)
+    nym = both[-3:] if both else sorted({r["reqYm"] for r in nt})[-3:]
     imp, exp = {}, {}
     for r in nt:
         if r["reqYm"] in nym: imp[r["cntyCd"]] = imp.get(r["cntyCd"], 0) + num(r["impDlr"]); exp[r["cntyCd"]] = exp.get(r["cntyCd"], 0) + num(r["expDlr"])
     ti, te = sum(imp.values()), sum(exp.values())
+    # [2026-10-20 사실 대조] imp_pct 는 10개국 합을 100 으로 본 몫(흐름 점 나누기용)이다 — 「전국」 몫이 아니다.
+    #   전국 몫 = 같은 달 관세청 국가별 수출입(전 국가 · nation_months.json) 합을 분모로 따로 낸다(달이 다 있을 때만)
+    nat_ok = all(m in NM for m in nym)
+    ni = sum(x["imp"] for m in nym for x in NM[m]) if nat_ok else None
+    ne = sum(x["exp"] for m in nym for x in NM[m]) if nat_ok else None
     srp = os.path.join(ROOT, "data/derived/sea_routes.json")
     SR = json.load(open(srp, encoding="utf-8")) if os.path.exists(srp) else None
     partners = []
@@ -110,7 +118,8 @@ def derive():
         sea = SR["routes"][c]["path"] if SR and c in SR.get("routes", {}) else p["sea"]
         partners.append({"id": c, "name": p["name"], "at": p["at"], "sea": sea, "air": p["air"],
                          "imp_pct": round(100 * imp[c] / ti, 1), "exp_pct": round(100 * exp[c] / te, 1),
-                         "imp_eok": eok(imp[c] / len(nym)), "exp_eok": eok(exp[c] / len(nym))})
+                         "imp_eok": eok(imp[c] / len(nym)), "exp_eok": eok(exp[c] / len(nym)),
+                         "imp_nat_pct": round(100 * imp[c] / ni, 1) if ni else None, "exp_nat_pct": round(100 * exp[c] / ne, 1) if ne else None})
     partners.sort(key=lambda p: -(p["imp_pct"] + p["exp_pct"]))
     # 하늘 아크의 나라 몫 = 인천공항 실측 항공화물(나라별 도착·출발 톤 · 15062056 · 2026-10-15 선장님 승인) — 없으면 관세청 전국 비중(종전 가정)
     ac_path = os.path.join(ROOT, "data/derived/air_cargo.json")
