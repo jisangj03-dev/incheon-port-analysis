@@ -18,10 +18,6 @@ const TOOLS = {
     act: async (p) => { await p.waitForTimeout(3500); const a = await p.locator("#cs-body tr.sum td").last().innerText(); await p.fill("input[name=duty_pct]", "0"); await expect(p.locator("#cs-body tr.sum td").last()).not.toHaveText(a); } },
   chokepoint: { data: ["data/derived/chokepoints.json", "data/derived/choke_detour.json"], answer: "#ck-fig", num: "#ck-pct", asof: true,
     act: async (p) => { const a = await p.locator("#ck-imp").innerText(); await p.locator(".seg button[data-id=taiwan]").click(); await expect(p.locator("#ck-name")).toHaveText(/대만/); await expect(p.locator("#ck-imp")).not.toHaveText(a); const h = await p.locator("#ck-hit").innerText(); await p.locator("#ck-x").fill("10"); await expect(p.locator("#ck-hit")).not.toHaveText(h); } },
-  anchorage: { data: ["data/derived/s2_anchorage.json", ...["data/derived/s1_anchorage.json"].filter((f) => existsSync(f))], answer: "#anc-fig", num: "#anc-n", asof: true,
-    act: async (p) => { await p.locator("#anc-play").click(); await p.locator(".anc__bars button").first().click(); await expect(p.locator("#anc-date")).toHaveText(JSON.parse(J("data/derived/s2_anchorage.json")).frames[0].date); } },
-  "bid-radar": { data: ["data/derived/bid_radar.json"], answer: "#br-fig", num: "#br-n", asof: true,
-    act: async (p) => { const R = JSON.parse(J("data/derived/bid_radar.json")), g = R.groups.find((x) => R.group_counts[x] !== R.n); await p.locator(`.br__ctl .seg button[data-g="${g}"]`).click(); await expect(p.locator("#br-shown")).toHaveText(String(R.group_counts[g])); await expect(p.locator("#br-items li:visible")).toHaveCount(R.group_counts[g]); } },
 };
 
 for (const [id, T] of Object.entries(TOOLS)) {
@@ -62,13 +58,13 @@ test("CSV = 지면 데이터(맥박·등시선·트리맵·환율·묘박지) ·
   const rows = async (n) => (await (await request.get(`${B}/data/${n}.csv`)).text()).trim().split(/\r?\n/);
   expect((await rows("port-pulse")).length - 1).toBeGreaterThanOrEqual(Object.values(P.ports).reduce((s, p) => s + p.days.length, 0));
   expect((await rows("import-cost")).length - 1).toBeGreaterThanOrEqual(C.weeks.length);
-  for (const n of ["delivery-reach", "trade-race", "anchorage", "chokepoint"]) expect((await rows(n)).length).toBeGreaterThan(5);
+  for (const n of ["delivery-reach", "trade-race", "chokepoint"]) expect((await rows(n)).length).toBeGreaterThan(5);
 });
 
 test("도구 목록 · 홈 질문 · 관문 판이 같은 도구 목록(rooms.json)에서 나온다", async ({ page }) => {
   const R = JSON.parse(J("data/rooms.json")).rooms.find((r) => r.id === "tools").items;
   await page.goto(`${B}/tools/`, { waitUntil: "domcontentloaded" });
-  for (const t of R) await expect(page.locator(`a[href$="${t.href}"]`).first()).toBeVisible();
+  for (const t of R) await expect(page.locator(`main h2 a[href$="${t.href}"]`)).toBeVisible(); // 썸네일 링크는 같은 곳을 가리키는 덧링크라 보조기기에서 뺐다
   await page.goto(`${B}/`, { waitUntil: "domcontentloaded" });
   expect(await page.locator("#fm-panel .live__tools a").count()).toBe(R.filter((t) => t.gate).length);
 });
@@ -84,24 +80,19 @@ test("계산식 = 파생 스크립트(fx_derive.py 예시 숫자를 브라우저
   expect(E.now.landed - E.now.cost).toBe(E.now.vat);
 });
 
-test("묘박지: 큰 숫자는 최신의 맑은 날 — 넘겨 보기·구름 많은 날을 눌러도 바뀌지 않는다(채팅 검수 10/14)", async ({ page }) => {
-  const F = JSON.parse(J("data/derived/s2_anchorage.json")).frames, clear = [...F].reverse().find((f) => !f.low_confidence);
-  await page.goto(`${B}/tools/anchorage.html`, { waitUntil: "networkidle" });
-  await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen));
-  await page.waitForTimeout(F.length * 600 + 1500); // 3초 답 넘겨 보기가 끝날 때까지
-  await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen));
-  await expect(page.locator("#anc-date")).toHaveText(clear.date); // 넘겨 보기가 끝나면 그 날로 돌아온다
-  const cloudy = F.findIndex((f) => f.low_confidence);
-  if (cloudy >= 0) { await page.locator(`.anc__bars button[data-i="${cloudy}"]`).click(); await expect(page.locator("#anc-low")).toContainText("구름"); await expect(page.locator("#anc-n")).toHaveText(String(clear.ships_seen)); }
-});
-
-test("트리맵: 재생이 끝나면 최신 온전한 해에 멈춘다(채팅 검수 10/14)", async ({ page }) => {
+test("트리맵: 첫 화면은 최신 온전한 해에 멈춰 있고(머리 문장과 같은 해) · 재생은 첫 해부터 돌아 최신 해에 멈춘다(화면 판정 10/20)", async ({ page }) => {
   const D = JSON.parse(J("data/derived/trade_race.json")), full = D.years.filter((y) => !y.partial), L = full[full.length - 1];
   expect(J("astro/dist/tools/trade-race.html")).toMatch(new RegExp(`<b id="race-y"[^>]*>${L.y}</b>`)); // 첫 화면 정지 상태(서버 그림)
   await page.goto(`${B}/tools/trade-race.html`, { waitUntil: "networkidle" });
-  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "true", { timeout: 10_000 }); // 3초 답 재생 시작
-  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "false", { timeout: 25_000 }); // 끝
+  await page.waitForSelector("#race-box[data-ready='1']"); await page.waitForTimeout(3000);
+  await expect(page.locator("#race-y")).toHaveText(L.y); // 3초 뒤에도 최신 해(자동으로 옛 해로 돌아가지 않는다)
+  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "false");
+  await page.locator("#race-play").click();
+  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("#race-y")).not.toHaveText(L.y, { timeout: 3000 }); // 첫 해부터 다시
+  await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "false", { timeout: 30_000 }); // 끝
   await expect(page.locator("#race-y")).toHaveText(L.y);
+  await expect(page.locator("#race-box")).not.toContainText(/그 밖 \d+류/); // HS 79류(아연)로 읽히지 않게 「N개 류」
 });
 
 test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달러 운임 아님」 · 제안 = 지수 변동률만", async ({ page }) => {
@@ -129,9 +120,14 @@ test("입찰 레이더: 담당자 개인정보 0 · 스냅샷 시각 · 「검�
   expect(csv).not.toMatch(/Ofcl|TelNo|Email|serviceKey/);
   expect(csv.trim().split(/\r?\n/).length - 2).toBe(R.n);
   await page.goto(`${B}/tools/bid-radar.html`, { waitUntil: "networkidle" });
-  await expect(page.locator(".tool__asof")).toContainText(`${R.snapshot} 스냅샷`);
+  await expect(page.locator(".tool__asof")).toContainText(`${R.snapshot} 수집`);
   await expect(page.locator(".br__auto")).toHaveText("자동 수집 · 고르는 규칙 그대로 · 검수 안 함");
   await expect(page.locator("#br-items li")).toHaveCount(R.n);
+  // 머리 숫자 = 보는 시각에 아직 마감 전인 공고 수 · 마감 지난 공고는 기본으로 숨긴다(화면 판정 10/20 — 「마감 전 29건」 옆에 전 행 「마감 지남」)
+  const now = Date.now(), live = R.items.filter((x) => Date.parse(x.bidClseDt.replace(" ", "T") + "+09:00") > now).length;
+  await expect(page.locator("#br-n")).toHaveText(String(live));
+  await expect(page.locator("#br-items li:visible .br__gone:visible")).toHaveCount(0);
+  await expect(page.locator("#br-items li:visible")).toHaveCount(live);
 });
 
 test("도구 제목 — 가운뎃점(·)이 줄머리에 오지 않는다(360·390·768·1280·1440 · 채팅 최종 검수 10/15)", async ({ page }, info) => {
@@ -242,26 +238,6 @@ test("수입원가: HS 코드 → 관세율표 자동 채움 · 원산지증명"
 });
 
 // [2026-10-15 P1 ④] 묘박지 — 구역 확대(기본) · 크로스페이드(두 장) · 날짜 슬라이더 · 레이더 배 원·척수(자료가 있을 때)
-test("묘박지: 확대·크로스페이드·슬라이더 · 레이더 배 원", async ({ page }) => {
-  await page.goto(`${B}/tools/anchorage.html`);
-  await expect(page.locator("#anc-fig")).toHaveAttribute("data-zoom", "1");
-  await expect(page.locator(".anc__img")).toHaveCount(2);
-  const S = JSON.parse(J("data/derived/s2_anchorage.json")).frames;
-  await page.locator("#anc-s").fill("0");
-  await expect(page.locator("#anc-date")).toHaveText(S[0].date);
-  await page.locator("#anc-zoom").click();
-  await expect(page.locator("#anc-fig")).toHaveAttribute("data-zoom", "0");
-  const R = existsSync("data/derived/s1_anchorage.json") ? JSON.parse(J("data/derived/s1_anchorage.json")).frames : [];
-  test.skip(!R.length, "레이더 자료 없음");
-  const L = R[R.length - 1];
-  await expect(page.locator("#anc-sar-n")).toHaveText(String(L.n));
-  await expect(page.locator("#anc-ships circle")).toHaveCount(L.ships.length);
-  await page.locator('.anc__sar-bars button[data-r="0"]').click();
-  await expect(page.locator("#anc-sar-d")).toHaveText(R[0].date);
-  await expect(page.locator("#anc-ships circle")).toHaveCount(R[0].ships.length);
-});
-
-// [2026-10-20 #67 ①] 등시선 기본 = 낮 시간대 — 첫 그림(스크립트 전)·표·첫 문장이 낮 배율 값 · 괄호에 보정 근거 · 시간대를 바꾸면 첫 문장도 바뀐다
 test("등시선: 기본 = 낮 시간대 · 첫 문장 = 고른 시간대 값 + 보정 근거", async ({ page, browser }) => {
   const RS = JSON.parse(J("data/derived/reach_slots.json")), I = JSON.parse(J("data/derived/isochrones.json"));
   const fi = I.origins.findIndex((o) => o.kind === "물류단지"), D = RS.slots.find((t) => t.id === RS.default);

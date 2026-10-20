@@ -38,8 +38,8 @@ export const GROUPS: { id: string; label: string; from: number; to: number; c: s
   { id: "light", label: "가죽·목재·종이·섬유·신발", from: 41, to: 67, c: "#c2a98a" },
   { id: "stone", label: "석재·유리·귀금속", from: 68, to: 71, c: "#b7aa95" },
   { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#5f6c75" },
-  { id: "mach", label: "기계(84)", from: 84, to: 84, c: "#4f6a78" },
-  { id: "elec", label: "전기전자(85)", from: 85, to: 85, c: "#b3361e" },
+  { id: "mach", label: "기계류(84)", from: 84, to: 84, c: "#4f6a78" },
+  { id: "elec", label: "전기기기(85)", from: 85, to: 85, c: "#b3361e" },
   { id: "trans", label: "수송기기", from: 86, to: 89, c: "#5d7a86" },
   { id: "prec", label: "정밀·광학·기타", from: 90, to: 99, c: "#a08c7a" },
 ];
@@ -64,7 +64,7 @@ export class TreemapRace {
     const Y = this.years[this.i], W = this.host.clientWidth, H = this.host.clientHeight;
     const top = [...Y.items].sort((a, b) => (this.rank.get(a.hs) ?? 999) - (this.rank.get(b.hs) ?? 999));
     const head = top.slice(0, this.o.top), rest = top.slice(this.o.top).reduce((s, x) => s + x.v, 0);
-    const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${top.length - head.length}류`, v: rest }] : head;
+    const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${top.length - head.length}개 류`, v: rest }] : head;
     const R = squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H });
     const live = new Set<string>();
     list.forEach((it, k) => {
@@ -86,7 +86,9 @@ export class TreemapRace {
       });
       const big = r.w > 84 && r.h > 40, mid = r.w > 46 && r.h > 26, tiny = r.w < 24 || r.h < 24;
       // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
-      el.innerHTML = big ? `<b>${it.name}</b> <i>${share.toFixed(1)}%</i>` : mid ? `<i>${share.toFixed(1)}%</i>` : "";
+      // 중간 칸도 이름을 단다(괄호 풀이를 뺀 짧은 이름) — %만 있는 칸은 무엇인지 읽히지 않았다(화면 판정 10/20)
+      const short = it.name.replace(/\s*\(.*\)$/, "");
+      el.innerHTML = big ? `<b>${it.name}</b> <i>${share.toFixed(1)}%</i>` : mid ? `<b>${short}</b> <i>${share.toFixed(1)}%</i>` : "";
       if (big) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;

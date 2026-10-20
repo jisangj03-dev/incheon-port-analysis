@@ -4,14 +4,18 @@
  "snapshot": "2026-10-15 20:07",
  "window_days": 21,
  "scanned": 8205,
- "n": 28,
+ "n": 27,
  "group_counts": {
-  "운송·배송": 16,
-  "보관·창고": 1,
-  "통관·무역": 5,
-  "항만·해운·항공": 6
+  "연구·계획": 11,
+  "행사·전시": 3,
+  "운송·배송": 6,
+  "보관·창고": 0,
+  "통관·무역": 2,
+  "항만·해운·항공": 5
  },
  "groups": [
+  "연구·계획",
+  "행사·전시",
   "운송·배송",
   "보관·창고",
   "통관·무역",
@@ -86,19 +90,7 @@
    "bidClseDt": "2026-10-16 10:00:00",
    "presmptPrce": 3181818,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01760054&bidPbancOrd=000",
-   "group": "운송·배송"
-  },
-  {
-   "bidNtceNo": "R26BK01754516",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "국제물류진흥지역 기본계획 수립 연구",
-   "ntceInsttNm": "국토교통부",
-   "dminsttNm": "국토교통부",
-   "bidNtceDt": "2026-10-05 13:21:47",
-   "bidClseDt": "2026-10-16 10:00:00",
-   "presmptPrce": 45454545,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01754516&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01759892",
@@ -122,7 +114,7 @@
    "bidClseDt": "2026-10-16 14:00:00",
    "presmptPrce": 10909091,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01761796&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01756885",
@@ -134,7 +126,7 @@
    "bidClseDt": "2026-10-19 10:00:00",
    "presmptPrce": 36363636,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01756885&bidPbancOrd=000",
-   "group": "통관·무역"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01758667",
@@ -146,7 +138,7 @@
    "bidClseDt": "2026-10-19 10:00:00",
    "presmptPrce": 90909091,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01758667&bidPbancOrd=000",
-   "group": "통관·무역"
+   "group": "행사·전시"
   },
   {
    "bidNtceNo": "R26BK01763884",
@@ -158,7 +150,7 @@
    "bidClseDt": "2026-10-20 10:00:00",
    "presmptPrce": 45454545,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01763884&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01758745",
@@ -194,7 +186,7 @@
    "bidClseDt": "2026-10-20 10:00:00",
    "presmptPrce": 15454545,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01760497&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01761324",
@@ -206,7 +198,7 @@
    "bidClseDt": "2026-10-20 10:00:00",
    "presmptPrce": 72727273,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01761324&bidPbancOrd=001",
-   "group": "보관·창고"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01761339",
@@ -218,7 +210,7 @@
    "bidClseDt": "2026-10-20 10:00:00",
    "presmptPrce": 81818182,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01761339&bidPbancOrd=001",
-   "group": "항만·해운·항공"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01759458",
@@ -254,7 +246,7 @@
    "bidClseDt": "2026-10-23 10:00:00",
    "presmptPrce": 36363636,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01764168&bidPbancOrd=000",
-   "group": "통관·무역"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01764865",
@@ -278,7 +270,7 @@
    "bidClseDt": "2026-10-26 14:00:00",
    "presmptPrce": 73636364,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01767707&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "행사·전시"
   },
   {
    "bidNtceNo": "R26BK01770374",
@@ -290,7 +282,7 @@
    "bidClseDt": "2026-10-26 14:00:00",
    "presmptPrce": 118181818,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01770374&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01770450",
@@ -314,7 +306,7 @@
    "bidClseDt": "2026-10-26 18:00:00",
    "presmptPrce": 136363636,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01767584&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01773881",
@@ -326,7 +318,7 @@
    "bidClseDt": "2026-10-27 10:00:00",
    "presmptPrce": 43636367,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773881&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "행사·전시"
   },
   {
    "bidNtceNo": "R26BK01771797",
@@ -338,7 +330,7 @@
    "bidClseDt": "2026-10-28 16:00:00",
    "presmptPrce": 181818182,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01771797&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01755227",

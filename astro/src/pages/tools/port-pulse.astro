@@ -13,7 +13,7 @@ import { repoRoot } from "../../lib/content";
 const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/port_pulse.json"), "utf-8"));
 const P = D.ports, I = P.Incheon, J = I.judge;
 const order = ["Incheon", "Busan", "Pyeongtaek"].filter((k) => P[k]?.judge);
-const sign = (x: number) => (x > 0 ? `+${x}` : `${x}`);
+const sign = (x: number) => (x > 0 ? `+${x}` : x < 0 ? `−${-x}` : `${x}`); // 마이너스는 U+2212(하이픈은 숫자와 떨어져 보인다 · 화면 판정 10/20)
 const md = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8, 10))}일`;
 const tops = D.types.map((t: any) => ({ ...t, r: J.by_type[t.id], b: J.base_by_type[t.id] })).filter((t: any) => t.b > 0.5);
 const big = [...tops].sort((a: any, b: any) => Math.abs(b.r - b.b) - Math.abs(a.r - a.b))[0];
@@ -41,20 +41,21 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
           <b>{P[k].ko}</b><i class={j.pct > D.rule.threshold_pct ? "up" : j.pct < -D.rule.threshold_pct ? "dn" : ""}>{sign(j.pct)}%</i><span>{j.recent_avg}척/일 · 평소 {j.base_avg}{P[k].stale_to && <em class="stale"> · {P[k].stale_to}까지</em>}</span>
           <Fragment set:html={sparkSvg(P[k].days)} /></button></li>; })}
       </ol>
-      {odds.length > 0 && <p class="s-cap pulse__odd" data-odd>원천 점검 — 해양수산부 월 외항 입항과 견줘 PortWatch 가 {D.ports.Incheon.check.threshold_pct}% 넘게 어긋난 달(그래프에서 흐리게): {odds.join(" / ")}. 해수부 통계에는 같은 변동이 없어 원천의 수집·집계 변동으로 보입니다(원인 미확인). {inJudge.length ? `${inJudge.join("·")}은 그 달이 「평소」 판정 구간에 들어 판정을 덜 믿어야 합니다.` : "어긋난 달은 지금 「평소」 판정 구간에 들지 않습니다."}</p>}
+      {inJudge.length > 0 && <p class="s-cap pulse__odd">{inJudge.join("·")}은 원천 수집이 흔들린 달이 「평소」 구간에 들어 이 판정을 덜 믿어야 합니다(아래 「원천 점검」).</p>}
     </div>
     <div slot="controls" class="pulse__ctl">
       <label>선종 <select id="pl-type"><option value="all">전체</option>{D.types.map((t: any) => <option value={t.id}>{t.ko}</option>)}</select></label>
       <div class="seg" role="group" aria-label="기간">{[[91, "13주"], [182, "6개월"], [365, "1년"]].map(([n, l]) => <button type="button" class={n === 182 ? "s-btn" : "s-btn s-btn--ghost"} data-span={n} aria-pressed={n === 182 ? "true" : "false"}>{l}</button>)}</div>
       <p class="s-cap pulse__trade" id="pl-trade">인천 추정 교역량(마지막 7일 하루 평균 · 모델 추정치) — 수입 {J.imp_avg ? J.imp_avg.toLocaleString("ko-KR") : "—"}톤 · 수출 {J.exp_avg ? J.exp_avg.toLocaleString("ko-KR") : "—"}톤</p>
     </div>
+    {odds.length > 0 && <p slot="more" class="pulse__odd" data-odd>원천 점검 — 해양수산부 월 외항 입항과 견줘 PortWatch 가 {D.ports.Incheon.check.threshold_pct}% 넘게 어긋난 달(그래프에서 흐리게): {odds.join(" / ")}. 해수부 통계에는 같은 변동이 없어 원천의 수집·집계 변동으로 보입니다(원인 미확인). {inJudge.length ? `${inJudge.join("·")}은 그 달이 「평소」 판정 구간에 들어 판정을 덜 믿어야 합니다.` : "어긋난 달은 지금 「평소」 판정 구간에 들지 않습니다."}</p>}
   </ToolShell>
   <script type="application/json" id="pl-data" set:html={JSON.stringify(client)}></script>
   <script>
     import { pulseSvg, judgeOf, mean } from "../../lib/pulse-chart";
     const C = JSON.parse(document.getElementById("pl-data")!.textContent!), $ = (id: string) => document.getElementById(id)!;
     const R = C.rule, st = { port: "Incheon", type: "all", span: 182 };
-    const sign = (x: number) => (x > 0 ? "+" : "") + x.toFixed(1);
+    const sign = (x: number) => (x > 0 ? "+" : x < 0 ? "−" : "") + Math.abs(x).toFixed(1);
     const fmt = (v: number) => Math.round(v).toLocaleString("ko-KR");
     const draw = (anim = true) => {
       const p = C.ports[st.port], j = judgeOf(p.days, st.type, R.recent, R.base, R.threshold_pct);

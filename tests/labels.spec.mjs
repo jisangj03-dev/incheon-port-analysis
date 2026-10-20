@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 import { overlaps } from "./lib/label-overlap.mjs";
 import { lowContrast } from "./lib/contrast.mjs";
 const B = "/incheon-port-analysis";
-const PAGES = ["/", "/map.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/tools/warehouse-map.html"];
+const PAGES = ["/", "/tools/", "/map/vessels.html", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/about.html"];
 const check = async (page, where) => { const r = await overlaps(page); expect(r.out, `${where} 라벨 겹침(보이는 라벨 ${r.n}개)`).toEqual([]); return r.n; };
 
 for (const p of PAGES) test(`라벨 겹침 0 — ${p}`, async ({ page }) => {
@@ -13,19 +13,6 @@ for (const p of PAGES) test(`라벨 겹침 0 — ${p}`, async ({ page }) => {
   await page.waitForTimeout(300);
   await check(page, p);
   expect(await lowContrast(page), `${p} 그림 속 글자 명암비`).toEqual([]);
-});
-
-test("라벨 겹침 0 — 움직이는 지도(달 처음·끝)", async ({ page }) => {
-  await page.goto(`${B}/map.html`, { waitUntil: "networkidle" });
-  await page.mouse.move(20, 20);
-  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-  await page.click("#ds-play"); // 자동 재생을 멈춘다
-  for (const v of ["0", await page.locator("#ds-m").getAttribute("max")]) {
-    await page.locator("#ds-m").fill(v);
-    await page.waitForTimeout(300);
-    expect(await check(page, `지도 달 ${v}`), "지도 이름표가 있어야 한다").toBeGreaterThan(4);
-    expect(await lowContrast(page), `지도 달 ${v} 명암비`).toEqual([]);
-  }
 });
 
 test("라벨 겹침 0 — 선박 리플레이 달 처음·끝 · 맥주 게임 막대 양 끝", async ({ page }) => {

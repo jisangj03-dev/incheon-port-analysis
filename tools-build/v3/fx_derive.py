@@ -1,4 +1,4 @@
-"""수입원가 계산기 파생 — data/collected/v3/kcs_fx_weeks.json(관세청 관세환율 · 수입 · 주간) → data/derived/import_cost.json.
+"""수입원가 계산기 파생 — data/collected/v3/kcs_fx_weeks.json(관세청 과세환율 · 수입 · 주간) → data/derived/import_cost.json.
 지면 첫 화면의 예시(같은 물건 · 지금 주 vs 52주 전)를 여기서 계산해 숫자를 데이터 파일에 둔다(화면 수치 = 데이터 파일).
 계산식은 astro/src/lib/import-cost.ts 와 같다(시험이 둘을 맞춘다). 참고용 · 자문 아님.
   python tools-build/v3/fx_derive.py [--selftest]
@@ -44,7 +44,7 @@ def derive(src):
     now = W[-1]; ago = week_ago(W, "from", AGO)
     a = landed(EX["goods"], 0, 0, "CIF", ago["USD"], EX["duty_pct"]); b = landed(EX["goods"], 0, 0, "CIF", now["USD"], EX["duty_pct"])
     hi = max(W, key=lambda w: w["USD"]); lo = min(W, key=lambda w: w["USD"])
-    return {"_설명": "관세청 관세환율(수입 · 주간 · 원/통화 1단위, JPY 는 1엔) + 첫 화면 예시 계산(1만 달러 CIF · 관세 8% · 부가세 10%). 참고용 · 자문 아님.",
+    return {"_설명": "관세청 과세환율(수입 · 주간 · 원/통화 1단위, JPY 는 1엔) + 첫 화면 예시 계산(1만 달러 CIF · 관세 8% · 부가세 10%). 참고용 · 자문 아님.",
             "source": src["source"], "fetched": src["fetched"], "asof": now["from"], "currencies": CUR,
             "weeks": [[w["from"]] + [w.get(c) for c in CUR] for w in W],
             "example": {**EX, "ago_weeks": AGO, "now": {"week": now["from"], "fx": now["USD"], **b}, "ago": {"week": ago["from"], "fx": ago["USD"], **a},

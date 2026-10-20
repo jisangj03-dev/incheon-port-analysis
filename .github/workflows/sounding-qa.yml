@@ -69,12 +69,6 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
-      - name: webapp-testing 스킬 경로 (with_server.py + 파이썬 Playwright)
-        run: |
-          python -m pip install -q -r requirements-dev.txt
-          python .claude/skills/webapp-testing/scripts/with_server.py \
-            --server "node tests/serve.mjs 4173 astro/dist" --port 4173 \
-            -- python tests/py/calc_smoke.py
       - name: 계산기 계산식 검사(엑셀 가상 샘플 · 금액 상수 0)
         run: python analysis/check_cost_tool.py
       - name: 예측 원장 덧붙이기만(정체성 전환 §3-4 F1) · 예측 계산 시험
@@ -83,7 +77,7 @@ jobs:
           python tools-build/check_ledger.py
           python analysis/forecast_teu.py --selftest
 
-      - name: Lighthouse 13.5.0 (공개 지면 13 · 모바일 · CI 는 1회 — 3회 중앙값은 세션 출고 검사가 잰다)
+      - name: Lighthouse 13.5.0 (공개 지면 17 · 모바일 · CI 는 1회 — 3회 중앙값은 세션 출고 검사가 잰다)
         env:
           LH_RUNS: "1"
         run: |

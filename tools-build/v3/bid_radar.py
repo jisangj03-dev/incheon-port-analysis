@@ -19,9 +19,25 @@ import re as _re
 FIRST = ("통관·무역", ["통관", "보세", "원산지", "FTA", "포워딩"])
 def has(nm, w):
     return bool(_re.search(rf"(?<![A-Za-z]){_re.escape(w)}(?![A-Za-z])", nm)) if w.isascii() else w in nm
-def group_of(nm):
+def topic(nm):
+    """고르는 규칙(선커밋 ③-가)의 넣는 말 — 이것으로만 고른다"""
     if any(has(nm, w) for w in FIRST[1]): return FIRST[0]
     return next((gn for gn, ws in GROUPS if any(has(nm, w) for w in ws)), None)
+# [2026-10-20 화면 판정] 「원가계산」「기본계획 수립 연구」「수출상담회 운영」이 운송·통관으로 묶여 실무자가 분류를 믿지 않게 됐다 →
+#   **고르는 규칙은 그대로**(넣는 말·빼는 말 불변) 두고, 묶음만 용역의 성격(연구·계획 / 행사·전시)을 먼저 본다.
+PURPOSE = [("연구·계획", ["연구", "기본계획", "원가계산", "실태조사", "조사분석", "로드맵", "기획"]), ("행사·전시", ["상담회", "전시", "박람회", "CO-SHOW", "부스"])]
+GROUP_NAMES = [g for g, _ in PURPOSE] + [g for g, _ in GROUPS]
+def group_of(nm):
+    t = topic(nm)
+    if t is None: return None
+    return next((gn for gn, ws in PURPOSE if any(has(nm, w) for w in ws)), t)
+def dedupe(items):
+    """같은 기관이 같은 이름으로 낸 공고(번호만 다른 재공고·중복 등록)는 마감이 늦은 하나만"""
+    best = {}
+    for x in items:
+        k = (" ".join(str(x["bidNtceNm"]).split()), x.get("ntceInsttNm"))
+        if k not in best or str(x["bidClseDt"]) > str(best[k]["bidClseDt"]): best[k] = x
+    return sorted(best.values(), key=lambda x: x["bidClseDt"])
 EXCLUDE = ["통학", "여객", "관광", "수학여행", "셔틀", "전세버스", "급식", "폐기물", "음식물", "장애인", "환자", "시신", "운구",
            # 바꿈 2026-10-15(첫 스냅샷을 본 뒤 · 선커밋 ③-가 폐기 규칙): 「홍보관」의 보관 · 제설장비 「창고구간」 · 화물차 임차·리스 · 헬륨냉동 · 방사선감시기
            "홍보관", "제설", "임차", "리스", "헬륨", "방사선",
@@ -47,7 +63,7 @@ def pick(rows, now):
         except ValueError: item["presmptPrce"] = None
         item["group"] = g
         out.append(item)
-    return sorted(out, key=lambda x: x["bidClseDt"])
+    return dedupe(out)
 
 
 def fetch(now):
@@ -79,8 +95,8 @@ def main():
     if len(items) < 5: say("5건 미만 — 싣지 않는다(선커밋 폐기 규칙) · 지난 파일 유지"); return 1
     d = {"_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
          "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)", "snapshot": now.strftime("%Y-%m-%d %H:%M"), "window_days": WINDOW,
-         "scanned": len(rows), "n": len(items), "group_counts": {g: sum(1 for x in items if x["group"] == g) for g, _ in GROUPS},
-         "groups": [g for g, _ in GROUPS], "include": INCLUDE, "exclude": EXCLUDE, "items": items}
+         "scanned": len(rows), "n": len(items), "group_counts": {g: sum(1 for x in items if x["group"] == g) for g in GROUP_NAMES},
+         "groups": GROUP_NAMES, "include": INCLUDE, "exclude": EXCLUDE, "items": items}
     s = json.dumps(d, ensure_ascii=False, indent=1)
     if KEY and KEY in s: say("키가 산출물에 있다 — 쓰지 않는다"); return 1
     open(OUT, "w", encoding="utf-8").write(s)
@@ -96,14 +112,18 @@ def selftest():
             {"bidNtceNo": "4", "bidNtceOrd": "000", "bidNtceNm": "해운대 정보관리 시스템 유지보수", "bidClseDt": "2026-10-20 10:00:00"}]
     p = pick(rows, now)
     assert [x["bidNtceNo"] for x in p] == ["1"] and p[0]["group"] == "운송·배송" and "ntceInsttOfclNm" not in p[0] and p[0]["presmptPrce"] == 1000000 and p[0]["bidNtceOrd"] == "001", p
-    print("selftest 1/1 ok"); return 0
+    assert group_of("국제물류진흥지역 기본계획 수립 연구") == "연구·계획" and group_of("2026 해외바이어 초청 수출상담회 운영 용역") == "행사·전시"
+    assert group_of("연구실 안전 점검") is None  # 성격 말만 있고 넣는 말이 없으면 고르지 않는다(고르는 규칙 불변)
+    dd = dedupe([{"bidNtceNm": "A  연구", "ntceInsttNm": "X", "bidClseDt": "2026-10-20"}, {"bidNtceNm": "A 연구", "ntceInsttNm": "X", "bidClseDt": "2026-10-22"}])
+    assert len(dd) == 1 and dd[0]["bidClseDt"] == "2026-10-22"
+    print("selftest 4/4 ok"); return 0
 
 
 def regroup():
     """지난 스냅샷을 새 규칙으로 다시 묶는다(원천을 다시 부르지 않는다 — 공고 이름만 쓴다)"""
     d = json.load(open(OUT, encoding="utf-8"))
-    d["items"] = [dict(x, group=group_of(x["bidNtceNm"])) for x in d["items"] if group_of(x["bidNtceNm"])]
-    d["n"] = len(d["items"]); d["group_counts"] = {g: sum(1 for x in d["items"] if x["group"] == g) for g, _ in GROUPS}
+    d["items"] = dedupe([dict(x, group=group_of(x["bidNtceNm"])) for x in d["items"] if group_of(x["bidNtceNm"])])
+    d["n"] = len(d["items"]); d["groups"] = GROUP_NAMES; d["group_counts"] = {g: sum(1 for x in d["items"] if x["group"] == g) for g in GROUP_NAMES}
     json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("다시 묶음", d["group_counts"]); return 0
 

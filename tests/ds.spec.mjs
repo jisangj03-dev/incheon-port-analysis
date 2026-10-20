@@ -9,7 +9,7 @@ const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
 const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
-for (const f of ["index", "beer", "map", "note", "ai-ops", "vessels"]) {
+for (const f of ["index", "beer", "note", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
     const r = check(readFileSync(`astro/dist${PATH[f]}`, "utf-8"), DATA);
     expect(r.bad).toEqual([]);
@@ -21,7 +21,7 @@ for (const f of ["index", "beer", "map", "note", "ai-ops", "vessels"]) {
     if (info.project.name === "iphone-13") await page.setViewportSize({ width: 360, height: 720 });
     await page.goto(at(f), { waitUntil: "networkidle" });
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
-    if (["beer", "map", "ai-ops", "vessels"].includes(f)) for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
+    if (["beer", "vessels"].includes(f)) for (const k of ["why", "how", "limits"]) await expect(page.locator(`[data-note="${k}"]`)).not.toBeEmpty();
     expect(ext).toEqual([]);
     expect(errors).toEqual([]);
   });
@@ -29,42 +29,6 @@ for (const f of ["index", "beer", "map", "note", "ai-ops", "vessels"]) {
 
 // 지도 면이 실제로 그려졌는지 — 화면을 찍어 픽셀로 판정한다(2026-10-14 · Actions 에서 지도 칸이 통째로 빈 면이었는데 위 시험은 모두 통과했다).
 // 타일이 있으면(CI 는 반드시) 바다·땅 두 면과 점(먹 · 주홍)이 다 보여야 한다. 타일이 없는 로컬은 점만 본다.
-test("지도 면: 바탕·점이 실제로 그려졌다(픽셀 판정)", async ({ page }, info) => {
-  const tiles = existsSync("astro/dist/tiles/incheon.pmtiles");
-  if (process.env.CI) expect(tiles, "CI 에는 지도 타일이 있어야 한다 — 없으면 바탕을 증명할 수 없다").toBe(true);
-  await page.goto(at("map"), { waitUntil: "networkidle" });
-  await page.mouse.move(20, 20); // 움직이는 지도는 사람이 움직이면 뜬다
-  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-  const st = await page.evaluate(() => window.__dsmap);
-  expect(st.errors).toEqual([]);
-  expect(await page.locator(".ds-label").count(), "장소 넷 + 흐름선 끝(서울)").toBeGreaterThanOrEqual(st.places);
-  if (tiles) expect(st.base, "타일이 있는데 바탕 원천을 못 읽었다").toBe(true);
-  mkdirSync("lab-out", { recursive: true });
-  const shot = await page.locator("#ds-map").screenshot({ path: `lab-out/ds-map-${info.project.name}.png` });
-  // 픽셀 세기는 브라우저 캔버스로(저장소에 PNG 해석 의존성을 늘리지 않는다)
-  const n = await page.evaluate(async (b64) => {
-    const img = new Image(); img.src = `data:image/png;base64,${b64}`; await img.decode();
-    const c = document.createElement("canvas"); c.width = img.width; c.height = img.height;
-    const g = c.getContext("2d"); g.drawImage(img, 0, 0);
-    const d = g.getImageData(0, 0, c.width, c.height).data;
-    // 해도 팔레트 — 종이(땅) · 물 · 주홍(85% 위 종이) · 먹(85% 위 종이)
-    const P = { paper: [245, 242, 235], water: [227, 222, 210], signal: [189, 82, 61], ink: [58, 56, 52] };
-    const k = Object.fromEntries(Object.keys(P).map((x) => [x, 0]));
-    for (let i = 0; i < d.length; i += 4) for (const [x, [r, gg, bb]] of Object.entries(P)) {
-      if (Math.abs(d[i] - r) + Math.abs(d[i + 1] - gg) + Math.abs(d[i + 2] - bb) <= 24) { k[x]++; break; }
-    }
-    return { total: d.length / 4, ...k };
-  }, shot.toString("base64"));
-  info.annotations.push({ type: "map-pixels", description: JSON.stringify(n) });
-  expect(n.signal, "주홍 점(가장 큰 문)이 안 보인다").toBeGreaterThan(300);
-  expect(n.ink, "먹 점이 안 보인다").toBeGreaterThan(300);
-  if (tiles) {
-    expect(n.water / n.total, "바다 면이 안 그려졌다").toBeGreaterThan(0.05);
-    expect(n.paper / n.total, "땅 면이 안 그려졌다").toBeGreaterThan(0.05);
-  }
-});
-
-// 맥주 게임 첫 장면 — 누르기 전부터 그림이 있고, 막대를 움직이면 그림과 큰 숫자가 같이 바뀐다(ncase 원리). 개발 용어는 지면에 없다.
 test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 바뀐다 · 개발 용어 0", async ({ page }) => {
   await page.goto(at("beer"), { waitUntil: "networkidle" });
   await page.waitForSelector("#wave[data-ready]");
@@ -85,7 +49,7 @@ test("맥주 게임: 첫 화면에 그림 · 막대를 움직이면 그림이 �
 
 // 차트 신뢰(OWID 원리) — 차트가 있는 지면마다 갱신일·출처·CSV 꼬리가 있고, CSV 는 실제로 내려온다
 test("차트마다 갱신일·출처·CSV 꼬리 · CSV 200", async ({ page, request }) => {
-  for (const f of ["index", "beer", "map", "note", "ai-ops", "vessels"]) {
+  for (const f of ["index", "beer", "note", "vessels"]) {
     await page.goto(at(f), { waitUntil: "networkidle" });
     const t = page.locator(".s-trust");
     expect(await t.count(), `${f} 신뢰 꼬리`).toBeGreaterThan(0);
@@ -129,7 +93,7 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await page.locator("#fm-x").click();
   await expect(page.locator("#fm-panel")).toBeHidden();
   // 흐름은 월 통계를 그린 것 — 실시간이 아니라고 화면에 적었다
-  await expect(page.locator(".live__legend")).toContainText("실시간 위치가 아닙니다");
+  await expect(page.locator(".live__legend")).toContainText("실시간 위치 아님");
   // 같이 푸는 질문 — 질문마다 지면 하나
   const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions;
   await expect(page.locator(".qs > li")).toHaveCount(Q.length);
@@ -143,30 +107,14 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
 });
 
 // 지도 움직임 — 달 막대를 옮기면 달·점 숫자가 바뀌고, 그대로 두면 달이 흐른다(움직임 줄이기 설정이 아닐 때)
-test("지도: 달 막대 · 자동으로 흐르는 달 · 개념선 0(2026-10-20 품질기준 Q3)", async ({ page }) => {
-  await page.goto(at("map"), { waitUntil: "networkidle" });
-  await page.mouse.move(20, 20); // 움직이는 지도는 사람이 움직이면 뜬다
-  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-  await page.locator("#ds-m").fill("0");
-  const ym0 = await page.locator("#ds-ym").innerText();
-  const v0 = await page.locator('[data-v="신항"]').innerText();
-  await page.locator("#ds-m").fill(String(await page.locator("#ds-m").getAttribute("max")));
-  await expect(page.locator("#ds-ym")).not.toHaveText(ym0);
-  await expect(page.locator('[data-v="신항"]')).not.toHaveText(v0);
-  await page.click("#ds-play");
-  const a = await page.getAttribute("#ds-map", "data-month");
-  await expect.poll(() => page.getAttribute("#ds-map", "data-month"), { timeout: 5_000 }).not.toBe(a);
-  await expect(page.locator("[data-content='ds-map-foot']")).not.toContainText("개념선");
-});
-
 // [2026-10-20 내림 · docs/품질기준.md Q2·Q3] 공급망 따라가기 — 주소는 살아 있고 지도 지면으로 넘긴다 · 메뉴·홈·소개·사이트맵에서 빠졌다
-test("공급망 따라가기: 내림 — 지도로 넘김 · 색인 제외 · 메뉴·사이트맵·소개 링크 0", async ({ page, request }, info) => {
+test("공급망 따라가기: 내림 — 첫 화면으로 넘김 · 색인 제외 · 메뉴·사이트맵·소개 링크 0", async ({ page, request }, info) => {
   test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
   const html = await (await request.get(at("follow"))).text();
-  expect(html).toMatch(/http-equiv="refresh" content="0;url=\/incheon-port-analysis\/map\.html"/);
+  expect(html).toMatch(/http-equiv="refresh" content="0;url=\/incheon-port-analysis\/"/);
   expect(html).toContain('name="robots" content="noindex');
   expect(readFileSync("astro/dist/sitemap.xml", "utf-8")).not.toContain("follow");
-  for (const f of ["index", "about", "map"]) expect(readFileSync(`astro/dist${PATH[f]}`, "utf-8"), `${f} 에 따라가기 링크`).not.toContain("map/follow.html");
+  for (const f of ["index", "about"]) expect(readFileSync(`astro/dist${PATH[f]}`, "utf-8"), `${f} 에 따라가기 링크`).not.toContain("map/follow.html");
   for (const f of ["data/rooms.json", "data/questions.json"]) expect(readFileSync(f, "utf-8"), f).not.toContain("/map/follow.html");
 });
 
@@ -185,12 +133,13 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   await expect(page.locator(".counter")).toContainText("반대 지표");
   // 처음 그려지는 달(서버가 낸 HTML) = 마지막 달 — 자동 재생이 곧 바꾸므로 HTML 원문으로 본다
   const html = await (await request.get(page.url())).text();
-  const ym = (html.match(/id="vr-ym"[^>]*>([^<]+)</) || [])[1];
+  const ym = (html.match(/class="vr-ym"[^>]*>([^<]+)</) || [])[1];
   await page.locator("#vr-m").fill("0");
-  // 만지면 멈춘다(6초 뒤 다시)
+  // 만지면 멈춘다(6초 뒤 다시) · 큰 숫자는 최신 달 그대로(머리 문장과 같다 — 화면 판정 10/20) · 흐르는 달은 차트 커서
   expect(await page.evaluate(() => window.__vrPlay.on), "달 막대를 만졌는데 멈추지 않았다").toBe(false);
-  await expect(page.locator("#vr-ym")).toHaveText(V.months[0]);
-  await expect(page.locator("#vr-inc")).toHaveText(String(V.ocean_arrivals["인천"][0]));
+  await expect(page.locator("#vr-chart")).toHaveAttribute("data-month", V.months[0]);
+  await expect(page.locator(".vr-v i")).toHaveText(String(V.latest.incheon));
+  await expect(page.locator("h1")).toContainText(String(V.latest.incheon));
   await page.click("#vr-play");
   await expect.poll(() => page.getAttribute("#vr-chart", "data-month"), { timeout: 5_000 }).not.toBe(V.months[0]);
   expect(ym).toBe(V.latest.ym);
@@ -198,24 +147,6 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
 
 // 지도 첫 화면(2026-10-14 출고 검사 · 모바일 성능 · 10-15 P0 자동 재생) — 좁은 화면은 maplibre 를 받지 않고 해도 그림 위에서 달이 스스로 흐른다(가벼운 첫 장면).
 // 넓은 화면은 한가할 때 maplibre 를 받아 이어 돈다. 둘 다 클릭 없이.
-test("지도: 클릭 없이 달이 흐른다 · 좁은 화면은 maplibre 0 · 움직이면 뜬다", async ({ page }) => {
-  const got = [];
-  page.on("request", (r) => got.push(r.url()));
-  await page.goto(at("map"), { waitUntil: "networkidle" });
-  const narrow = (page.viewportSize()?.width || 1440) <= 720;
-  if (narrow) expect(got.filter((u) => /maplibre|pmtiles/.test(u)), "좁은 화면 손대기 전 지도 엔진 요청").toEqual([]);
-  await expect(page.locator("#map-poster .h-pt")).toHaveCount(JSON.parse(readFileSync("data/derived/places.json", "utf-8")).places.length + 1);
-  // 좁은 화면은 첫 장면(해도 그림)이 지도 칸을 채운다 · 넓은 화면은 maplibre 가 곧 받아 그림이 물러난다 — 지도 칸 자체를 잰다
-  const box = await page.locator(narrow ? "#map-poster" : ".ds-map-box").boundingBox();
-  expect(box && box.height, "지도 칸이 채워져 있다").toBeGreaterThan(300);
-  // 클릭 없이 달이 바뀐다(첫 장면이든 maplibre 든)
-  const f0 = await page.evaluate(() => window.__mapPlay.frames);
-  await expect.poll(() => page.evaluate(() => window.__mapPlay.frames), { timeout: 15_000, message: "손대지 않았는데 달이 안 흐른다" }).toBeGreaterThan(f0 + 1);
-  await page.mouse.move(30, 30);
-  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-});
-
-// [2026-10-15 P2 「사업」] 홈·소개 — 「문의 틀로 메일」 = mailto(제목·적을 칸 미리 채움) · 원문 HTML 에 주소 0 · 외부 요청 0(양식 서버 없음)
 test("문의 틀로 메일 — 제목·적을 칸 · 원문에 주소 없음", async ({ page, request }) => {
   for (const p of ["index", "about"]) {
     const html = await (await request.get(at(p === "about" ? "about" : "index"))).text();

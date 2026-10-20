@@ -50,6 +50,7 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
       </figure>
       <div class="ck__trade">
         <p class="ck__share"><span>이 길목을 지나는 나라와의 교역(전국 · 12달)</span> 수입 <b id="ck-imp">{F.imp_pct}%</b> · 수출 <b id="ck-exp">{F.exp_pct}%</b> · 월 <b id="ck-month">{F.monthly_musd.toLocaleString("ko-KR")}</b>백만 달러</p>
+        <p class="s-cap ck__bars-h">나라별 교역(수출+수입 · 최근 12달 합 · 단위 백만 달러)</p>
         <ol class="ck__bars" id="ck-bars">{F.top.map((t: any) => <li><span>{t.name}</span><i style={`--w:${((t.musd / F.top[0].musd) * 100).toFixed(1)}%`}></i><b>{t.musd.toLocaleString("ko-KR")}</b></li>)}</ol>
       </div>
       <div class="ck__more" id="ck-more" set:html={chokeMore(F)}></div>
@@ -111,6 +112,7 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
   .ck__more { display: grid; gap: 6px; margin-top: var(--s-3); font-size: 14px; color: var(--s-ink-2); max-width: 60rem; }
   .ck__more :global(p) { margin: 0; } .ck__more :global(small) { color: var(--s-ink-3); } .ck__more :global(b) { color: var(--s-ink); }
   .ck__more :global(summary) { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .ck__bars-h { margin: var(--s-3) 0 var(--s-2); }
   .ck__bars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; font-variant-numeric: tabular-nums; font-size: 13.5px; }
   .ck__bars :global(li) { display: grid; grid-template-columns: 7.5rem 1fr 4.5rem; gap: 8px; align-items: center; }
   .ck__bars :global(i) { display: block; height: 8px; background: var(--s-ink-3); width: var(--w); transform-origin: left; animation: ck-bar 0.8s 0.3s ease-out both; }

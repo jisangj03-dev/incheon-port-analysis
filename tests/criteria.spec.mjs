@@ -65,7 +65,7 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
 test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · 크몽·셀러 입구 0", async ({ page }) => {
   await watch(page);
   await page.goto(`${BASE}/`);
-  await expect(page.locator("header.s-mast nav a")).toHaveText(["지도", "도구", "노트", "소개"]);
+  await expect(page.locator("header.s-mast nav a")).toHaveText(["도구", "노트", "소개"]); // 2026-10-20 지도 지면을 내렸다 — 첫 화면이 지도
   const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
   const vh = page.viewportSize().height;
   const lead = page.locator(".live__who");
@@ -87,18 +87,19 @@ test("기존 주소 유지 — 옛 목록·입구·크몽 주소는 살아 있�
     expect(html, from).toContain(`url=${BASE}${to}"`);
     expect(html, `${from} 색인 제외`).toContain('name="robots" content="noindex');
   }
-  // 남이 링크한 계산기 주소는 그대로 열린다(정체성 §3-6 · 블로그 /79)
-  for (const p of ["/tools/logistics-cost.html", "/tools/simulate.html", "/tools/warehouse-map.html"]) {
-    const html = await (await page.request.get(`${BASE}${p}`)).text();
-    expect(html, p).not.toContain('http-equiv="refresh"');
+  // [2026-10-20 품질 재정비 · docs/품질기준.md §3] 내린 지면 — 주소는 살아 있고 상위 지면으로 넘긴다 · 색인 제외 · 사이트맵에 없다
+  const DOWN = {"/map.html": "/", "/map/follow.html": "/", "/tools/anchorage.html": "/tools/", "/notes/ai-ops.html": "/about.html", "/tools/logistics-cost.html": "/tools/", "/tools/simulate.html": "/tools/", "/tools/warehouse-map.html": "/tools/", "/sim/": "/tools/", "/reports/report_03_공컨테이너_수출입방향.html": "/notes.html"};
+  for (const [from, to] of Object.entries(DOWN)) {
+    const html = await (await page.request.get(`${BASE}${encodeURI(from)}`)).text();
+    expect(html, from).toContain(`url=${BASE}${to}"`);
+    expect(html, `${from} 색인 제외`).toContain('name="robots" content="noindex');
+    expect(sitemap, `${from} 사이트맵`).not.toContain(`incheon-port-analysis${encodeURI(from)}<`);
   }
 });
 
-test("기준 9 — sitemap.xml · robots.txt 200, 블로그 /79 링크(계산기 → 블로그)", async ({ page }) => {
+test("기준 9 — sitemap.xml · robots.txt 200 · 옛 블로그 이동 주소 /go/sheet · 뉴스레터", async ({ page }) => {
   expect((await page.request.get(`${BASE}/sitemap.xml`)).status()).toBe(200);
   expect((await page.request.get(`${BASE}/robots.txt`)).status()).toBe(200);
-  const html = await (await page.request.get(`${BASE}/tools/logistics-cost.html`)).text();
-  expect(html).toContain(`${BASE}/go/sheet.html`);
   const go = await (await page.request.get(`${BASE}/go/sheet.html`)).text();
   expect(go).toContain("logisticsforeveryone.tistory.com/79");
   // 기준 24 — 뉴스레터(물류로그 beehiiv · 2026-10-12 선장님 지정)
@@ -113,22 +114,7 @@ test("기준 9 — sitemap.xml · robots.txt 200, 블로그 /79 링크(계산기
   await expect(a).toHaveAttribute("rel", /noopener/);
 });
 
-test("기준 16 — 보고서마다 출처 대장에 행이 있다", async () => {
+test("출처 대장 — 행마다 이용 조건 칸이 다 차 있다(기준 16 · 보고서는 2026-10-20 내림)", async () => {
   const reg = JSON.parse(readFileSync("data/sources.json", "utf-8"));
-  const used = new Set(reg.sources.flatMap((s) => s.used_by));
-  const reports = [...sitemap.matchAll(/\/reports\/([^<]+)\.html/g)].map((m) => decodeURI(m[1]));
-  const missing = reports.filter((r) => !used.has(r));
-  expect(missing, "대장에 없는 보고서").toEqual([]);
   for (const s of reg.sources) for (const k of ["license", "kogl", "commercial", "modify", "checked"]) expect(s[k], `${s.id}.${k}`).toBeTruthy();
-});
-
-test("기준 18 — 보고서 3층(① 결론 ② 만지기/준비 중 ③ 원문 접힘)", async ({ page }) => {
-  await watch(page);
-  const reports = [...sitemap.matchAll(/(\/incheon-port-analysis\/reports\/[^<]+\.html)/g)].map((m) => decodeURI(m[1]));
-  for (const r of reports) {
-    await page.goto(r);
-    await expect(page.locator("#l1"), r).toHaveCount(1);
-    await expect(page.locator("#l2"), r).toHaveCount(1);
-    await expect(page.locator("details#original"), r).toHaveCount(1);
-  }
 });

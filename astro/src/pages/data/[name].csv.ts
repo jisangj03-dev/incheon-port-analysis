@@ -46,7 +46,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: Object.values(D.ports).flatMap((p: any) => p.days.map((x: any) => ({ 항만: p.ko, 날짜: x.d, 입항_척: x.calls, ...Object.fromEntries(D.types.map((t: any) => [`${t.ko}_척`, x[t.id]])), 추정수입_톤: x.imp, 추정수출_톤: x.exp }))),
       note: `IMF PortWatch(AIS 기반 추정 · 비상업 이용) · ${D.asof} 기준 · 평소 = 직전 91일 · 계산 tools-build/v3/pulse_derive.py` };
   },
-  // 환율 파도 · 수입원가 — 주 × 통화(관세청 관세환율 · 수입)
+  // 환율 파도 · 수입원가 — 주 × 통화(관세청 과세환율 · 수입)
   "import-cost": () => {
     const D = J("data/derived/import_cost.json");
     return { rows: D.weeks.map((w: any[]) => Object.fromEntries([["적용개시일", w[0]], ...D.currencies.map((c: string, i: number) => [`${c}_원`, w[i + 1]])])),

@@ -46,7 +46,7 @@ function run(R: Rules, B: any) {
 
 // 선 다섯 — 수요(점선 · 먹 3) · 소매·도매·유통(바다 농도) · 공장(신호 한 색). 범례 상자 없이 끝점에 직접 이름.
 function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
-  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 300, L = 2, Rt = W < 600 ? 52 : 72, T = 12, Bt = 28, n = g.week;
+  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 300, L = 2, Rt = W < 600 ? 74 : 96, T = 12, Bt = 28, n = g.week;
   const fs = W < 600 ? 12 : 15;
   const x = (i: number) => L + (i * (W - L - Rt)) / Math.max(1, n - 1);
   const y = (v: number) => H - Bt - (v * (H - T - Bt)) / ymax;
@@ -86,7 +86,10 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
       .map(
         (s, k) =>
           `<polyline fill="none" stroke="${s.c}" stroke-width="${s.w}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""}${k === series.length - 1 ? ' data-main="공장"' : ""} stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${s.v.map((v: number, i: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>` +
-          `<text x="${W - Rt + 8}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${textColor(s.c)}">${s.label}</text>`,
+          // 끝 이름표 = 선 끝에서 이름까지 이음선 + 선과 같은 모양의 짧은 견본(화면 판정 10/20 — 이름표가 몰려 어느 선인지 못 갈랐다)
+          `<line stroke="${s.c}" stroke-width="1" stroke-opacity="0.7" x1="${x(s.v.length - 1).toFixed(1)}" y1="${y(s.v[s.v.length - 1] ?? 0).toFixed(1)}" x2="${(W - Rt + 2).toFixed(1)}" y2="${endY[k].toFixed(1)}"/>` +
+          `<line x1="${W - Rt + 4}" x2="${W - Rt + 18}" y1="${endY[k].toFixed(1)}" y2="${endY[k].toFixed(1)}" stroke="${s.c}" stroke-width="${Math.max(2, s.w)}" ${s.dash ? `stroke-dasharray="3 2"` : ""}/>` +
+          `<text x="${W - Rt + 22}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${textColor(s.c)}">${s.label}</text>`,
       )
       .join("");
 }

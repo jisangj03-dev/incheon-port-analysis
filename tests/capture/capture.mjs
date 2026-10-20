@@ -18,8 +18,6 @@ const base = process.env.CAPTURE_BASE;   // 있으면 GitHub Pages 세 화면을
 const PAGES_ROOT = base ? `${base}/incheon-port-analysis` : "https://jisangj03-dev.github.io/incheon-port-analysis";
 const SCREENS = [
   ["home", `${PAGES_ROOT}/`],
-  ["calculator", `${PAGES_ROOT}/tools/logistics-cost.html`],
-  ["warehouse-map", `${PAGES_ROOT}/tools/warehouse-map.html`],
   ["higgsfield", base ? null : "https://sounding.higgsfield.app/"],
 ];
 const SIZES = [

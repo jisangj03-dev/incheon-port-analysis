@@ -1,6 +1,6 @@
 ---
-// 도구 · 환율 파도 + 수입원가 계산기(2차 · 실무 질문 Q5) — 관세환율이 바뀌면 같은 물건의 수입 원가(과세가격 + 관세 + 부가세)가 얼마나 바뀌나.
-// 원천 = 관세청 관세환율(수입 · 주간) · 파생 = data/derived/import_cost.json(tools-build/v3/fx_derive.py · 첫 화면 예시도 거기서 계산).
+// 도구 · 환율 파도 + 수입원가 계산기(2차 · 실무 질문 Q5) — 과세환율이 바뀌면 같은 물건의 수입 원가(과세가격 + 관세 + 부가세)가 얼마나 바뀌나.
+// 원천 = 관세청 고시 과세환율(수입 · 주간) · 파생 = data/derived/import_cost.json(tools-build/v3/fx_derive.py · 첫 화면 예시도 거기서 계산).
 // 운임지수(KCCI 등)는 이용 조건을 원문으로 확인하지 못해 싣지 않는다(선커밋 §3) — 운임은 직접 넣는다. 참고용 · 자문 아님(지면 안에 적는다).
 import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
@@ -28,13 +28,15 @@ const K = D.kcci as any;
 const kLine = (ci: number) => { if (!K) return ""; const v = K.weeks.map((w: any[]) => Number(w[ci + 1])).filter((x: number) => x > 0), mx = Math.max(...v), mn = Math.min(...v);
   return K.weeks.map((w: any[], i: number) => `${i ? "L" : "M"}${((i / (K.weeks.length - 1)) * 1000).toFixed(1)} ${(8 + (1 - (Number(w[ci + 1]) - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""); };
 const lastK = K ? K.weeks[K.weeks.length - 1] : null;
+// 운임 차트 축(화면 판정 10/20 — 선만 있어 크기를 못 읽었다): 세로 = 그 항로의 최고·최저 지수 · 가로 = 처음·마지막 주
+const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci + 1])).filter((x: number) => x > 0); return [Math.max(...v), Math.min(...v)].map((x) => Math.round(x).toLocaleString("ko-KR")); };
 ---
-<Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 관세환율(주간)과 품목번호별 관세율표로 같은 물건의 수입 원가(과세가격·관세·내국세·부가세)를 주마다 다시 계산한다 — HS 코드를 넣으면 관세율이 채워진다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
+<Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 과세환율(주간)과 품목번호별 관세율표로 같은 물건의 수입 원가(과세가격·관세·내국세·부가세)를 주마다 다시 계산한다 — HS 코드를 넣으면 관세율이 채워진다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
   <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
     q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
-    lead={`같은 1만 달러(CIF) 물건을 최근 공시 주(${day(E.now.week)}) 관세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
+    lead={`같은 1만 달러(CIF) 물건을 최근 공시 주(${day(E.now.week)}) 과세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
     updated={D.fetched} source={[sourceLine("kcs-exchange"), K && sourceLine("kobc-kcci"), TC && sourceLine("kcs-tariff")].filter(Boolean).join(" · ")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
-    how="적용 환율 = 수입신고일이 속한 주의 관세청 고시 관세환율(관세법 제18조 · 매주 고시 · 지난주 기준환율 평균). 과세가격 = CIF 가격 × 관세환율(원 미만 버림) · 관세 = 과세가격 × 관세율 · 개별소비세·주세 = (과세가격 + 관세) × 세율 · 교육세 = 개별소비세 × 30%(일부 15%) + 주세 × 10%(주세율 70% 초과 30%) · 농어촌특별세 = 개별소비세 × 세율 · 부가가치세 = (과세가격 + 관세 + 개별소비세 + 주세 + 교육세 + 농특세) × 10%. 세액마다 10원 미만 버림(국고금 관리법 제47조). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
+    how="적용 환율 = 수입신고일이 속한 주의 관세청 고시 과세환율(관세법 제18조 · 매주 고시 · 지난주 기준환율 평균). 과세가격 = CIF 가격 × 과세환율(원 미만 버림) · 관세 = 과세가격 × 관세율 · 개별소비세·주세 = (과세가격 + 관세) × 세율 · 교육세 = 개별소비세 × 30%(일부 15%) + 주세 × 10%(주세율 70% 초과 30%) · 농어촌특별세 = 개별소비세 × 세율 · 부가가치세 = (과세가격 + 관세 + 개별소비세 + 주세 + 교육세 + 농특세) × 10%. 세액마다 10원 미만 버림(국고금 관리법 제47조). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
     limits={`원가는 부가세를 뺀 값이다 — 수입 부가세는 사업자가 매입세액으로 공제받는다(간이과세·면세 사업자·개인 수입은 다르다). 통관 때 실제로 내는 돈은 「납부 합계」 줄이다. 내국세(개별소비세·주세·교육세·농특세)는 대상 품목일 때만 세율을 넣는다 — 기본값 0(일반 공산품) · 맥주·탁주 같은 종량세 주류는 이 식 밖이다. ${TC ? "HS 코드를 넣으면 관세청 품목번호별 관세율표(유효분)에서 기본·WTO·FTA 세율을 찾아 낮은 쪽을 넣는다 — FTA 협정세율은 원산지증명이 있을 때만. 할당·조정·덤핑방지관세·감면은 넣지 않았다. " : "FTA 협정세율·감면·할당관세는 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. "}운임·보험료·국내 운송·통관비의 기본값은 0 이다 — 공공 기준값을 확인하지 못해 임의 값을 넣지 않았다(보험료는 보험증권, 통관 수수료는 관세사 견적을 넣는다). 끝수 규칙(과세가격 원 미만 · 세액 10원 미만 버림)은 법령 원문을 이 세션에서 열지 못해 검색으로 확인한 것이다. 관세사 실제 신고 건과 원 단위 대조는 아직 하지 않았다. ${K ? "운임 파도(KCCI)는 지수(포인트)라 달러 운임이 아니다 — 운임 칸 제안은 지수 변동률만 곱한다. 마지막 반영 주는 원천의 마지막 주 그대로다. " : "운임지수는 아직 싣지 않았다(운임은 직접 넣는다). "}실제 납부액은 수입신고 때 세관이 정한다.`}>
     <div slot="answer" class="cost">
       <p class="cost__big"><b id="cs-diff" data-og-num={`원가 차이 · 1만 달러 물건 · ${day(E.ago.week)} 주 대비`} class={E.diff > 0 ? "up" : "dn"}>{sign(E.diff)}{won(Math.abs(E.diff))}<small>원</small></b>
@@ -51,7 +53,7 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
           {ticks.map((v) => <line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" />)}
         </svg>
         </div>
-        <figcaption class="s-cap">관세환율(수입) 원/달러 · 주마다 · 최근 공시 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
+        <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 최근 공시 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
       </figure>
     </div>
     <div slot="controls" class="cost__ctl">
@@ -63,13 +65,14 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
         <label>보험료(같은 통화) <input name="insurance" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
         {TC && <div class="cost__hs">
           <label>HS 코드(10자리) <input name="hs" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="예: 8471300000" autocomplete="off" /></label>
-          <label class="cost__co"><input name="co" type="checkbox" /> 원산지증명서 있음(FTA 협정세율 적용)</label>
+          <label class="cost__co"><input name="co" type="checkbox" aria-describedby="cs-co-note" /> FTA 협정세율로 보기</label>
+          <p class="s-cap cost__co-note" id="cs-co-note">원산지증명서 등 원산지증빙서류를 갖추고 협정관세 적용을 신청한 경우(FTA 관세특례법) — 이 칸은 요건을 갖췄다고 보고 세율만 바꿉니다.</p>
           <label>적용 세율 <select name="rate_pick" disabled><option>HS 코드를 넣으면 고를 수 있습니다</option></select></label>
           <p class="s-cap cost__hs-note" id="cs-hs-note">관세청 품목번호별 관세율표({TC.asof.slice(0, 4)}-{TC.asof.slice(4, 6)}-{TC.asof.slice(6, 8)} 기준 유효분)에서 찾아 관세율 칸을 채웁니다.</p>
         </div>}
         <label>관세율 % <input name="duty_pct" type="number" inputmode="decimal" min="0" max="1000" step="any" value={E.duty_pct} /></label>
         <label>국내 운송·통관비(원) <input name="inland" type="number" inputmode="numeric" min="0" step="1000" value="0" /></label>
-        <details class="cost__more"><summary>내국세 — 개별소비세·주세 대상 품목만</summary>
+        <details class="cost__more"><summary>＋ 내국세 넣기 <small>개별소비세·주세 대상 품목만 · 기본 0%</small></summary>
           <div class="cost__more-g">
             <label>개별소비세율 % <input name="excise_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="0" /></label>
             <label>교육세율 %(개소세분) <input name="edu_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="30" /></label>
@@ -93,7 +96,11 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
         <p class="wave__now"><b id="wave-v">{lastK[1].toLocaleString("ko-KR")}</b><small>포인트</small> · 52주 전 대비 <b id="wave-c">{K.chg_52w_pct[K.routes[0]] > 0 ? "+" : ""}{K.chg_52w_pct[K.routes[0]]}%</b></p>
         <button type="button" class="s-btn s-btn--ghost" id="wave-apply">운임 칸에 변동률 적용 제안</button>
       </div>
-      <svg viewBox="0 0 1000 120" preserveAspectRatio="none" class="wave__svg" aria-hidden="true"><path id="wave-l" d={kLine(0)} /></svg>
+      <div class="wave__plot">
+        <p class="wave__y" aria-hidden="true"><span id="wave-max">{kRange(0)[0]}</span><span id="wave-min">{kRange(0)[1]}</span></p>
+        <svg viewBox="0 0 1000 120" preserveAspectRatio="none" class="wave__svg" aria-hidden="true"><line x1="0" x2="1000" y1="8" y2="8" /><line x1="0" x2="1000" y1="112" y2="112" /><path id="wave-l" d={kLine(0)} /></svg>
+        <p class="wave__x" aria-hidden="true"><span>{K.first_week}</span><span>{K.last_week}</span></p>
+      </div>
       <p class="s-cap wave__note" id="wave-note"><b>지수는 달러 운임이 아닙니다.</b> 제안은 견줄 주 → 마지막 반영 주의 지수 변동률을 지금 운임 칸 값에 곱한 것뿐입니다. 출처 한국해양진흥공사 KCCI(공공데이터포털) · {K.first_week}~{K.last_week} 주간.</p>
     </section>}
   </ToolShell>
@@ -117,8 +124,8 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
       $("cs-diff").innerHTML = `${d > 0 ? "+" : d < 0 ? "−" : ""}${won(Math.abs(d))}<small>원</small>`; $("cs-diff").className = d > 0 ? "up" : "dn";
       $("cs-wk").textContent = day(W[i][0]); $("cs-h-a").textContent = `${day(W[i][0])} 주`; $("cs-h-b").textContent = `${day(W[last][0])} 주`;
       const inner: [string, number, number][] = ([["개별소비세", a.excise, b.excise], ["주세", a.liquor, b.liquor], ["교육세", a.edu, b.edu], ["농어촌특별세", a.rural, b.rural]] as [string, number, number][]).filter((r) => r[1] || r[2]);
-      const rows: [string, number, number][] = [["관세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ...inner, ["부가가치세", a.vat, b.vat], ["납부 합계(세금 포함)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
-      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("납부") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "관세환율" ? x : won(x)}</td><td>${k === "관세환율" ? y : won(y)}</td></tr>`).join("");
+      const rows: [string, number, number][] = [["과세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ...inner, ["부가가치세", a.vat, b.vat], ["납부 합계(세금 포함)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
+      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("납부") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x : won(x)}</td><td>${k === "과세환율" ? y : won(y)}</td></tr>`).join("");
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
     };
@@ -176,6 +183,7 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
         const c = col(), v = KW.weeks.map((w: any[]) => Number(w[c])), mx = Math.max(...v), mn = Math.min(...v), n = v.length;
         $("wave-l").setAttribute("d", v.map((y: number, i: number) => `${i ? "L" : "M"}${((i / (n - 1)) * 1000).toFixed(1)} ${(8 + (1 - (y - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""));
         const last = v[n - 1], a = v[Math.max(0, n - 53)];
+        $("wave-max").textContent = Math.round(mx).toLocaleString("ko-KR"); $("wave-min").textContent = Math.round(mn).toLocaleString("ko-KR");
         $("wave-v").textContent = Math.round(last).toLocaleString("ko-KR"); $("wave-c").textContent = `${last >= a ? "+" : ""}${(100 * (last / a - 1)).toFixed(1)}%`;
       };
       sel.addEventListener("change", drawK);
@@ -216,7 +224,8 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
   .cost__form label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .cost__form label { min-width: 0; }
   .cost__form input, .cost__form select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); font-variant-numeric: tabular-nums; }
-  .cost__more { grid-column: 1 / -1; font-size: var(--s-t-cap); color: var(--s-ink-2); } .cost__more summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .cost__more { grid-column: 1 / -1; font-size: var(--s-t-cap); color: var(--s-ink-2); } .cost__more summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--s-ink); font-weight: 600; } .cost__more summary small { font-weight: 400; color: var(--s-ink-3); } .cost__more summary::-webkit-details-marker { display: none; } .cost__more { list-style: none; } .cost__more > summary { list-style: none; border: 1px dashed var(--s-rule); padding: 0 12px; }
+  .cost__co-note { margin: -6px 0 0; grid-column: 1 / -1; }
   .cost__more-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); margin-top: var(--s-2); }
   .cost__hs { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); align-items: end; }
   .cost__co { display: flex !important; align-items: center; gap: 8px; min-height: 44px; color: var(--s-ink-2) !important; } .cost__co input { width: auto !important; min-height: 0 !important; }
@@ -237,6 +246,10 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
   .wave__row label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .wave__row select { min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); }
   .wave__now { margin: 0; font-variant-numeric: tabular-nums; } .wave__now b { font-size: 22px; } .wave__now small { color: var(--s-ink-3); margin: 0 4px; }
+  .wave__plot { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 8px; }
+  .wave__y { grid-row: 1; margin: 0; display: flex; flex-direction: column; justify-content: space-between; font: 12px/1 var(--s-font); color: var(--s-ink-3); font-variant-numeric: tabular-nums; text-align: right; padding: 3px 0; }
+  .wave__x { grid-column: 2; margin: 2px 0 0; display: flex; justify-content: space-between; font-size: 12px; color: var(--s-ink-3); }
+  .wave__svg line { stroke: var(--s-rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
   .wave__svg { width: 100%; height: 120px; display: block; } .wave__svg path { fill: none; stroke: #3f6476; stroke-width: 1.8; vector-effect: non-scaling-stroke; }
   .wave__note { margin: 0; max-width: 52rem; }
 </style>

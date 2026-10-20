@@ -15,7 +15,7 @@ POINTS = [  # (id, PortWatch 이름, 한국어, 지나는 나라)
     ("hormuz", "Strait of Hormuz", "호르무즈 해협", HORMUZ),
     ("redsea", "Bab el-Mandeb Strait", "바브엘만데브(홍해)", REDSEA),
     ("malacca", "Malacca Strait", "믈라카 해협", MALACCA),
-    ("taiwan", "Taiwan Strait", "대만해협(남중국해)", SCS),
+    ("taiwan", "Taiwan Strait", "대만해협", SCS),
 ]
 
 

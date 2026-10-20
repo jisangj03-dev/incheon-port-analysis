@@ -11,6 +11,6 @@ export function chokeMore(p: any): string {
   const hs = h && h.items?.length
     ? `<p><b>품목(HS 2단위 · ${h.ym.slice(0, 4)}-${h.ym.slice(4)})</b> ${h.items.map((x: any) => `${x.name} ${x.pct}%`).join(" · ")}</p>`
     : `<p><b>품목</b> 관세청 품목별 국가별 원천에 이 길목 나라들의 줄이 없어 싣지 않았습니다.</p>`;
-  const rule = r ? `<details><summary>경유 규칙 — 이 길목을 지난다고 본 나라 ${r.countries.length}곳</summary><p>${r.countries.map((c: any) => c.name).join(" · ")}</p><p class="s-cap">${r.basis}</p></details>` : "";
+  const rule = r ? `<details><summary>이 길목을 거치는 것으로 셈한 나라 ${r.countries.length}곳(해상 항로 기준)</summary><p>${r.countries.map((c: any) => c.name).join(" · ")}</p><p class="s-cap">${r.basis}</p></details>` : "";
   return det + sh + hs + rule;
 }

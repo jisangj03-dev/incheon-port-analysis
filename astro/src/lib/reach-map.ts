@@ -34,10 +34,12 @@ export class ReachMap {
     const r = this.cv.getBoundingClientRect(); this.dpr = Math.min(2, devicePixelRatio || 1);
     this.W = Math.max(1, r.width); this.H = Math.max(1, r.height);
     this.cv.width = Math.round(this.W * this.dpr); this.cv.height = Math.round(this.H * this.dpr);
-    // 화면 비율에 맞춰 보이는 범위를 넓힌다(가운데 고정 · 위도 보정)
-    const k = Math.cos((37.45 * Math.PI) / 180), cx = (126.25 + 127.6) / 2, cy = (36.95 + 37.9) / 2;
-    let w = 127.6 - 126.25, h = 37.9 - 36.95;
-    if ((w * k) / h > this.W / this.H) h = (w * k * this.H) / this.W; else w = (h * this.W) / this.H / k;
+    // 화면 비율에 맞춰 보이는 범위를 정한다 — 계산 격자(bbox) **안쪽만** 잘라 보인다(넓히면 격자 끝이 세로 직선·회색 상자로 드러났다 · 화면 판정 10/20)
+    const B = this.iso.bbox, k = Math.cos((37.45 * Math.PI) / 180);
+    let w = B[2] - B[0], h = B[3] - B[1];
+    if ((w * k) / h > this.W / this.H) w = (h * this.W) / this.H / k; else h = (w * k * this.H) / this.W;
+    const cl = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+    const cx = cl((126.25 + 127.6) / 2, B[0] + w / 2, B[2] - w / 2), cy = cl((36.95 + 37.9) / 2, B[1] + h / 2, B[3] - h / 2);
     this.view = [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
   }
   px(lon: number, lat: number) { const v = this.view; return [((lon - v[0]) / (v[2] - v[0])) * this.W, ((v[3] - lat) / (v[3] - v[1])) * this.H]; }

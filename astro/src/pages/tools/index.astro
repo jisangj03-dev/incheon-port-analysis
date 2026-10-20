@@ -1,11 +1,24 @@
 ---
 // 도구(구조 넷 ② · 2026-10-14 선장님 최종 위임 — 「시뮬레이션」 자리를 실무 도구가 받는다) — 실무 질문 하나 = 도구 하나.
-// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기(/tools/logistics-cost.html 등)는 주소만 열려 있다(메뉴 밖).
+// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기 셋은 2026-10-20 내렸다(이 지면으로 돌려보낸다).
+// [2026-10-20 품질 재정비] 글만 있는 목록이었다(독립 판정) → 도구마다 지금 답을 담은 카드 그림(og/tool-<id>.jpg · 빌드 때 그 지면에서 읽은 숫자)을 붙인다. 시각 마감은 시안 몫(docs/디자인브리프_20261020.md).
 // [바뀐 것] 종전 이 주소는 /sim/ 으로 돌려보내는 리디렉트였다 — 발행 주소를 바꾸지 않고 내용을 도구 목록으로 채웠다.
 import Studio from "../../layouts/Studio.astro";
 import { room } from "../../lib/rooms";
 import { u } from "../../lib/site";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
 const R = room("tools"), S = room("sim");
+// 카드 그림이 없는 항목(선박 리플레이 = 지도 지면)은 그 지면의 실제 계열로 작은 그림을 그린다 — 인천(주홍) vs 부산(회색) 월 외항선 입항
+const V = JSON.parse(readFileSync(join(repoRoot(), "data/derived/vessel_replay.json"), "utf-8"));
+const spark = (() => {
+  const W = 1200, H = 630, P = 70, inc = V.ocean_arrivals["인천"] as number[], bus = V.ocean_arrivals["부산"] as number[], n = inc.length, mx = Math.max(...bus, ...inc);
+  const pts = (v: number[]) => v.map((a, i) => `${(P + (i * (W - 2 * P)) / (n - 1)).toFixed(0)},${(H - P - (a * (H - 2 * P)) / mx).toFixed(0)}`).join(" ");
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${V.months[0]}~${V.months[n - 1]} 월 외항선 입항 — 인천 ${inc[n - 1]}척 · 부산 ${bus[n - 1]}척"><rect width="${W}" height="${H}" fill="var(--s-paper-2, #ebe6da)"/>`
+    + `<polyline fill="none" stroke="var(--s-ink-3)" stroke-width="5" points="${pts(bus)}"/><polyline fill="none" stroke="var(--s-signal)" stroke-width="9" points="${pts(inc)}"/>`
+    + `<text x="${P}" y="${P + 10}" font-size="64" font-weight="700" fill="var(--s-signal)">${inc[n - 1]}척</text><text x="${P}" y="${P + 70}" font-size="34" fill="var(--s-ink-2)">인천 · ${V.months[n - 1]} · 부산 ${bus[n - 1]}척</text></svg>`;
+})();
 ---
 <Studio title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
   <article class="s-wrap hub" data-content="tools">
@@ -13,9 +26,9 @@ const R = room("tools"), S = room("sim");
     <h1 class="s-prose">{R.title}</h1>
     <p class="s-lead s-prose">{R.lead} 모든 도구는 공공 1차 데이터로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
     <ol class="s-index">
-      {(R.items || []).map((r: any) => <li><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
+      {(R.items || []).map((r: any) => <li class="tl"><a class="tl__a" href={u(r.href)} tabindex="-1" aria-hidden="true">{/^\/tools\/.+\.html$/.test(r.href) ? <img class="tl__img" src={u(`/og/tool-${r.id}.jpg`)} width="1200" height="630" alt="" loading="lazy" decoding="async" /> : r.id === "vessels" ? <span class="tl__img tl__svg" set:html={spark} /> : null}</a><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
     </ol>
-    <section class="aux">
+    <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
       <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
     </section>
@@ -26,6 +39,11 @@ const R = room("tools"), S = room("sim");
   .hub h1 { margin: var(--s-3) 0 var(--s-4); }
   .hub .s-index { margin-top: var(--s-7); }
   .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
+  .tl { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: var(--s-5); align-items: start; }
+  .tl__a { display: block; }
+  .tl__img { display: block; width: 100%; height: auto; border: 1px solid var(--s-rule); }
+  .tl__svg :global(svg) { display: block; width: 100%; height: auto; }
+  @media (max-width: 640px) { .tl { grid-template-columns: 1fr; gap: var(--s-3); } }
   .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
   .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }
   .aux a { min-height: 44px; display: inline-flex; align-items: center; }

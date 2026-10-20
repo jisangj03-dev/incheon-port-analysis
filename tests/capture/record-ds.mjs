@@ -49,33 +49,6 @@ const FACES = {
     const c = await p.evaluate(() => document.querySelector(".card").getBoundingClientRect().top + scrollY - 80);
     await glide(p, c, 1200); await wait(p, 2000);
   } },
-  // 지도: 그대로 두면 달이 흐르고 점이 숨 쉰다 → 달 막대로 앞뒤
-  map: { path: "/map.html", run: async (p) => {
-    await wait(p, 1200); // 정지 해도 그림(손대기 전)
-    await p.mouse.move(40, 40); // 사람이 움직이면 지도가 뜬다
-    await p.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-    const top = await p.evaluate(() => document.getElementById("ds-map").getBoundingClientRect().top + scrollY - 80);
-    await glide(p, top, 1200);
-    await wait(p, 9000);
-    const max = Number(await p.locator("#ds-m").getAttribute("max"));
-    await sweep(p, "#ds-m", [max, Math.round(max * 0.75), Math.round(max * 0.5), Math.round(max * 0.25), 0, max], 500);
-    await wait(p, 600);
-  } },
-  // 노트: 단계·날짜 → 막대 차트 → 자라려면 → 이어지는 노트
-  // 공급망 따라가기: 단계마다 내려가며 그림이 바뀐다
-  follow: { gif: [2, 28], path: "/map/follow.html", run: async (p, V) => {
-    await wait(p, 900);
-    if (V.mobile) await p.touchscreen.tap(V.w / 2, 120);
-    else await p.mouse.wheel(0, 2);
-    await p.waitForSelector("#trip-stage[data-ready='1']", { timeout: 20_000 });
-    // 단계마다 천천히 내린다 — 카메라가 상자를 따라 난다(바다 구간은 길게)
-    for (const id of await p.locator(".st[data-s]").evaluateAll((a) => a.map((x) => x.getAttribute("data-s")))) {
-      const [y0, h] = await p.evaluate((id) => { const el = document.querySelector(`[data-s="${id}"]`); return [el.getBoundingClientRect().top + scrollY - innerHeight * 0.5, el.offsetHeight]; }, id);
-      await glide(p, y0 + h * 0.1, 700);
-      if (id === "sea" || id === "firms" || id === "last") await glide(p, y0 + h * 0.9, id === "sea" ? 4200 : 2200);
-      await wait(p, 1100);
-    }
-  } },
   // 선박 리플레이: 재생 → 2015년부터 달이 흐른다
   vessels: { path: "/map/vessels.html", run: async (p) => {
     await wait(p, 1200);
@@ -102,9 +75,6 @@ const FACES = {
   choke: { gif: [0.3, 10], path: "/tools/chokepoint.html", run: async (p) => {
     await wait(p, 2800); for (const id of ["redsea", "malacca", "taiwan", "hormuz"]) { await p.click(`.seg button[data-id=${id}]`); await wait(p, 2200); }
     await sweep(p, "#ck-x", [10, 30, 50, 70, 90], 400); await wait(p, 1000);
-  } },
-  anchorage: { gif: [0.3, 10], path: "/tools/anchorage.html", run: async (p) => {
-    await wait(p, 10000); await p.click(".anc__bars button >> nth=6"); await wait(p, 2000);
   } },
   note: { path: "/notes/port-yoy.html", run: async (p) => {
     await wait(p, 1800);
@@ -163,7 +133,7 @@ for (const [face, F] of Object.entries(FACES)) for (const V of VIEWS) {
   console.log(`${face} ${V.name} · ${Math.round((Date.now() - t0) / 1000)}초 · ${webm ? mp4 : "녹화 없음"} · 외부 요청 ${ext.length}${err ? ` · 오류 ${err}` : ""}`);
 }
 // 공개 지면 전체 페이지 캡처(두 폭) — 공개 뒤 모습 그대로(지도는 움직이는 지도가 뜬 상태)
-const FULL = ["/", "/tools/", "/tools/port-pulse.html", "/tools/delivery-reach.html", "/tools/trade-race.html", "/tools/import-cost.html", "/tools/chokepoint.html", "/tools/anchorage.html", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/data.html"];
+const FULL = ["/", "/tools/", "/tools/port-pulse.html", "/tools/delivery-reach.html", "/tools/trade-race.html", "/tools/import-cost.html", "/tools/chokepoint.html", "/map/vessels.html", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/about.html", "/data.html"];
 if (arg("full", "1") === "0") FULL.length = 0;
 mkdirSync(join(out, "full"), { recursive: true });
 for (const V of VIEWS) for (const path of FULL) {
@@ -173,7 +143,6 @@ for (const V of VIEWS) for (const path of FULL) {
   const name = `${V.name}-${path === "/" ? "home" : path.replace(/^\//, "").replace(/\.html$/, "").replace(/\/$/, "").replace(/\//g, "_")}.png`;
   try {
     await page.goto(base + path, { waitUntil: "networkidle", timeout: 45_000 });
-    if (path === "/map.html") { await page.mouse.move(40, 40); await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 }); }
     // 스크롤로 나타나는 장면까지 다 보이게 끝까지 한 번 내렸다 올린다
     await glide(page, await page.evaluate(() => document.documentElement.scrollHeight), 1500); await glide(page, 0, 300); await wait(page, 500);
     // 움직이는 캔버스가 있는 긴 지면은 30초 안에 못 찍는 일이 있었다(design-lab #15 · 1440 따라가기) — 90초 · CSS 움직임 멈춤 · 한 번 더

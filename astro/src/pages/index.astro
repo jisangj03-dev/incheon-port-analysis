@@ -9,7 +9,6 @@ import NoteList from "../components/scene/NoteList.astro";
 import { portMonthly } from "../lib/data";
 import { rooms } from "../lib/rooms";
 import { u } from "../lib/site";
-import Contact from "../components/scene/Contact.astro";
 import LiveMap from "../components/home/LiveMap.astro";
 import { profile } from "../lib/profile";
 import { sourceLine } from "../lib/sources";
@@ -44,7 +43,6 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
       <ol class="qs">
         {QS.map((q) => <li data-q={q.id}><h3 class="s-prose">{q.q}</h3><p class="s-prose">{q.how}</p><a href={u(q.href)}>{q.see} 보기 →</a></li>)}
       </ol>
-      <Contact />
     </Scene>
     <Scene kind="num" id="now">
       <h2 class="s-cap now-h"><span id="now-ym">{last.ym}</span> 한 달 동안 인천항으로 드나든 컨테이너</h2>
@@ -68,7 +66,7 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
       <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
     </Scene>
 
-    <Scene kind="text" title="네 개의 방">
+    <Scene kind="text" title={`${["", "한", "두", "세", "네", "다섯", "여섯"][R.length] || R.length} 개의 방`}>
       <ol class="s-index">
         {R.map((r) => <li><div><h3><a href={r.href.startsWith("#") ? r.href : u(r.href)}>{r.title}</a></h3><p>{r.lead}</p>{r.items && r.items.length > 0 && <ul class="room-items">{r.items.map((it) => <li><a href={u(it.href)}>{it.title}</a></li>)}</ul>}</div></li>)}
       </ol>
@@ -81,7 +79,6 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
     <Scene kind="text" id="about" title="소개">
       <p class="s-lead s-prose">{PF.name} · {PF.affiliation}. {PF.credentials.join(" · ")}{PF.writing.length > 0 && <> · {PF.writing.map((w) => w.url ? <a href={w.url} rel="noopener">{w.outlet ? `${w.outlet} 기고` : w.title}</a> : (w.outlet ? `${w.outlet} 기고` : w.title))}</>}.</p>
       <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다. <a href={u("/about.html")}>소개 더 보기</a></p>
-      <Contact />
     </Scene>
   </div>
   <script>

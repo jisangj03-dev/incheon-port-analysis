@@ -10,7 +10,7 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 
 const base = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
-// [2026-10-14 공개 전환] 구조 넷 지면 전부 + 남이 링크한 계산기 — 출고 검사 「모바일 성능 90↑ · 접근성」의 축.
+// [2026-10-14 공개 전환 · 2026-10-20 품질 재정비] 공개 지면 전부(내린 지면 — 지도·따라가기·묘박지·시뮬레이션 허브·AI 운영실·옛 계산기 — 은 뺐다) — 출고 검사 「모바일 성능 90↑ · 접근성」의 축.
 const PAGES = [
   ["home", "/incheon-port-analysis/"],
   ["tools", "/incheon-port-analysis/tools/"],
@@ -18,21 +18,14 @@ const PAGES = [
   ["delivery-reach", "/incheon-port-analysis/tools/delivery-reach.html"],
   ["trade-race", "/incheon-port-analysis/tools/trade-race.html"],
   ["import-cost", "/incheon-port-analysis/tools/import-cost.html"],
-  ["anchorage", "/incheon-port-analysis/tools/anchorage.html"],
   ["chokepoint", "/incheon-port-analysis/tools/chokepoint.html"],
   ["bid-radar", "/incheon-port-analysis/tools/bid-radar.html"],
-  ["map", "/incheon-port-analysis/map.html"],
-  ["follow", "/incheon-port-analysis/map/follow.html"],
   ["vessels", "/incheon-port-analysis/map/vessels.html"],
-  ["sim", "/incheon-port-analysis/sim/"],
   ["beer-game", "/incheon-port-analysis/sim/beer-game.html"],
   ["forecast", "/incheon-port-analysis/sim/forecast.html"],
   ["notes", "/incheon-port-analysis/notes.html"],
   ["port-yoy", "/incheon-port-analysis/notes/port-yoy.html"],
-  ["ai-ops", "/incheon-port-analysis/notes/ai-ops.html"],
   ["about", "/incheon-port-analysis/about.html"],
-  ["calculator", "/incheon-port-analysis/tools/logistics-cost.html"],
-  ["warehouse-map", "/incheon-port-analysis/tools/warehouse-map.html"],
 ];
 const OUT = "lighthouse-results";
 mkdirSync(OUT, { recursive: true });
