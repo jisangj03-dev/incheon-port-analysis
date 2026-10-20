@@ -57,7 +57,7 @@ const FACES = {
     await p.click("#vr-play"); await wait(p, 12000);
   } },
   // 실무 도구(2026-10-14 선장님 최종 위임) — 3초 답이 움직이는 모습 → 조작 한두 번
-  pulse: { gif: [0.5, 9], path: "/tools/port-pulse.html", run: async (p) => {
+  pulse: { gif: [0.5, 9], path: run: async (p) => {
     await wait(p, 3500); await p.click(".pulse__cmp button[data-port=Busan]"); await wait(p, 2600);
     await p.click(".pulse__cmp button[data-port=Pyeongtaek]"); await wait(p, 2600); await p.selectOption("#pl-type", "container"); await wait(p, 2600);
   } },

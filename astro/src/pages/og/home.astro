@@ -21,15 +21,13 @@ const path = (c: number[][], close = false) => {
 };
 const land = LD.features.filter((f: any) => f.properties.kind === "land").map((f: any) => path(f.geometry.coordinates[0], true)).join("");
 const roads = LD.features.filter((f: any) => f.properties.kind === "road").map((f: any) => path(f.geometry.coordinates)).join("");
-const flows = [...SC.corridors].sort((a: any, b: any) => a.w - b.w);
+// [2026-10-20 7차 사실 대조] 수도권 흐름선(창고 개소 비례 · 경기 몫 균등 = 가정 배분)을 걷었다 — 홈 지도에서도 이미 뺀 층이다. 카드에는 관문과 땅·길만.
 // 이름표 — 관문 둘 · 서울 · 수도권 거점 셋(위치는 sudo_corridors.json 에서)
 const find = (id: string) => [...SC.gates, ...SC.hubs, ...SC.dests].find((x: any) => x.id === id);
 const marks = [
   { id: "인천공항", dx: 0, dy: -16, anchor: "middle", gate: true },
   { id: "신항", name: "인천항 신항", dx: 12, dy: 24, anchor: "start", gate: true },
   { id: "서울특별시", name: "서울", dx: 10, dy: -10, anchor: "start" },
-  { id: "의왕 ICD", dx: 10, dy: 18, anchor: "start" },
-  { id: "이천", dx: -8, dy: -12, anchor: "end" },
   ].map((m) => { const p = find(m.id); return p ? { ...m, name: m.name || m.id, p: px(p.lon, p.lat) } : null; }).filter(Boolean) as any[];
 ---
 <!doctype html>
@@ -67,7 +65,6 @@ const marks = [
       <rect x={MX0} y="0" width={MW} height={MH} fill="#e8e5dc" />
       <path d={land} fill="#dccfb2" />
       <path d={roads} fill="none" stroke="#cbbd9f" stroke-width="1" />
-      {flows.map((c: any) => <path d={path(c.pts)} fill="none" stroke="#b3361e" stroke-opacity={0.35 + 0.5 * c.w} stroke-width={(1.2 + 7 * c.w).toFixed(1)} stroke-linecap="round" stroke-linejoin="round" />)}
       {marks.map((m) => <g>
         <circle cx={m.p[0]} cy={m.p[1]} r={m.gate ? 7 : 5} fill={m.gate ? "#b3361e" : "#191714"} stroke="#f5f2eb" stroke-width="2" />
         <text x={m.p[0] + m.dx} y={m.p[1] + m.dy} text-anchor={m.anchor} font-size="17" font-weight="700" fill="#191714" stroke="#f5f2eb" stroke-width="4" paint-order="stroke">{m.name}</text>
@@ -77,8 +74,8 @@ const marks = [
     </svg>
     <div class="eb">수도권 공급망 · 인천 관문</div>
     <h1>한국 수입의 <b>{M.imp_share_pct}%<small>가</small></b>인천으로 들어옵니다</h1>
-    <p>인천공항 + 인천항 · 수출은 {M.exp_share_pct}%<br />{M.ym} 입항지 기준 · 관세청 항구·공항별</p>
-    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span>지도: 수도권 물류 흐름 · © OpenStreetMap</span></div>
+    <p>인천공항 + 인천항 · 수출은 {M.exp_share_pct}%<br />{M.ym} 입·출항지 기준 · 관세청 항구·공항별</p>
+    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span>지도: 인천 관문 · © OpenStreetMap</span></div>
   </div>
 </body>
 </html>

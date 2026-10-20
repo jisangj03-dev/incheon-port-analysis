@@ -9,15 +9,6 @@
       "href": "/tools/",
       "items": [
         {
-          "id": "port-pulse",
-          "title": "인천항 일일 맥박",
-          "q": "공개된 마지막 7일, 인천항 입항은 평소(직전 13주)보다 많았나?",
-          "who": "포워더 · 선사 · 터미널",
-          "lead": "IMF PortWatch 일별 입항으로 공개된 마지막 7일을 직전 13주와 견주고, 부산·평택과 나란히 봅니다.",
-          "href": "/tools/port-pulse.html",
-          "gate": "port"
-        },
-        {
           "id": "delivery-reach",
           "title": "수도권 배송 등시선",
           "q": "인천 창고에서 수도권 어디까지 1·2·3시간에 닿나?",
@@ -101,7 +92,7 @@
   "notes": [
     {
       "id": "note-port-yoy",
-      "stage": "초안",
+      "stage": "갱신 중",
       "href": "/notes/port-yoy.html",
       "file": "astro/src/pages/notes/port-yoy.astro",
       "links": [],

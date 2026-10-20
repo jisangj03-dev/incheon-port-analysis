@@ -113,7 +113,7 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
     const fmt = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s);
     const draw = () => {
       const all = [...D.act.map((d: any) => d[0]), ...D.m1.map((d: any) => d[0])];
-      const n = all.length, W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 300, Lp = 4, R = W < 600 ? 84 : 120, T = 14, B = 26;
+      const n = all.length, W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 240, Lp = 4, R = W < 600 ? 84 : 120, T = 14, B = 26;
       const vals = [...D.act, ...D.m1, ...D.b].map((d: any) => d[1]).filter((v: any) => v != null) as number[];
       const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.12 || 1;
       const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - ((v - lo + pad) * (H - T - B)) / (hi - lo + 2 * pad);
@@ -151,7 +151,8 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
   </script>
 </Studio>
 <style>
-  .fc { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+  .fc { padding-top: var(--s-6); padding-bottom: var(--s-8); }
+  .fc h1 { font-size: clamp(30px, 3.3vw, 46px); margin-bottom: var(--s-3); } /* 1280×720 에서 그림이 위쪽 100px 만 보였다(7차 화면 판정) */
   .fc h1 { margin: var(--s-3) 0 var(--s-4); max-width: 15em; }
   .fc-next { list-style: none; margin: var(--s-4) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-6); font-variant-numeric: tabular-nums; }
   .fc-next li { display: grid; gap: 2px; color: var(--s-ink-3); } .fc-next span { font-size: var(--s-t-cap); }

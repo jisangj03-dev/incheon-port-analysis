@@ -19,7 +19,7 @@ export function answers(): Record<string, Answer> {
     const first = Math.max(0, I.origins.findIndex((o: any) => o.kind === "물류단지")), O = I.origins[first];
     const SL = RS?.slots ?? [{ id: "자유 흐름", k: 1 }], DEF = SL.find((t: any) => t.id === RS?.default) ?? SL[0];
     const TB = RS?.table?.[first]?.[DEF.id], C0 = (TB?.car ?? O.cities) as Record<string, number | null>, W = TB?.within ?? O.cities_within;
-    if (C0["서울시청"] != null) out["/tools/delivery-reach.html"] = { num: `${C0["서울시청"]}`, unit: "분", text: `${O.name} → 서울시청(${DEF.id}${DEF.k === 1 ? "" : " 시간 보정"}) · 수도권 ${O.n_cities}곳 가운데 1시간 안 ${W["1h"]}곳` };
+    if (C0["서울시청"] != null) out["/tools/delivery-reach.html"] = { num: `${C0["서울시청"]}`, unit: "분", text: `${O.name} → 서울시청(승용차 · ${DEF.id}${DEF.k === 1 ? "" : " 시간 보정"}) · 수도권 ${O.n_cities}곳 가운데 1시간 안 ${W["1h"]}곳` };
   }
   const R = J("data/derived/trade_race.json");
   if (R) { const Y = R.years.filter((y: any) => !y.partial), L = Y[Y.length - 1]; out["/tools/trade-race.html"] = { num: `${Number(L.top_exp.pct).toFixed(1)}%`, text: `${L.y}년 인천 소재 기업 수출 1위 ${L.top_exp.name}의 몫` }; }

@@ -88,7 +88,7 @@ test("기존 주소 유지 — 옛 목록·입구·크몽 주소는 살아 있�
     expect(html, `${from} 색인 제외`).toContain('name="robots" content="noindex');
   }
   // [2026-10-20 품질 재정비 · docs/품질기준.md §3] 내린 지면 — 주소는 살아 있고 상위 지면으로 넘긴다 · 색인 제외 · 사이트맵에 없다
-  const DOWN = {"/tools/bid-radar.html": "/tools/", "/map.html": "/", "/map/follow.html": "/", "/tools/anchorage.html": "/tools/", "/notes/ai-ops.html": "/about.html", "/tools/logistics-cost.html": "/tools/", "/tools/simulate.html": "/tools/", "/tools/warehouse-map.html": "/tools/", "/sim/": "/tools/", "/reports/report_03_공컨테이너_수출입방향.html": "/notes.html"};
+  const DOWN = {"/tools/port-pulse.html": "/tools/", "/tools/bid-radar.html": "/tools/", "/map.html": "/", "/map/follow.html": "/", "/tools/anchorage.html": "/tools/", "/notes/ai-ops.html": "/about.html", "/tools/logistics-cost.html": "/tools/", "/tools/simulate.html": "/tools/", "/tools/warehouse-map.html": "/tools/", "/sim/": "/tools/", "/reports/report_03_공컨테이너_수출입방향.html": "/notes.html"};
   for (const [from, to] of Object.entries(DOWN)) {
     const html = await (await page.request.get(`${BASE}${encodeURI(from)}`)).text();
     expect(html, from).toContain(`url=${BASE}${to}"`);

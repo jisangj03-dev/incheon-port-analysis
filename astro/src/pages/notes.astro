@@ -13,7 +13,7 @@ const R = room("notes");
     <p class="s-lead s-prose">{R.lead}</p>
     {(R.items || []).length > 0 && <ol class="s-index">{R.items!.map((r) => <li><div><h2 class="h3"><a href={u(r.href)}>{r.title}</a></h2><p>{r.lead}</p></div></li>)}</ol>}
     <section class="all">
-      <h2 class="s-cap">모든 노트 · 지금의 숫자</h2>
+      <h2 class="s-cap">모든 노트 · 마지막 공표 숫자</h2>
       <NoteList answer />
     </section>
     <p class="s-cap" data-ai-mark>AI 정리</p> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}

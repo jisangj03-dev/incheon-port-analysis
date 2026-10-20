@@ -82,7 +82,7 @@ test("③ 개인정보 — 메일 원문 · 전화번호 · 학번 · 집 주소
 
 test("④ AI 표기 — AI 산출물 지면마다 「AI 정리」 · 「실명 검수」는 검수 기록(docs/검수기록.md)에 그 지면이 있을 때만(지침 §2.2-4 · 2026-10-20 사실 대조)", () => {
   const LOG = readFileSync("docs/검수기록.md", "utf-8").split("\n").filter((l) => l.startsWith("| 20"));
-  for (const f of ["map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html", "tools/port-pulse.html"]) {
+  for (const f of ["map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html"].filter(Boolean)) {
     const html = read(f), logged = LOG.some((l) => (l.split("|")[2] || "").includes(f.replace(/\.html$/, "")));
     const m = html.match(/data-ai-mark[^>]*>\s*([^<]+)</);
     expect(m, `${f} 표기`).toBeTruthy();

@@ -14,7 +14,6 @@ const base = (process.argv[2] || "http://127.0.0.1:4173").replace(/\/$/, "");
 const PAGES = [
   ["home", "/incheon-port-analysis/"],
   ["tools", "/incheon-port-analysis/tools/"],
-  ["port-pulse", "/incheon-port-analysis/tools/port-pulse.html"],
   ["delivery-reach", "/incheon-port-analysis/tools/delivery-reach.html"],
   ["trade-race", "/incheon-port-analysis/tools/trade-race.html"],
   ["import-cost", "/incheon-port-analysis/tools/import-cost.html"],

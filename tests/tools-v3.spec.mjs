@@ -8,8 +8,7 @@ const B = "/incheon-port-analysis";
 const J = (f) => readFileSync(f, "utf-8");
 const COMMON = ["data/rooms.json", "data/sources.json", "data/profile.json", "data/questions.json"];
 const TOOLS = {
-  "port-pulse": { data: ["data/derived/port_pulse.json"], answer: "#pl-fig", num: "#pl-pct", asof: true,
-    act: async (p) => { const a = await p.locator("#pl-word").innerText(); await p.locator(".pulse__cmp button[data-port=Busan]").click(); await expect(p.locator("#pl-word")).not.toHaveText(a); } },
+  // port-pulse — 2026-10-20 내림(원천 약 열흘 지연 · Q4) — 내림 검사는 criteria.spec DOWN
   "delivery-reach": { data: ["data/derived/isochrones.json", ...["data/derived/navi_check.json", "data/derived/reach_slots.json"].filter((f) => existsSync(f))], answer: ".reach__map", num: "#reach-min",
     act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg:not(#reach-veh) button").first().click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
   "trade-race": { data: ["data/derived/trade_race.json", "data/hs2_short.json"], answer: "#race-box", num: "#race-total",

@@ -53,6 +53,9 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
           {ticks.map((v) => <line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" />)}
         </svg>
         {/* 두 표식에 이름(6차 화면 판정: 답 = 두 점의 차이인데 이름·범례가 없었다) */}
+        {/* 점은 HTML 로 — 늘인 SVG(preserveAspectRatio none) 안의 원은 타원으로 찌그러졌다(7차 화면 판정) */}
+        <span class="mkdot mkdot--now" style={`left:${((X(iNow) / VW) * 100).toFixed(2)}%;top:${((Y(us[iNow]) / VH) * 100).toFixed(2)}%`}></span>
+        <span class="mkdot mkdot--ago" id="cs-dot-h" style={`left:${((X(iAgo) / VW) * 100).toFixed(2)}%;top:${((Y(us[iAgo]) / VH) * 100).toFixed(2)}%`}></span>
         <span class="mklb mklb--now" style={`left:${((X(iNow) / VW) * 100).toFixed(2)}%;top:${((Y(us[iNow]) / VH) * 100).toFixed(2)}%`}>가장 최근 주 <b>{E.now.fx.toLocaleString("ko-KR")}</b></span>
         <span class="mklb mklb--ago" id="cs-ago-lb" style={`left:${((X(iAgo) / VW) * 100).toFixed(2)}%;top:${((Y(us[iAgo]) / VH) * 100).toFixed(2)}%`}>견줄 주 <b id="cs-ago-v">{E.ago.fx.toLocaleString("ko-KR")}</b></span>
         </div>
@@ -131,6 +134,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
       const lb = $("cs-ago-lb"); lb.style.left = `${((X(i) / B.VW) * 100).toFixed(2)}%`; lb.style.top = `${((Y(usd) / B.VH) * 100).toFixed(2)}%`; $("cs-ago-v").textContent = usd.toLocaleString("ko-KR");
+      const dh = $("cs-dot-h"); dh.style.left = lb.style.left; dh.style.top = lb.style.top;
     };
     const wk = f.elements.namedItem("wk") as HTMLInputElement;
     // HS 코드 → 관세율표(류별 파일 · 같은 사이트) — 기본(A)·WTO(C)는 낮은 쪽이 원칙(관세법 제50조) · FTA 협정세율은 원산지증명이 있을 때만 고를 수 있다
@@ -206,7 +210,10 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
 <style>
   .mklb { position: absolute; transform: translate(-50%, calc(-100% - 10px)); font-size: 12px; line-height: 1.2; white-space: nowrap; color: var(--s-ink-2); background: rgb(245 242 235 / 0.92); padding: 1px 5px; pointer-events: none; }
   .mklb b { font-weight: 650; color: var(--s-ink); font-variant-numeric: tabular-nums; }
-  .mklb--now { transform: translate(-100%, calc(-100% - 10px)); }
+  .mklb--now { transform: translate(calc(-100% - 12px), 6px); } /* 점의 왼쪽 아래 — 왼쪽 위에서 내려오는 최근 몇 주 선을 덮지 않게(7차 화면 판정) */
+  .mkdot { position: absolute; width: 10px; height: 10px; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .mkdot--now { background: var(--s-ink); } .mkdot--ago { background: var(--s-signal); width: 12px; height: 12px; }
+  .cost__svg circle { display: none; }
   .mklb--ago b { color: var(--s-signal); }
   .cost { display: grid; gap: var(--s-3); }
   .cost__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
