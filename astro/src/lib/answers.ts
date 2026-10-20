@@ -26,7 +26,7 @@ export function answers(): Record<string, Answer> {
   const E = J("data/derived/import_cost.json")?.example;
   if (E) out["/tools/import-cost.html"] = { num: `${sg(E.pct)}%`, text: `1만 달러 물건 원가(부가세 제외) — ${E.ago_weeks}주 전보다 · 이번 주 과세환율 ${E.now.fx.toLocaleString("ko-KR")}원/달러`, neg: E.pct < 0 };
   const C = J("data/derived/chokepoints.json");
-  if (C) { const F = C.points.filter((p: any) => p.vs_base_pct != null).sort((a: any, b: any) => a.vs_base_pct - b.vs_base_pct)[0]; if (F) out["/tools/chokepoint.html"] = { num: `${sg(F.vs_base_pct)}%`, text: `${F.ko} 통항 — 2023년 같은 달 대비(${F.asof} 주)`, neg: F.vs_base_pct < 0 }; }
+  if (C) { const F = C.points.filter((p: any) => p.vs_base_pct != null).sort((a: any, b: any) => a.vs_base_pct - b.vs_base_pct)[0]; if (F) out["/tools/chokepoint.html"] = { num: `${sg(F.vs_base_pct)}%`, text: `${F.ko} 통항 — 공개 마지막 28일 하루 평균(${F.asof}까지), 2023년 같은 달 대비`, neg: F.vs_base_pct < 0 }; }
   const V = J("data/derived/vessel_replay.json")?.latest;
   if (V) out["/map/vessels.html"] = { num: `${V.busan_to_incheon}배`, text: `${V.ym} 외항선 입항 — 부산 ${V.busan.toLocaleString("ko-KR")}척 · 인천 ${V.incheon}척` };
   const P = portMonthly(), last = P.series[P.series.length - 1];

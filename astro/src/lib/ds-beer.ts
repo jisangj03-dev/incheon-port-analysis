@@ -48,7 +48,7 @@ function run(R: Rules, B: any) {
 function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
   const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 240, L = 30, Rt = W < 600 ? 74 : 96, T = 12, Bt = 28, n = g.week;
   const fs = W < 600 ? 12 : 15;
-  const x = (i: number) => L + (i * (W - L - Rt)) / Math.max(1, n - 1);
+  const x = (i: number) => L + (i * (W - L - Rt - 16)) / Math.max(1, n - 1); // 끝과 이름 사이 16px — 이음선이 세로로 서서 마지막 주에 값이 튄 것처럼 읽혔다(6차 화면 판정)
   const y = (v: number) => H - Bt - (v * (H - T - Bt)) / ymax;
   const series = [{ label: "소비자", v: g.demand.slice(0, n), c: "var(--s-ink-3)", w: 1.5, dash: "5 4" }].concat(
     g.stages.map((st: any, i: number) => {
@@ -81,7 +81,7 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
   // 눈금 — 세로(상자 수)·가로(주) · 「83배」를 그림에서 읽을 수 있게(5차 화면 판정: y축 눈금 0)
   const raw = ymax / 4, mag = 10 ** Math.floor(Math.log10(raw || 1)), stp = [1, 2, 5, 10].map((k) => k * mag).find((k) => k >= raw) || mag * 10;
   let grid = "";
-  for (let v = 0; v <= ymax + 1e-9; v += stp) grid += `<line x1="${L}" x2="${W - Rt}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--s-rule)" stroke-dasharray="${v ? "2 4" : ""}"/><text x="${L - 6}" y="${(y(v) + 4).toFixed(1)}" font-size="11.5" text-anchor="end" fill="var(--s-ink-3)">${Math.round(v)}</text>`;
+  for (let v = 0; v <= ymax + 1e-9; v += stp) grid += `<line x1="${L}" x2="${W - Rt - 16}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--s-rule)" stroke-dasharray="${v ? "2 4" : ""}"/><text x="${L - 6}" y="${(y(v) + 4).toFixed(1)}" font-size="11.5" text-anchor="end" fill="var(--s-ink-3)">${Math.round(v)}</text>`;
   const wk = n > 24 ? 6 : 4;
   for (let i = wk; i < n; i += wk) grid += `<text x="${x(i - 1).toFixed(1)}" y="${H - 8}" font-size="12" text-anchor="middle" fill="var(--s-ink-3)">${i}주</text>`;
   svg.innerHTML =
@@ -93,7 +93,7 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
         (s, k) =>
           `<polyline fill="none" stroke="${s.c}" stroke-width="${s.w}" ${s.dash ? `stroke-dasharray="${s.dash}"` : ""}${k === series.length - 1 ? ' data-main="공장"' : ""} stroke-linejoin="round" vector-effect="non-scaling-stroke" points="${s.v.map((v: number, i: number) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ")}"/>` +
           // 끝 이름표 = 선 끝에서 이름까지 이음선 + 선과 같은 모양의 짧은 견본(화면 판정 10/20 — 이름표가 몰려 어느 선인지 못 갈랐다)
-          `<line stroke="${s.c}" stroke-width="1" stroke-opacity="0.7" x1="${x(s.v.length - 1).toFixed(1)}" y1="${y(s.v[s.v.length - 1] ?? 0).toFixed(1)}" x2="${(W - Rt + 2).toFixed(1)}" y2="${endY[k].toFixed(1)}"/>` +
+          `<line stroke="var(--s-ink-3)" stroke-width="0.8" stroke-dasharray="1.5 2" x1="${x(s.v.length - 1).toFixed(1)}" y1="${y(s.v[s.v.length - 1] ?? 0).toFixed(1)}" x2="${(W - Rt + 2).toFixed(1)}" y2="${endY[k].toFixed(1)}"/>` +
           `<line x1="${W - Rt + 4}" x2="${W - Rt + 18}" y1="${endY[k].toFixed(1)}" y2="${endY[k].toFixed(1)}" stroke="${s.c}" stroke-width="${Math.max(2, s.w)}" ${s.dash ? `stroke-dasharray="3 2"` : ""}/>` +
           `<text x="${W - Rt + 22}" y="${(endY[k] + 5).toFixed(1)}" font-size="${fs}" font-weight="${k === series.length - 1 ? 700 : 500}" fill="${textColor(s.c)}">${s.label}</text>`,
       )

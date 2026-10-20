@@ -52,6 +52,9 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
           <circle id="cs-dot" cx={X(iAgo).toFixed(1)} cy={Y(us[iAgo]).toFixed(1)} r="6" class="dot" />
           {ticks.map((v) => <line x1={P.l} x2={VW - P.r} y1={Y(v).toFixed(1)} y2={Y(v).toFixed(1)} class="g" />)}
         </svg>
+        {/* 두 표식에 이름(6차 화면 판정: 답 = 두 점의 차이인데 이름·범례가 없었다) */}
+        <span class="mklb mklb--now" style={`left:${((X(iNow) / VW) * 100).toFixed(2)}%;top:${((Y(us[iNow]) / VH) * 100).toFixed(2)}%`}>가장 최근 주 <b>{E.now.fx.toLocaleString("ko-KR")}</b></span>
+        <span class="mklb mklb--ago" id="cs-ago-lb" style={`left:${((X(iAgo) / VW) * 100).toFixed(2)}%;top:${((Y(us[iAgo]) / VH) * 100).toFixed(2)}%`}>견줄 주 <b id="cs-ago-v">{E.ago.fx.toLocaleString("ko-KR")}</b></span>
         </div>
         <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 가장 최근 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
       </figure>
@@ -104,7 +107,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
     </section>}
   </ToolShell>
   <span id="cs-tariff-base" hidden data-u={u("/data/tariff/")}></span>
-  <script type="application/json" id="cs-kcci" set:html={JSON.stringify(K ? { routes: K.routes, names: K.names, weeks: K.weeks } : null)}></script>
+  <script type="application/json" id="cs-kcci" set:html={JSON.stringify(K ? { routes: K.routes, names: K.names, weeks: K.weeks, chg: K.chg_52w_pct } : null)}></script>
   <script type="application/json" id="cs-data" set:html={JSON.stringify({ weeks: Wk, cur: D.currencies, iAgo, box: { VW, VH, P, lo, hi } })}></script>
   <script>
     import { paused, reduced } from "../../lib/motion";
@@ -127,6 +130,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("총 지급") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x : won(x)}</td><td>${k === "과세환율" ? y : won(y)}</td></tr>`).join("");
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
+      const lb = $("cs-ago-lb"); lb.style.left = `${((X(i) / B.VW) * 100).toFixed(2)}%`; lb.style.top = `${((Y(usd) / B.VH) * 100).toFixed(2)}%`; $("cs-ago-v").textContent = usd.toLocaleString("ko-KR");
     };
     const wk = f.elements.namedItem("wk") as HTMLInputElement;
     // HS 코드 → 관세율표(류별 파일 · 같은 사이트) — 기본(A)·WTO(C)는 낮은 쪽이 원칙(관세법 제50조) · FTA 협정세율은 원산지증명이 있을 때만 고를 수 있다
@@ -152,9 +156,10 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
         if ("C" in R) opts.push(["C", `WTO 협정세율 ${pct(R.C)}`, num(R.C)]);
         // [2026-10-20 4차 사실 대조] 시장접근물량(TRQ) 품목 — W1 = 물량 안 양허세율 · W2 = 물량 밖 양허세율. 물량 밖 세율은 기본세율보다 높아도 우선한다(관세법 제50조③ 단서).
         //   쌀 1006301000 은 기본 5% 인데 물량 밖 513% — 기본세율을 자동으로 넣으면 원가가 백 배 틀린다. 추천·배정 없는 일반 수입 = 물량 밖으로 본다
-        const trq = "W2" in R && typeof R.W2 === "number";
-        if ("W1" in R) opts.push(["W1", `시장접근물량 안 ${pct(R.W1)}(추천·배정 받은 물량)`, num(R.W1)]);
-        if (trq) opts.push(["W2", `시장접근물량 밖 ${pct(R.W2)}`, num(R.W2)]);
+        //   [6차 사실 대조] TRQ 는 W1(물량 안)과 W2(물량 밖)가 같이 있을 때만 — W2 만 있는 품목(쇠고기 0201 등 44개)을 TRQ 로 불렀다
+        const trq = "W1" in R && "W2" in R && typeof R.W2 === "number";
+        if (trq) { opts.push(["W1", `시장접근물량 안 ${pct(R.W1)}(추천·배정 받은 물량)`, num(R.W1)]); opts.push(["W2", `시장접근물량 밖 ${pct(R.W2)}`, num(R.W2)]); }
+        else if ("W2" in R) opts.push(["W2", `WTO 양허세율(관세율표 W2 칸) ${pct(R.W2)}`, num(R.W2)]);
         const fta = Object.entries(R).filter(([k]) => k.startsWith("F")).sort((a, b) => num(a[1]) - num(b[1]));
         for (const [k, v] of fta) opts.push([k, `${ftaName(k)} ${pct(v)}${co.checked ? "" : " — 원산지증명 필요"}`, num(v)]);
         const ok = opts.filter(([k]) => !k.startsWith("F") || co.checked).filter((o) => isFinite(o[2]));
@@ -189,15 +194,20 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       const drawK = () => {
         const c = col(), v = KW.weeks.map((w: any[]) => Number(w[c])), mx = Math.max(...v), mn = Math.min(...v), n = v.length;
         $("wave-l").setAttribute("d", v.map((y: number, i: number) => `${i ? "L" : "M"}${((i / (n - 1)) * 1000).toFixed(1)} ${(8 + (1 - (y - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""));
-        const last = v[n - 1], a = v[Math.max(0, n - 53)];
+        // 52주 전 대비 = 파생 파일이 날짜로 맞춘 값(행 수로 세면 명절에 빠진 주 때문에 57주 전과 견줬다 · 6차 사실 대조) — 지면 숫자는 데이터 파일에서
+        const last = v[n - 1], cg = KW.chg?.[KW.routes[Number(sel.value)]];
         $("wave-max").textContent = Math.round(mx).toLocaleString("ko-KR"); $("wave-min").textContent = Math.round(mn).toLocaleString("ko-KR");
-        $("wave-v").textContent = Math.round(last).toLocaleString("ko-KR"); $("wave-c").textContent = `${last >= a ? "+" : ""}${(100 * (last / a - 1)).toFixed(1)}%`;
+        $("wave-v").textContent = Math.round(last).toLocaleString("ko-KR"); $("wave-c").textContent = cg == null ? "—" : `${cg > 0 ? "+" : ""}${cg}%`;
       };
       sel.addEventListener("change", drawK);
     }
   </script>
 </Studio>
 <style>
+  .mklb { position: absolute; transform: translate(-50%, calc(-100% - 10px)); font-size: 12px; line-height: 1.2; white-space: nowrap; color: var(--s-ink-2); background: rgb(245 242 235 / 0.92); padding: 1px 5px; pointer-events: none; }
+  .mklb b { font-weight: 650; color: var(--s-ink); font-variant-numeric: tabular-nums; }
+  .mklb--now { transform: translate(-100%, calc(-100% - 10px)); }
+  .mklb--ago b { color: var(--s-signal); }
   .cost { display: grid; gap: var(--s-3); }
   .cost__big { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
   .cost__big b { font-size: clamp(36px, 4.6vw, 60px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }

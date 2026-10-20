@@ -114,7 +114,7 @@ const navi = NV?.status === "ok"
 </Studio>
 <style>
   .reach { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--s-5); align-items: start; }
-  .reach__map { position: relative; height: min(68vh, 620px); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); background: #f3efe5; }
+  .reach__map { position: relative; aspect-ratio: 4 / 3; max-height: 760px; /* 격자 폭 안에서 도시 18곳이 여백을 두고 다 들게(6차 화면 판정 — 넓은 칸이면 파주·평택이 틀 끝에 걸렸다) */ border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); background: #f3efe5; }
   .reach__map canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .reach__t { position: absolute; left: 14px; top: 10px; margin: 0; text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper); }
   /* [2026-10-20 화면 판정] 번지는 문턱(0→180분)은 답이 아니라 시계다 — 큰 숫자로 두면 번지는 중간값(171·176분)이 답처럼 찍혔다. 답은 머리 문장·오른쪽 표 */
@@ -129,12 +129,12 @@ const navi = NV?.status === "ok"
   @media (max-width: 420px) { .reach__legend { left: 8px; right: 8px; font-size: 11.5px; } .reach__legend i { width: 14px; margin-right: 2px; } .reach__legend span + span { margin-left: 2px; } } /* 320 폭에서 47px 넘쳤다(시험 10/20) */
   .reach__note { flex-basis: 100%; margin: 0; }
   .seg { display: flex; } .seg .s-btn { min-height: 44px; }
-  .reach__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; max-height: min(68vh, 620px); overflow: auto; }
+  .reach__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; align-content: start; } /* 높이 상한·스크롤을 걷음 — 1920 에서 마지막 줄이 글자 중간에서 잘렸다(6차 화면 판정) · 18줄 다 보인다 */
   .reach__list li { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--s-rule); color: var(--s-ink-3); transition: color 0.3s; }
   .reach__list li.on { color: var(--s-ink); }
   .reach__list li b { font-size: 17px; } .reach__list li small { color: var(--s-ink-3); }
   .reach__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
   .reach__ctl label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .reach__slider { flex: 1; min-width: 200px; } .reach__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
-  @media (max-width: 760px) { .reach { grid-template-columns: 1fr; } .reach__map { height: 56vh; } .reach__list { max-height: none; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); } }
+  @media (max-width: 760px) { .reach { grid-template-columns: 1fr; } .reach__map { height: 56vh; aspect-ratio: auto; } .reach__list { max-height: none; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); } }
 </style>

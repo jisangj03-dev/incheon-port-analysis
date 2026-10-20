@@ -63,6 +63,8 @@ export function tileLabel(it: { hs: string; name: string }, r: { w: number; h: n
   if (r.h > 22 && fit(code)) return code;
   return "";
 }
+/** % 줄을 붙일 높이 — 이름 아래 둘째 줄이라 두 줄(약 16px × 2) + 위아래 여백이 들어가야 한다(6차 화면 판정: 1280 「플라스틱 1.6%」가 아래 칸에 반쯤 가렸다) */
+export const pctFits = (r: { h: number }) => r.h >= 46;
 /** 이름이 다 들어가는 만큼만 칸을 두고 나머지는 「그 밖」 — 남길 품목은 **그 해 금액이 큰 순**(모바일에서 의료용품 10.9% 가 접히고 철강 5.8% 가 남았다 · 4차 화면 판정) ·
  *  칸 자리 순서는 전 기간 순위(rank)로 고정해 해마다 칸이 뛰지 않게 한다 */
 export function layout(items: { hs: string; name: string; v: number }[], rank: Map<string, number>, top: number, W: number, H: number) {
@@ -116,7 +118,7 @@ export class TreemapRace {
       const tiny = r.w < 24 || r.h < 24;
       // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
       const nm = tileLabel(it, r);
-      el.innerHTML = nm ? `<b>${nm}</b>${r.h > 34 || r.w > (nm.length + 6) * 13 ? ` <i>${share.toFixed(1)}%</i>` : ""}` : "";
+      el.innerHTML = nm ? `<b>${nm}</b>${pctFits(r) ? ` <i>${share.toFixed(1)}%</i>` : ""}` : "";
       if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;

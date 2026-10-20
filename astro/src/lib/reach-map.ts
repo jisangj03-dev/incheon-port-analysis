@@ -36,10 +36,16 @@ export class ReachMap {
     this.cv.width = Math.round(this.W * this.dpr); this.cv.height = Math.round(this.H * this.dpr);
     // 화면 비율에 맞춰 보이는 범위를 정한다 — 계산 격자(bbox) **안쪽만** 잘라 보인다(넓히면 격자 끝이 세로 직선·회색 상자로 드러났다 · 화면 판정 10/20)
     const B = this.iso.bbox, k = Math.cos((37.45 * Math.PI) / 180);
-    let w = B[2] - B[0], h = B[3] - B[1];
-    if ((w * k) / h > this.W / this.H) w = (h * this.W) / this.H / k; else h = (w * k * this.H) / this.W;
+    // 표에 든 도시가 모두 틀 안에 들게 — 도시 범위(+여백)를 화면 비율로 넓힌 만큼 보인다(6차 화면 판정: 1280·1520 에서 「평택 103분」 점이 틀 밖)
+    const C = [...Object.values(this.iso.cities), ...this.iso.origins.map((o) => [o.lon, o.lat])], padd = 0.06;
+    const c0 = Math.min(...C.map((c) => c[0])) - padd, c2 = Math.max(...C.map((c) => c[0])) + padd, c1 = Math.min(...C.map((c) => c[1])) - padd, c3 = Math.max(...C.map((c) => c[1])) + padd;
+    let w = c2 - c0, h = c3 - c1;
+    if ((w * k) / h > this.W / this.H) h = (w * k * this.H) / this.W; else w = (h * this.W) / this.H / k;
+    // 계산 격자 밖은 보이지 않게(격자 끝이 직선으로 드러났다) — 격자보다 크면 격자에 맞춘다
+    if (w > B[2] - B[0]) { const f = (B[2] - B[0]) / w; w *= f; h *= f; }
+    if (h > B[3] - B[1]) { const f = (B[3] - B[1]) / h; w *= f; h *= f; }
     const cl = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-    const cx = cl((126.25 + 127.6) / 2, B[0] + w / 2, B[2] - w / 2), cy = cl((36.95 + 37.9) / 2, B[1] + h / 2, B[3] - h / 2);
+    const cx = cl((c0 + c2) / 2, B[0] + w / 2, B[2] - w / 2), cy = cl((c1 + c3) / 2, B[1] + h / 2, B[3] - h / 2);
     this.view = [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
   }
   px(lon: number, lat: number) { const v = this.view; return [((lon - v[0]) / (v[2] - v[0])) * this.W, ((v[3] - lat) / (v[3] - v[1])) * this.H]; }

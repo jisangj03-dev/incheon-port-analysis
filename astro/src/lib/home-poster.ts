@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./content";
-import { projector, mx, my, VIEWS, fitCam, regionPts, REGION_CAM, HERO_M, type Cam } from "./flowmap";
+import { projector, mx, my, VIEWS, fitCam, regionPts, REGION_CAM, HERO_M, greatCircle, type Cam } from "./flowmap";
 
 export const PW = 1200, PH = 900; // [2026-10-20] 지도 칸(7단) 모양에 가깝게 — 캔버스가 받기 전 첫 그림도 인천·서울·경부축이 한 장에
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
@@ -35,8 +35,8 @@ export function poster(view?: Cam) {
       `<path d="${lf.map((f: any) => path(f.geometry.coordinates[0], true)).join("")}" fill="#e7dfcc"/>` +
       `<path d="${L.features.filter((f: any) => f.properties.kind === "road").map((f: any) => path(f.geometry.coordinates, false)).join("")}" fill="none" stroke="#d3c7ad" stroke-width="1"/>`;
   }
-  const sg = F.sea_gates[0];
-  const lanes = F.partners.map((p: any) => "M" + [...p.sea, ...sg.approach, [sg.lon, sg.lat]].map(([a, b]: number[]) => pt(a, b)).join("L")).join("");
+  // 하늘길(대권) — 캔버스가 그리는 것과 같은 길(점이 실린 길만 · 6차 사실 대조: 정지 그림만 바닷길을 그렸다)
+  const lanes = F.partners.map((p: any) => "M" + greatCircle(p.air, [F.air_gate.lon, F.air_gate.lat], 48).map(([a, b]: number[]) => pt(a, b)).join("L")).join("");
   PJ(mx(F.air_gate.lon), my(F.air_gate.lat), 0, o);
   const gate = [Math.round(o[0]), Math.round(o[1])];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">` +

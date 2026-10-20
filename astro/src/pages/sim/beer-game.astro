@@ -38,7 +38,7 @@ const S = R.stages.length;
       <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다(공장은 만드는 데 {R.delays.production}주). 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
       <div class="pick">
         <label>맡을 단계<select id="role" class="s-input">{R.stages.map((s, i) => <option value={i}>{s.label}</option>)}</select></label>
-        <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자</option><option value="random">매주 들쭉날쭉</option></select></label>
+        <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자(Sterman 설정)</option><option value="random">매주 들쭉날쭉(논문 밖 연습용 · {R.demand.random.min}~{R.demand.random.max}상자)</option></select></label>
         <input type="hidden" id="seed" value="1" />
         <button type="button" id="start" class="s-btn">시작</button>
       </div>
