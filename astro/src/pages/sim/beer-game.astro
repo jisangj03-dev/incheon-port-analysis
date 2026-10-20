@@ -1,22 +1,23 @@
 ---
-// 시안 ② 맥주 게임에 디자인 시스템 「해도」를 입힌 판 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
-// lab/ 전용. 숫자는 규칙 파일에서만(정체성 §2-1).
-import Studio from "../../../layouts/Studio.astro";
-import { u } from "../../../lib/site";
-import R from "../../../../../data/sim/beer-game.json";
-import Trust from "../../../components/scene/Trust.astro";
-import { lastUpdated } from "../../../lib/content";
+// 맥주 게임(정체성 §3-1) — 디자인 시스템 「해도」 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
+// 숫자는 규칙 파일에서만(정체성 §2-1).
+import { aiMark } from "../../lib/profile";
+import Studio from "../../layouts/Studio.astro";
+import { u } from "../../lib/site";
+import R from "../../../../data/sim/beer-game.json";
+import Trust from "../../components/scene/Trust.astro";
+import { lastUpdated } from "../../lib/content";
 const RU = lastUpdated("data/sim/beer-game.json");
 const S = R.stages.length;
 ---
-<Studio title="맥주 게임 — 측심(시안)" current="sim">
+<Studio title="맥주 게임 — 채찍효과를 직접 겪는다" description="소매·도매·유통·공장 중 한 단계를 맡아 주문을 넣고, 끝나면 단계별 주문 출렁임과 비용을 본다. 입력값은 서버로 가지 않는다." current="sim">
   <div class="s-wrap ds-beer" data-sim="ds-beer">
     <section class="intro" aria-labelledby="h-wave">
       <p class="s-cap">시뮬레이션 · 맥주 게임</p>
       <h1 id="h-wave" class="s-prose">오는 중인 물건을 잊으면, 공장이 흔들립니다.</h1>
       <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 막대를 움직여 보세요.</p>
       <figure class="wave-fig">
-        <div id="wave" class="wave" aria-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
+        <div id="wave" class="wave" data-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
         <figcaption class="readout">
           <label class="beta" for="beta">
             <span>주문할 때 아직 오는 중인 물건을 셈에 넣는 정도 <b id="beta-out"></b></span>
@@ -55,7 +56,7 @@ const S = R.stages.length;
         <button type="submit" class="s-btn">주문</button>
       </form>
       <p id="say" class="s-cap" aria-live="polite"></p>
-      <div id="live" class="live" aria-label="지금까지 들어온 주문과 내 주문"></div>
+      <div id="live" class="live"></div>
     </section>
 
     <section id="result" hidden aria-labelledby="h-out" data-chart="beer-game">
@@ -67,6 +68,7 @@ const S = R.stages.length;
         <tbody id="rows"></tbody>
       </table>
       <p class="s-cap">출렁임 = 그 단계 주문이 흔들린 폭(분산) ÷ 소비자 수요가 흔들린 폭.</p>
+      <p class="s-cap">규칙 갱신 <time data-updated datetime={RU}>{RU}</time> · Sterman(1989) 보드게임 규칙 · 규칙 파일 data/sim/beer-game.json · 모의 실험 — 실측 아님</p>
       <p class="again"><button type="button" id="copy" class="s-btn s-btn--ghost">결과 주소 복사</button> <button type="button" id="again" class="s-btn s-btn--ghost">다시 하기</button></p>
     </section>
 
@@ -77,14 +79,14 @@ const S = R.stages.length;
         <dt>어떻게</dt><dd data-note="how">{R.notes.how} 원 규칙: <a href={R.source.doi}>{R.source.cite}</a></dd>
         <dt>한계</dt><dd data-note="limits">{R.notes.limits}</dd>
       </dl>
-      <p class="s-cap" data-ai-mark style="margin-top:16px">{R.aiMark}</p>
+      <p class="s-cap" data-ai-mark style="margin-top:16px">{aiMark()}</p>
     </section>
   </div>
   <script is:inline defer src={u("/assets/js/beer-game.js")}></script>
   <script type="application/json" id="beer-rules" set:html={JSON.stringify(R)}></script>
   <script>
-    import { initBeer } from "../../../lib/beer-ui";
-    import { initDsBeer } from "../../../lib/ds-beer";
+    import { initBeer } from "../../lib/beer-ui";
+    import { initDsBeer } from "../../lib/ds-beer";
     initDsBeer();
     initBeer();
   </script>

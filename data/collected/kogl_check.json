@@ -1,0 +1,141 @@
+{
+ "checked": "2026-10-14",
+ "command": "python tools-build/kogl_check.py",
+ "sources": {
+  "ipa-empty-container": {
+   "search": "공컨테이너 수출입",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15148930",
+     "인천항만공사_ 공컨테이너 화물 처리량 집계 패턴 합성데이터"
+    ],
+    [
+     "15157693",
+     "인천항만공사_인천항 공컨테이너 화물 통계정보 조회 서비스"
+    ],
+    [
+     "15057586",
+     "해양수산부_외내항 컨테이너 처리실적 통계정보"
+    ]
+   ],
+   "data_id": null
+  },
+  "ipa-empty-container@15157693": {
+   "search": null,
+   "search_status": null,
+   "candidates": [],
+   "data_id": "15157693",
+   "url": "https://www.data.go.kr/data/15157693/openapi.do",
+   "status": 200,
+   "api_names": [],
+   "title": "인천항만공사_인천항 공컨테이너 화물 통계정보 조회 서비스 | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "kcs-porttrade": {
+   "search": "관세청 항구공항별 수출입실적",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15101636",
+     "관세청 _항구 공항별 수출입실적 (GW)"
+    ]
+   ],
+   "data_id": "15101636",
+   "url": "https://www.data.go.kr/data/15101636/openapi.do",
+   "status": 200,
+   "api_names": [],
+   "title": "관세청_항구 공항별 수출입실적(GW) | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "kcs-sido-item": {
+   "search": null,
+   "search_status": null,
+   "candidates": [],
+   "data_id": "15101641",
+   "url": "https://www.data.go.kr/data/15101641/openapi.do",
+   "status": 200,
+   "api_names": [],
+   "title": "관세청_시도별 품목별 수출입실적(GW) | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "molit-warehouse": {
+   "search": null,
+   "search_status": null,
+   "candidates": [],
+   "data_id": "15083282",
+   "url": "https://www.data.go.kr/data/15083282/fileData.do",
+   "status": 200,
+   "api_names": [],
+   "title": "국토교통부_물류창고업등록정보_20250701 | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 추천데이터 목록으로 돌아가기 관련기관 행정안전부",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "kcs-nitemtrade": {
+   "search": "관세청 품목별 국가별 수출입실적",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15100475",
+     "관세청 _ 품목별 국가별 수출입실적 (GW)"
+    ]
+   ],
+   "data_id": "15100475",
+   "url": "https://www.data.go.kr/data/15100475/openapi.do",
+   "status": 200,
+   "api_names": [],
+   "title": "관세청_품목별 국가별 수출입실적(GW) | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "mof-vessel": {
+   "search": null,
+   "search_status": null,
+   "candidates": [],
+   "data_id": "15059059",
+   "url": "https://www.data.go.kr/data/15059059/openapi.do",
+   "status": 200,
+   "api_names": [
+    "SsopVsslEtryndHarbor2"
+   ],
+   "title": "해양수산부_항만별 선박입출항실적 통계정보 | 공공데이터포털",
+   "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+   "kogl_type": null,
+   "evidence": []
+  },
+  "mof-incheon-port-stats": {
+   "url": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700",
+   "status": 200,
+   "links": [
+    " /ko/board.do?menuIdx=1668",
+    " /ko/board.do?menuIdx=1698",
+    " /ko/board.do?menuIdx=1700",
+    " /ko/board.do?menuIdx=1880",
+    " /ko/board.do?menuIdx=1882",
+    " /ko/board.do?menuIdx=1894",
+    " /ko/board.do?menuIdx=4285",
+    " /ko/board.do?menuIdx=4874",
+    " /ko/board.do?menuIdx=4875",
+    " /ko/board.do?menuIdx=4876",
+    "/boardFileDown.do?file_idx=162161",
+    "/boardFileDown.do?file_idx=163141",
+    "/boardFileDown.do?file_idx=164016",
+    "/boardFileDown.do?file_idx=164886",
+    "/boardFileDown.do?file_idx=165837"
+   ],
+   "onclick": [],
+   "title": "인천지방해양수산청  - 알림마당 - 통계자료 - 월별 항만운영통계",
+   "license_text": null,
+   "kogl_type": null,
+   "evidence": []
+  }
+ }
+}

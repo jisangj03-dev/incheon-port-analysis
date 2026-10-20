@@ -26,12 +26,20 @@ export function rewriteDir(dir, here = "") {
     if (statSync(p).isDirectory()) { n += rewriteDir(p, here ? `${here}/${name}` : name); continue; }
     if (!name.endsWith(".html")) continue;
     const src = readFileSync(p, "utf-8");
-    const out = src.replace(/href="([^"]+)"/g, (m, h) => {
+    const out = nbCells(src.replace(/href="([^"]+)"/g, (m, h) => {
       const f = toRepoIfHidden(fixHref(h), here);
       if (f !== h) n++;
       return `href="${f}"`;
-    });
+    }));
     if (out !== src) writeFileSync(p, out);
   }
   return n;
+}
+
+// 짧은 숫자·날짜만 든 표 칸(「232.5」 「37.3%」 「2022-01」)에 nb 표지 — 좁은 화면에서 칸 안에서 쪼개지지 않게(2026-10-14 눈 검사).
+// 글이 든 칸은 그대로 줄바꿈된다. 이미 class 가 있는 칸은 건드리지 않는다.
+export function nbCells(html) {
+  // 칸 안이 글자뿐이거나 <code> 하나로 감싼 글자일 때(「<code>2020-02-26</code>」)
+  return html.replace(/<(td|th)((?:\s(?![^>]*\bclass=)[^>]*)?)>((?:<code>)?([^<]{1,14})(?:<\/code>)?)<\/\1>/g, (m, tag, attrs, inner, txt) =>
+    /^[\d\s.,%+\-−–·()]+$/.test(txt.trim()) && /\d/.test(txt) ? `<${tag}${attrs || ""} class="nb">${inner}</${tag}>` : m);
 }

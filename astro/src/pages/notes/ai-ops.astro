@@ -1,11 +1,12 @@
 ---
 // AI 운영실 공개 사례 1쪽(정체성 §3-5) — 이 작업실이 실제로 어떻게 돌아가는지. 숫자 = data/derived/ops_stats.json(이 저장소 main 의 git 기록 · 집계 명령 표기).
 // O1 내부 노출 0: 사람 이름(운영자 제외)·경로·과제 번호·결재 내용·키·계정 없음 — 수치 요약만.
-import Studio from "../../../layouts/Studio.astro";
-import Trust from "../../../components/scene/Trust.astro";
-import { u } from "../../../lib/site";
-import { sourceLine } from "../../../lib/sources";
-import { lastUpdated, repoRoot } from "../../../lib/content";
+import { aiMark } from "../../lib/profile";
+import Studio from "../../layouts/Studio.astro";
+import Trust from "../../components/scene/Trust.astro";
+import { u } from "../../lib/site";
+import { sourceLine } from "../../lib/sources";
+import { lastUpdated, repoRoot } from "../../lib/content";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -18,16 +19,18 @@ const parts = [
 ];
 const W = (n: number) => `${((100 * n) / S.commits_total).toFixed(2)}%`;
 ---
-<Studio title="AI 운영실 — 측심" current="notes">
+<Studio title="AI 운영실 1쪽 — 이 작업실은 AI와 어떻게 일하나" description="이 작업실이 AI와 어떻게 돌아가는지, 저장소 git 기록으로 센 숫자 — 커밋 구성, 머지된 PR, 정정 커밋까지." current="notes">
   <article class="s-wrap ops" data-content="ds-ai-ops">
     <p class="s-cap">노트 · AI 운영실 공개 사례</p>
     <h1 class="s-prose">이 작업실은 AI가 만들고, 사람이 머지합니다.</h1>
     <p class="s-lead s-prose">{S.first_day}부터 {S.last_day}까지 이 저장소 main 에 들어간 커밋 <b>{S.commits_total}</b>개 가운데 <b class="s-signal">{S.ai_share_pct}%</b>에 AI 세션 꼬리표가 붙어 있습니다. 공개(머지)는 매번 운영자가 했습니다.</p>
 
+    <p class="counter s-prose"><b>반대 지표</b> — 같은 기간 제목에 정정·되돌림이 적힌 커밋 <b class="s-signal">{S.corrections}</b>개({S.corrections_pct}%). AI가 만든 것도 틀리고, 틀린 것을 고치는 데 커밋이 듭니다(제목으로만 셌으니 실제보다 적을 수 있습니다).</p>
+
     <figure class="stack" aria-label={`커밋 ${S.commits_total}개의 구성`}>
       <div class="stack__bar">{parts.map((p) => <span class={p.cls} style={`width:${W(p.n)}`}></span>)}</div>
       <ul class="stack__legend">{parts.map((p) => <li class={p.cls}><b>{p.n}</b> {p.label}</li>)}</ul>
-      <Trust updated={upd} csv={u("/lab/data/ops-stats.csv")} csvName="ops-stats.csv" source={sourceLine("repo-git")} note={`기준 커밋 ${S.ref_sha} · 집계 ${S.counted} · 명령 ${S.command}`} />
+      <Trust updated={upd} csv={u("/data/ops-stats.csv")} csvName="ops-stats.csv" source={sourceLine("repo-git")} note={`기준 커밋 ${S.ref_sha} · 집계 ${S.counted} · 명령 ${S.command}`} />
     </figure>
 
     <section class="flow">
@@ -54,10 +57,11 @@ const W = (n: number) => `${((100 * n) / S.commits_total).toFixed(2)}%`;
       <dt>어떻게</dt><dd data-note="how">이 저장소 main 의 git 기록에서 커밋 본문의 AI 세션 꼬리표와 자동 계정을 센다. 병합 커밋은 빼고, 작성자 이름·제목은 출력하지 않는다. 계산 = {S.command}.</dd>
       <dt>한계</dt><dd data-note="limits">꼬리표를 쓰기 시작하기 전의 AI 작업은 「꼬리표 없는 커밋」에 섞여 있다 — 그 칸을 사람이 직접 쓴 몫으로 읽으면 안 된다. 커밋 수는 일의 양이 아니다.</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>AI 정리 · 검수 전</p>
+    <p class="s-cap" data-ai-mark>{aiMark()}</p>
   </article>
 </Studio>
 <style>
+  .counter { border-left: 3px solid var(--s-signal); padding-left: var(--s-4); margin-top: var(--s-5); }
   .ops { padding-top: var(--s-8); padding-bottom: var(--s-8); }
   .ops h1 { margin: var(--s-3) 0 var(--s-5); max-width: 17em; }
   .stack { margin: var(--s-7) 0; }
