@@ -129,6 +129,10 @@ def main():
         within = {f"{h}h": sum(1 for v in city.values() if v is not None and v <= 60 * h) for h in (1, 2, 3)}
         out.append({**o, "snap_km": round(snap_km, 2), "cells": reach, "cities": city, "cities_within": within, "n_cities": len(CITIES), "b64": base64.b64encode(g8.tobytes()).decode()})
         say(o["name"], reach, f"붙임 {snap_km:.2f}km")
+    # 사고 127 교훈(지난 것보다 나쁘지 않을 때만): 출발지가 지난 파일보다 적게 나오면 덮어쓰지 않는다
+    prev = os.path.join(ROOT, "data/derived/isochrones.json")
+    if os.path.exists(prev) and len(out) < len(json.load(open(prev, encoding="utf-8")).get("origins", [])):
+        say("출발지가 지난 파일보다 적다 — 지난 파일을 지킨다", len(out)); return 1
     write("data/derived/isochrones.json", {
         "_설명": "인천 물류단지·관문에서 수도권 칸(0.01°)마다 가장 빠른 도착 분. 도로 등급별 자유 흐름 속도 가정 — 혼잡·신호·상하차 미반영. 255 = 길 없음/200분 넘음.",
         "source": "OpenStreetMap 기여자(ODbL 1.0) · Geofabrik south-korea 추출", "made": datetime.date.today().isoformat(),

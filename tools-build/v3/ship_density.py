@@ -78,6 +78,10 @@ def main():
            "period": "2015-01~2021-02(AIS 누적)", "layer": tif, "bbox": BBOX, "step": STEP, "w": W, "h": H,
            "stats": {"cells_nonzero": int((q > 0).sum()), "p5": float(lo), "p99_7": float(hi)},
            "b64": base64.b64encode(q.tobytes()).decode()}
+    # 사고 127 교훈: 배가 있는 칸이 지난 파일의 절반 아래로 줄면(덜 받은 래스터) 덮어쓰지 않는다
+    prev = os.path.join(ROOT, "data/derived/ship_density.json")
+    if os.path.exists(prev) and out["stats"]["cells_nonzero"] < 0.5 * json.load(open(prev, encoding="utf-8"))["stats"]["cells_nonzero"]:
+        say("배 있는 칸이 지난 파일의 절반 아래 — 지난 파일을 지킨다", out["stats"]["cells_nonzero"]); return 1
     write("data/derived/ship_density.json", out)
     write("data/collected/v3/ship_density_probe.json", {**meta, "url": url, "shape": [H, W], "nonzero": out["stats"]["cells_nonzero"]})
     return 0

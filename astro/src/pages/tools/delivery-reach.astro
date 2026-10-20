@@ -16,7 +16,7 @@ const rows = Object.entries(O.cities as Record<string, number | null>).sort((a, 
 const in1 = O.cities_within["1h"], in2 = O.cities_within["2h"];
 const seoul = O.cities["서울시청"];
 ---
-<Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 혼잡 미반영 · 참고용." current="tools" lateFonts>
+<Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 혼잡 미반영 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
   <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 출발하면 서울시청까지 ${seoul ?? "—"}분, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳.`}
     updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="자유 흐름 속도 가정 · 혼잡 미반영"
     how={`OSM 대한민국 추출에서 수도권 도로만 읽어 도로 등급별 속도(고속 ${I.speeds_kmh.motorway} · 간선 ${I.speeds_kmh.trunk} · 주간선 ${I.speeds_kmh.primary} · 일반 ${I.speeds_kmh.residential} km/h)로 엮고, 출발지에서 가장 빠른 길을 풀었다(scipy 다익스트라). 칸 크기 ${I.step}°.`}
@@ -27,7 +27,7 @@ const seoul = O.cities["서울시청"];
         <p class="reach__legend" data-furniture>{STEPS.map((b) => <span><i style={`background:rgba(${b.c.join(",")},${b.a})`}></i>{b.max}</span>)}<span>분</span></p>
       </div>
       <ol class="reach__list" id="reach-list" aria-label="수도권 도시까지 도착 분">
-        {rows.map(([n, m]) => <li data-city={n}><span>{n}</span><b>{m ?? "—"}</b><small>분</small></li>)}
+        {rows.map(([n, m]) => <li data-city={n}><span>{n}</span><b data-og-num={n === "서울시청" ? "분 · 서울시청까지" : undefined}>{m ?? "—"}</b><small>분</small></li>)}
       </ol>
     </div>
     <div slot="controls" class="reach__ctl">

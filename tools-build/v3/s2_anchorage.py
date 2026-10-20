@@ -81,6 +81,23 @@ def aoi_quality(prefix):
     return float(valid.mean()), float((np.isin(S0, [3, 8, 9, 10]) & valid).sum() / max(1, valid.sum()))
 
 
+def carry(old, new, start, img_ok):
+    """창(start 달부터) 안에서 이번에 못 받은 달은 지난 프레임을 지킨다. 반환 = (날짜순 프레임, 지킨 달 목록)."""
+    got = {f["date"][:7] for f in new}
+    kept = [dict(f, carried=True) for f in old if f["date"][:7] >= start and f["date"][:7] not in got and img_ok(f)]
+    return sorted(new + kept, key=lambda f: f["date"]), [f["date"][:7] for f in kept]
+
+
+def selftest():
+    old = [{"date": "2025-11-02", "img": "/a.jpg"}, {"date": "2026-01-11", "img": "/b.jpg"}, {"date": "2026-02-25", "img": "/c.jpg"}]
+    new = [{"date": "2025-11-09", "img": "/d.jpg"}, {"date": "2026-02-25", "img": "/c.jpg"}]
+    out, kept = carry(old, new, "2025-11", lambda f: True)
+    assert [f["date"] for f in out] == ["2025-11-09", "2026-01-11", "2026-02-25"] and kept == ["2026-01"] and out[1]["carried"], out
+    assert carry(old, new, "2026-02", lambda f: True)[1] == []  # 창 밖은 버린다
+    assert carry(old, new, "2025-11", lambda f: False)[1] == []  # 그림이 없으면 지키지 않는다
+    print("selftest 3/3 ok"); return 0
+
+
 def main():
     months = int(sys.argv[sys.argv.index("--months") + 1]) if "--months" in sys.argv else 12
     os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")
@@ -122,6 +139,14 @@ def main():
             say(date, "배", cnt, "구름", round(100 * cloud, 1), "자료", round(100 * valid, 1))
         except Exception as e:
             say("장면 실패", p, str(e)[:160])
+    # 사고 127(2026-10-15): 그 달 장면 목록이 덜 오면 그 달 프레임이 통째로 빠진 채 덮어썼다 → 창 안의 달 중 이번에 못 받은 달은
+    # 지난 파일의 프레임을 지킨다(그림 파일이 남아 있을 때만) · 하나도 못 받았으면 쓰지 않는다
+    if not out: say("장면을 하나도 못 받았다 — 지난 파일을 지킨다"); return 1
+    start = f"{(today.year if today.month - months + 1 > 0 else today.year - 1)}-{((today.month - months) % 12) + 1:02d}"
+    prev = os.path.join(ROOT, "data/derived/s2_anchorage.json")
+    old = json.load(open(prev, encoding="utf-8")).get("frames", []) if os.path.exists(prev) else []
+    out, kept = carry(old, out, start, lambda f: os.path.exists(os.path.join(OUT_DIR, os.path.basename(f["img"]))))
+    if kept: say("못 받은 달은 지난 프레임을 지켰다", kept)
     write("data/derived/s2_anchorage.json", {
         "_설명": "인천 앞바다 창(경위도 상자) — 달마다 가장 맑은 Sentinel-2 L2A 장면의 실제색 · 물 위 근적외선 밝은 덩어리 수(위성에 보인 배 어림).",
         "source": "Copernicus Sentinel-2 L2A(AWS Open Data · sentinel-cogs) — Contains modified Copernicus Sentinel data", "tile": TILE.replace("/", ""), "aoi": AOI,
@@ -131,4 +156,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(selftest() if "--selftest" in sys.argv else main())
