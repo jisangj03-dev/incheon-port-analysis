@@ -104,7 +104,7 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await page.mouse.wheel(0, 1); await page.mouse.wheel(0, -1); // 좁은 화면은 만지면 움직인다
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 20_000 });
   const st = () => page.evaluate(() => ({ N: window.__fm.N, t: window.__fm.t, zoom: window.__fm.cam.zoom }));
-  await expect.poll(async () => (await st()).N, { message: "흐르는 점이 있다" }).toBeGreaterThan(50);
+  await expect.poll(async () => (await st()).N, { timeout: 25_000, message: "흐르는 점이 있다(CI 소프트웨어 렌더에서 점이 늦게 찬다 — 기본 5초를 25초로 · QA 290)" }).toBeGreaterThan(50);
   // 그림이 실제로 바뀐다(두 장면의 픽셀이 다르다) — CI(소프트웨어 렌더 · 병렬)에서는 화면 합성기가 수십 초 장면을 못 내 캡처가 시간 초과했다(QA 115·118).
   // 그래서 화면 캡처 대신 캔버스 픽셀을 직접 읽고, 지도 시계를 손으로 한 걸음 민다(그리기 함수는 실제 것 그대로).
   const px = () => page.evaluate(() => document.getElementById("fm").toDataURL());

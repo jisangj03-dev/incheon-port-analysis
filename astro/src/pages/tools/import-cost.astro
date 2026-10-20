@@ -6,10 +6,12 @@ import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
 import { u } from "../../lib/site";
 import { sourceLine } from "../../lib/sources";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 const D = JSON.parse(readFileSync(join(repoRoot(), "data/derived/import_cost.json"), "utf-8"));
+// 관세율표 스냅샷(있을 때만) — HS 코드 → 기본·WTO·FTA 세율 자동 채움(P1 ② · tools-build/tariff_fetch.py --build)
+const TC = existsSync(join(repoRoot(), "data/derived/tariff_codes.json")) ? JSON.parse(readFileSync(join(repoRoot(), "data/derived/tariff_codes.json"), "utf-8")) : null;
 const E = D.example, Wk = D.weeks as (string | number)[][];
 const day = (s: string) => `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
 const won = (v: number) => v.toLocaleString("ko-KR");
@@ -31,9 +33,9 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
   <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
     q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
     lead={`같은 1만 달러(CIF) 물건을 이번 주 관세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
-    updated={D.fetched} source={K ? `${sourceLine("kcs-exchange")} · ${sourceLine("kobc-kcci")}` : sourceLine("kcs-exchange")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
-    how="관세청 관세환율(수입 · 주마다 고시)을 받아, 과세가격 = CIF 가격 × 관세환율(원 단위 반올림) · 관세 = 과세가격 × 관세율 · 부가가치세 = (과세가격 + 관세) × 10% 로 계산했다(관세·부가세는 원 미만 버림). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
-    limits={`원가는 부가세를 뺀 값이다 — 수입 부가세는 사업자가 매입세액으로 공제받는다(간이과세·면세 사업자·개인 수입은 다르다). 통관 때 실제로 내는 돈은 「납부 합계」 줄이다. 개별소비세·교육세·주세·통관 수수료·FTA 협정세율·감면은 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. ${K ? "운임 파도(KCCI)는 지수(포인트)라 달러 운임이 아니다 — 운임 칸 제안은 지수 변동률만 곱한다. 마지막 반영 주는 원천의 마지막 주 그대로다. " : "운임지수는 아직 싣지 않았다(운임은 직접 넣는다). "}실제 납부액은 수입신고 때 세관이 정한다.`}>
+    updated={D.fetched} source={[sourceLine("kcs-exchange"), K && sourceLine("kobc-kcci"), TC && sourceLine("kcs-tariff")].filter(Boolean).join(" · ")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
+    how="적용 환율 = 수입신고일이 속한 주의 관세청 고시 관세환율(관세법 제18조 · 매주 고시 · 지난주 기준환율 평균). 과세가격 = CIF 가격 × 관세환율(원 미만 버림) · 관세 = 과세가격 × 관세율 · 개별소비세·주세 = (과세가격 + 관세) × 세율 · 교육세 = 개별소비세 × 30%(일부 15%) + 주세 × 10%(주세율 70% 초과 30%) · 농어촌특별세 = 개별소비세 × 세율 · 부가가치세 = (과세가격 + 관세 + 개별소비세 + 주세 + 교육세 + 농특세) × 10%. 세액마다 10원 미만 버림(국고금 관리법 제47조). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
+    limits={`원가는 부가세를 뺀 값이다 — 수입 부가세는 사업자가 매입세액으로 공제받는다(간이과세·면세 사업자·개인 수입은 다르다). 통관 때 실제로 내는 돈은 「납부 합계」 줄이다. 내국세(개별소비세·주세·교육세·농특세)는 대상 품목일 때만 세율을 넣는다 — 기본값 0(일반 공산품) · 맥주·탁주 같은 종량세 주류는 이 식 밖이다. ${TC ? "HS 코드를 넣으면 관세청 품목번호별 관세율표(유효분)에서 기본·WTO·FTA 세율을 찾아 낮은 쪽을 넣는다 — FTA 협정세율은 원산지증명이 있을 때만. 할당·조정·덤핑방지관세·감면은 넣지 않았다. " : "FTA 협정세율·감면·할당관세는 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. "}운임·보험료·국내 운송·통관비의 기본값은 0 이다 — 공공 기준값을 확인하지 못해 임의 값을 넣지 않았다(보험료는 보험증권, 통관 수수료는 관세사 견적을 넣는다). 끝수 규칙(과세가격 원 미만 · 세액 10원 미만 버림)은 법령 원문을 이 세션에서 열지 못해 검색으로 확인한 것이다. 관세사 실제 신고 건과 원 단위 대조는 아직 하지 않았다. ${K ? "운임 파도(KCCI)는 지수(포인트)라 달러 운임이 아니다 — 운임 칸 제안은 지수 변동률만 곱한다. 마지막 반영 주는 원천의 마지막 주 그대로다. " : "운임지수는 아직 싣지 않았다(운임은 직접 넣는다). "}실제 납부액은 수입신고 때 세관이 정한다.`}>
     <div slot="answer" class="cost">
       <p class="cost__big"><b id="cs-diff" data-og-num={`원가 차이 · 1만 달러 물건 · ${day(E.ago.week)} 주 대비`} class={E.diff > 0 ? "up" : "dn"}>{sign(E.diff)}{won(Math.abs(E.diff))}<small>원</small></b>
         <span>1만 달러 물건 원가 · <span id="cs-wk">{day(E.ago.week)}</span> 주 대비 이번 주</span></p>
@@ -59,8 +61,23 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
         <label>조건 <select name="incoterm"><option value="CIF">CIF(운임·보험 포함)</option><option value="FOB">FOB(운임·보험 따로)</option></select></label>
         <label>운임(같은 통화) <input name="freight" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
         <label>보험료(같은 통화) <input name="insurance" type="number" inputmode="decimal" min="0" step="any" value="0" /></label>
+        {TC && <div class="cost__hs">
+          <label>HS 코드(10자리) <input name="hs" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="예: 8471300000" autocomplete="off" /></label>
+          <label class="cost__co"><input name="co" type="checkbox" /> 원산지증명서 있음(FTA 협정세율 적용)</label>
+          <label>적용 세율 <select name="rate_pick" disabled><option>HS 코드를 넣으면 고를 수 있습니다</option></select></label>
+          <p class="s-cap cost__hs-note" id="cs-hs-note">관세청 품목번호별 관세율표({TC.asof.slice(0, 4)}-{TC.asof.slice(4, 6)}-{TC.asof.slice(6, 8)} 기준 유효분)에서 찾아 관세율 칸을 채웁니다.</p>
+        </div>}
         <label>관세율 % <input name="duty_pct" type="number" inputmode="decimal" min="0" max="1000" step="any" value={E.duty_pct} /></label>
         <label>국내 운송·통관비(원) <input name="inland" type="number" inputmode="numeric" min="0" step="1000" value="0" /></label>
+        <details class="cost__more"><summary>내국세 — 개별소비세·주세 대상 품목만</summary>
+          <div class="cost__more-g">
+            <label>개별소비세율 % <input name="excise_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="0" /></label>
+            <label>교육세율 %(개소세분) <input name="edu_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="30" /></label>
+            <label>농어촌특별세율 %(개소세분) <input name="rural_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="0" /></label>
+            <label>주세율 %(종가세 주류) <input name="liquor_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="0" /></label>
+            <label>교육세율 %(주세분) <input name="liquor_edu_pct" type="number" inputmode="decimal" min="0" max="100" step="any" value="10" /></label>
+          </div>
+        </details>
         <label class="cost__wk">견줄 주 <input name="wk" type="range" min="0" max={Wk.length - 1} value={iAgo} step="1" aria-label="견줄 주 고르기" /></label>
       </form>
       <table class="cost__tbl" aria-live="polite">
@@ -80,6 +97,7 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
       <p class="s-cap wave__note" id="wave-note"><b>지수는 달러 운임이 아닙니다.</b> 제안은 견줄 주 → 마지막 반영 주의 지수 변동률을 지금 운임 칸 값에 곱한 것뿐입니다. 출처 한국해양진흥공사 KCCI(공공데이터포털) · {K.first_week}~{K.last_week} 주간.</p>
     </section>}
   </ToolShell>
+  <span id="cs-tariff-base" hidden data-u={u("/data/tariff/")}></span>
   <script type="application/json" id="cs-kcci" set:html={JSON.stringify(K ? { routes: K.routes, names: K.names, weeks: K.weeks } : null)}></script>
   <script type="application/json" id="cs-data" set:html={JSON.stringify({ weeks: Wk, cur: D.currencies, iAgo, box: { VW, VH, P, lo, hi } })}></script>
   <script>
@@ -91,17 +109,53 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
     const X = (i: number) => B.P.l + (i / last) * (B.VW - B.P.l - B.P.r), Y = (v: number) => B.P.t + (1 - (v - B.lo) / (B.hi - B.lo)) * (B.VH - B.P.t - B.P.b);
     const val = (n: string) => Number((f.elements.namedItem(n) as HTMLInputElement).value) || 0;
     const calc = (i: number) => { const ci = 1 + C.cur.indexOf((f.elements.namedItem("cur") as HTMLSelectElement).value);
-      return { fx: Number(W[i][ci]), ...landedCost({ goods: val("goods"), freight: val("freight"), insurance: val("insurance"), incoterm: (f.elements.namedItem("incoterm") as HTMLSelectElement).value as any, fx: Number(W[i][ci]), duty_pct: val("duty_pct"), inland_krw: val("inland") }) }; };
+      return { fx: Number(W[i][ci]), ...landedCost({ goods: val("goods"), freight: val("freight"), insurance: val("insurance"), incoterm: (f.elements.namedItem("incoterm") as HTMLSelectElement).value as any, fx: Number(W[i][ci]), duty_pct: val("duty_pct"), inland_krw: val("inland"),
+        excise_pct: val("excise_pct"), edu_pct: val("edu_pct"), rural_pct: val("rural_pct"), liquor_pct: val("liquor_pct"), liquor_edu_pct: val("liquor_edu_pct") }) }; };
     const render = (i: number) => {
       const a = calc(i), b = calc(last), d = b.cost - a.cost;
       $("cs-diff").innerHTML = `${d > 0 ? "+" : d < 0 ? "−" : ""}${won(Math.abs(d))}<small>원</small>`; $("cs-diff").className = d > 0 ? "up" : "dn";
       $("cs-wk").textContent = day(W[i][0]); $("cs-h-a").textContent = `${day(W[i][0])} 주`; $("cs-h-b").textContent = `${day(W[last][0])} 주`;
-      const rows: [string, number, number][] = [["관세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ["부가가치세", a.vat, b.vat], ["납부 합계(관세·부가세 포함)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
+      const inner: [string, number, number][] = ([["개별소비세", a.excise, b.excise], ["주세", a.liquor, b.liquor], ["교육세", a.edu, b.edu], ["농어촌특별세", a.rural, b.rural]] as [string, number, number][]).filter((r) => r[1] || r[2]);
+      const rows: [string, number, number][] = [["관세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ...inner, ["부가가치세", a.vat, b.vat], ["납부 합계(세금 포함)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
       $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("납부") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "관세환율" ? x : won(x)}</td><td>${k === "관세환율" ? y : won(y)}</td></tr>`).join("");
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
     };
     const wk = f.elements.namedItem("wk") as HTMLInputElement;
+    // HS 코드 → 관세율표(류별 파일 · 같은 사이트) — 기본(A)·WTO(C)는 낮은 쪽이 원칙(관세법 제50조) · FTA 협정세율은 원산지증명이 있을 때만 고를 수 있다
+    const hsIn = f.elements.namedItem("hs") as HTMLInputElement | null;
+    if (hsIn) {
+      const pick = f.elements.namedItem("rate_pick") as HTMLSelectElement, co = f.elements.namedItem("co") as HTMLInputElement, note = $("cs-hs-note");
+      const base = (document.getElementById("cs-tariff-base") as HTMLElement).dataset.u!;
+      const cache: Record<string, any> = {};
+      // 관세율구분 코드 → 읽을 이름 — 코드 끝의 나라 약어로 붙인다(관세청 원문 코드를 괄호에 같이 · FRC = RCEP · FCE = 한-중미 · FEF = EFTA · FAS = 아세안)
+      const CC: Record<string, string> = { US: "미국", CN: "중국", VN: "베트남", AU: "호주", CA: "캐나다", NZ: "뉴질랜드", PE: "페루", CL: "칠레", CO: "콜롬비아", TR: "튀르키예", IL: "이스라엘", KH: "캄보디아", PH: "필리핀", ID: "인도네시아", IN: "인도", SG: "싱가포르", JP: "일본", AS: "아세안", EU: "EU", GB: "영국", NI: "니카라과", PA: "파나마", CR: "코스타리카", HN: "온두라스", SV: "엘살바도르", EF: "EFTA" };
+      const ftaName = (k: string) => { const m = k.match(/^F(RC|CE|EF)?([A-Z]{2})?/); const grp = m?.[1] === "RC" ? "RCEP" : m?.[1] === "CE" ? "한-중미 FTA" : m?.[1] === "EF" ? "EFTA FTA" : "FTA"; const c = m?.[2] && CC[m[2]]; return `${grp}${c ? `·${c}` : ""}(${k})`; };
+      const fill = async () => {
+        const hs = hsIn.value.replace(/\D/g, "");
+        if (hs.length !== 10) return;
+        const ch = hs.slice(0, 2);
+        try { cache[ch] ??= await fetch(`${base}${ch}.json`).then((r) => (r.ok ? r.json() : {})); } catch { cache[ch] = {}; }
+        const R = cache[ch][hs];
+        if (!R) { pick.disabled = true; pick.innerHTML = "<option>관세율표에 없는 번호</option>"; note.textContent = `${hs} — 관세율표(유효분)에서 찾지 못했습니다. 관세율 칸에 직접 넣으세요.`; return; }
+        const pct = (v: any) => (typeof v === "number" ? `${v}%` : "종량세(계산 밖)");
+        const num = (v: any) => (typeof v === "number" ? v : Infinity);
+        const opts: [string, string, number][] = [];
+        if ("A" in R) opts.push(["A", `기본세율 ${pct(R.A)}`, num(R.A)]);
+        if ("C" in R) opts.push(["C", `WTO 협정세율 ${pct(R.C)}`, num(R.C)]);
+        const fta = Object.entries(R).filter(([k]) => k.startsWith("F")).sort((a, b) => num(a[1]) - num(b[1]));
+        for (const [k, v] of fta) opts.push([k, `${ftaName(k)} ${pct(v)}${co.checked ? "" : " — 원산지증명 필요"}`, num(v)]);
+        const ok = opts.filter(([k]) => !k.startsWith("F") || co.checked).filter((o) => isFinite(o[2]));
+        const best = ok.sort((a, b) => a[2] - b[2])[0];
+        pick.disabled = false;
+        pick.innerHTML = opts.map(([k, t, v]) => `<option value="${k}" data-v="${v}"${k.startsWith("F") && !co.checked ? " disabled" : ""}${best && k === best[0] ? " selected" : ""}>${t}</option>`).join("");
+        if (best) { (f.elements.namedItem("duty_pct") as HTMLInputElement).value = String(best[2]); }
+        note.textContent = `${hs} — ${best ? `가장 낮은 적용 가능 세율 ${best[2]}%(${best[0] === "A" ? "기본" : best[0] === "C" ? "WTO 협정" : `FTA ${best[0]}`})를 관세율 칸에 넣었습니다.` : "종가세 세율이 없습니다(종량세)."} 할당·조정·덤핑방지관세는 반영하지 않았습니다.`;
+        render(Number(wk.value));
+      };
+      hsIn.addEventListener("input", fill); co.addEventListener("change", fill);
+      pick.addEventListener("change", () => { const o = pick.selectedOptions[0]; if (o && isFinite(Number(o.dataset.v))) { (f.elements.namedItem("duty_pct") as HTMLInputElement).value = o.dataset.v!; render(Number(wk.value)); } });
+    }
     f.addEventListener("input", () => render(Number(wk.value)));
     // 3초 답 — 선이 그어지고, 점이 2024년 첫 주부터 52주 전 주까지 환율 파도를 탄다(원가 차이가 같이 바뀐다)
     const boot = () => {
@@ -161,13 +215,21 @@ const lastK = K ? K.weeks[K.weeks.length - 1] : null;
   .cost__form label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .cost__form label { min-width: 0; }
   .cost__form input, .cost__form select { width: 100%; min-width: 0; box-sizing: border-box; min-height: 44px; font: inherit; color: var(--s-ink); padding: 0 10px; border: 1px solid var(--s-rule); background: var(--s-paper); font-variant-numeric: tabular-nums; }
+  .cost__more { grid-column: 1 / -1; font-size: var(--s-t-cap); color: var(--s-ink-2); } .cost__more summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .cost__more-g { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); margin-top: var(--s-2); }
+  .cost__hs { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-3) var(--s-4); align-items: end; }
+  .cost__co { display: flex !important; align-items: center; gap: 8px; min-height: 44px; color: var(--s-ink-2) !important; } .cost__co input { width: auto !important; min-height: 0 !important; }
+  .cost__hs-note { grid-column: 1 / -1; margin: 0; }
+  @media (max-width: 820px) { .cost__hs { grid-template-columns: 1fr; } }
   .cost__wk { grid-column: 1 / -1; } .cost__wk input { padding: 0; accent-color: var(--s-signal); border: 0; }
   .cost__tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
-  .cost__tbl th, .cost__tbl td { padding: 8px 6px; border-bottom: 1px solid var(--s-rule); text-align: right; font-weight: 500; }
-  .cost__tbl th:first-child, .cost__tbl tbody th { text-align: left; color: var(--s-ink-2); }
+  /* [2026-10-15 P1 ②] 숫자를 열 머리와 같은 가운데에(시험 = 머리칸·숫자칸 가운데 x 차 ≤ 2px) · 자릿수는 tabular-nums 로 맞는다 */
+  /* 본문 줄은 스크립트가 그린다(innerHTML) — 범위 지정 CSS 가 닿지 않아 :global(2026-10-15 · 가운데 정렬이 안 먹었다) */
+  .cost__tbl th, .cost__tbl :global(td), .cost__tbl :global(tbody th) { padding: 8px 6px; border-bottom: 1px solid var(--s-rule); text-align: center; font-weight: 500; }
+  .cost__tbl th:first-child, .cost__tbl :global(tbody th) { text-align: left; color: var(--s-ink-2); }
   .cost__tbl thead th { font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .cost__tbl :global(tr.sum) td, .cost__tbl :global(tr.sum) th { font-weight: 700; color: var(--s-ink); border-bottom: 2px solid #191714; }
-  @media (max-width: 820px) { .cost__ctl { grid-template-columns: 1fr; } .cost__tbl { font-size: 14px; } .cost__tbl th, .cost__tbl td { padding: 7px 3px; } }
+  @media (max-width: 820px) { .cost__ctl { grid-template-columns: 1fr; } .cost__tbl { font-size: 14px; } .cost__tbl th, .cost__tbl :global(td), .cost__tbl :global(tbody th) { padding: 7px 3px; } .cost__more-g { grid-template-columns: 1fr; } }
   .wave { margin-top: var(--s-6); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); display: grid; gap: var(--s-3); }
   .wave h2 { margin: 0; font-size: 14px; } .wave__asof { color: var(--s-signal); } .wave__lag { color: var(--s-signal); }
   .wave__row { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
