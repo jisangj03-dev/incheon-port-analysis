@@ -458,12 +458,12 @@
     121.8,
     31.14
    ],
-   "imp_pct": 35.8,
-   "exp_pct": 31.1,
-   "imp_eok": 158.0,
-   "exp_eok": 229.0,
-   "imp_nat_pct": 23.9,
-   "exp_nat_pct": 23.2,
+   "imp_pct": 37.4,
+   "exp_pct": 29.9,
+   "imp_eok": 169.6,
+   "exp_eok": 239.5,
+   "imp_nat_pct": 25.1,
+   "exp_nat_pct": 22.5,
    "air_in_pct": 24.5,
    "air_out_pct": 11.6,
    "air_in_t": 184126,
@@ -727,16 +727,105 @@
     241.59,
     33.94
    ],
-   "imp_pct": 18.7,
-   "exp_pct": 23.1,
-   "imp_eok": 82.7,
-   "exp_eok": 169.9,
-   "imp_nat_pct": 12.5,
-   "exp_nat_pct": 17.2,
+   "imp_pct": 17.3,
+   "exp_pct": 24.3,
+   "imp_eok": 78.7,
+   "exp_eok": 194.3,
+   "imp_nat_pct": 11.6,
+   "exp_nat_pct": 18.3,
    "air_in_pct": 12.3,
    "air_out_pct": 28.7,
    "air_in_t": 92299,
    "air_out_t": 213205
+  },
+  {
+   "id": "TW",
+   "name": "대만",
+   "at": "가오슝",
+   "sea": [
+    [
+     120.289,
+     22.337
+    ],
+    [
+     120.141,
+     22.702
+    ],
+    [
+     120.061,
+     22.879
+    ],
+    [
+     120,
+     23.009
+    ],
+    [
+     120,
+     23.913
+    ],
+    [
+     120,
+     24.362
+    ],
+    [
+     120,
+     24.809
+    ],
+    [
+     120,
+     25.7
+    ],
+    [
+     121.3,
+     27.8
+    ],
+    [
+     122.212,
+     28.734
+    ],
+    [
+     122.875,
+     30.182
+    ],
+    [
+     122.678,
+     30.834
+    ],
+    [
+     122.9,
+     31.3
+    ],
+    [
+     125.6,
+     34.4
+    ],
+    [
+     125.5,
+     36
+    ],
+    [
+     125.5,
+     37.4
+    ],
+    [
+     126.074,
+     37.526
+    ]
+   ],
+   "air": [
+    121.23,
+    25.08
+   ],
+   "imp_pct": 10.3,
+   "exp_pct": 9.3,
+   "imp_eok": 47.0,
+   "exp_eok": 74.6,
+   "imp_nat_pct": 6.9,
+   "exp_nat_pct": 7.0,
+   "air_in_pct": 2.1,
+   "air_out_pct": 3.1,
+   "air_in_t": 16045,
+   "air_out_t": 23083
   },
   {
    "id": "VN",
@@ -828,105 +917,16 @@
     106.66,
     10.82
    ],
-   "imp_pct": 8.1,
-   "exp_pct": 12.7,
-   "imp_eok": 36.0,
-   "exp_eok": 93.5,
-   "imp_nat_pct": 5.4,
-   "exp_nat_pct": 9.5,
+   "imp_pct": 7.9,
+   "exp_pct": 11.3,
+   "imp_eok": 36.1,
+   "exp_eok": 90.7,
+   "imp_nat_pct": 5.3,
+   "exp_nat_pct": 8.5,
    "air_in_pct": 6.9,
    "air_out_pct": 7.0,
    "air_in_t": 51673,
    "air_out_t": 51769
-  },
-  {
-   "id": "TW",
-   "name": "대만",
-   "at": "가오슝",
-   "sea": [
-    [
-     120.289,
-     22.337
-    ],
-    [
-     120.141,
-     22.702
-    ],
-    [
-     120.061,
-     22.879
-    ],
-    [
-     120,
-     23.009
-    ],
-    [
-     120,
-     23.913
-    ],
-    [
-     120,
-     24.362
-    ],
-    [
-     120,
-     24.809
-    ],
-    [
-     120,
-     25.7
-    ],
-    [
-     121.3,
-     27.8
-    ],
-    [
-     122.212,
-     28.734
-    ],
-    [
-     122.875,
-     30.182
-    ],
-    [
-     122.678,
-     30.834
-    ],
-    [
-     122.9,
-     31.3
-    ],
-    [
-     125.6,
-     34.4
-    ],
-    [
-     125.5,
-     36
-    ],
-    [
-     125.5,
-     37.4
-    ],
-    [
-     126.074,
-     37.526
-    ]
-   ],
-   "air": [
-    121.23,
-    25.08
-   ],
-   "imp_pct": 10.2,
-   "exp_pct": 8.3,
-   "imp_eok": 45.2,
-   "exp_eok": 60.8,
-   "imp_nat_pct": 6.9,
-   "exp_nat_pct": 6.1,
-   "air_in_pct": 2.1,
-   "air_out_pct": 3.1,
-   "air_in_t": 16045,
-   "air_out_t": 23083
   },
   {
    "id": "JP",
@@ -1059,11 +1059,11 @@
     35.77
    ],
    "imp_pct": 10.9,
-   "exp_pct": 3.7,
-   "imp_eok": 48.3,
-   "exp_eok": 27.2,
+   "exp_pct": 3.6,
+   "imp_eok": 49.6,
+   "exp_eok": 28.8,
    "imp_nat_pct": 7.3,
-   "exp_nat_pct": 2.8,
+   "exp_nat_pct": 2.7,
    "air_in_pct": 9.1,
    "air_out_pct": 10.0,
    "air_in_t": 68466,
@@ -1151,12 +1151,12 @@
     113.92,
     22.31
    ],
-   "imp_pct": 0.4,
-   "exp_pct": 10.6,
-   "imp_eok": 1.7,
-   "exp_eok": 78.0,
-   "imp_nat_pct": 0.3,
-   "exp_nat_pct": 7.9,
+   "imp_pct": 0.6,
+   "exp_pct": 10.9,
+   "imp_eok": 2.7,
+   "exp_eok": 87.2,
+   "imp_nat_pct": 0.4,
+   "exp_nat_pct": 8.2,
    "air_in_pct": 10.0,
    "air_out_pct": 5.2,
    "air_in_t": 75077,
@@ -1304,12 +1304,12 @@
     151.18,
     -33.94
    ],
-   "imp_pct": 7.0,
-   "exp_pct": 2.6,
-   "imp_eok": 30.9,
-   "exp_eok": 18.9,
-   "imp_nat_pct": 4.7,
-   "exp_nat_pct": 1.9,
+   "imp_pct": 6.9,
+   "exp_pct": 2.7,
+   "imp_eok": 31.1,
+   "exp_eok": 21.6,
+   "imp_nat_pct": 4.6,
+   "exp_nat_pct": 2.0,
    "air_in_pct": 0.3,
    "air_out_pct": 0.9,
    "air_in_t": 2148,
@@ -1413,12 +1413,12 @@
     103.99,
     1.36
    ],
-   "imp_pct": 3.0,
-   "exp_pct": 3.3,
-   "imp_eok": 13.4,
-   "exp_eok": 24.6,
-   "imp_nat_pct": 2.0,
-   "exp_nat_pct": 2.5,
+   "imp_pct": 2.9,
+   "exp_pct": 3.6,
+   "imp_eok": 13.1,
+   "exp_eok": 29.0,
+   "imp_nat_pct": 1.9,
+   "exp_nat_pct": 2.7,
    "air_in_pct": 3.1,
    "air_out_pct": 3.5,
    "air_in_t": 23200,
@@ -2067,9 +2067,9 @@
     50.03
    ],
    "imp_pct": 4.3,
-   "exp_pct": 1.3,
-   "imp_eok": 19.2,
-   "exp_eok": 9.3,
+   "exp_pct": 1.2,
+   "imp_eok": 19.6,
+   "exp_eok": 9.7,
    "imp_nat_pct": 2.9,
    "exp_nat_pct": 0.9,
    "air_in_pct": 5.3,
@@ -2231,12 +2231,12 @@
     72.87,
     19.09
    ],
-   "imp_pct": 1.5,
-   "exp_pct": 3.4,
-   "imp_eok": 6.4,
-   "exp_eok": 24.7,
+   "imp_pct": 1.4,
+   "exp_pct": 3.1,
+   "imp_eok": 6.6,
+   "exp_eok": 25.0,
    "imp_nat_pct": 1.0,
-   "exp_nat_pct": 2.5,
+   "exp_nat_pct": 2.4,
    "air_in_pct": 0.3,
    "air_out_pct": 0.5,
    "air_in_t": 2255,
@@ -2245,7 +2245,8 @@
  ],
  "partner_months": [
   "2026-07",
-  "2026-08"
+  "2026-08",
+  "2026-09"
  ],
  "sea_gates": [
   {
