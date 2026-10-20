@@ -33,20 +33,28 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   {/* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) */}
   <div class="live__hero">
   <div class="live__text">
-    <p class="s-cap live__who">{PF.name} · SCM 작업실</p>
+    {/* [2026-10-21 Claude Design 시안 2회차 채택분] 위계 = 출처 한 줄 → 질문 → 답(제목) → 기준 한 줄 → 작은 지표 둘 + 관문별 막대 → 지도가 무엇인지 → 행동 둘.
+        큰 숫자는 답의 50.5% 하나 — 1,165.0억(수출입 합)이 같은 크기로 경쟁했다(12차 화면 판정 경미 2). 시안의 방위 도법 지도·「관문 원」(공항·항만 합침)은 안 받았다(작업기록 10-21). */}
+    <p class="s-cap live__who">{PF.name} · SCM 작업실 · 관세청 항구·공항별 수출입 {L.ym}</p>
+    <p class="live__ask">한국으로 들어오는 수입품은 어느 관문을 지날까?</p>
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
-    <p class="s-lead s-prose live__one">{L.ym} 금액 · 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 통계의 전국 합계).</span></p>
-    <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
-      <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · 관문별로 나누면</span>
+    <p class="live__one">{L.ym} 금액 · 입·출항지 기준 · 인천공항 + 인천항 ÷ 같은 달 전국(수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러)</p>
+    <div class="live__stat" id="fm-hud" aria-live="off">
+      <dl class="live__kpi">
+        <div><dt>수출 중 인천 몫</dt><dd><b>{L.exp_share_pct}%</b></dd></div>
+        <div><dt><span id="fm-ym">{L.ym}</span> 인천 관문 수출입</dt><dd><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span></dd></div>
+      </dl>
+      <p class="live__sub">관문별로 나누면</p>
       {/* [2026-10-21 채팅 검수 ① · 채점표 D1] 답(공항+항만 금액)과 지도(공항 항공화물 무게)가 갈려 「50.5%가 다 비행기로?」로 읽혔다 → 금액을 관문별로 갈라 첫 화면에 둔다 */}
       {[["수입", "fm-imp", L.imp_total, L.air_imp, L.port_imp], ["수출", "fm-exp", L.exp_total, L.air_exp, L.port_exp]].map(([k, id, t, a, sp]: any) => { const ap = Math.round((a / t) * 100); return (
-        <span class="live__split" aria-label={`${k} ${fmt(t)}억 달러 가운데 인천공항 ${fmt(a)}(${ap}%) · 인천항 ${fmt(sp)}(${100 - ap}%)`}>
+        <p class="live__split" aria-label={`${k} ${fmt(t)}억 달러 가운데 인천공항 ${fmt(a)}(${ap}%) · 인천항 ${fmt(sp)}(${100 - ap}%)`}>
           <span class="live__sk">{k} <b id={id}>{fmt(t)}</b></span>
           <span class="live__bar" aria-hidden="true"><i class="air" style={`width:${ap}%`}></i><i class="sea"></i></span>
           <span class="live__sv" aria-hidden="true">하늘 {ap}% · 바다 {100 - ap}%</span>
-        </span>); })}
+        </p>); })}
       {/* [2026-10-21 11차 화면 판정 H4] 390 에서 범례(지도 아래)가 접힘선 밑 — 지도가 무엇인지는 글 기둥에서 먼저 말한다 */}
-      <span class="live__mapis"><span class="lg-d">오른쪽</span><span class="lg-m">아래</span> 지도는 하늘 쪽만 그립니다 — 인천공항을 오간 나라별 항공화물 <b>무게</b>(톤 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""} · 위 금액과 단위·기간이 다름)</span></p>
+      <p class="live__mapis"><span class="lg-d">오른쪽</span><span class="lg-m">아래</span> 지도는 하늘 쪽만 그립니다 — 인천공항을 오간 나라별 항공화물 <b>무게</b>(톤 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""} · 위 금액과 단위·기간이 다름)</p>
+    </div>
     <div class="live__cta">
       <a class="s-btn live__q" href="#questions">같이 푸는 질문 보기</a>
       {hasMail && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
@@ -353,9 +361,14 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__hero { position: relative; }
   .live__text { position: relative; z-index: 3; }
   .live__text h1 { font-size: clamp(30px, 3.3vw, 58px); line-height: 1.16; margin: var(--s-2) 0 var(--s-3); text-wrap: balance; }
-  .live__one { margin: 0; max-width: 34em; }
-  .live__stat { margin: var(--s-5) 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
-  .live__stat > b { font-size: clamp(34px, 3.2vw, 52px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .live__one { margin: 0; max-width: 40em; font-size: 14px; color: var(--s-ink-3); }
+  .live__ask { margin: var(--s-2) 0 0; font-size: 16px; color: var(--s-ink-2); }
+  .live__stat { margin: var(--s-4) 0 0; font-variant-numeric: tabular-nums; }
+  .live__stat p { margin: 0; }
+  .live__kpi { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin: 0 0 var(--s-3); padding-top: var(--s-3); border-top: 1px solid var(--s-rule); }
+  .live__kpi dt { font-size: 13px; color: var(--s-ink-3); }
+  .live__kpi dd { margin: 2px 0 0; display: flex; align-items: baseline; gap: 4px; }
+  .live__kpi b { font-size: clamp(22px, 1.9vw, 30px); font-weight: 650; letter-spacing: -0.01em; line-height: 1.1; }
   .live__unit { font-size: 14px; color: var(--s-ink-2); }
   .live__sub { flex-basis: 100%; font-size: 14px; color: var(--s-ink-2); margin-top: 6px; }
   .live__sub b { color: var(--s-ink); font-weight: 600; }
@@ -391,7 +404,6 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
 
   /* 지도 칸 안 — 범례 한 줄(아래) · 보기 단추(아래) · 흐름 멈춤(오른쪽 위 구석) */
   .live__labels :global(.fm-lb--edge) { font-size: 12.5px; color: var(--s-ink-2); font-weight: 600; }
-  .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
   .live__legend { position: absolute; left: 16px; bottom: 66px; max-width: calc(100% - 32px); z-index: 3; margin: 0; font-size: 12.5px; color: var(--s-ink-2); pointer-events: none;
     background: rgb(245 242 235 / 0.92); padding: 3px 8px; border-radius: 2px; }
   .live__ctl { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 3; display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
@@ -439,16 +451,16 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     /* 좁은 화면 — 글이 위, 지도는 그 아래 전폭(인천이 첫 화면 안에 들게 지도 높이를 창의 절반 남짓으로) */
     .live__text { padding: var(--s-4) var(--s-gutter) var(--s-4); }
     .live__text h1 { font-size: clamp(28px, 7.6vw, 40px); }
-    .live__one { font-size: 15.5px; line-height: 1.55; }
+    .live__one { font-size: 13px; line-height: 1.5; }
+    .live__ask { font-size: 14.5px; }
     .live__stat { margin-top: var(--s-3); }
-    .live__stat > b { font-size: 30px; }
+    .live__kpi b { font-size: 22px; }
     .live__sub { font-size: 13px; }
     .live__split { font-size: 13px; grid-template-columns: 6.6em minmax(40px, 1fr) auto; gap: 8px; }
     .live__cta { margin-top: var(--s-4); gap: 8px; }
     .live__cta .s-btn { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
     .live__stage { height: clamp(380px, 58svh, 620px); }
     .live__labels :global(.fm-lb--edge) { font-size: 12.5px; color: var(--s-ink-2); font-weight: 600; }
-  .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
   .live__legend { bottom: 64px; font-size: 12px; }
     .live__ctl { gap: 6px; }
     .live__ctl .s-btn { padding: 0 10px; font-size: 13px; }

@@ -8,20 +8,42 @@ import { room } from "../../lib/rooms";
 import { u } from "../../lib/site";
 import { answers } from "../../lib/answers";
 const R = room("tools"), S = room("sim"), A = answers();
+// [2026-10-21 Claude Design 시안 2회차 채택분] 표 한 줄 = 그림 · 질문 · 지금 답 · 기준 · 누구에게 — 기준이 최신인 도구가 위(기준 없는 도구는 끝) · 직무로 거르기.
+// 시안의 숫자(−96.5% · 523척 등)는 옛 값이라 쓰지 않는다 — 숫자·막대는 전부 lib/answers.ts(도구 지면과 같은 파생 파일).
+const ROWS = [...(R.items || [])].map((r: any) => ({ r, a: A[r.href] })).sort((x, y) => (y.a?.asof ?? "").localeCompare(x.a?.asof ?? ""));
+// 직무 칩 — 「누구에게」 낱말이 열둘이라 칩이 두 줄로 넘쳤다(다섯 도구에 열두 칩) → 실무 묶음 셋으로. 줄의 「누구에게」 글은 그대로 보인다.
+const GROUPS: [string, string[]][] = [["화주 · 셀러", ["수입 담당", "수출입 담당", "구매", "셀러", "MD", "영업"]], ["물류 · 포워딩", ["3PL", "풀필먼트", "포워더"]], ["해운 · 항만", ["선사", "터미널", "항만"]]];
+const who = (r: any) => { const w = String(r.who || "").split("·").map((x) => x.trim()); return GROUPS.filter(([, ks]) => ks.some((k) => w.includes(k))).map(([g]) => g); };
+const ROLES = GROUPS.map(([g]) => g).filter((g) => ROWS.some(({ r }) => who(r).includes(g)));
+const nf = (v: number) => v.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
 import AiMark from "../../components/scene/AiMark.astro";
 ---
 <Studio ask={false} title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
   <article class="s-wrap hub" data-content="tools">
-    <h1 class="s-prose">{R.title}</h1>
-    <p class="s-lead s-prose">{R.lead}</p>
+    <div class="hub__head">
+      <div>
+        <h1 class="s-prose">어떤 질문을 풀고 계세요?</h1>
+        <p class="s-lead s-prose">질문마다 지금의 답부터 보입니다. 숫자는 공개 1차 데이터에서 읽었고, 기준이 최신인 도구가 위에 옵니다.</p>
+      </div>
+      <div class="chips" role="group" aria-label="직무로 거르기" hidden>
+        <button type="button" class="chip" aria-pressed="true" data-role="">전체</button>
+        {ROLES.map((x) => <button type="button" class="chip" aria-pressed="false" data-role={x}>{x}</button>)}
+      </div>
+    </div>
+    <div class="tl__hd s-cap" aria-hidden="true"><span>그림</span><span>질문</span><span>지금 답</span><span>기준</span><span>누구에게</span></div>
     {/* 도구마다 지금의 답(4차 화면 판정 Q1 — 질문만 여섯 줄이었다) · 숫자는 그 도구가 읽는 파생 파일에서 */}
     <ol class="tl">
-      {(R.items || []).map((r: any) => { const a = A[r.href]; return <li><a href={u(r.href)}>
-        <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}</> : null}</span>
-        <span class="tl__body"><span class="s-cap">{r.who}</span><h2 class="tl__q">{r.q || r.title}</h2>{a && <span class="tl__a">{a.text}</span>}{a?.src && <span class="tl__src s-cap">출처 · {a.src}</span>}</span>
+      {ROWS.map(({ r, a }) => { const mx = Math.max(...(a?.bars || []).map((b) => b.v), 1); return <li data-who={who(r).join("|")}><a href={u(r.href)}>
+        <span class="tl__fig" aria-hidden="true">{(a?.bars || []).map((b) => <span class="mb"><i class={b.hi ? "hi" : ""} style={`width:${Math.max(1.5, (b.v / mx) * 100)}%`}></i><em>{b.label} {nf(b.v)}{a?.barUnit ?? ""}</em></span>)}</span>
+        <span class="tl__body"><span class="s-cap">{r.title}</span><h2 class="tl__q">{r.q || r.title}</h2></span>
+        <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}<span class="tl__a">{a.text}</span></> : null}</span>
+        <span class="tl__basis">{a?.basis && <span>{a.basis}</span>}{a?.src && <span class="tl__src s-cap">출처 · {a.src}</span>}</span>
+        <span class="tl__who">{r.who}</span>
+        <span class="tl__go" aria-hidden="true">→</span>
       </a></li>; })}
     </ol>
-    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>모든 도구는 공개 1차 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)로 움직이고(배송 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 지면마다 원문·CSV·갱신일을 붙인다. 숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 계산은 참고용이며 자문이 아니다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
+    <p class="tl__none s-cap" hidden>이 직무로 고른 도구가 아직 없습니다.</p>
+    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>모든 도구는 공개 1차 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)로 움직이고(배송 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 지면마다 원문·CSV·갱신일을 붙인다. 숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 그림 칸의 막대는 그 줄 숫자의 두 값을 0에서부터 같은 눈금으로 그린 것이다. 계산은 참고용이며 자문이 아니다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
     <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
       <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
@@ -29,22 +51,67 @@ import AiMark from "../../components/scene/AiMark.astro";
     <AiMark /> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>
 </Studio>
+<script>
+  /* 직무 칩 — 스크립트가 있을 때만 보인다(없으면 다섯 줄 그대로). 고른 직무가 「누구에게」에 든 줄만 남긴다. */
+  const box = document.querySelector(".chips") as HTMLElement | null, rows = [...document.querySelectorAll<HTMLLIElement>(".tl > li")], none = document.querySelector(".tl__none") as HTMLElement;
+  if (box) {
+    box.hidden = false;
+    box.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest("button"); if (!b) return;
+      const role = b.dataset.role || "";
+      box.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      let n = 0; for (const li of rows) { const on = !role || (li.dataset.who || "").split("|").includes(role); li.hidden = !on; if (on) n++; }
+      none.hidden = n > 0;
+    });
+  }
+</script>
 <style>
   .hub { padding-top: var(--s-8); padding-bottom: var(--s-6); }
-  .hub h1 { margin: var(--s-3) 0 var(--s-4); }
-  .tl { list-style: none; margin: var(--s-6) 0 0; padding: 0; border-top: 1px solid var(--s-rule); }
+  .hub__head { display: grid; gap: var(--s-4); align-items: end; }
+  .hub h1 { margin: var(--s-3) 0 var(--s-3); font-size: clamp(30px, 3vw, 46px); max-width: none; }
+  .hub__head .s-lead { margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { min-height: 44px; padding: 0 14px; border: 1px solid var(--s-rule); border-radius: 22px; background: var(--s-paper); color: var(--s-ink); font: 500 14px/1 var(--s-font); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--s-ink); color: var(--s-paper); border-color: var(--s-ink); }
+  .chip:focus-visible { outline: 2px solid var(--s-signal); outline-offset: 2px; }
+  .tl__hd { display: none; }
+  .tl { list-style: none; margin: var(--s-5) 0 0; padding: 0; border-top: 1px solid var(--s-ink); }
   .tl li { border-bottom: 1px solid var(--s-rule); }
-  .tl a { display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; color: inherit; text-decoration: none; }
+  .tl a { display: grid; grid-template-columns: 1fr; gap: var(--s-2); padding: var(--s-4) 0; color: inherit; text-decoration: none; }
   .tl a:hover .tl__q, .tl a:focus-visible .tl__q { text-decoration: underline; }
-  .tl__num b { font: 600 clamp(30px, 3.6vw, 44px)/1 var(--s-font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tl__fig { display: grid; gap: 5px; align-content: center; max-width: 13rem; }
+  .mb { display: grid; gap: 1px; }
+  .mb i { display: block; height: 7px; background: var(--s-ink-3); }
+  .mb i.hi { background: var(--s-ink); }
+  .mb em { font-style: normal; font-size: 11.5px; color: var(--s-ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .tl__body { display: grid; gap: 2px; min-width: 0; }
+  .tl__q { font-size: var(--s-t-h3); font-weight: 600; line-height: 1.35; color: var(--s-ink); margin: 0; text-wrap: balance; }
+  .tl__num { display: block; min-width: 0; }
+  .tl__num b { font: 650 clamp(28px, 2.6vw, 36px)/1 var(--s-font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
   .tl__num small { font-size: 15px; margin-left: 2px; color: var(--s-ink-2); }
-  .tl__body { display: grid; gap: 4px; min-width: 0; }
-  .tl__q { font-size: var(--s-t-h3); font-weight: 600; line-height: 1.35; color: var(--s-ink); margin: 0; }
-  .tl__a { color: var(--s-ink-2); }
+  .tl__a { display: block; margin-top: 6px; font-size: 13.5px; color: var(--s-ink-2); line-height: 1.45; }
+  .tl__basis { display: grid; gap: 2px; font-size: 13.5px; color: var(--s-ink-2); align-content: start; }
   .tl__src { color: var(--s-ink-3); }
-  .tl__terms { margin-top: var(--s-4); } .tl__terms summary { cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; }
-  @media (max-width: 560px) { .tl a { grid-template-columns: 1fr; gap: var(--s-2); } }
-  .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
+  .tl__who { font-size: 13.5px; color: var(--s-ink-2); }
+  .tl__go { display: none; }
+  .tl__terms { margin-top: var(--s-4); } .tl__terms summary { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
+  @media (min-width: 1000px) {
+    .hub__head { grid-template-columns: minmax(0, 1fr) auto; }
+    .chips { justify-content: flex-end; max-width: 34rem; }
+    .tl__hd, .tl a { display: grid; grid-template-columns: 9.5rem minmax(0, 2.5fr) minmax(0, 1.7fr) minmax(0, 1.1fr) minmax(0, 0.85fr) 1.5rem; gap: var(--s-5); }
+    .tl__q { font-size: 20px; }
+    .tl__hd { margin-top: var(--s-6); padding-bottom: 6px; color: var(--s-ink-3); }
+    .tl { margin-top: 0; }
+    .tl a { align-items: start; padding: var(--s-5) 0; }
+    .tl__go { display: block; font-size: 18px; color: var(--s-ink-2); align-self: center; }
+  }
+  @media (max-width: 999px) {
+    .tl a { grid-template-columns: 1fr; }
+    .tl__fig { max-width: 16rem; order: 3; }
+    .tl__who::before { content: "누구에게 · "; color: var(--s-ink-3); }
+  }
+  .aux h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; margin: 0; }
+  .hub :global(.s-aimark) { margin-top: var(--s-6); }
   .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
   .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }
   .aux a { min-height: 44px; display: inline-flex; align-items: center; }
