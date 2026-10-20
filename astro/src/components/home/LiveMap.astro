@@ -421,6 +421,13 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__frame { grid-column: 6 / -1; height: 100%; }
     .live__stage { height: 100%; }
   }
+  @media (min-width: 900px) and (max-height: 760px) {
+    /* 낮은 노트북 창(1536×640 등) — 관문별 막대 두 줄이 들어오며 글 기둥이 칸보다 길어져 지도 단추가 접힘선 밑으로 밀렸다(hero 시험) → 글 사이만 줄인다 */
+    .live__text { padding: var(--s-3) 0; }
+    .live__text h1 { margin: var(--s-1, 4px) 0 var(--s-2); }
+    .live__stat, .live__cta { margin-top: var(--s-3); }
+    .live__split { margin-top: 2px; }
+  }
   @media (max-width: 899px) {
     /* 좁은 화면 — 글이 위, 지도는 그 아래 전폭(인천이 첫 화면 안에 들게 지도 높이를 창의 절반 남짓으로) */
     .live__text { padding: var(--s-4) var(--s-gutter) var(--s-4); }
