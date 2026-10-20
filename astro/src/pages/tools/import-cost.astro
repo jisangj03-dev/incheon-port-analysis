@@ -29,7 +29,7 @@ const kLine = (ci: number) => { if (!K) return ""; const v = K.weeks.map((w: any
   return K.weeks.map((w: any[], i: number) => `${i ? "L" : "M"}${((i / (K.weeks.length - 1)) * 1000).toFixed(1)} ${(8 + (1 - (Number(w[ci + 1]) - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""); };
 const lastK = K ? K.weeks[K.weeks.length - 1] : null;
 ---
-<Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 관세환율(주간)로 같은 물건의 수입 원가(과세가격·관세·부가세)를 주마다 다시 계산한다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
+<Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 관세환율(주간)과 품목번호별 관세율표로 같은 물건의 수입 원가(과세가격·관세·내국세·부가세)를 주마다 다시 계산한다 — HS 코드를 넣으면 관세율이 채워진다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
   <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
     q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
     lead={`같은 1만 달러(CIF) 물건을 이번 주 관세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}

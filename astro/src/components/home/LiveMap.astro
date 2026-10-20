@@ -106,13 +106,21 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     const el = document.createElement("span"); el.className = `fm-lb ${cls}`; el.dataset.label = ""; el.innerHTML = html; $("fm-labels").append(el);
     LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8 });
   };
-  // 글자·숫자판·단추 자리(이름표가 피한다) — 화면 크기가 바뀔 때만 다시 잰다(매 장면 재면 배치 계산이 장면마다 돈다)
+  // 글자·숫자판·단추 자리(이름표가 피한다) — 화면 크기·글꼴·글 블록 크기가 바뀔 때만 다시 잰다(매 장면 재면 배치 계산이 장면마다 돈다)
+  // [2026-10-20 #67 · 1568×709 검수] 글 블록은 문단마다가 아니라 한 덩어리(합친 상자 + 여백 14px)로 피한다 — 문단 틈에 이름표가 앉으면 본문과 겹쳐 보였다.
+  //   글꼴이 늦게 오면 글이 다시 흐르는데 처음 잰 상자를 계속 썼다 → 글꼴 준비·글 블록 크기 변화 때도 다시 잰다
   let fixed: number[][] | null = null;
   const fixedBoxes = (H: number) => {
-    const sr = stage.getBoundingClientRect();
-    return [...document.querySelectorAll<HTMLElement>(".live__text > *, .live__hud > *, .live__ctl")].map((e) => { const r = e.getBoundingClientRect(); return [r.left - sr.left - 6, r.top - sr.top - 4, r.right - sr.left + 6, r.bottom - sr.top + 4]; }).filter((b) => b[3] > 0 && b[1] < H);
+    const sr = stage.getBoundingClientRect(), box = (r: DOMRect, p: number, q: number) => [r.left - sr.left - p, r.top - sr.top - q, r.right - sr.left + p, r.bottom - sr.top + q];
+    const txt = [...document.querySelectorAll<HTMLElement>(".live__text > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width && r.height);
+    const out = [...document.querySelectorAll<HTMLElement>(".live__hud > *, .live__ctl")].map((e) => box(e.getBoundingClientRect(), 6, 4));
+    if (txt.length) out.push(box(new DOMRect(Math.min(...txt.map((r) => r.left)), Math.min(...txt.map((r) => r.top)), Math.max(...txt.map((r) => r.right)) - Math.min(...txt.map((r) => r.left)), Math.max(...txt.map((r) => r.bottom)) - Math.min(...txt.map((r) => r.top))), 14, 14));
+    return out.filter((b) => b[3] > 0 && b[1] < H);
   };
-  addEventListener("resize", () => { fixed = null; for (const l of LBS) l.w = 0; });
+  const refit = () => { fixed = null; for (const l of LBS) l.w = 0; };
+  addEventListener("resize", refit);
+  document.fonts?.ready.then(refit);
+  { const tx = document.querySelector(".live__text"); if (tx && "ResizeObserver" in window) new ResizeObserver(refit).observe(tx); }
   const place = (f: FlowMap) => {
     const near = f.cam.zoom > 6.2, W = f.W, H = f.H;
     const taken: number[][] = [...(fixed ??= fixedBoxes(H))];
@@ -155,9 +163,9 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     mk(`<b class="s-signal">인천</b><i>공항 + 항만</i>`, F.air_gate.lon, F.air_gate.lat, 1000, false, "fm-lb--gate");
     mk(`<b class="s-signal">인천공항</b><i>하늘 관문</i>`, F.air_gate.lon, F.air_gate.lat, 1000, true, "fm-lb--gate");
     for (const g of F.sea_gates) mk(`<b class="s-signal">${g.id}</b>`, g.lon, g.lat, 900 - g.lon, true, "fm-lb--gate");
-    // 목적지 — 수도권 층이 있으면 그 목적지(경기 밀집지 여섯은 몫이 가정이라 개소를 적지 않는다) · 거점 · 고속도로 이름
+    // 목적지 — 수도권 층이 있으면 그 목적지(경기 밀집지 여섯은 비중이 추정이라 개소를 적지 않는다 · 「몫 가정」은 뜻이 안 읽혀 「비중 추정」 · #67) · 거점 · 고속도로 이름
     const S = D.sudo;
-    for (const d of S?.dests ?? F.dests) mk(`<b>${d.id === "서울특별시" ? "서울" : d.id}</b><i>${String(d.basis || "").startsWith("가정") ? "경기 물류 밀집지 · 몫 가정" : `창고 ${d.n.toLocaleString("ko-KR")}곳`}</i>`, d.lon, d.lat, d.n, true);
+    for (const d of S?.dests ?? F.dests) mk(`<b>${d.id === "서울특별시" ? "서울" : d.id}</b><i>${String(d.basis || "").startsWith("가정") ? "경기 물류 밀집지 · 비중 추정" : `창고 ${d.n.toLocaleString("ko-KR")}곳`}</i>`, d.lon, d.lat, d.n, true);
     for (const h of S?.hubs ?? []) mk(`<b>${h.id}</b><i>${h.note}</i>`, h.lon, h.lat, 60, true, "fm-lb--hub");
     for (const l of S?.labels ?? []) mk(`<b>${l.id}</b>`, l.lon, l.lat, 40, true, "fm-lb--hw");
     fm.views = views; (window as any).__fm = fm;
@@ -328,6 +336,9 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live > .live__text, .live > .live__frame { grid-row: 1; grid-column: 1; }
     .live > .live__foot { grid-row: 2; grid-column: 1; }
     .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 192px) + 30px); }
+    /* [#67 · 1568×709 검수] 글·단추 밑으로 고속도로 선·점이 진하게 지나가 겹쳐 보였다 — 글 블록 자리만 바탕색으로 옅게 가린다(숫자판 자리는 빼고) */
+    .live__text > * { background: rgb(245 242 235 / 0.62); box-shadow: 0 0 34px 26px rgb(245 242 235 / 0.62); }
+    .live__cta :global(.s-btn--ghost), .live__q { background: rgb(245 242 235 / 0.94); }
     .live__frame { display: flex; flex-direction: column; }
     .live__stage { flex: 1 0 auto; height: auto; min-height: clamp(560px, calc(100svh - 92px), 980px); }
   }
