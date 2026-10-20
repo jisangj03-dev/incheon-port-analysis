@@ -99,8 +99,12 @@ def main():
     gates = [{"id": g["id"], "lon": g["lon"], "lat": g["lat"]} for g in F["sea_gates"]] + [{"id": F["air_gate"]["id"], "lon": F["air_gate"]["lon"], "lat": F["air_gate"]["lat"]}]
     gg = next(d for d in F["dests"] if d["id"] == "경기도")
     dests = [{**{k: d[k] for k in ("id", "lon", "lat", "n")}, "basis": "실측(창고 개소)"} for d in F["dests"] if d["id"] != "경기도"]
+    # [2026-10-20] 경기 시·군별 실측(gg_warehouse.py · Actions) 이 있으면 그것 — 없으면 종전 가정(똑같이 나눔)을 그대로 적는다
+    GW = os.path.join(ROOT, "data/derived/gg_warehouse.json")
+    by = json.load(open(GW, encoding="utf-8"))["by"] if os.path.exists(GW) else None
     for nm, (x, y) in GG.items():
-        dests.append({"id": nm, "lon": x, "lat": y, "n": round(gg["n"] / len(GG), 1), "basis": f"가정(경기 {gg['n']:,}곳 ÷ {len(GG)})"})
+        if by is not None: dests.append({"id": nm, "lon": x, "lat": y, "n": by.get(nm, 0), "basis": "실측(창고 개소 · 시·군)"})
+        else: dests.append({"id": nm, "lon": x, "lat": y, "n": round(gg["n"] / len(GG), 1), "basis": f"가정(경기 {gg['n']:,}곳 ÷ {len(GG)})"})
     tot = sum(d["n"] for d in dests)
     routes, use = {}, {}
     for gi, g in enumerate(gates):
@@ -130,7 +134,7 @@ def main():
         cs.sort(key=lambda c: (c[0] + c[1]))
         labels.append({"id": nm, "ref": ref, "lon": cs[len(cs) // 2][0], "lat": cs[len(cs) // 2][1]})
     out = {"_설명": "수도권 물류 흐름 층 — 관문→목적지 길은 OSM 고속도로 최단 거리, 굵기 w = 그 구간을 지나는 목적지 몫의 합(최대 1). 몫: 인천 구·군·서울 = 창고 개소 실측, 경기 밀집지 여섯 = 경기 전체를 똑같이 나눈 가정.",
-           "source": "OpenStreetMap 기여자(ODbL) · 국토교통부 물류창고업 등록 개소", "assume": f"경기 시·군별 창고 개소가 없어 경기 {gg['n']:,}곳을 여섯 밀집지에 똑같이 나눴다(가정) · 길은 최단 거리 가정(실제 화물 경로·교통량 아님)",
+           "source": "OpenStreetMap 기여자(ODbL) · 국토교통부 물류창고업 등록 개소", "assume": (f"경기는 시·군별 창고 등록 개소(실측) 가운데 밀집지 여섯만 그렸다(여섯 합 {sum(by.get(k, 0) for k in GG):,}곳 · 경기 나머지 시·군은 선 없음)" if by is not None else f"경기 시·군별 창고 개소가 없어 경기 {gg['n']:,}곳을 여섯 밀집지에 똑같이 나눴다(가정)") + " · 길은 최단 거리 가정(실제 화물 경로·교통량 아님)",
            "gates": gates, "dests": dests, "hubs": HUBS, "routes": routes, "corridors": corridors, "labels": labels}
     json.dump(out, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(json.dumps({"graph": len(adj), "routes": len(routes), "of": len(gates) * len(dests), "corridors": len(corridors), "labels": [l["id"] for l in labels], "bytes": os.path.getsize(OUT)}, ensure_ascii=False))

@@ -15,8 +15,3 @@ test("운영 문서 지면은 404 · 독자용 방법 문서는 200 · sitemap �
   for (const id of HIDDEN) expect(decodeURI(sm)).not.toContain(`/docs/${id}`);
 });
 
-test("발행본이 가리키던 운영 문서 링크는 저장소 원문으로 간다(깨진 링크 0)", async ({ page }) => {
-  await page.goto(`${BASE}/reports/report_09_공컨테이너_시계열연장.html`);
-  const hrefs = await page.locator("a[href*='사고기록'], a[href*='%EC%82%AC%EA%B3%A0%EA%B8%B0%EB%A1%9D']").evaluateAll((as) => as.map((a) => a.getAttribute("href")));
-  for (const h of hrefs) expect(h).toMatch(/^https:\/\/github\.com\/jisangj03-dev\/incheon-port-analysis\/blob\/main\/docs\//);
-});

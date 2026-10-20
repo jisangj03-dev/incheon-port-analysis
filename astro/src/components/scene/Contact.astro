@@ -26,4 +26,5 @@ const { ask = false } = Astro.props;
 </script>
 <style>
   .s-contact { display: flex; flex-wrap: wrap; gap: var(--s-3); margin: var(--s-5) 0 0; }
+  .s-contact a { white-space: nowrap; flex: 0 0 auto; } /* 390 폭에서 「Link/edIn」「문의/틀로/메일」처럼 낱말이 쪼개졌다(화면 판정 10/20) — 단추는 줄을 바꿔 통째로 내린다 */
 </style>

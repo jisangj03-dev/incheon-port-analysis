@@ -19,7 +19,7 @@ export function ranges(ms: string[]) {
 export function judgeOf(days: Day[], k: string, recent = 7, base = 91, thr = 10) {
   const rec = days.slice(-recent).map((x) => val(x, k)), bs = days.slice(-(recent + base), -recent).map((x) => val(x, k));
   const r = mean(rec), b = mean(bs), pct = b ? 100 * (r / b - 1) : 0;
-  return { r, b, pct, word: pct > thr ? "평소보다 많다" : pct < -thr ? "평소보다 적다" : "평소 수준" };
+  return { r, b, pct, word: pct > thr ? "평소보다 많았다" : pct < -thr ? "평소보다 적었다" : "평소 수준이었다" };
 }
 
 /** odd = 해수부 월 통계와 어긋난 달(YYYY-MM) — 그 달 막대는 흐리게(원천 수집 변동 · pulse_derive.mof_check) */
@@ -43,14 +43,17 @@ export function pulseSvg(days: Day[], k: string, span: number, recent = 7, base 
   g += `<g class="pb">` + v.map((y, i) => `<rect x="${(X(i) + gap / 2).toFixed(2)}" y="${Y(y).toFixed(1)}" width="${Math.max(0.6, bw - gap).toFixed(2)}" height="${(Y(0) - Y(y)).toFixed(1)}" style="--i:${i}"${i >= n - recent ? ' class="on"' : odd.includes(s[i].d.slice(0, 7)) ? ' class="odd"' : ""}><title>${s[i].d} · ${y}척</title></rect>`).join("") + `</g>`;
   // 평소(직전 91일 평균) 점선 — 그 기간 위에만
   const b0 = Math.max(0, n - recent - base);
-  g += `<line x1="${X(b0).toFixed(1)}" x2="${r0.toFixed(1)}" y1="${Y(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" class="pa"/><text x="${(X(b0) + 4).toFixed(1)}" y="${(Y(b) - 6).toFixed(1)}" class="pt pa-t">평소 ${b.toFixed(1)}척/일</text>`;
+  g += `<line x1="${X(b0).toFixed(1)}" x2="${r0.toFixed(1)}" y1="${Y(b).toFixed(1)}" y2="${Y(b).toFixed(1)}" class="pa"/>`;
+  // 「평소」 이름표는 맨 나중에 바탕 상자와 함께 — 선·막대가 글자를 지나지 않게(4차 화면 판정 Q6)
+  const lab = `평소 ${b.toFixed(1)}척/일`, lw = [...lab].reduce((a, c) => a + (/[가-힣]/.test(c) ? 11.5 : 6.6), 0) + 10, lx = X(b0) + 4, ly = Math.max(P.t + 2, Y(b) - 21);
+  const tag = `<rect x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" width="${lw.toFixed(1)}" height="17" rx="2" class="pa-bg"/><text x="${(lx + 5).toFixed(1)}" y="${(ly + 12.5).toFixed(1)}" class="pt pa-t">${lab}</text>`;
   // 7일 이동평균
   g += `<path class="pl" pathLength="1" d="${roll.map((y, i) => `${i ? "L" : "M"}${(X(i) + bw / 2).toFixed(1)} ${Y(y).toFixed(1)}`).join("")}"/>`;
   // 달 눈금
   g += "<g data-furniture>";
   const every = W < 600 ? 2 : 1; let mi = 0;
   s.forEach((x, i) => { if (x.d.endsWith("-01") && mi++ % every === 0) g += `<line x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${Y(0)}" y2="${Y(0) + 5}" class="pg"/><text x="${(X(i) + 3).toFixed(1)}" y="${H - 6}" class="pt">${x.d.slice(2, 7).replace("-", ".")}</text>`; });
-  g += "</g>";
+  g += "</g>"; void tag; // 「평소」 이름은 범례·머리 줄이 든다 — 그림 안 이름표 상자가 7일 평균선·막대를 가렸다(5차 화면 판정)
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="pulse__svg" aria-hidden="true">${g}</svg>`;
 }
 

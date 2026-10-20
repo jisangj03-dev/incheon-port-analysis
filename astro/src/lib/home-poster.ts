@@ -3,15 +3,16 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./content";
-import { projector, mx, my, VIEWS, type Cam } from "./flowmap";
+import { projector, mx, my, VIEWS, fitCam, regionPts, REGION_CAM, HERO_M, greatCircle, type Cam } from "./flowmap";
 
-export const PW = 1600, PH = 900;
+export const PW = 1200, PH = 900; // [2026-10-20] 지도 칸(7단) 모양에 가깝게 — 캔버스가 받기 전 첫 그림도 인천·서울·경부축이 한 장에
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 
 /** view = 첫 장면 카메라. [2026-10-15 공개 전 개편 P0] 홈 첫 화면이 수도권(VIEWS.sudo)이 됐다 — 가까이면 인천·수도권 상세 땅과 고속도로를 같이 그린다.
- *  따라가기는 아시아에서 시작하므로 그 그림(home-poster-asia.svg)을 따로 낸다. */
-export function poster(view: Cam = VIEWS.sudo) {
+ */
+export function poster(view?: Cam) {
   const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
+  if (!view) view = fitCam(REGION_CAM, PW, PH, regionPts({ flows: F }), HERO_M);
   const PJ = projector(view, PW, PH).fn, o = [0, 0, 0];
   const pt = (lon: number, lat: number) => { PJ(mx(lon), my(lat), 0, o); return `${o[0].toFixed(0)},${o[1].toFixed(0)}`; };
   const inView = (r: number[]) => { for (let i = 0; i < r.length; i += 8) { PJ(mx(r[i]), my(r[i + 1]), 0, o); if (o[0] > -200 && o[0] < PW + 200 && o[1] > -200 && o[1] < PH + 200) return true; } return false; };
@@ -34,8 +35,8 @@ export function poster(view: Cam = VIEWS.sudo) {
       `<path d="${lf.map((f: any) => path(f.geometry.coordinates[0], true)).join("")}" fill="#e7dfcc"/>` +
       `<path d="${L.features.filter((f: any) => f.properties.kind === "road").map((f: any) => path(f.geometry.coordinates, false)).join("")}" fill="none" stroke="#d3c7ad" stroke-width="1"/>`;
   }
-  const sg = F.sea_gates[0];
-  const lanes = F.partners.map((p: any) => "M" + [...p.sea, ...sg.approach, [sg.lon, sg.lat]].map(([a, b]: number[]) => pt(a, b)).join("L")).join("");
+  // 하늘길(대권) — 캔버스가 그리는 것과 같은 길(점이 실린 길만 · 6차 사실 대조: 정지 그림만 바닷길을 그렸다)
+  const lanes = F.partners.map((p: any) => "M" + greatCircle(p.air, [F.air_gate.lon, F.air_gate.lat], 48).map(([a, b]: number[]) => pt(a, b)).join("L")).join("");
   PJ(mx(F.air_gate.lon), my(F.air_gate.lat), 0, o);
   const gate = [Math.round(o[0]), Math.round(o[1])];
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${PW} ${PH}" width="${PW}" height="${PH}">` +

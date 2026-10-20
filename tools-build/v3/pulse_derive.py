@@ -51,7 +51,7 @@ def judge(s):
     rec, base = s[-RECENT:], s[-(RECENT + BASE):-RECENT]
     r = sum(x["calls"] for x in rec) / RECENT; b = sum(x["calls"] for x in base) / BASE
     pct = round(100 * (r / b - 1), 1) if b else 0.0
-    word = "평소보다 많다" if pct > THR else "평소보다 적다" if pct < -THR else "평소 수준"
+    word = "평소보다 많았다" if pct > THR else "평소보다 적었다" if pct < -THR else "평소 수준이었다"
     by_type = {k: round(sum(x[k] for x in rec) / RECENT, 1) for k, _ in TYPES}
     base_type = {k: round(sum(x[k] for x in base) / BASE, 1) for k, _ in TYPES}
     return {"recent_from": rec[0]["d"], "recent_to": rec[-1]["d"], "base_from": base[0]["d"], "base_to": base[-1]["d"],
@@ -95,10 +95,10 @@ def selftest():
     rows = [r for r in rows if r["date"] != day(5)]  # 빈 날 하나 → 0 으로 채운다
     d = derive({"ports": {"Incheon": rows}}, {"verdict": "사용"})
     j = d["ports"]["Incheon"]["judge"]
-    assert j["base_avg"] == round(900 / 91, 1) and j["recent_avg"] == 12.0 and j["word"] == "평소보다 많다", j
+    assert j["base_avg"] == round(900 / 91, 1) and j["recent_avg"] == 12.0 and j["word"] == "평소보다 많았다", j
     assert derive({"ports": {"Incheon": rows}}, {"verdict": "품질 부족"}) is None
     flat = [{"date": day(i), "portcalls": 10} for i in range(98)]
-    assert derive({"ports": {"Incheon": flat}}, {"verdict": "사용"})["ports"]["Incheon"]["judge"]["word"] == "평소 수준"
+    assert derive({"ports": {"Incheon": flat}}, {"verdict": "사용"})["ports"]["Incheon"]["judge"]["word"] == "평소 수준이었다"
     late = derive({"ports": {"Incheon": rows, "Busan": rows[:-3]}}, {"verdict": "사용"})["ports"]
     assert late["Busan"]["stale_to"] == rows[-4]["date"] and "stale_to" not in late["Incheon"], late["Busan"].get("stale_to")
     print("selftest 4/4 ok"); return 0

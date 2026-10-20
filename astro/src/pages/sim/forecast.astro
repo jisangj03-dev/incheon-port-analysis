@@ -55,23 +55,27 @@ const fut = rows.filter((r) => r.origin === lastOrigin).sort((a, b) => (a.target
 const chart = { act, m1: fut.map((r) => [r.target, r.M1 ?? null]), b: fut.map((r) => [r.target, r.B ?? null]), unit: L.series.unit };
 const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s); // 계열은 「YYYY-MM」이라 그대로 · 6자리만 줄표를 넣는다
 ---
-<Studio current="notes" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
+<Studio ask={false} current="tools" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
   <article class="s-wrap fc" data-sim="forecast">
     <p class="s-cap">시뮬레이션 · 수요예측 실험실</p>
-    <h1 class="s-prose">인천항 컨테이너, 다음 석 달을 먼저 적어 둡니다.</h1>
+    <h1 class="s-prose">인천항 컨테이너, 실제값이 나오기 전 석 달을 먼저 적어 둡니다.</h1>
     <p class="s-lead s-prose">{L.series.label} — 마지막 실제값은 <b>{ym(lastYm)} · {y[lastYm]}{L.series.unit}</b>. 점선이 실제값보다 먼저 적은 예측이고, 실제값이 나오면 맞았는지 그대로 채점합니다.</p>
 
+    {/* [2026-10-20 화면 판정] 예측값이 그림 안 작은 이름표뿐이었다 → 다음 석 달 예측(M1)을 큰 숫자로 · 기준선은 옆에 작게 */}
+    <ol class="fc-next" aria-label="실제값이 나오기 전 석 달 예측">
+      {fut.map((r, k) => <li class={k === 0 ? "on" : ""}><span>{ym(r.target)} 예측</span><b>{r.M1 ?? "—"}</b><small>{L.series.unit} · 기준선 {r.B ?? "—"}</small></li>)}
+    </ol>
     <figure class="fc-fig" data-chart="forecast" aria-label={`${ym(act[0][0] as string)}부터 ${ym(lastYm)}까지 실제 처리량과 그 뒤 석 달 예측`}>
       <div id="fc-chart" class="fc-chart"></div>
-      <Trust updated={updated} source={`원장 data/forecast/incheon_container_teu.csv · ${sourceLine("mof-incheon-port-stats")}`} csv={u("/data/forecast-ledger.csv")} csvName="incheon-forecast-ledger.csv" note={`단위 ${L.series.unit} · 예측은 고치지 않는다`} />
+      <Trust updated={updated} source={`측심 예측 원장 · ${sourceLine("mof-incheon-port-stats")}`} csv={u("/data/forecast-ledger.csv")} csvName="incheon-forecast-ledger.csv" note={`단위 ${L.series.unit} · 예측은 고치지 않는다`} />
     </figure>
     <script type="application/json" id="fc-data" set:html={JSON.stringify(chart)}></script>
 
-    <section class="fc-sec" aria-labelledby="h-score">
+    {/* 채점할 달이 없으면 빈 칸 대신 그림 아래 한 줄(화면 판정 10/20 — 빈 「적중 기록」이 크게 보였다) */}
+    {matured === 0 && <p class="s-cap fc-wait" data-score="none">적중 기록 — 첫 채점은 {ym(firstTarget)} 실제값이 나온 뒤에 이 자리에 붙습니다.</p>}
+    {matured > 0 && <section class="fc-sec" aria-labelledby="h-score">
       <h2 id="h-score">적중 기록</h2>
-      {matured === 0 ? (
-        <p class="s-lead s-prose" data-score="none">아직 채점할 달이 없습니다 — 첫 채점은 {ym(firstTarget)} 실제값이 들어온 뒤입니다.</p>
-      ) : (
+      {(
         <table class="s-table"><thead><tr><th scope="col">모델</th><th scope="col" class="num">MAPE(%)</th><th scope="col" class="num">방향 적중(%)</th></tr></thead>
           <tbody>
             {Object.keys(L.models).map((m) => (
@@ -79,15 +83,15 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
             ))}
           </tbody></table>
       )}
-    </section>
+    </section>}
 
     <section class="fc-sec" aria-labelledby="h-ledger">
       <h2 id="h-ledger">예측 원장(덧붙이기만)</h2>
-      <div class="tbl"><table class="s-table">
-        <thead><tr><th scope="col">발행</th><th scope="col">기준월</th><th scope="col">목표월</th><th scope="col" class="num">B</th><th scope="col" class="num">M1</th><th scope="col" class="num">실제</th></tr></thead>
+      <div class="tbl"><table class="s-table ledger">
+        <thead><tr><th scope="col" class="iss">발행</th><th scope="col">기준월</th><th scope="col">목표월</th><th scope="col" class="num">B</th><th scope="col" class="num">M1</th><th scope="col" class="num">실제</th></tr></thead>
         <tbody>
           {rows.map((r) => (
-            <tr><td>{r.issued}</td><td>{r.origin}</td><td>{r.target}</td><td class="num">{r.B ?? "—"}</td><td class="num">{r.M1 ?? "—"}</td><td class="num">{y[r.target] ?? "아직"}</td></tr>
+            <tr><td class="iss">{r.issued}</td><td>{r.origin}</td><td>{r.target}</td><td class="num">{r.B ?? "—"}</td><td class="num">{r.M1 ?? "—"}</td><td class="num">{y[r.target] ?? "아직"}</td></tr>
           ))}
         </tbody>
       </table></div>
@@ -99,7 +103,7 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
       <dt>어떻게</dt><dd data-note="how">{L.notes.how}</dd>
       <dt>한계</dt><dd data-note="limits">{L.notes.limits}</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+    <p class="s-cap" data-ai-mark>{aiMark("sim/forecast")}</p>
   </article>
   <script>
     import { textColor } from "../../lib/ds-beer";
@@ -109,16 +113,21 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
     const fmt = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s);
     const draw = () => {
       const all = [...D.act.map((d: any) => d[0]), ...D.m1.map((d: any) => d[0])];
-      const n = all.length, W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 300, Lp = 4, R = W < 600 ? 84 : 120, T = 14, B = 26;
+      const n = all.length, W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 240, Lp = 4, R = W < 600 ? 84 : 120, T = 14, B = 26;
       const vals = [...D.act, ...D.m1, ...D.b].map((d: any) => d[1]).filter((v: any) => v != null) as number[];
       const lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.12 || 1;
       const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - ((v - lo + pad) * (H - T - B)) / (hi - lo + 2 * pad);
       const ia = D.act.length - 1, last = D.act[ia];
       const pts = (arr: any[], off: number) => [[x(ia), y(last[1])], ...arr.map((d: any, k: number) => [x(off + k), y(d[1])])].map((p) => p.map((q: number) => q.toFixed(1)).join(",")).join(" ");
       let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
+      // 세로 눈금 = 실제값의 최고·최저 두 줄(화면 판정 10/20 — 눈금이 없어 크기를 못 읽었다 · 숫자는 원천 그대로)
+      const av = D.act.map((d: any) => d[1]) as number[], amin = Math.min(...av), amax = Math.max(...av);
+      let lab = ""; // 이름표는 선을 다 그린 뒤 바탕 테두리와 함께(4차 화면 판정 — 「실제 281」·「225천TEU」 위를 선이 지났다)
+      const halo = "paint-order:stroke;stroke:var(--s-paper);stroke-width:6px;stroke-linejoin:round";
+      for (const v of [amax, amin]) { g += `<line x1="${Lp}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--s-rule)" stroke-dasharray="1 4"/>`; lab += `<text x="${Lp + 2}" y="${(v === amax ? y(v) - 4 : y(v) + 13).toFixed(1)}" font-size="11.5" fill="var(--s-ink-3)" style="${halo}">${v === amax ? "최고" : "최저"} ${v}${D.unit}</text>`; /* 최고 = 선 위 · 최저 = 선 아래(그 너머엔 선이 없다) */ }
       g += `<line x1="${x(ia).toFixed(1)}" x2="${x(ia).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-rule)" stroke-dasharray="2 3"/>`;
       g += `<text x="${Lp}" y="${H - 6}" font-size="12" fill="var(--s-ink-3)">${fmt(D.act[0][0])}</text><text x="${W - R}" y="${H - 6}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">${fmt(all[n - 1])}</text>`;
-      g += `<text x="${(x(ia) - 6).toFixed(1)}" y="${T + 10}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">지금</text>`;
+      g += `<text x="${(x(ia) - 6).toFixed(1)}" y="${T + 10}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">마지막 실제</text>`;
       g += `<polyline fill="none" stroke="var(--s-ink-2)" stroke-width="2" stroke-linejoin="round" points="${D.act.map((d: any, k: number) => `${x(k).toFixed(1)},${y(d[1]).toFixed(1)}`).join(" ")}"/>`;
       g += `<polyline fill="none" stroke="var(--s-ink-3)" stroke-width="1.5" stroke-dasharray="2 4" points="${pts(D.b, ia + 1)}"/>`;
       g += `<polyline fill="none" stroke="var(--s-signal)" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="round" data-main="M1" points="${pts(D.m1, ia + 1)}"/>`;
@@ -130,8 +139,10 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
         { y: y(D.b[D.b.length - 1][1]), t: `기준선 ${D.b[D.b.length - 1][1]}`, c: textColor("var(--s-ink-3)"), b: 500, x: x(n - 1) + 8 },
       ].sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 16) ends[k].y = ends[k - 1].y + 16;
-      for (const e of ends) g += `<text x="${e.x.toFixed(1)}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b}" fill="${e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
-      g += `<text x="${(x(ia) - 8).toFixed(1)}" y="${(y(last[1]) + 18).toFixed(1)}" font-size="13" text-anchor="end" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">실제 ${last[1]}</text>`;
+      for (const e of ends) g += `<text x="${e.x.toFixed(1)}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b}" fill="${e.c}" style="${halo}">${e.t}</text>`;
+      // 「실제」 이름표 바탕 상자 — 선이 글자를 지나지 않게(6차 화면 판정 · 390)
+      const atx = `실제 ${last[1]}`, atw = atx.length * 7.6 + 8, abx = x(ia) - 8 - atw, aby = y(last[1]) + 6;
+      g += `<rect x="${abx.toFixed(1)}" y="${aby.toFixed(1)}" width="${atw.toFixed(1)}" height="17" fill="var(--s-paper)" opacity="0.94"/><text x="${(x(ia) - 12).toFixed(1)}" y="${(aby + 13).toFixed(1)}" font-size="13" text-anchor="end" fill="var(--s-ink-2)">${atx}</text>` + lab;
       host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="실제 처리량(실선)과 석 달 예측(점선)">${g}</svg>`;
       host.dataset.ready = "1";
     };
@@ -140,14 +151,23 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
   </script>
 </Studio>
 <style>
-  .fc { padding-top: var(--s-8); padding-bottom: var(--s-8); }
+  .fc { padding-top: var(--s-6); padding-bottom: var(--s-8); }
+  .fc h1 { font-size: clamp(30px, 3.3vw, 46px); margin-bottom: var(--s-3); } /* 1280×720 에서 그림이 위쪽 100px 만 보였다(7차 화면 판정) */
   .fc h1 { margin: var(--s-3) 0 var(--s-4); max-width: 15em; }
+  .fc-next { list-style: none; margin: var(--s-4) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-3) var(--s-6); font-variant-numeric: tabular-nums; }
+  .fc-next li { display: grid; gap: 2px; color: var(--s-ink-3); } .fc-next span { font-size: var(--s-t-cap); }
+  .fc-next b { font-size: clamp(26px, 3vw, 36px); font-weight: 650; letter-spacing: -0.02em; color: var(--s-ink-2); line-height: 1.05; }
+  .fc-next li.on b { font-size: clamp(40px, 5vw, 60px); color: var(--s-signal); }
+  .fc-next small { font-size: 12.5px; }
+  .fc-wait { margin: var(--s-3) 0 0; }
   .fc-fig { margin: var(--s-6) 0 0; }
   .fc-chart { min-height: 220px; }
   .fc-chart :global(svg) { display: block; max-width: 100%; }
   .fc-sec { margin-top: var(--s-8); max-width: 46rem; }
   .fc-sec h2 { font-size: var(--s-t-h3); margin-bottom: var(--s-4); }
   .tbl { overflow-x: auto; }
+  /* 390 에서 원장 표가 오른쪽에서 잘려 「302.6」이 「302」로 읽히고 「실제」 칸이 안 보였다(4차 화면 판정) — 좁은 폭은 발행일 칸을 빼고(CSV 에 있다) 글자를 줄여 한 화면에 */
+  @media (max-width: 520px) { .ledger .iss { display: none; } .ledger { font-size: 13px; } .ledger th, .ledger td { padding: 8px 4px; white-space: nowrap; } }
   .tbl :global(th), .tbl :global(td) { white-space: nowrap; } /* 날짜·숫자가 칸 안에서 쪼개지지 않게(좁으면 표만 옆으로 민다) */
   .num, :global(td.num) { text-align: right; font-variant-numeric: tabular-nums; }
   .fc-maker { margin-top: var(--s-8); max-width: 46rem; }

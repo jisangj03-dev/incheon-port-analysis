@@ -1,7 +1,7 @@
 // 지면 차트·보고서 위젯의 계열을 CSV 로(B7 · 퍼가기·내려받기 · 신뢰 꼬리). 차트와 같은 함수·같은 파일에서 나온다 — 화면과 파일이 갈라지지 않는다.
 import { emptyDirection, sizeDirection, terminals, items } from "../../lib/report-data";
 import { portMonthly, mapSeries } from "../../lib/data";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
@@ -23,9 +23,9 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       if (s.id === "sea") rows.push({ 구간: s.title, 항목: "컨테이너", 값: d.kteu, 단위: "천TEU", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "전년 같은 달 대비", 값: d.yoy_pct, 단위: "%", 기준월: ym, 범위: d.scope });
       if (s.id === "customs") for (const g of d.gates) rows.push({ 구간: s.title, 항목: g.name, 값: g.share_pct, 단위: "% (전국 수입액 중)", 기준월: ym, 범위: d.scope });
       if (s.id === "firms") rows.push({ 구간: s.title, 항목: "인천 소재 수입자 전기기기 수입", 값: d.imp_kusd, 단위: "천 달러", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "인천 수입 중 비중", 값: d.share_of_incheon_imports_pct, 단위: "%", 기준월: ym, 범위: d.scope });
-      if (s.id === "warehouse") rows.push({ 구간: s.title, 항목: "물류창고", 값: d.sites, 단위: "곳", 기준월: "", 범위: d.scope }, { 구간: s.title, 항목: "보세(관세법)", 값: d.bonded_sites, 단위: "곳", 기준월: "", 범위: d.scope });
+      if (s.id === "warehouse") rows.push({ 구간: s.title, 항목: "물류창고", 값: d.sites, 단위: "곳", 기준월: "", 범위: d.scope }, { 구간: s.title, 항목: "보세창고(관세법 제174조 특허)", 값: d.bonded_sites, 단위: "곳", 기준월: "", 범위: d.scope });
     }
-    return { rows, note: `공급망 따라가기 · 전기기기(HS 85) · 계산 ${D.command} · ${D.computed}` };
+    return { rows, note: `전기기기(HS 85) 구간별 원천 숫자 · 계산 ${D.command} · ${D.computed}` };
   },
   // 홈 살아 있는 지도 — 관문별 월 수출입(억 달러) · 전국 대비 비중 · 부두군 컨테이너(천TEU)
   "home-flows": () => {
@@ -46,7 +46,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: Object.values(D.ports).flatMap((p: any) => p.days.map((x: any) => ({ 항만: p.ko, 날짜: x.d, 입항_척: x.calls, ...Object.fromEntries(D.types.map((t: any) => [`${t.ko}_척`, x[t.id]])), 추정수입_톤: x.imp, 추정수출_톤: x.exp }))),
       note: `IMF PortWatch(AIS 기반 추정 · 비상업 이용) · ${D.asof} 기준 · 평소 = 직전 91일 · 계산 tools-build/v3/pulse_derive.py` };
   },
-  // 환율 파도 · 수입원가 — 주 × 통화(관세청 관세환율 · 수입)
+  // 환율 파도 · 수입원가 — 주 × 통화(관세청 과세환율 · 수입)
   "import-cost": () => {
     const D = J("data/derived/import_cost.json");
     return { rows: D.weeks.map((w: any[]) => Object.fromEntries([["적용개시일", w[0]], ...D.currencies.map((c: string, i: number) => [`${c}_원`, w[i + 1]])])),
@@ -57,19 +57,21 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     const D = J("data/derived/chokepoints.json");
     const rows: Record<string, unknown>[] = [];
     for (const p of D.points) { for (const [w, v] of p.weeks) rows.push({ 길목: p.ko, 구분: "통항(주 평균 · 척/일)", 주_또는_나라: w, 값: v }); for (const t of p.top) rows.push({ 길목: p.ko, 구분: "교역(전국 · 12달 · 백만 달러)", 주_또는_나라: t.name, 값: t.musd }); }
-    return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 경유 표 = 선커밋 §5 · 계산 tools-build/v3/choke_derive.py` };
+    return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 나라 → 길목 경유 = 대표 항로 가정(지면 「이 길목을 거치는 것으로 셈한 나라」) · 계산 tools-build/v3/choke_derive.py` };
   },
   // 품목 트리맵 레이스 — 해 × HS 2단위(인천 소재 기업 · 백만 달러)
   "trade-race": () => {
     const D = J("data/derived/trade_race.json");
     return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
-      note: `${D.source} · 사업장 소재지(인천) 기준 · 계산 tools-build/v3/race_derive.py` };
+      note: `관세청 시도별 품목별 수출입실적(공공데이터포털 15101641) · 시도 = 인천(28) · 원천 금액은 천 달러 → 이 CSV 의 금액 열은 백만 달러 · 관세청이 인천(시도 28)으로 집계한 업체 실적 — 업체를 시도에 넣는 기준은 공개 명세에 없다(입·출항 관문 기준이 아니다) · 계산 tools-build/v3/race_derive.py` };
   },
   // 수도권 배송 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
   "delivery-reach": () => {
-    const I = J("data/derived/isochrones.json");
-    return { rows: I.origins.flatMap((o: any) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 도착_분: m ?? "" }))),
-      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정(이 CSV 는 자유 흐름 분 · 시간대 배율은 data/derived/reach_slots.json) · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
+    const I = J("data/derived/isochrones.json"), RS = existsSync(join(repoRoot(), "data/derived/reach_slots.json")) ? J("data/derived/reach_slots.json") : null;
+    const SL = (RS?.slots ?? []).filter((t: any) => t.k !== 1);
+    // 화면 기본값(낮 등 시간대 보정 분)을 CSV 로도 재현하게 — 시간대별 열을 같이 싣는다(9차 사실 대조: 자유 흐름 분만 있었다)
+    return { rows: I.origins.flatMap((o: any, oi: number) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 자유흐름_분: m ?? "", ...Object.fromEntries(SL.map((t: any) => [`${t.id}_분`, RS?.table?.[oi]?.[t.id]?.car?.[c] ?? ""])) }))),
+      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정 · 시간대 열 = 자유 흐름 분 × 카카오 내비 대조 배율(${SL.map((t: any) => `${t.id} ×${t.k}`).join(" · ")}) · ${I.made}` };
   },
   // 공공입찰 레이더 — 스냅샷 공고 한 줄씩(담당자 개인정보 칸 없음 · 목록 검수 안 함)
   "bid-radar": () => {
@@ -80,7 +82,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);
-    return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `선박 리플레이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
+    return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `외항선 입항 추이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
   },
   // 수요예측 원장 — 덧붙이기만 하는 예측 기록 그대로(발행·기준월·목표월·수평·모델·예측값)
   "forecast-ledger": () => {
@@ -96,8 +98,10 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
 };
 
 // 원천 파일이 아직 없는 표(수집 워크플로가 만들 것)는 빼고 낸다 — 없는 파일로 빌드가 깨지지 않게
+// [2026-10-20 9차 사실 대조] 내린 지면만 쓰던 CSV 는 내지 않는다(링크 0 인데 주소로 열렸고 머리줄에 내부어가 남았다) — 만드는 함수는 남겨 다시 올릴 때 쓴다
+const DOWN_CSV = new Set(["empty-direction", "size-direction", "terminals", "items", "map-places", "port-pulse", "bid-radar", "ops-stats", "anchorage"]);
 export function getStaticPaths() {
-  return Object.keys(DATA).filter((name) => { try { DATA[name](); return true; } catch { return false; } }).map((name) => ({ params: { name } }));
+  return Object.keys(DATA).filter((n) => !DOWN_CSV.has(n)).filter((name) => { try { DATA[name](); return true; } catch { return false; } }).map((name) => ({ params: { name } }));
 }
 
 const cell = (v: unknown) => { const s = v === null || v === undefined ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };

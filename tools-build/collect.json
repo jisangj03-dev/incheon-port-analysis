@@ -71,6 +71,18 @@
           "statCdCntnKor1"
         ]
       }
+    },
+    {
+      "id": "porttrade",
+      "portal": "15101609",
+      "name": "관세청 항구·공항별 수출입실적 — 입항지(세관·항구 코드) 기준 · 전국 총계 줄 포함",
+      "url": "https://apis.data.go.kr/1220000/porttrade/getPorttradeList",
+      "params": {},
+      "month_params": [
+        "strtYymm",
+        "endYymm"
+      ],
+      "note": "2026-10-20 추가(품질기준 Q4) — 홈 46.4%·지도 반대 지표의 원천이 일회성 파일(analysis/porttrade_202412_202607.csv)에 묶여 2026-07 에 멈춰 있었다. 같은 API(analysis/collect_porttrade.py)를 예약 수집에 넣는다."
     }
   ]
 }

@@ -1,48 +1,81 @@
 ---
-// 데이터 출처 대장(개편 기준 16 · A5) — data/sources.json 을 그대로 보인다. 확인 못 한 칸은 「미확인」.
-import Base from "../layouts/Base.astro";
+// 데이터 출처 대장(개편 기준 16 · A5) — data/sources.json 을 보인다. 확인 못 한 칸은 「미확인」.
+// [2026-10-20 화면 판정] 7칸 표가 390 폭에서 잘리고(한두 글자씩 꺾임) 확인 칸에 작업 기록(운영자 호칭·워크플로·경로)이 그대로 나왔다 →
+//   한 자료 = 한 줄(이름·기관 / 공공누리 · 상업 이용 · 가공 · 확인일), 이용허락 원문과 확인 경위는 그 줄의 접기 안. 문구는 pub() 로 독자 말로만 바꾼다(대장 원문은 저장소).
+import Studio from "../layouts/Studio.astro";
 import Updated from "../components/Updated.astro";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot, lastUpdated } from "../lib/content";
 import { REPO } from "../lib/site";
+import { pub } from "../lib/sources";
 const reg = JSON.parse(readFileSync(join(repoRoot(), "data/sources.json"), "utf-8"));
+const S = reg.sources.filter((s: any) => !s.retired);
 const updated = lastUpdated("data/sources.json");
-const jsonld = reg.sources.filter((s: any) => s.kogl !== "해당 없음" || s.id === "osm-protomaps").map((s: any) => ({ "@context": "https://schema.org", "@type": "Dataset", name: s.name, creator: { "@type": "Organization", name: s.owner }, license: s.license, description: `${s.name} — ${s.where}` }));
+const jsonld = S.filter((s: any) => s.kogl !== "해당 없음" || s.id === "osm-protomaps").map((s: any) => ({ "@context": "https://schema.org", "@type": "Dataset", name: s.name, creator: { "@type": "Organization", name: s.owner }, license: pub(s.license), description: `${s.name} — ${pub(s.where)}` }));
+// 칸 한 낱말 — 「허용(…)」의 괄호 풀이는 접기 안으로
+const word = (t: string) => pub(t).replace(/\s*\(.*$/, "").replace(/\s*—.*$/, "").trim() || "—";
+const unk = (t: string) => /미확인|허락 필요|대기/.test(t);
+const day = (t: string) => (String(t).match(/\d{4}-\d{2}-\d{2}/) || ["—"])[0];
+const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").length };
 ---
-<Base title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." path="/data.html" jsonld={jsonld}>
-  <div class="wrap" style="padding-top:2.5rem">
-    <p class="eyebrow">데이터</p>
-    <h1>어디서 온 숫자인가</h1>
-    <p class="lede" style="max-width:62ch">공공데이터는 이용허락이 출처마다 다르다. <strong>상업 이용 금지(공공누리 2·4유형) 자료는 쓰지 않고, 변경 금지(3·4유형) 자료는 가공하지 않는다.</strong> 공공데이터포털 화면이 적는 「이용허락범위 제한 없음」은 공공누리 유형 번호가 아니라서, 유형은 확인하기 전까지 「미확인」으로 둔다.</p>
-    <p><Updated date={updated} source="출처 대장 data/sources.json" /></p>
-    <div class="tbl" tabindex="0" role="region" aria-label="출처 대장 표">
-      <table>
-        <thead><tr><th scope="col">출처</th><th scope="col">기관</th><th scope="col">이용허락</th><th scope="col">공공누리</th><th scope="col">상업 이용</th><th scope="col">가공</th><th scope="col">확인</th></tr></thead>
-        <tbody>
-          {reg.sources.map((s: any) => (
-            <tr id={s.id}>
-              <th scope="row">{s.name}<br /><small>{s.where}</small></th>
-              <td>{s.owner}</td><td>{s.license}</td>
-              <td class={s.kogl === "미확인" ? "unk" : ""}>{s.kogl}</td>
-              <td class={/미확인/.test(s.commercial) ? "unk" : ""}>{s.commercial}</td>
-              <td class={/미확인/.test(s.modify) ? "unk" : ""}>{s.modify}</td>
-              <td>{s.checked}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-    <h2>원시 데이터와 재현 코드</h2>
-    <p>보고서의 모든 수치는 <a href={REPO}>저장소</a>의 원시 CSV(<code>analysis/</code>)와 코드에서 다시 계산된다. 수치 대장 = <a href={`${REPO}/blob/main/docs/FACTS.md`}>FACTS.md</a>.</p>
-  </div>
-</Base>
+<Studio ask={false} title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." current="about" path="/data.html" jsonld={jsonld}>
+  <article class="s-wrap src">
+    <header class="src__head">
+      <p class="s-cap">데이터</p>
+      <h1 class="s-prose">어디서 온 숫자인가</h1>
+      <p class="s-lead s-prose">자료 {n.all}가지. 상업 이용 금지(공공누리 2·4유형) 자료는 쓰지 않고, 변경 금지(3·4유형) 자료는 가공하지 않습니다. 공공데이터포털의 「이용허락범위 제한 없음」은 공공누리 유형 번호가 아니라서, 유형은 확인하기 전까지 <b class="unk">미확인</b>으로 둡니다(지금 {n.unk}가지).</p>
+      <p class="s-trust"><Updated date={updated} source="측심 출처 대장" /></p>
+    </header>
+    <div class="src__cols s-cap" aria-hidden="true"><span>자료 · 기관</span><span>공공누리</span><span>상업 이용</span><span>가공</span><span>확인일</span></div>
+    <ol class="src__list">
+      {S.map((s: any) => (
+        <li id={s.id}>
+          <div class="src__row">
+            <p class="src__name"><b>{s.name}</b><span>{s.owner}</span></p>
+            <dl class="src__terms">
+              <div><dt>공공누리</dt><dd class={unk(s.kogl) ? "unk" : ""}>{word(s.kogl)}</dd></div>
+              <div><dt>상업 이용</dt><dd class={unk(s.commercial) ? "unk" : ""}>{word(s.commercial)}</dd></div>
+              <div><dt>가공</dt><dd class={unk(s.modify) ? "unk" : ""}>{word(s.modify)}</dd></div>
+              <div><dt>확인일</dt><dd>{day(s.checked)}</dd></div>
+            </dl>
+          </div>
+          <details class="src__more"><summary>이용허락 원문 · 확인 경위</summary>
+            <p><b>어디서</b> {pub(s.where)}</p>
+            <p><b>이용허락</b> {pub(s.license)}</p>
+            {pub(s.commercial) !== word(s.commercial) && <p><b>상업 이용</b> {pub(s.commercial)}</p>}
+            {pub(s.modify) !== word(s.modify) && <p><b>가공</b> {pub(s.modify)}</p>}
+            <p><b>확인한 날</b> {day(s.checked)} <small>— 확인 경위는 <a href={`${REPO}/blob/main/data/sources.json`}>출처 대장 원본</a></small></p>
+          </details>
+        </li>
+      ))}
+    </ol>
+    <section class="src__repo s-prose">
+      <h2>원시 데이터와 재현 코드</h2>
+      <p>지면의 숫자는 <a href={REPO}>공개 저장소</a>의 원시 CSV와 코드에서 다시 계산됩니다.</p>
+    </section>
+    <p class="s-cap" data-ai-mark>AI 정리</p> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
+  </article>
+</Studio>
 <style>
-  .tbl { overflow-x: auto; border: 1px solid var(--hair); border-radius: var(--r-md); }
-  table { border-collapse: collapse; font-size: 0.86rem; min-width: 880px; width: 100%; }
-  th, td { border-bottom: 1px solid var(--hair); padding: 0.6rem 0.7rem; text-align: left; vertical-align: top; }
-  thead th { background: var(--hull); color: var(--ink); }
-  tbody th { color: var(--ink); font-weight: 650; }
-  small { color: var(--mist); font-weight: 400; }
-  .unk { color: var(--sodium); font-weight: 700; }
+  .src { padding-top: var(--s-6); padding-bottom: var(--s-7); }
+  .src__head h1 { margin: var(--s-2) 0 var(--s-3); }
+  .src__head .s-lead { margin: 0 0 var(--s-3); }
+  .unk { color: var(--s-signal); font-weight: 600; }
+  .src__cols, .src__row { display: grid; grid-template-columns: minmax(0, 2.4fr) repeat(4, minmax(0, 1fr)); gap: var(--s-4); }
+  .src__cols { margin-top: var(--s-6); padding-bottom: var(--s-2); border-bottom: 1px solid var(--s-ink); color: var(--s-ink-3); }
+  .src__list { list-style: none; margin: 0; padding: 0; }
+  .src__list > li { border-bottom: 1px solid var(--s-rule); padding: var(--s-3) 0 0; }
+  .src__name { margin: 0; display: grid; gap: 2px; } .src__name b { font-weight: 600; color: var(--s-ink); } .src__name span { font-size: var(--s-t-cap); color: var(--s-ink-3); }
+  .src__terms { display: contents; margin: 0; } .src__terms > div { margin: 0; } .src__terms dt { display: none; } .src__terms dd { margin: 0; font-size: 14.5px; }
+  .src__more { font-size: var(--s-t-cap); color: var(--s-ink-2); }
+  .src__more summary { cursor: pointer; min-height: 40px; display: inline-flex; align-items: center; color: var(--s-ink-3); }
+  .src__more p { margin: 0 0 var(--s-2); max-width: 64em; overflow-wrap: anywhere; } .src__more b { font-weight: 600; color: var(--s-ink); margin-right: 4px; }
+  .src__repo { margin-top: var(--s-7); } .src__repo h2 { font-size: var(--s-t-h3); }
+  @media (max-width: 760px) {
+    .src__cols { display: none; }
+    .src__row { grid-template-columns: 1fr; gap: var(--s-2); }
+    .src__terms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--s-2) var(--s-4); }
+    .src__terms dt { display: block; font-size: 12px; color: var(--s-ink-3); }
+  }
 </style>

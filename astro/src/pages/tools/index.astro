@@ -1,30 +1,48 @@
 ---
 // 도구(구조 넷 ② · 2026-10-14 선장님 최종 위임 — 「시뮬레이션」 자리를 실무 도구가 받는다) — 실무 질문 하나 = 도구 하나.
-// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기(/tools/logistics-cost.html 등)는 주소만 열려 있다(메뉴 밖).
+// 목록은 data/rooms.json 의 tools 방에서 자동. 옛 셀러 계산기 셋은 2026-10-20 내렸다(이 지면으로 돌려보낸다).
+// [2026-10-20 품질 재정비] 카드 그림(og/tool-*.jpg)을 붙였다가 걷었다 — 그림 속 질문과 제목이 두 번 나오고 빈 칸·겹친 글자가 생겼다(독립 화면 판정). 시각 마감은 시안 몫(docs/디자인브리프_20261020.md).
 // [바뀐 것] 종전 이 주소는 /sim/ 으로 돌려보내는 리디렉트였다 — 발행 주소를 바꾸지 않고 내용을 도구 목록으로 채웠다.
 import Studio from "../../layouts/Studio.astro";
 import { room } from "../../lib/rooms";
 import { u } from "../../lib/site";
-const R = room("tools"), S = room("sim");
+import { answers } from "../../lib/answers";
+const R = room("tools"), S = room("sim"), A = answers();
 ---
-<Studio title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
+<Studio ask={false} title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
   <article class="s-wrap hub" data-content="tools">
-    <p class="s-cap">도구</p>
     <h1 class="s-prose">{R.title}</h1>
-    <p class="s-lead s-prose">{R.lead} 모든 도구는 공공 1차 데이터로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
-    <ol class="s-index">
-      {(R.items || []).map((r: any) => <li><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
+    <p class="s-lead s-prose">{R.lead}</p>
+    {/* 도구마다 지금의 답(4차 화면 판정 Q1 — 질문만 여섯 줄이었다) · 숫자는 그 도구가 읽는 파생 파일에서 */}
+    <ol class="tl">
+      {(R.items || []).map((r: any) => { const a = A[r.href]; return <li><a href={u(r.href)}>
+        <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}</> : null}</span>
+        <span class="tl__body"><span class="s-cap">{r.who}</span><h2 class="tl__q">{r.q || r.title}</h2>{a && <span class="tl__a">{a.text}</span>}{a?.src && <span class="tl__src s-cap">출처 · {a.src}</span>}</span>
+      </a></li>; })}
     </ol>
-    <section class="aux">
+    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>모든 도구는 공개 1차 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)로 움직이고(배송 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 지면마다 원문·CSV·갱신일을 붙인다. 숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 계산은 참고용이며 자문이 아니다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
+    <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
       <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
     </section>
+    <p class="s-cap" data-ai-mark>AI 정리</p> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>
 </Studio>
 <style>
   .hub { padding-top: var(--s-8); padding-bottom: var(--s-6); }
   .hub h1 { margin: var(--s-3) 0 var(--s-4); }
-  .hub .s-index { margin-top: var(--s-7); }
+  .tl { list-style: none; margin: var(--s-6) 0 0; padding: 0; border-top: 1px solid var(--s-rule); }
+  .tl li { border-bottom: 1px solid var(--s-rule); }
+  .tl a { display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; color: inherit; text-decoration: none; }
+  .tl a:hover .tl__q, .tl a:focus-visible .tl__q { text-decoration: underline; }
+  .tl__num b { font: 600 clamp(30px, 3.6vw, 44px)/1 var(--s-font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tl__num small { font-size: 15px; margin-left: 2px; color: var(--s-ink-2); }
+  .tl__body { display: grid; gap: 4px; min-width: 0; }
+  .tl__q { font-size: var(--s-t-h3); font-weight: 600; line-height: 1.35; color: var(--s-ink); margin: 0; }
+  .tl__a { color: var(--s-ink-2); }
+  .tl__src { color: var(--s-ink-3); }
+  .tl__terms { margin-top: var(--s-4); } .tl__terms summary { cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; }
+  @media (max-width: 560px) { .tl a { grid-template-columns: 1fr; gap: var(--s-2); } }
   .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
   .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
   .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }

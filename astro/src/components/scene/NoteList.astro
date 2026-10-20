@@ -2,20 +2,36 @@
 // 노트 목록 — 콘텐츠 목록(data/rooms.json)에서 자동. 단계 표시는 해도 기호처럼 작은 표지(○ 초안 · ◐ 갱신 중 · ● 정본), 상자 없음.
 import { notes, STAGES } from "../../lib/rooms";
 import { u } from "../../lib/site";
-interface Props { limit?: number }
-const { limit } = Astro.props;
+import { answers } from "../../lib/answers";
+interface Props { limit?: number; answer?: boolean }
+const { limit, answer = false } = Astro.props;
+const A = answer ? answers() : {};
 const N = notes();
 const list = limit ? N.slice(0, limit) : N;
-const mark: Record<string, string> = { "초안": "○", "갱신 중": "◐", "정본": "●" };
 const count = Object.fromEntries(STAGES.map((s) => [s, N.filter((n) => n.stage === s).length]));
 ---
-<p class="s-cap s-stages">{STAGES.map((s) => <span><b aria-hidden="true">{mark[s]}</b> {s} {count[s]}</span>)}</p>
+{!answer && <p class="s-cap s-stages">{STAGES.map((s) => <span><i class="st-dot" data-s={s} aria-hidden="true"></i> {s} {count[s]}</span>)}</p>}
 <ul class="s-notes">
   {list.map((n) => (
     <li data-stage={n.stage}>
-      <span class="s-notes__stage" title={n.stage}><b aria-hidden="true">{mark[n.stage]}</b><span class="sr">{n.stage}</span></span>
+      <span class="s-notes__stage"><i class="st-dot" data-s={n.stage} aria-hidden="true"></i><small>{n.stage}</small></span>
       <a href={u(n.href)}>{n.title}</a>
+      {A[n.href] && <span class="s-notes__ans"><b class={A[n.href].neg ? "s-signal" : ""}>{A[n.href].num}</b>{A[n.href].unit} <span>{A[n.href].text}</span>{A[n.href].src && <small class="s-notes__src">출처 · {A[n.href].src}</small>}</span>}
       <span class="s-notes__date">{n.stage === "초안" ? `심은 날 ${n.planted}` : `고친 날 ${n.tended}`}{n.backlinks.length > 0 && ` · 이어지는 노트 ${n.backlinks.length}`}</span>
     </li>
   ))}
 </ul>
+<style>
+  /* 단계 표지 옆에 단계 이름 — 「○」만으로는 뜻이 안 읽혔다(5차 화면 판정) */
+  :global(ul.s-notes > li) { grid-template-columns: 3.4rem 1fr auto; }
+  .s-notes__stage { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+  .s-notes__stage small { font-size: 11.5px; color: var(--s-ink-3); white-space: nowrap; }
+  @media (max-width: 560px) { :global(ul.s-notes > li) { grid-template-columns: 3.4rem 1fr; } }
+  .s-notes__src { display: block; font-size: 12.5px; color: var(--s-ink-3); margin-top: 2px; }
+  .s-notes__ans { grid-column: 2 / -1; grid-row: 2; display: block; margin: 0; color: var(--s-ink-2); }
+  .s-notes__ans b { font: 600 clamp(28px, 3.4vw, 40px)/1.1 var(--s-font); letter-spacing: -0.02em; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  /* 단계 표지 — 글꼴 기호(○◐●)는 대체 글꼴에서 ◖처럼 깨져 보였다(화면 판정 10/20) → CSS 점: 빈 원 · 반 찬 원 · 찬 원 */
+  :global(.st-dot) { display: inline-block; width: 0.72em; height: 0.72em; border: 1.5px solid currentColor; border-radius: 50%; vertical-align: -0.06em; box-sizing: border-box; }
+  :global(.st-dot[data-s="갱신 중"]) { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+  :global(.st-dot[data-s="정본"]) { background: currentColor; }
+</style>

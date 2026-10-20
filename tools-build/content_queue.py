@@ -58,11 +58,11 @@ def race():
 def cost():
     C = J("import_cost.json"); E = C["example"]; n, a = E["now"], E["ago"]
     return {"id": "import-cost", "asof": ymd(n["week"]), "q": "환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?",
-            "hook": f"같은 {won(E['goods'])}달러({E['incoterm']}) 물건을 이번 주 관세환율로 들이면 원가(부가세 제외) {won(n['cost'])}원 — {E['ago_weeks']}주 전보다 {('+' if E['diff'] > 0 else '−') + won(abs(E['diff']))}원({sign(E['pct'])}%).",
-            "body": [f"관세환율이 {a['fx']:,}원에서 {n['fx']:,}원으로 움직인 몫입니다(관세 {E['duty_pct']}% · 부가세 {E['vat_pct']}% 예시).",
+            "hook": f"같은 {won(E['goods'])}달러({E['incoterm']}) 물건을 이번 주 과세환율로 들이면 원가(부가세 제외) {won(n['cost'])}원 — {E['ago_weeks']}주 전보다 {('+' if E['diff'] > 0 else '−') + won(abs(E['diff']))}원({sign(E['pct'])}%).",
+            "body": [f"과세환율이 {a['fx']:,}원에서 {n['fx']:,}원으로 움직인 몫입니다(관세 {E['duty_pct']}% · 부가세 {E['vat_pct']}% 예시).",
                      "운임 칸에는 KCCI 지수 변동률로 낸 제안값을 넣어 볼 수 있습니다 — 지수는 달러 운임이 아닙니다."],
-            "how": "관세청 주간 관세환율로 과세가격·관세·부가세를 주마다 다시 계산합니다.",
-            "limit": "참고용 어림이며 법률·세무·관세 자문이 아닙니다.", "src": "관세청 관세환율 · 한국해양진흥공사 KCCI"}
+            "how": "관세청 주간 과세환율로 과세가격·관세·부가세를 주마다 다시 계산합니다.",
+            "limit": "참고용 어림이며 법률·세무·관세 자문이 아닙니다.", "src": "관세청 과세환율 · 한국해양진흥공사 KCCI"}
 
 
 def choke():
