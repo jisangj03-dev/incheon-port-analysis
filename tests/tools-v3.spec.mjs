@@ -11,7 +11,7 @@ const TOOLS = {
   "port-pulse": { data: ["data/derived/port_pulse.json"], answer: "#pl-fig", num: "#pl-pct", asof: true,
     act: async (p) => { const a = await p.locator("#pl-word").innerText(); await p.locator(".pulse__cmp button[data-port=Busan]").click(); await expect(p.locator("#pl-word")).not.toHaveText(a); } },
   "delivery-reach": { data: ["data/derived/isochrones.json", ...["data/derived/navi_check.json", "data/derived/reach_slots.json"].filter((f) => existsSync(f))], answer: ".reach__map", num: "#reach-min",
-    act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg:not(#reach-veh) button").last().click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
+    act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg:not(#reach-veh) button").first().click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
   "trade-race": { data: ["data/derived/trade_race.json", "data/hs2_short.json"], answer: "#race-box", num: "#race-total",
     act: async (p) => { await p.waitForSelector("#race-box[data-ready='1']"); await p.evaluate(() => window.__race.stop()); const a = await p.locator("#race-total").innerText(); await p.locator(".seg button[data-k=imp]").click(); await expect(p.locator("#race-k")).toHaveText("수입"); await expect(p.locator("#race-total")).not.toHaveText(a); } },
   "import-cost": { data: ["data/derived/import_cost.json"], answer: "#cs-fig", num: "#cs-diff", asof: true, advice: true,
@@ -220,8 +220,9 @@ test("등시선: 화물차 판 = cities_truck", async ({ page }) => {
   await page.goto(`${B}/tools/delivery-reach.html`);
   await page.waitForSelector(".reach__map[data-ready='1']");
   await page.locator("#reach-veh button[data-truck='1']").click();
-  const sel = Number(await page.locator("#reach-o").inputValue()), O = I.origins[sel];
-  await expect(page.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(O.cities_truck["서울시청"]));
+  const sel = Number(await page.locator("#reach-o").inputValue()), RS = JSON.parse(J("data/derived/reach_slots.json"));
+  // [#67] 기본 시간대(낮)가 눌린 채라 화물차 분 × 낮 배율 = reach_slots.json table
+  await expect(page.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(RS.table[sel][RS.default].truck["서울시청"]));
 });
 
 // [2026-10-15 P1 ②] HS 코드 → 관세율표 — 기본·WTO 중 낮은 쪽이 관세율 칸에 · FTA 는 원산지증명이 있을 때만 고를 수 있다
@@ -258,4 +259,43 @@ test("묘박지: 확대·크로스페이드·슬라이더 · 레이더 배 원",
   await page.locator('.anc__sar-bars button[data-r="0"]').click();
   await expect(page.locator("#anc-sar-d")).toHaveText(R[0].date);
   await expect(page.locator("#anc-ships circle")).toHaveCount(R[0].ships.length);
+});
+
+// [2026-10-20 #67 ①] 등시선 기본 = 낮 시간대 — 첫 그림(스크립트 전)·표·첫 문장이 낮 배율 값 · 괄호에 보정 근거 · 시간대를 바꾸면 첫 문장도 바뀐다
+test("등시선: 기본 = 낮 시간대 · 첫 문장 = 고른 시간대 값 + 보정 근거", async ({ page, browser }) => {
+  const RS = JSON.parse(J("data/derived/reach_slots.json")), I = JSON.parse(J("data/derived/isochrones.json"));
+  const fi = I.origins.findIndex((o) => o.kind === "물류단지"), D = RS.slots.find((t) => t.id === RS.default);
+  expect(RS.default, "기본 시간대").toBe("낮");
+  const T = RS.table[fi][D.id];
+  // 스크립트 없이 — 서버 첫 그림
+  const ctx = await browser.newContext({ javaScriptEnabled: false }), p0 = await ctx.newPage();
+  await p0.goto(`${B}/tools/delivery-reach.html`);
+  await expect(p0.locator(".tool__lead")).toContainText(`서울시청까지 ${T.car["서울시청"]}분(낮 시간 보정, 카카오 내비 ${D.n}구간 대조)`);
+  await expect(p0.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(T.car["서울시청"]));
+  await expect(p0.locator(".seg:not(#reach-veh) button[aria-pressed=true]")).toContainText("낮");
+  await ctx.close();
+  await page.goto(`${B}/tools/delivery-reach.html`);
+  await page.waitForSelector(".reach__map[data-ready='1']");
+  await page.locator(".seg:not(#reach-veh) button").first().click();
+  await expect(page.locator(".tool__lead")).toContainText(`서울시청까지 ${I.origins[fi].cities["서울시청"]}분(자유 흐름 · 혼잡 미반영)`);
+  const C = RS.slots.find((t) => t.id === "출근");
+  if (C) { await page.locator(".seg:not(#reach-veh) button", { hasText: "출근" }).click(); await expect(page.locator(".tool__lead")).toContainText(`서울시청까지 ${RS.table[fi]["출근"].car["서울시청"]}분(출근 시간 보정`); }
+});
+
+// [#67 ①] 시간대 표는 isochrones × 배율(0.5 올림)과 같다 — isochrones 를 다시 계산하고 reach_slots.py 를 안 돌리면 여기서 빨개진다
+test("등시선: 시간대 표 = isochrones × 배율", () => {
+  const RS = JSON.parse(J("data/derived/reach_slots.json")), I = JSON.parse(J("data/derived/isochrones.json"));
+  expect(RS.table.length).toBe(I.origins.length);
+  I.origins.forEach((o, i) => { for (const t of RS.slots) for (const [c, m] of Object.entries(o.cities)) expect(RS.table[i][t.id].car[c], `${o.name} ${t.id} ${c}`).toBe(m == null ? null : Math.round(m * t.k)); });
+});
+
+// [#67 ②③] 홈 — 개편 전 설명(「혼잡은 반영하지 않습니다」)이 없고 · 경기 밀집지 이름표는 「비중 추정」
+test("홈: 개편 전 설명 0 · 이름표 「비중 추정」", async ({ page }) => {
+  await page.goto(`${B}/`);
+  await expect(page.locator("main")).not.toContainText("혼잡은 반영하지 않습니다");
+  await expect(page.locator("main")).toContainText("화물차 제한을 고를 수 있습니다");
+  await page.waitForFunction(() => document.querySelectorAll(".fm-lb").length > 0, null, { timeout: 30_000 });
+  const t = await page.evaluate(() => [...document.querySelectorAll(".fm-lb")].map((e) => e.textContent).join("|"));
+  expect(t).not.toContain("몫 가정");
+  if (t.includes("밀집지")) expect(t).toContain("비중 추정");
 });

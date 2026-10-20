@@ -34,3 +34,30 @@ test("히어로 — 너비 1280·1440·1536 × 높이 640·720·900 에서 글·
   }
   expect(bad, bad.join("\n")).toEqual([]);
 });
+
+// [2026-10-20 #67 ③ · 1568×709 검수] 지도 이름표(서울·의왕 ICD 등)가 글 블록(문장·단추)과 겹치지 않는다 — 움직이는 지도라 몇 번 나눠 본다
+const SIZES2 = [1280, 1440, 1536, 1568].flatMap((w) => [640, 709, 720, 900].map((h) => ({ width: w, height: h })));
+test("히어로 — 지도 이름표 × 글·단추 겹침 0(너비 1280·1440·1536·1568 × 높이 640·709·720·900)", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
+  test.setTimeout(300_000);
+  const bad = [];
+  for (const vp of SIZES2) {
+    await page.setViewportSize(vp);
+    await page.goto(`${B}/`, { waitUntil: "load" });
+    for (let k = 0; k < 3; k++) {
+      await page.waitForTimeout(900);
+      const hits = await page.evaluate(() => {
+        const R = (e) => e.getBoundingClientRect(), txt = [...document.querySelectorAll(".live__text > *, .live__text a, .live__text button")].map((e) => [e.className?.toString().split(" ")[0] || e.tagName, R(e)]);
+        const out = [];
+        for (const l of document.querySelectorAll(".fm-lb")) {
+          if (getComputedStyle(l).visibility === "hidden") continue;
+          const a = R(l); if (!a.width) continue;
+          for (const [n, c] of txt) { const ox = Math.min(a.right, c.right) - Math.max(a.left, c.left), oy = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top); if (ox > 1 && oy > 1) out.push(`${(l.textContent || "").slice(0, 10)} × ${n}`); }
+        }
+        return out;
+      });
+      for (const h of hits) bad.push(`${vp.width}×${vp.height} ${h}`);
+    }
+  }
+  expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);
+});
