@@ -1,12 +1,12 @@
 # 실무 도구 v3 데이터(2026-10-14 선장님 최종 위임) — 이 클라우드 세션은 PortWatch·세계은행·Geofabrik 이 막혀 Actions 에서 받고 가공한다.
 # 일마다 하나씩(병렬) → 결과 파일을 산출물로 넘기고 → 마지막 일이 그 브랜치에 한 번 커밋한다. 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
-# 자동 갱신: 매주 월(PortWatch 일별) · 매월 17일(나머지) — 예약 실행은 기본 브랜치에서 돌고 PR 을 연다(공개 전환 뒤).
+# 자동 갱신: 매주 월(PortWatch 일별 · 입찰 레이더 스냅샷) · 매월 17일(나머지) — 예약 실행은 기본 브랜치에서 돌고 PR 을 연다(공개 전환 뒤).
 name: data-v3
 on:
   workflow_dispatch:
     inputs:
       only:
-        description: "한 일만(비우면 전부) — terms|portwatch|density|osm|apis|s2|kcci|iiac"
+        description: "한 일만(비우면 전부) — terms|portwatch|density|osm|apis|s2|kcci|iiac|radar"
         required: false
         default: ""
   push:
@@ -26,7 +26,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        job: [terms, portwatch, density, osm, apis, s2, kcci, iiac]
+        job: [terms, portwatch, density, osm, apis, s2, kcci, iiac, radar]
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -59,6 +59,7 @@ jobs:
             s2) python s2_anchorage.py --months 12 ;;
             kcci) pip install -q xlrd==2.0.2 && python kcci.py && python fx_derive.py ;;
             iiac) python iiac_cargo.py && (cd ../.. && python tools-build/flows_derive.py) ;;
+            radar) python bid_radar.py --selftest && python bid_radar.py ;;
           esac 2>&1 | tee /tmp/log.txt
           echo "## ${{ matrix.job }}" >> "$GITHUB_STEP_SUMMARY"; tail -40 /tmp/log.txt >> "$GITHUB_STEP_SUMMARY"
       - name: 키가 산출물에 없는지
