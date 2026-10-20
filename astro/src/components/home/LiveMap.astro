@@ -44,7 +44,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
         <div><dt>수출 중 인천 몫</dt><dd><b>{L.exp_share_pct}%</b></dd></div>
         <div><dt><span id="fm-ym">{L.ym}</span> 인천 관문 수출입</dt><dd><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span></dd></div>
       </dl>
-      <p class="live__sub">관문별로 나누면</p>
+      <p class="live__sub">관문별로 나누면 <span class="live__pc">(막대 = 각각 100%)</span></p>
       {/* [2026-10-21 채팅 검수 ① · 채점표 D1] 답(공항+항만 금액)과 지도(공항 항공화물 무게)가 갈려 「50.5%가 다 비행기로?」로 읽혔다 → 금액을 관문별로 갈라 첫 화면에 둔다 */}
       {[["수입", "fm-imp", L.imp_total, L.air_imp, L.port_imp], ["수출", "fm-exp", L.exp_total, L.air_exp, L.port_exp]].map(([k, id, t, a, sp]: any) => { const ap = Math.round((a / t) * 100); return (
         <p class="live__split" aria-label={`${k} ${fmt(t)}억 달러 가운데 인천공항 ${fmt(a)}(${ap}%) · 인천항 ${fmt(sp)}(${100 - ap}%)`}>
@@ -53,7 +53,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
           <span class="live__sv" aria-hidden="true">하늘 {ap}% · 바다 {100 - ap}%</span>
         </p>); })}
       {/* [2026-10-21 11차 화면 판정 H4] 390 에서 범례(지도 아래)가 접힘선 밑 — 지도가 무엇인지는 글 기둥에서 먼저 말한다 */}
-      <p class="live__mapis"><span class="lg-d">오른쪽</span><span class="lg-m">아래</span> 지도는 하늘 쪽만 그립니다 — 인천공항을 오간 나라별 항공화물 <b>무게</b>(톤 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""} · 위 금액과 단위·기간이 다름)</p>
+      <p class="live__mapis"><span class="lg-d">오른쪽</span><span class="lg-m">아래</span> 지도의 흐르는 점은 하늘 쪽뿐입니다 — 인천공항을 오간 나라별 항공화물 <b>무게</b>(톤 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""} · 위 금액과 단위·기간이 다름)</p>
     </div>
     <div class="live__cta">
       <a class="s-btn live__q" href="#questions">같이 푸는 질문 보기</a>
@@ -381,6 +381,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__lt { color: var(--s-ink); font-weight: 650; }
   .live__mapis { flex-basis: 100%; font-size: 13.5px; color: var(--s-ink-2); margin-top: 6px; }
   .live__mapis b { color: var(--s-ink); font-weight: 600; }
+  .live__pc { color: var(--s-ink-3); }
   .lg-m { display: none; }
   @media (max-width: 899px) { .lg-d { display: none; } .lg-m { display: inline; } .live__mapis { font-size: 13px; } }
   .live__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }

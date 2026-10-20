@@ -15,7 +15,7 @@ const ROWS = [...(R.items || [])].map((r: any) => ({ r, a: A[r.href] })).sort((x
 const GROUPS: [string, string[]][] = [["화주 · 셀러", ["수입 담당", "수출입 담당", "구매", "셀러", "MD", "영업"]], ["물류 · 포워딩", ["3PL", "풀필먼트", "포워더"]], ["해운 · 항만", ["선사", "터미널", "항만"]]];
 const who = (r: any) => { const w = String(r.who || "").split("·").map((x) => x.trim()); return GROUPS.filter(([, ks]) => ks.some((k) => w.includes(k))).map(([g]) => g); };
 const ROLES = GROUPS.map(([g]) => g).filter((g) => ROWS.some(({ r }) => who(r).includes(g)));
-const nf = (v: number) => v.toLocaleString("ko-KR", { maximumFractionDigits: 1 });
+const nf = (v: number, u?: string) => v.toLocaleString("ko-KR", u === "%" ? { minimumFractionDigits: 1, maximumFractionDigits: 1 } : { maximumFractionDigits: 1 }); /* % 는 답과 같은 소수 한 자리(13차 T-7) */
 import AiMark from "../../components/scene/AiMark.astro";
 ---
 <Studio ask={false} title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
@@ -23,7 +23,7 @@ import AiMark from "../../components/scene/AiMark.astro";
     <div class="hub__head">
       <div>
         <h1 class="s-prose">어떤 질문을 풀고 계세요?</h1>
-        <p class="s-lead s-prose">질문마다 지금의 답부터 보입니다. 숫자는 공개 1차 데이터에서 읽었고, 기준이 최신인 도구가 위에 옵니다.</p>
+        <p class="s-lead s-prose">질문마다 지금의 답부터 보입니다. 숫자는 공개 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)에서 읽었고, 공표 기준일이 최신인 도구가 위에 옵니다 — 도로망으로 계산하는 등시선은 기준일이 없어 끝에.</p>
       </div>
       <div class="chips" role="group" aria-label="직무로 거르기" hidden>
         <button type="button" class="chip" aria-pressed="true" data-role="">전체</button>
@@ -34,7 +34,7 @@ import AiMark from "../../components/scene/AiMark.astro";
     {/* 도구마다 지금의 답(4차 화면 판정 Q1 — 질문만 여섯 줄이었다) · 숫자는 그 도구가 읽는 파생 파일에서 */}
     <ol class="tl">
       {ROWS.map(({ r, a }) => { const mx = Math.max(...(a?.bars || []).map((b) => b.v), 1); return <li data-who={who(r).join("|")}><a href={u(r.href)}>
-        <span class="tl__fig" aria-hidden="true">{(a?.bars || []).map((b) => <span class="mb"><i class={b.hi ? "hi" : ""} style={`width:${Math.max(1.5, (b.v / mx) * 100)}%`}></i><em>{b.label} {nf(b.v)}{a?.barUnit ?? ""}</em></span>)}</span>
+        <span class="tl__fig" aria-hidden="true">{(a?.bars || []).map((b) => <span class="mb"><i class={b.hi ? "hi" : ""} style={`width:${Math.max(1.5, (b.v / mx) * 100)}%`}></i><em>{b.label} {nf(b.v, a?.barUnit)}{a?.barUnit ?? ""}</em></span>)}</span>
         <span class="tl__body"><span class="s-cap">{r.title}</span><h2 class="tl__q">{r.q || r.title}</h2></span>
         <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}<span class="tl__a">{a.text}</span></> : null}</span>
         <span class="tl__basis">{a?.basis && <span>{a.basis}</span>}{a?.src && <span class="tl__src s-cap">출처 · {a.src}</span>}</span>
