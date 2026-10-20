@@ -27,6 +27,23 @@ test("B6 — 보고서마다 1200×630 카드 · og:image 가 그 카드 · 틀 
   }
 });
 
+// 홈 카드(2026-10-20) — 지면 기본 카드가 옛 남색 og.jpg 가 아니라 og/home.jpg · 옛 주소 assets/og.jpg 도 같은 그림 · 카드 숫자 = 홈 첫 문장 숫자
+test("B6 홈 — 기본 카드 og/home.jpg · assets/og.jpg = 같은 그림 · 홈·지도·노트·소개·도구 목록이 그 카드", async ({ request }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
+  test.skip(!existsSync("astro/dist/og/cards.json"), "npm run site:og 를 안 돌렸다");
+  const home = readFileSync("astro/dist/og/home.jpg");
+  expect(jpegSize(home)).toEqual({ w: 1200, h: 630 });
+  expect(Buffer.compare(home, readFileSync("astro/dist/assets/og.jpg")), "assets/og.jpg 가 홈 카드와 다르다").toBe(0);
+  expect(existsSync("astro/dist/og/home.html"), "홈 카드 틀 HTML 이 배포물에 남았다").toBe(false);
+  for (const path of ["/", "/map.html", "/notes.html", "/about.html", "/tools/", "/sim/", "/notes/port-yoy.html"]) {
+    const html = await (await request.get(`/incheon-port-analysis${path}`)).text();
+    expect(html.match(/<meta property="og:image" content="([^"]+)"/)?.[1], path).toBe("https://jisangj03-dev.github.io/incheon-port-analysis/og/home.jpg");
+  }
+  const F = JSON.parse(readFileSync("data/derived/home_flows.json", "utf-8")), M = F.months[F.months.length - 1];
+  const html = await (await request.get("/incheon-port-analysis/")).text();
+  expect(html, "홈 첫 문장 숫자 = 카드 숫자(home_flows 마지막 달)").toContain(`${M.imp_share_pct}%</span>가 인천으로 들어옵니다`);
+});
+
 test("B7 — 퍼가기 지면: 위젯이 돌고 외부 요청 0(분석도 없다) · 출처 링크 · 보고서 지면에 퍼가기 코드", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
   const ext = [];

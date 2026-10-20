@@ -29,7 +29,7 @@ interface Props {
   /** 좁은 화면에서 글꼴 CSS 를 사람이 만진 뒤에 붙인다(홈 · 2026-10-14 실측: 글꼴 규칙 216개를 붙이는 배치 계산이 모바일 TBT 의 2/3) */
   lateFonts?: boolean;
 }
-const { title, description = BRAND.description, path, ogImage = "/assets/og.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
+const { title, description = BRAND.description, path, ogImage = "/og/home.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
 const P = profile();
 const fullTitle = title ? `${title} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 const canonical = abs(path);
