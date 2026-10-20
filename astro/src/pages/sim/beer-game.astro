@@ -118,6 +118,7 @@ const S = R.stages.length;
   .ends { display: flex; justify-content: space-between; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .note { margin-top: var(--s-4); max-width: 46rem; }
   .intro .amp { margin: 0 0 var(--s-2); }
+  @media (max-width: 600px) { .intro .amp b { font-size: 34px; } .intro .s-lead { display: none; } .intro h1 { margin-bottom: var(--s-2); } } /* 휴대폰 첫 화면에 그림·막대까지(시험 · 664px) */
   .amp { margin: 0; font-size: var(--s-t-lead); line-height: 1.5; color: var(--s-ink-2); }
   .amp b { font-size: clamp(40px, 5vw, 64px); font-weight: 650; letter-spacing: -0.04em; display: inline-block; line-height: 1; }
   .setup { padding: var(--s-7) 0; border-top: 1px solid var(--s-rule); }

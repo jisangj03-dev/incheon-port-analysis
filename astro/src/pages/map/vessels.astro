@@ -56,7 +56,7 @@ const n = V.months.length;
       let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
       // 연도 눈금(화면 판정 10/20 — 양끝만 있어 언제인지 못 읽었다) · 좁으면 두 해마다
       const yStep = W < 600 ? 2 : 1;
-      D.months.forEach((m: string, k: number) => { if (m.endsWith("-01") && Number(m.slice(0, 4)) % yStep === 0) g += `<line x1="${x(k).toFixed(1)}" x2="${x(k).toFixed(1)}" y1="${H - B}" y2="${H - B + 4}" stroke="var(--s-ink-3)"/><text x="${x(k).toFixed(1)}" y="${H - 6}" font-size="11.5" text-anchor="middle" fill="var(--s-ink-3)">${m.slice(0, 4)}</text>`; });
+      D.months.forEach((m: string, k: number) => { if (m.endsWith("-01") && Number(m.slice(0, 4)) % yStep === 0 && x(k) > 18 && x(k) < W - R - 18) g += `<line x1="${x(k).toFixed(1)}" x2="${x(k).toFixed(1)}" y1="${H - B}" y2="${H - B + 4}" stroke="var(--s-ink-3)"/><text x="${x(k).toFixed(1)}" y="${H - 6}" font-size="11.5" text-anchor="middle" fill="var(--s-ink-3)">${m.slice(0, 4)}</text>`; });
       // 흐르는 달 커서 — 지금 그리는 달과 그 달 인천 척수
       g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-ink-3)" stroke-dasharray="2 3"/><text x="${(x(i) - 6).toFixed(1)}" y="${T + 10}" font-size="12.5" font-weight="600" text-anchor="end" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${D.months[i]}</text>`;
       const ends: { y: number; t: string; c: string; b: boolean }[] = [];

@@ -39,7 +39,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
         {bars.map((b) => <rect x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={Math.max(1, b.h).toFixed(1)} fill={b.neg ? "var(--s-signal)" : "var(--s-ink-2)"}><title>{b.ym} {b.v}%</title></rect>)}
       </svg>
       {/* 눈금 = 해마다 1월 · 마지막 막대 값(화면 판정 10/20 — 양끝 날짜만 있어 어느 달인지 못 읽었다) */}
-      <div class="yoy__ticks s-cap" aria-hidden="true">{bars.filter((b) => b.ym.endsWith("-01")).map((b) => <span style={`left:${(((b.x + bw / 2) / W) * 100).toFixed(2)}%`}>{b.ym.slice(0, 4)}.1</span>)}</div>
+      <div class="yoy__ticks s-cap" aria-hidden="true">{bars.filter((b) => b.ym.endsWith("-01")).map((b) => <span style={`left:${(((b.x + bw / 2) / W) * 100).toFixed(2)}%`}>{b.ym.slice(0, 4)}</span>)}</div>
       <p class="yoy__last" style={`left:${(((bars[bars.length - 1].x + bw / 2) / W) * 100).toFixed(2)}%`} aria-hidden="true">{last.ym} <b class={(last.yoy as number) < 0 ? "s-signal" : ""}>{(last.yoy as number) > 0 ? "+" : (last.yoy as number) < 0 ? "−" : ""}{Math.abs(last.yoy as number)}%</b></p>
       <div class="yoy__axis s-cap"><span>{S[0].ym}</span><span>0 위 = 작년보다 많음 · 0 아래(주홍) = 작년보다 적음</span><span>{last.ym}</span></div>
       <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 %" />
