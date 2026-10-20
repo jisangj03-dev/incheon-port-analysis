@@ -248,9 +248,10 @@ export class FlowMap {
           const sea = g.kind === "sea";
           const v = dir === 0 ? (sea ? m.port_imp : m.air_imp) : sea ? m.port_exp : m.air_exp;
           let split = 1;
-          if (sea) { const T = m.teu || {}; const tot = F.sea_gates.reduce((s: number, x: any) => s + (T[x.id] || 0), 0); split = tot ? (T[g.id] || 0) / tot : 1 / F.sea_gates.length; }
-          // 하늘은 인천공항 실측 항공화물의 나라 몫(도착·출발 톤), 바다는 전국 나라 비중(가정)
-          const share = (!sea && p.air_in_pct != null ? (dir === 0 ? p.air_in_pct : p.air_out_pct) : dir === 0 ? p.imp_pct : p.exp_pct) / 100;
+          // 부두군 몫 = 그 달 부두군별 컨테이너(천TEU) · 그 달 자료가 아직 없으면 자료가 있는 가장 가까운 앞 달(같게 나누지 않는다 · 2차 사실 대조)
+          if (sea) { let T: any = null; for (let k = mi; k >= 0 && !T; k--) T = F.months[k].teu; T = T || {}; const tot = F.sea_gates.reduce((s: number, x: any) => s + (T[x.id] || 0), 0); split = tot ? (T[g.id] || 0) / tot : 1 / F.sea_gates.length; }
+          // 나라 몫 — 하늘 = 인천공항 실측 항공화물의 나라 몫(도착·출발 톤 · 전체 대비), 바다 = 관세청 국가별의 전국 대비 몫. 둘 다 「전체 대비」라 주요 10개국 밖 몫은 점이 없다(범례에 적는다)
+          const share = (!sea && p.air_in_pct != null ? (dir === 0 ? p.air_in_pct : p.air_out_pct) : dir === 0 ? (p.imp_nat_pct ?? p.imp_pct) : (p.exp_nat_pct ?? p.exp_pct)) / 100;
           rate[mi] = (v * share * (d.n / dSum) * split) / this.o.unit / this.o.monthSec;
         });
         // 들어오면 먼 길 → 가까운 길 · 나가면 가까운 길 → 먼 길
@@ -379,7 +380,8 @@ export class FlowMap {
           const G = this.legsG[R.g], Lw = this.legsL[R.l];
           if (R.dir === 0 ? age > G.dur - G.tail : age < Lw.dur + G.head) continue; // 들어오는 길 = 끝이 부두 · 나가는 길(뒤집힌 길) = 처음이 부두
         }
-        const hz = near ? 0.06 : 1;
+        // 하늘 길 높이 — 동북아·인천 가까이(줌 4 넘게)에서는 0(대권을 땅 위에 그대로 · 2026-10-20 2차 화면 판정: 높이 때문에 동경 길이 대권보다 북쪽으로 부풀어 보였다) · 아시아 보기에서만 호
+        const hz = c.zoom > 4 ? 0 : 1;
         this.pos(r, age, o); const h = P(o[0], o[1], o[2] * hz, o2); const x1 = h[0], y1 = h[1];
         if (x1 < -20 || x1 > W + 20 || y1 < -20 || y1 > H + 20) continue;
         this.pos(r, Math.max(0, age - TAIL), o); P(o[0], o[1], o[2] * hz, o);
@@ -429,9 +431,9 @@ export class FlowMap {
     this.o.onFrame?.(this);
   }
   private legPath(L: Leg, P: (x: number, y: number, h?: number, out?: number[]) => number[], o: number[]) {
-    const s = Math.max(1, Math.floor(L.n / 60));
-    for (let i = 0; i < L.n; i += s) { P(L.pts[i * 3], L.pts[i * 3 + 1], L.pts[i * 3 + 2], o); i ? this.ctx.lineTo(o[0], o[1]) : this.ctx.moveTo(o[0], o[1]); }
-    const j = L.n - 1; P(L.pts[j * 3], L.pts[j * 3 + 1], L.pts[j * 3 + 2], o); this.ctx.lineTo(o[0], o[1]);
+    const s = Math.max(1, Math.floor(L.n / 60)), hz = this.cam.zoom > 4 ? 0 : 1; // 점과 같은 규칙 — 동북아부터는 하늘 길도 땅 위 대권
+    for (let i = 0; i < L.n; i += s) { P(L.pts[i * 3], L.pts[i * 3 + 1], L.pts[i * 3 + 2] * hz, o); i ? this.ctx.lineTo(o[0], o[1]) : this.ctx.moveTo(o[0], o[1]); }
+    const j = L.n - 1; P(L.pts[j * 3], L.pts[j * 3 + 1], L.pts[j * 3 + 2] * hz, o); this.ctx.lineTo(o[0], o[1]);
   }
 
   /** 화면 위 자리(이름표·누름 판정) */

@@ -88,8 +88,11 @@ export class TreemapRace {
       // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
       // 중간 칸도 이름을 단다(괄호 풀이를 뺀 짧은 이름) — %만 있는 칸은 무엇인지 읽히지 않았다(화면 판정 10/20)
       const short = it.name.replace(/\s*\(.*\)$/, "");
-      el.innerHTML = big ? `<b>${it.name}</b> <i>${share.toFixed(1)}%</i>` : mid ? `<b>${short}</b> <i>${share.toFixed(1)}%</i>` : "";
-      if (big) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
+      // 칸 폭에 들어가는 이름만(글자 하나 ≈ 13px) — 390 에서 「광학·정밀·의료기기」가 잘렸다(2차 화면 판정) · 안 들어가면 짧은 이름 → % 만 → 빈 칸(값은 누르면 · CSV)
+      const fit = (t: string) => t.length * 13 + 14 < r.w;
+      const nm = big && fit(it.name) ? it.name : (big || mid) && fit(short) ? short : "";
+      el.innerHTML = nm ? `<b>${nm}</b> <i>${share.toFixed(1)}%</i>` : mid && r.w > 52 ? `<i>${share.toFixed(1)}%</i>` : "";
+      if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;
       el.style.color = inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c);

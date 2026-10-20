@@ -11,13 +11,15 @@ const TERMS = /공공누리|이용허락|CC BY|CC0|ODbL|퍼블릭 도메인|Publ
 const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts = source.split(" · ");
   for (const p of parts) { cur = cur ? `${cur} · ${p}` : p; d += (p.match(/[(「（]/g) || []).length - (p.match(/[)」）]/g) || []).length; if (d <= 0) { out.push(cur.trim()); cur = ""; d = 0; } }
   if (cur) out.push(cur.trim()); return out.filter(Boolean); })();
-const short = segs.filter((x) => !TERMS.test(x)).join(" · ") || source;
-const terms = segs.filter((x) => TERMS.test(x));
+// 한 줄에는 출처 둘까지 — 셋 이상이면 「외 N」로 줄이고 나머지는 접기 안(2026-10-20 2차 화면 판정: 수입원가·초크포인트 출처가 3~4줄로 펼쳐졌다)
+const names = segs.filter((x) => !TERMS.test(x));
+const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
+const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
 <p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
-{terms.length > 0 && <details class="s-terms"><summary>이용 조건</summary><p>{[...new Set(terms)].join(" · ")}</p></details>}
+{terms.length > 0 && <details class="s-terms"><summary>{names.length > 2 ? "출처 전부 · 이용 조건" : "이용 조건"}</summary><p>{[...new Set(terms)].join(" · ")}</p></details>}
 <style>
   .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
   .s-terms summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; }

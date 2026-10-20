@@ -139,3 +139,9 @@ html[data-type="sans"] { --s-font-head: var(--s-font); --s-head-track: -0.03em; 
 .s-notes__date { font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 @media (max-width: 560px) { .s-notes li { grid-template-columns: 1.5rem 1fr; } .s-notes__date { grid-column: 2; white-space: normal; } }
+
+/* [2026-10-20 2차 화면 판정] 접기(출처·이용 조건·방법)에 펼침 표시가 없어 떠도는 회색 글자처럼 보였다 — 모든 접기에 ▸ / ▾ */
+.studio details:not(.cost__more) > summary { list-style: none; }
+.studio details:not(.cost__more) > summary::-webkit-details-marker { display: none; }
+.studio details:not(.cost__more) > summary::before { content: "▸"; display: inline-block; width: 1.1em; color: var(--s-ink-3); }
+.studio details:not(.cost__more)[open] > summary::before { content: "▾"; }

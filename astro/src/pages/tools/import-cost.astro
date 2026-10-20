@@ -90,18 +90,17 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       <p class="s-cap">입력은 이 브라우저 안에서만 계산합니다(어디에도 보내지 않습니다).</p>
     </div>
     {K && <section class="wave" id="wave" aria-labelledby="wave-h">
-      <h2 class="s-cap" id="wave-h">운임 파도 · {K.names[K.routes[0]] ? "KCCI" : ""} 컨테이너 운임지수(부산 기점) · 마지막 반영 주 <b class="wave__asof">{K.last_week}</b>{K.lag_weeks > 0 && <span class="wave__lag"> · 발표 예정 주보다 {K.lag_weeks}주 늦음</span>}</h2>
+      <h2 class="s-cap" id="wave-h">참고 · 부산발 컨테이너 운임지수(KCCI · 수출 방향 — 수입 운임이 아니다) · 마지막 반영 주 <b class="wave__asof">{K.last_week}</b>{K.lag_weeks > 0 && <span class="wave__lag"> · 발표 예정 주보다 {K.lag_weeks}주 늦음</span>}</h2>
       <div class="wave__row">
         <label>항로 <select id="wave-r">{K.routes.map((r: string, i: number) => <option value={i}>{K.names[r]}</option>)}</select></label>
         <p class="wave__now"><b id="wave-v">{lastK[1].toLocaleString("ko-KR")}</b><small>포인트</small> · 52주 전 대비 <b id="wave-c">{K.chg_52w_pct[K.routes[0]] > 0 ? "+" : ""}{K.chg_52w_pct[K.routes[0]]}%</b></p>
-        <button type="button" class="s-btn s-btn--ghost" id="wave-apply">운임 칸에 변동률 적용 제안</button>
       </div>
       <div class="wave__plot">
         <p class="wave__y" aria-hidden="true"><span id="wave-max">{kRange(0)[0]}</span><span id="wave-min">{kRange(0)[1]}</span></p>
         <svg viewBox="0 0 1000 120" preserveAspectRatio="none" class="wave__svg" aria-hidden="true"><line x1="0" x2="1000" y1="8" y2="8" /><line x1="0" x2="1000" y1="112" y2="112" /><path id="wave-l" d={kLine(0)} /></svg>
         <p class="wave__x" aria-hidden="true"><span>{K.first_week}</span><span>{K.last_week}</span></p>
       </div>
-      <p class="s-cap wave__note" id="wave-note"><b>지수는 달러 운임이 아닙니다.</b> 제안은 견줄 주 → 마지막 반영 주의 지수 변동률을 지금 운임 칸 값에 곱한 것뿐입니다. 출처 한국해양진흥공사 KCCI(공공데이터포털) · {K.first_week}~{K.last_week} 주간.</p>
+      <p class="s-cap wave__note" id="wave-note"><b>지수는 달러 운임이 아니고, 한국에서 나가는 항로의 운임입니다.</b> 수입 운임은 출발지 쪽 운임이라 이 지수로 수입 원가를 고치지 않습니다 — 해운 시황의 방향을 보는 참고입니다.</p>
     </section>}
   </ToolShell>
   <span id="cs-tariff-base" hidden data-u={u("/data/tariff/")}></span>
@@ -181,7 +180,6 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
     if (KW) {
       const sel = $("wave-r") as HTMLSelectElement;
       const col = () => Number(sel.value) + 1;
-      const near = (ymd: string) => { const d = `${ymd.slice(0, 4)}-${ymd.slice(4, 6)}-${ymd.slice(6, 8)}`; let b = 0; KW.weeks.forEach((w: any[], i: number) => { if (w[0] <= d) b = i; }); return b; };
       const drawK = () => {
         const c = col(), v = KW.weeks.map((w: any[]) => Number(w[c])), mx = Math.max(...v), mn = Math.min(...v), n = v.length;
         $("wave-l").setAttribute("d", v.map((y: number, i: number) => `${i ? "L" : "M"}${((i / (n - 1)) * 1000).toFixed(1)} ${(8 + (1 - (y - mn) / (mx - mn || 1)) * 104).toFixed(1)}`).join(""));
@@ -190,14 +188,6 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
         $("wave-v").textContent = Math.round(last).toLocaleString("ko-KR"); $("wave-c").textContent = `${last >= a ? "+" : ""}${(100 * (last / a - 1)).toFixed(1)}%`;
       };
       sel.addEventListener("change", drawK);
-      $("wave-apply").addEventListener("click", () => {
-        const c = col(), i0 = near(String(W[Number(wk.value)][0])), v0 = Number(KW.weeks[i0][c]), v1 = Number(KW.weeks[KW.weeks.length - 1][c]);
-        const fr = f.elements.namedItem("freight") as HTMLInputElement, cur = Number(fr.value) || 0, r = v0 ? v1 / v0 : 1;
-        if (!cur) { $("wave-note").firstElementChild!.textContent = "운임 칸에 먼저 견줄 주의 운임을 넣으세요."; return; }
-        fr.value = String(Math.round(cur * r)); (f.elements.namedItem("incoterm") as HTMLSelectElement).value = "FOB";
-        $("wave-note").firstElementChild!.textContent = `${KW.names[KW.routes[c - 1]]} 지수 ${KW.weeks[i0][0]} → ${KW.weeks[KW.weeks.length - 1][0]} ${r >= 1 ? "+" : ""}${(100 * (r - 1)).toFixed(1)}% 를 운임 칸에 곱했습니다(지수는 달러 운임이 아닙니다).`;
-        render(Number(wk.value));
-      });
     }
   </script>
 </Studio>
@@ -236,6 +226,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
   @media (max-width: 820px) { .cost__hs { grid-template-columns: 1fr; } }
   .cost__wk { grid-column: 1 / -1; } .cost__wk input { padding: 0; accent-color: var(--s-signal); border: 0; }
   .cost__tbl { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .cost__tbl :global(td) { white-space: nowrap; } /* 금액이 자릿수 중간에서 줄이 바뀌었다(2차 화면 판정) */
   /* [2026-10-15 P1 ②] 숫자를 열 머리와 같은 가운데에(시험 = 머리칸·숫자칸 가운데 x 차 ≤ 2px) · 자릿수는 tabular-nums 로 맞는다 */
   /* 본문 줄은 스크립트가 그린다(innerHTML) — 범위 지정 CSS 가 닿지 않아 :global(2026-10-15 · 가운데 정렬이 안 먹었다) */
   .cost__tbl th, .cost__tbl :global(td), .cost__tbl :global(tbody th) { padding: 8px 6px; border-bottom: 1px solid var(--s-rule); text-align: center; font-weight: 500; }

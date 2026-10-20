@@ -8,7 +8,7 @@
    "y": "2016",
    "through": "201612",
    "partial": false,
-   "exp_total": 35818.3,
+   "exp_total": 35818.7,
    "imp_total": 34244.0,
    "top_exp": {
     "hs": "85",
@@ -900,8 +900,8 @@
    "y": "2017",
    "through": "201712",
    "partial": false,
-   "exp_total": 39286.8,
-   "imp_total": 39134.1,
+   "exp_total": 39286.5,
+   "imp_total": 39134.4,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -1792,7 +1792,7 @@
    "y": "2018",
    "through": "201812",
    "partial": false,
-   "exp_total": 40781.2,
+   "exp_total": 40781.4,
    "imp_total": 45676.8,
    "top_exp": {
     "hs": "85",
@@ -2684,8 +2684,8 @@
    "y": "2019",
    "through": "201912",
    "partial": false,
-   "exp_total": 38018.1,
-   "imp_total": 42114.4,
+   "exp_total": 38018.0,
+   "imp_total": 42114.5,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -3576,8 +3576,8 @@
    "y": "2020",
    "through": "202012",
    "partial": false,
-   "exp_total": 37701.1,
-   "imp_total": 38591.0,
+   "exp_total": 37700.8,
+   "imp_total": 38590.6,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -4468,8 +4468,8 @@
    "y": "2021",
    "through": "202112",
    "partial": false,
-   "exp_total": 45948.0,
-   "imp_total": 53451.6,
+   "exp_total": 45948.4,
+   "imp_total": 53451.4,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -5360,8 +5360,8 @@
    "y": "2022",
    "through": "202212",
    "partial": false,
-   "exp_total": 54270.2,
-   "imp_total": 68295.8,
+   "exp_total": 54270.3,
+   "imp_total": 68296.3,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -6253,7 +6253,7 @@
    "through": "202312",
    "partial": false,
    "exp_total": 53801.1,
-   "imp_total": 60406.5,
+   "imp_total": 60406.8,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -7144,7 +7144,7 @@
    "y": "2024",
    "through": "202412",
    "partial": false,
-   "exp_total": 59523.9,
+   "exp_total": 59524.2,
    "imp_total": 63768.0,
    "top_exp": {
     "hs": "85",
@@ -8036,8 +8036,8 @@
    "y": "2025",
    "through": "202512",
    "partial": false,
-   "exp_total": 60151.9,
-   "imp_total": 59346.3,
+   "exp_total": 60151.7,
+   "imp_total": 59346.0,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",
@@ -8919,8 +8919,8 @@
    "y": "2026",
    "through": "202608",
    "partial": true,
-   "exp_total": 41678.1,
-   "imp_total": 42528.8,
+   "exp_total": 41678.3,
+   "imp_total": 42528.7,
    "top_exp": {
     "hs": "85",
     "name": "전기기기(반도체·전자)",

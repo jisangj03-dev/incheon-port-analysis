@@ -26,7 +26,7 @@ const bw = (W - 2 * pad) / S.length;
 const y0 = H / 2;
 const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / ymax) * (H / 2 - pad); return { x: pad + i * bw + 1, y: v >= 0 ? y0 - h : y0, h, neg: v < 0, ym: s.ym, v }; });
 ---
-<Studio title={`${me.title} — 측심`} description="인천항 컨테이너 처리량을 작년 같은 달과 달마다 다시 견주는 노트. 숫자는 해양수산부 공표 계열에서." current="notes">
+<Studio ask={false} title={`${me.title} — 측심`} description="인천항 컨테이너 처리량을 작년 같은 달과 달마다 다시 견주는 노트. 숫자는 해양수산부 공표 계열에서." current="notes">
   <article class="s-wrap note" data-content="ds-note">
     <p class="s-cap stage-line"><i class="st-dot" data-s={me.stage} aria-hidden="true"></i> {me.stage} · 심은 날 {me.planted} · 고친 날 {me.tended}</p>
     <h1 class="s-prose">{me.title}</h1>

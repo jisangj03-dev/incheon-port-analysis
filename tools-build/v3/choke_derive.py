@@ -58,7 +58,7 @@ def derive(ck, nm, hf):
                     "monthly_musd": round((se + si) / len(months) / 1e6),
                     "top": [{"c": t["c"], "name": t["name"], "musd": round((t["exp"] + t["imp"]) / 1e6)} for t in top]})
     last = hf["months"][-1] if hf else None
-    return {"_설명": "PortWatch 초크포인트 일별 통항(주 평균) × 관세청 국가별 수출입(전국 · 최근 12달). 경유 표·단순 비례 가정 = 선커밋 §5. 인천만의 몫이 아니다(인천×나라 원천 없음).",
+    return {"_설명": "PortWatch 초크포인트 일별 통항(주 평균) × 관세청 국가별 수출입(전국 · 최근 12달). 경유 표·단순 비례 가정. 인천만의 몫이 아니다(인천×나라 원천 없음).",
             "source_pw": ck.get("service"), "source_kcs": nm["source"], "fetched": nm["fetched"], "months": [months[0], months[-1]],
             "total_exp_musd": round(E / 1e6), "total_imp_musd": round(I / 1e6),
             "incheon_imp_share_pct": last and last.get("imp_share_pct"), "incheon_ym": last and last.get("ym"), "points": pts}

@@ -53,7 +53,8 @@ const n = V.months.length;
     const max = Math.max(...Object.values(D.s as Record<string, number[]>).flat());
     // 오른쪽 여백 R 은 끝 이름표(「평택·당진 421」)가 칸 안에 들어오는 폭
     const draw = (i: number) => {
-      const W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : 280, Lp = 4, R = W < 600 ? 96 : 112, T = 10, B = 26, n = D.months.length;
+      const W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : Math.round(Math.max(200, Math.min(280, innerHeight * 0.3))), // 1280×720 에서 인천 선이 접힘선에 눌렸다(2차 화면 판정)
+        Lp = 4, R = W < 600 ? 96 : 112, T = 10, B = 26, n = D.months.length;
       const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - (v * (H - T - B)) / max;
       let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
       // 연도 눈금(화면 판정 10/20 — 양끝만 있어 언제인지 못 읽었다) · 좁으면 두 해마다

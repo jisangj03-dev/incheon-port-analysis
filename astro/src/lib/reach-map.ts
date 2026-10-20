@@ -1,7 +1,7 @@
 // 수도권 배송 등시선(실무 도구 · 2026-10-14) — 출발지에서 도착 분 격자(빌드 때 계산 · tools-build/v3/osm_iso.py)를 받아,
 // 0분에서 180분까지 문턱을 올리며 도달권이 번지는 장면을 그린다(1시간·2시간·3시간 띠). 바탕 = 홈과 같은 땅(Natural Earth · OSM 인천 상세).
 // 투영 = 위도 보정 경위도 평면(위에서 내려다본 지도) — 등시선은 길이·넓이를 읽어야 해서 기울이지 않는다.
-import { pace, paused, reduced } from "./motion";
+import { pace, paused } from "./motion";
 export type Iso = { bbox: number[]; step: number; w: number; h: number; cities: Record<string, number[]>; origins: { name: string; kind: string; lon: number; lat: number; cities: Record<string, number | null>; b64: string; cities_truck?: Record<string, number | null>; b64_truck?: string }[] };
 type Geo = { world: number[][]; near: { land: number[][]; road: number[][] } };
 
@@ -70,6 +70,10 @@ export class ReachMap {
     // 출발지
     const O = this.iso.origins[this.o], [ox, oy] = this.px(O.lon, O.lat);
     ctx.beginPath(); ctx.arc(ox, oy, 7, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill();
+    // 출발지 이름(2차 화면 판정 — 고리 두른 점에 이름이 없었다)
+    ctx.font = `700 ${this.W < 500 ? 11.5 : 13}px system-ui, sans-serif`; ctx.textBaseline = "middle"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(243,239,229,0.9)";
+    const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width, oxL = ox - 12 - ow < 4 ? ox + 12 : ox - 12 - ow;
+    ctx.strokeText(oname, oxL, oy - 14); ctx.fillStyle = "#191714"; ctx.fillText(oname, oxL, oy - 14);
     ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 18), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
     const boxes: number[][] = [];
@@ -86,16 +90,21 @@ export class ReachMap {
     }
     this.onFrame?.(this);
   }
+  /** 번지는 중인가를 알린다(지면의 「번지기 멈춤」 단추) */ onPlay?: (on: boolean) => void;
+  /** 번지기를 멈추고 끝 그림(180분) */
+  stopPlay() { cancelAnimationFrame(this.raf); this.t = 180; this.draw(); this.onPlay?.(false); }
   /** 0 → 180분을 dur 초에 번지게 */
   play(dur = 3.2, done?: () => void) {
     cancelAnimationFrame(this.raf);
     // 번지는 시간 = 자료(0→180분) — 동작 줄이기면 천천히 · 멈춤을 골랐으면 바로 끝 그림(품질기준 Q7)
     // [2026-10-20] 동작 줄이기면 번지기 없이 답(끝 그림) — 번지기는 한 번 지나가는 장식이라 멈춤 단추를 둘 자리가 아니다(화면 판정 Q7)
-    const t0 = performance.now(), still = paused() || reduced(), d = dur / pace();
+    // 동작 줄이기 = 천천히 번진다(품질기준 Q7 — 데이터는 움직인다) · 「번지기 멈춤」 단추(stopPlay)로 바로 끝 그림 · 멈춤을 골랐으면 처음부터 끝 그림
+    const t0 = performance.now(), still = paused(), d = dur / pace();
+    this.onPlay?.(!still);
     const f = (now: number) => {
       const k = still ? 1 : Math.min(1, (now - t0) / (d * 1000));
       this.t = Math.round(180 * (1 - (1 - k) ** 2)); this.draw();
-      if (k < 1) this.raf = requestAnimationFrame(f); else done?.();
+      if (k < 1) this.raf = requestAnimationFrame(f); else { this.onPlay?.(false); done?.(); }
     };
     this.raf = requestAnimationFrame(f);
   }

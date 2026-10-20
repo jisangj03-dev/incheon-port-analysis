@@ -95,23 +95,16 @@ test("트리맵: 첫 화면은 최신 온전한 해에 멈춰 있고(머리 문�
   await expect(page.locator("#race-box")).not.toContainText(/그 밖 \d+류/); // HS 79류(아연)로 읽히지 않게 「N개 류」
 });
 
-test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달러 운임 아님」 · 제안 = 지수 변동률만", async ({ page }) => {
+test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달러 운임 아님」 · 수출 방향이라 수입 원가에 적용하지 않는다(2차 사실 대조)", async ({ page }) => {
   const K = JSON.parse(J("data/derived/import_cost.json")).kcci;
   test.skip(!K, "KCCI 자료 없음 — 칸을 그리지 않는다");
   await page.goto(`${B}/tools/import-cost.html`, { waitUntil: "networkidle" });
   await expect(page.locator(".wave__asof")).toHaveText(K.last_week);
-  await expect(page.locator("#wave-note")).toContainText("달러 운임이 아닙니다");
-  await page.waitForTimeout(3500);
-  await page.fill("input[name=freight]", "1000");
-  const wk = await page.locator("input[name=wk]").inputValue();
-  const C = JSON.parse(J("data/derived/import_cost.json")), d = String(C.weeks[Number(wk)][0]), day = `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  let i0 = 0; K.weeks.forEach((w, i) => { if (w[0] <= day) i0 = i; });
-  const want = Math.round(1000 * (K.weeks[K.weeks.length - 1][1] / K.weeks[i0][1]));
-  await page.click("#wave-apply");
-  await expect(page.locator("input[name=freight]")).toHaveValue(String(want));
+  await expect(page.locator("#wave-note")).toContainText("달러 운임이 아니고");
+  await expect(page.locator("#wave-h")).toContainText("수입 운임이 아니다");
+  await expect(page.locator("#wave-apply")).toHaveCount(0);
 });
 
-// [2026-10-20] 입찰 레이더는 내렸다(공고명 낱말 분류가 물류가 아닌 공고를 섞었다) — 리디렉트만 남는다
 test("입찰 레이더: 내림 — 도구 목록으로 넘김 · 색인 제외", async ({ page }) => {
   const html = J("astro/dist/tools/bid-radar.html");
   expect(html).toContain('content="noindex');

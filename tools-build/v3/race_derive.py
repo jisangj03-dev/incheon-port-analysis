@@ -30,7 +30,7 @@ def derive(src):
         tx = max(items, key=lambda i: i["exp"]); tm = max(items, key=lambda i: i["imp"])
         thr = rec.get("through", f"{y}12")
         years.append({"y": y, "through": thr, "partial": not thr.endswith("12"),
-                      "exp_total": round(sum(i["exp"] for i in items), 1), "imp_total": round(sum(i["imp"] for i in items), 1),
+                      "exp_total": round(sum(v["exp"] for v in agg.values()) / 1000, 1), "imp_total": round(sum(v["imp"] for v in agg.values()) / 1000, 1),  # 총계 = 원자료 합(품목별 반올림 값의 합이 아니다 · 2차 사실 대조)
                       "top_exp": {"hs": tx["hs"], "name": tx["name"], "pct": tx["exp_pct"]}, "top_imp": {"hs": tm["hs"], "name": tm["name"], "pct": tm["imp_pct"]},
                       "items": sorted(items, key=lambda i: -(i["exp"] + i["imp"]))})
     return {"_설명": "인천 소재 기업의 품목별(HS 2단위) 수출입 — 연도별. 통관 항구가 아니라 사업장 주소(시도) 기준이다.",

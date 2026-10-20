@@ -29,13 +29,13 @@ const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
   <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${L.top_exp.pct}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
     updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" note="HS 2단위 · 백만 달러 · 관세청 시도(인천) 집계"
     how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천 소재 기업 수출(또는 수입)에서 그 품목의 몫. 전 기간 몫이 큰 열 품목만 칸을 따로 두고 나머지는 「그 밖 N개 류」로 묶었다."
-    limits="통관 항구(인천항·인천공항)가 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 [미확인] — 보고서 #13 과 같다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
+    limits="통관 항구(인천항·인천공항)가 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 확인하지 못했다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
     <div slot="answer" class="race">
       <p class="race__y"><b id="race-y">{L.y}</b> <span id="race-k">수출</span> <i id="race-total" data-og-num={`백만 달러 · ${L.y}년 수출`}>{L.exp_total.toLocaleString("ko-KR")}</i><small>백만 달러</small></p>
       <div class="race__box" id="race-box" role="img" aria-label={`${L.y}년 인천 소재 기업 수출 품목 구성`}>
-        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{r.w > 90 && r.h > 50 && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
+        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{r.w > 90 && r.h > 50 && it.name.length * 13 + 14 < r.w && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
       </div>
-      <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}</p>
+      <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}<span><i style="background:#d9d1c0"></i>그 밖(작은 품목 묶음)</span></p>
     </div>
     <div slot="controls" class="race__ctl">
       <div class="seg" role="group" aria-label="수출·수입"><button type="button" class="s-btn" data-k="exp" aria-pressed="true">수출</button><button type="button" class="s-btn s-btn--ghost" data-k="imp" aria-pressed="false">수입</button></div>

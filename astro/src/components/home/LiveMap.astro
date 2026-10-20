@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 import { poster, PW, PH } from "../../lib/home-poster";
 import { u } from "../../lib/site";
-import { profile } from "../../lib/profile";
+import { profile, aiMark } from "../../lib/profile";
 import { sourceLine } from "../../lib/sources";
 import { room } from "../../lib/rooms";
 import Trust from "../scene/Trust.astro";
@@ -34,7 +34,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   <div class="live__text">
     <p class="s-cap live__who">{PF.name} · SCM 작업실</p>
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
-    <p class="s-lead s-prose live__one">{L.ym} 입항지 기준(관세청 항구·공항별 수입액 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다.</p>
+    <p class="s-lead s-prose live__one">{L.ym} 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 원천 「전국」 줄).</span></p>
     <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
       <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · <span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> · <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></span></p>
     <div class="live__cta">
@@ -49,13 +49,13 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문을 지나는 교역 흐름 — ${L.ym} 인천공항·인천항 수출입 ${fmt(L.total)}억 달러. 들어오는 것(수입)은 주홍, 나가는 것(수출)은 바다색 점.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 = 그 달 관문 교역액(월 통계 · 실시간 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span> · 원 = 물류창고 등록 개소<span id="fm-dens" hidden> · 회녹 결 = 선박 통행 밀도(2015~21)</span></p>
+    <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 = 그 달 관문 교역액 가운데 주요 10개국 몫(월 통계 · 실시간 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span> · 원 = 물류창고 등록 개소<span id="fm-dens" hidden> · 회녹 결 = 선박 통행 밀도(2015~21)</span></p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="incheon" aria-label="인천 관문">인천<span class="lg">&nbsp;관문</span></button>
-      <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true" aria-label="둘러보기 멈춤"><span class="lg">둘러보기&nbsp;</span>멈춤</button>
-      <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel">관문 숫자</button>
+      <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true" aria-label="카메라 회전 끔"><span class="lg">카메라&nbsp;</span>회전 끔</button>
+      <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel" aria-label="관문 숫자"><span class="lg">관문&nbsp;</span>숫자</button>
     </div>
   </div>
   <aside class="live__panel" id="fm-panel" hidden aria-label="관문별 숫자">
@@ -80,10 +80,11 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     {CT && <p class="s-prose live__counter"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준). 인천의 몫이 큰 것은 하늘(인천공항) 덕이다.</p>}
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
     <details class="live__how"><summary class="s-cap">이 지도를 만든 방법·출처</summary>
-    <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(입항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이고, 관세청 국가별 수출입실적(다른 조회 서비스)의 전 국가 합과 달마다 같다. {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
+    <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 2억 달러 안팎 다르다). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
     <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 점은 관문(인천공항·인천항 부두군)에서 끝나거나 시작한다 — 관문 너머 내륙으로 어디까지 갔는지는 월 통계에 없어 그리지 않는다. 하늘 길의 나라 몫은 인천공항 실측 항공화물(나라별 도착·출발 톤 · 직화물+환적+우편 · {F.air_cargo ? `${F.air_cargo.through.slice(0, 4)}년 ${Number(F.air_cargo.through.slice(5, 7))}월까지` : "—"} · 인천국제공항공사), 바다 길의 나라 몫은 전국 나라별 몫(관세청 국가별 · 인천항만의 나라별 몫이 아니다)이다. 바다 길은 해상망 최단 경로(searoute 1.5.0 · Eurostat MARNET), 하늘 길은 대권(최단 거리)으로 계산한 길이지 그 달 실제로 지난 배·비행기의 항적이 아니다. 가까이 보는 화면에서는 해상망 끝에서 부두까지가 직선이라 바다 위 점을 그리지 않는다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소(인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     </details>
+    <p class="s-cap live__mark" data-ai-mark>{aiMark("index")}</p>
   </div>
   <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>
 </section>
@@ -110,12 +111,12 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   };
 
   // 이름표 — 우선순위 높은 것부터 놓고 겹치면 뺀다(매 장면)
-  type LB = { el: HTMLElement; lon: number; lat: number; pri: number; near: boolean | null; w: number; h: number; dx: number; dy: number; inc?: boolean };
+  type LB = { el: HTMLElement; lon: number; lat: number; pri: number; near: boolean | null; w: number; h: number; dx: number; dy: number; inc?: boolean; route?: number[][] };
   const LBS: LB[] = [];
   // inc = 인천 안 자세한 이름(구·부두·거점) — 「인천 관문」 가까이 볼 때만(수도권 한 장에서는 인천 둘레가 이름으로 덮였다 · 2026-10-20)
-  const mk = (html: string, lon: number, lat: number, pri: number, near: boolean | null, cls = "", inc = false) => {
+  const mk = (html: string, lon: number, lat: number, pri: number, near: boolean | null, cls = "", inc = false, route?: number[][]) => {
     const el = document.createElement("span"); el.className = `fm-lb ${cls}`; el.dataset.label = ""; el.innerHTML = html; $("fm-labels").append(el);
-    LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8, inc });
+    LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8, inc, route });
   };
   // 글자·숫자판·단추 자리(이름표가 피한다) — 화면 크기·글꼴·글 블록 크기가 바뀔 때만 다시 잰다(매 장면 재면 배치 계산이 장면마다 돈다)
   // [2026-10-20 #67 · 1568×709 검수] 글 블록은 문단마다가 아니라 한 덩어리(합친 상자 + 여백 14px)로 피한다 — 문단 틈에 이름표가 앉으면 본문과 겹쳐 보였다.
@@ -139,7 +140,11 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       const want = (l.near === null || l.near === near) && (!l.inc || detail);
       if (!want) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; }
       if (!l.w) { const r = l.el.getBoundingClientRect(); l.w = r.width; l.h = r.height; }
-      const s = f.screen(l.lon, l.lat);
+      let s = f.screen(l.lon, l.lat);
+      // [2026-10-20 2차 화면 판정 — 화면 밖으로 나가는 선 끝에 이름이 없다] 나라 자리가 화면 밖이면 그 나라 바닷길이 화면 안에 마지막으로 남는 자리에 이름을 단다
+      if (l.route && (s[0] < 24 || s[0] > W - 24 || s[1] < H * 0.15 || s[1] > H - 24)) {
+        for (const [lo, la] of l.route) { const q = f.screen(lo, la); if (q[0] > 40 && q[0] < W - 40 && q[1] > H * 0.18 && q[1] < H - 90) { s = q; break; } }
+      }
       let ok = false, x = 0, y = 0;
       if (s[0] < 24 || s[0] > W - 24 || s[1] < H * 0.15 || s[1] > H - 24) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; } // 자리가 화면 가장자리·안개 속이면 뺀다
       for (const [dx, dy] of [[8, -l.h - 4], [8, 4], [-l.w - 8, -l.h - 4], [-l.w - 8, 4]]) {
@@ -175,7 +180,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       panel(i);
     } }, cam);
     // 이름표 — 멀리: 나라·인천 / 가까이: 관문·목적지
-    for (const p of F.partners) mk(`<b>${p.name}</b>`, p.sea[0][0], p.sea[0][1], p.imp_pct + p.exp_pct, false);
+    for (const p of F.partners) mk(`<b>${p.name}</b>`, p.sea[0][0], p.sea[0][1], p.imp_pct + p.exp_pct, false, "", false, p.sea);
     mk(`<b class="s-signal">인천</b>`, F.air_gate.lon, F.air_gate.lat, 1000, false, "fm-lb--gate");
     mk(`<b class="s-signal">인천공항</b>`, F.air_gate.lon, F.air_gate.lat, 1000, true, "fm-lb--gate");
     for (const g of F.sea_gates) mk(`<b class="s-signal">${g.id}</b>`, g.lon, g.lat, 900 - g.lon, true, "fm-lb--gate", g.id !== F.sea_gates[0].id);
@@ -207,7 +212,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   //    「둘러보기 멈춤」 단추로 멈춘 것(hold)은 다시 누를 때까지 그대로 · 동작 줄이기(prefers-reduced-motion)면 처음부터 hold.
   let hold = false, resumeT = 0, viewNow = "sudo"; // viewNow = 지금 고른 보기(단추·창 크기 바뀜이 같이 읽는다 — boot 안에 두면 단추가 못 읽었다 · 10/20 시험이 잡음)
   const RESUME_MS = 6000;
-  const tourBtn = () => { const b = $("fm-tour"); b.innerHTML = hold ? "둘러보기" : `<span class="lg">둘러보기\u00a0</span>멈춤`; b.setAttribute("aria-label", hold ? "둘러보기" : "둘러보기 멈춤"); b.setAttribute("aria-pressed", String(!hold)); };
+  const tourBtn = () => { const b = $("fm-tour"); b.innerHTML = hold ? `<span class="lg">카메라\u00a0</span>회전` : `<span class="lg">카메라\u00a0</span>회전 끔`; /* 좁은 화면에서 「멈춤」만 남아 흐름 멈춤 단추와 이름이 같았다(2차 화면 판정) */ b.setAttribute("aria-label", hold ? "카메라 회전" : "카메라 회전 끔"); b.setAttribute("aria-pressed", String(!hold)); };
   const resume = () => { if (!fm || hold) return; fm.touring = true; fm.tourT = 0; stage.dataset.touring = "1"; };
   const stopTour = () => {
     if (!fm) return;
@@ -322,6 +327,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__labels :global(.fm-lb--hub b) { font-size: 13px; font-weight: 600; }
 
   /* 지도 칸 안 — 범례 한 줄(아래) · 보기 단추(아래) · 흐름 멈춤(오른쪽 위 구석) */
+  .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
   .live__legend { position: absolute; left: 16px; right: 16px; bottom: 66px; z-index: 3; margin: 0; font-size: 12.5px; color: var(--s-ink-2); pointer-events: none;
     text-shadow: 0 0 4px var(--s-paper), 0 0 2px var(--s-paper); }
   .live__ctl { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 3; display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
@@ -369,7 +375,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__cta { margin-top: var(--s-4); gap: 8px; }
     .live__cta .s-btn { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
     .live__stage { height: clamp(380px, 58svh, 620px); }
-    .live__legend { bottom: 64px; font-size: 12px; }
+    .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
+  .live__legend { bottom: 64px; font-size: 12px; }
     .live__ctl { gap: 6px; }
     .live__ctl .s-btn { padding: 0 10px; font-size: 13px; }
     .live__ctl :global(.lg) { display: none; } /* 단추 다섯이 한 줄에 들게(전체 이름은 aria-label · 멈춤 단추는 스크립트가 다시 쓴다 → :global) */
