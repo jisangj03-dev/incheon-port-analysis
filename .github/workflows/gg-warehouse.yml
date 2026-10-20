@@ -28,7 +28,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          for f in data/derived/gg_warehouse.json data/collected/gg_warehouse_diag.json; do [ -f "$f" ] && git add "$f"; done  # 없는 경로를 같이 주면 git add 가 통째로 실패한다(첫 실행 10/20)
+          for f in data/derived/gg_warehouse.json data/collected/gg_warehouse_diag.json; do if [ -f "$f" ]; then git add "$f"; fi; done  # 없는 경로를 같이 주면 git add 가 통째로 실패한다(첫 실행 10/20)
           git diff --cached --quiet && exit 0
           git commit -m "경기 시·군별 물류창고 개소 — gg-warehouse 워크플로(공공데이터포털 15083282 · 개수만)"
           git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
