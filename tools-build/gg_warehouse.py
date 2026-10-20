@@ -80,8 +80,14 @@ def fetch():
             if kind == "api" and ("json" in ct or body[:1] in (b"{", b"[")):
                 j = json.loads(decode(body))
                 diag["tried"][-1]["json_keys"] = list(j.keys())[:12] if isinstance(j, dict) else None
-                a = (j.get("atchFileId") or (j.get("fileDataRegistVO") or {}).get("atchFileId")) if isinstance(j, dict) else None
-                sn = (j.get("fileDetailSn") or (j.get("fileDataRegistVO") or {}).get("fileDetailSn") or 1) if isinstance(j, dict) else 1
+                # 응답 구조 진단(값은 앞부분만 · 개인정보 칸 없음 — 파일 메타)
+                diag["tried"][-1]["json_head"] = json.dumps(j, ensure_ascii=False)[:1500]
+                def pick(k):
+                    for box in (j, j.get("fileDataRegistVO") or {}, j.get("dataSetFileDetailInfo") or {}):
+                        if isinstance(box, dict) and box.get(k): return box.get(k)
+                    m = re.search(rf'"{k}"\s*:\s*"?([A-Za-z0-9_]+)', json.dumps(j))
+                    return m.group(1) if m else None
+                a, sn = pick("atchFileId"), pick("fileDetailSn") or 1
                 if a:
                     st2, hd2, body = get(f"https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId={a}&fileDetailSn={sn}")
                     diag["tried"].append({"url": f"fileDownload {a}/{sn}", "status": st2, "type": hd2.get("Content-Type", ""), "bytes": len(body)})
