@@ -3,22 +3,7 @@
  "tried": [
   {
    "url": "https://www.data.go.kr/tcs/dss/selectFileDataDownload.do?publicDataPk=15083282&fileDetailSn=1&publicDataDetailPk=uddi%3A89d042e4-67ed-48dc-9c9f-aa27912452a8_201",
-   "status": 200,
-   "type": "text/html;charset=UTF-8",
-   "bytes": 10601,
-   "json_keys": [
-    "dataSetFileDetailInfo",
-    "fileDataRegistVO",
-    "fileDetailSn",
-    "dpk",
-    "status",
-    "atchFileId"
-   ],
-   "json_head": "{\"dataSetFileDetailInfo\": {\"rn\": \"\", \"searchCondition1\": \"\", \"searchCondition2\": \"\", \"searchCondition3\": \"\", \"searchCondition1Array\": null, \"searchCondition2Array\": null, \"searchCondition3Array\": null, \"searchKeyword1\": \"\", \"searchKeyword2\": \"\", \"searchKeyword3\": \"\", \"searchKeywordFrom1\": \"\", \"searchKeywordTo1\": \"\", \"searchDataName\": \"\", \"searchInsttCode\": \"\", \"searchStartDate\": \"\", \"searchEndDate\": \"\", \"searchKeywordFrom2\": \"\", \"searchKeywordTo2\": \"\", \"searchUseYn\": \"\", \"searchOrder\": \"\", \"pageIndex\": 1, \"pageUnit\": 10, \"pageSize\": 10, \"firstIndex\": 1, \"lastIndex\": 1, \"recordCountPerPage\": 10, \"excelFileNm\": \"\", \"excelSheetNm\": \"\", \"atachFileYn\": \"N\", \"success\": false, \"deleteFileSnArray\": null, \"currentMenuId\": \"\", \"tabGubun\": \"\", \"popupRn\": \"\", \"popupSearchCondition1\": \"\", \"popupSearchCondition2\": \"\", \"popupSearchCondition3\": \"\", \"popupSearchCondition4\": \"\", \"popupSearchKeyword1\": \"\", \"popupSearchKeyword2\": \"\", \"popupSearchKeyword3\": \"\", \"popupSearchKeyword4\": \"\", \"popupSearchKeywordFrom1\": \"\", \"popupSearchKeywordTo1\": \"\", \"popupSearchKeywordFrom2\": \"\", \"popupSearchKeywordTo2\": \"\", \"popupSearchUseYn\": \"\", \"popupSearchCustomGubunCode\": \"\", \"publicDataPk\": \"15083282\", \"publicDataDetailPk\": \"uddi:89d042e4-67ed-48dc-9c9f-aa27912452a8_201810161512\", \"beforeDetailPk\": null, \"publicDataHistSn\": 3, \"publicHistDataAt\": null, \"prePublicDataHistSn\": 0, \"orgDataPk\": null, \"stdPublicDataPk\": \"\", \"dataType\": null, \"processSttusCode\": null, \"processResultCode\": null, \"processTyResultCode"
-  },
-  {
-   "url": "https://www.data.go.kr/tcs/dss/selectFileDataDownload.do?publicDataPk=15083282&fileDetailSn=1&publicDataDetailPk=uddi%3A89d042e4-67ed-48dc-9c9f-aa27912452a8_201",
-   "err": "IncompleteRead(0 bytes read, 1127 more expected)"
+   "err": "The read operation timed out"
   }
  ],
  "page_status": 200,
