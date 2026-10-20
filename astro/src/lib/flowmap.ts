@@ -40,6 +40,8 @@ type Data = {
   flows: any;
   /** 세계은행 선박 밀도(2015~2021 누적) — 칸 중심 경위도·세기(1~255) · 없으면 층을 안 그린다 */
   density?: { pts: number[]; period: string } | null;
+  /** [2026-10-15 P0] 수도권 물류 흐름 층(tools-build/corridors_derive.py) — 관문→목적지 고속도로 길 · 구간 굵기 · 거점 · 경기 밀집지(몫은 가정) */
+  sudo?: { dests: any[]; routes: Record<string, number[][]>; corridors: { w: number; pts: number[][] }[]; hubs: any[]; labels: any[] } | null;
 };
 type Leg = { pts: Float32Array; n: number; dur: number };
 const DT = 1 / 30; // 경로 표본 간격(초)
@@ -104,13 +106,16 @@ function bend(a: number[], b: number[], k = 0.18) {
 }
 
 const SPEED = { sea: 950, air: 2600, land: 15 }; // km/s(그림 속도 — 실제 속도 아님)
+// [2026-10-15 공개 전 개편 P0] 첫 화면 = 수도권(sudo) · 둘러보기는 수도권 안에서만(sudo ↔ 인천 관문) · 「아시아」는 단추로만
 export const VIEWS: Record<string, Cam> = {
   asia: { lon: 122.5, lat: 30.5, zoom: 3.0, pitch: 46, bearing: -10, ox: 0.17, oy: 0.04 },
+  sudo: { lon: 126.92, lat: 37.30, zoom: 8.15, pitch: 48, bearing: 10, ox: 0.2, oy: 0.17 }, // 글 기둥(왼쪽) 밖으로 — 인천 관문이 글 아래 깔리지 않게
   incheon: { lon: 126.72, lat: 37.43, zoom: 9.1, pitch: 54, bearing: 18, ox: 0.16, oy: 0.06 },
 };
 /** 좁은 화면(세로) — 글자가 위에 따로 있으니 가운데로 · 조금 더 멀리 */
 export const VIEWS_M: Record<string, Cam> = {
   asia: { lon: 121.0, lat: 30.0, zoom: 2.55, pitch: 44, bearing: -10, ox: 0.05, oy: -0.1 },
+  sudo: { lon: 126.95, lat: 37.30, zoom: 7.55, pitch: 48, bearing: 12, ox: 0, oy: -0.08 },
   incheon: { lon: 126.75, lat: 37.42, zoom: 8.45, pitch: 52, bearing: 18, ox: 0, oy: -0.08 },
 };
 
@@ -132,7 +137,10 @@ export class FlowMap {
   arrive: Float32Array = new Float32Array(8); // 관문별 최근 도착(고리 반짝임)
   tour: { from: Cam; to: Cam; t0: number; dur: number } | null = null;
   touring = false; tourStep = 0; tourT = 0; views: Record<string, Cam> = VIEWS;
+  /** 둘러보기가 도는 보기(이름) — 하나면 그 자리에서 천천히 돈다 */ tourViews: string[] = ["sudo", "incheon"];
   private dX = new Float32Array(0); private dY = new Float32Array(0); private dV = new Uint8Array(0); private dPh = new Float32Array(0);
+  dests: any[] = [];
+  private cB: number[][] = [[], [], [], []]; // 고속도로 통로 — 굵기 넷으로 묶은 선분(메르카토르 x1,y1,x2,y2 …)
   private wR: { r: number[]; bb: number[] }[] = []; private nR: number[][] = []; private rdR: number[][] = []; private ctR: number[][] = [];
 
   constructor(cv: HTMLCanvasElement, data: Data, o: Opts, cam: Cam) {
@@ -165,16 +173,20 @@ export class FlowMap {
         gIdx[`${pi}|${gi}|${dir}`] = this.legsG.length; this.legsG.push(legFrom(ll, speed, arc)); this.gMeta.push({ p: pi, g: gi, dir });
       }
     }));
-    F.dests.forEach((d: any, di: number) => this.gates.forEach((g, gi) => {
+    // 목적지 — 수도권 층이 있으면 그 목적지(경기 = 밀집지 여섯)와 고속도로 길, 없으면 개념선
+    const S = data.sudo;
+    this.dests = S?.dests?.length ? S.dests : F.dests;
+    if (S?.corridors) for (const c of S.corridors) { const b = Math.min(3, Math.floor(Math.sqrt(c.w) * 4)); this.cB[b].push(mx(c.pts[0][0]), my(c.pts[0][1]), mx(c.pts[1][0]), my(c.pts[1][1])); }
+    this.dests.forEach((d: any, di: number) => this.gates.forEach((g, gi) => {
       for (const dir of [0, 1]) {
-        let ll = bend([g.lon, g.lat], [d.lon, d.lat], (gi % 2 ? -1 : 1) * 0.16);
+        let ll = S?.routes?.[`${gi}|${di}`] ?? bend([g.lon, g.lat], [d.lon, d.lat], (gi % 2 ? -1 : 1) * 0.16);
         if (dir) ll = [...ll].reverse();
         lIdx[`${gi}|${di}|${dir}`] = this.legsL.length; this.legsL.push(legFrom(ll, SPEED.land)); this.lMeta.push({ g: gi, d: di, dir });
       }
     }));
     // 빈도 — 그 달 관문 교역액 × 나라 비중 × 목적지 비중(창고 개소) × 바다 부두군 비중(컨테이너) ÷ 점 하나 값 ÷ 한 달 초
-    const dSum = F.dests.reduce((s: number, d: any) => s + d.n, 0);
-    F.partners.forEach((p: any, pi: number) => this.gates.forEach((g, gi) => F.dests.forEach((d: any, di: number) => {
+    const dSum = this.dests.reduce((s: number, d: any) => s + d.n, 0);
+    F.partners.forEach((p: any, pi: number) => this.gates.forEach((g, gi) => this.dests.forEach((d: any, di: number) => {
       for (const dir of [0, 1]) {
         const rate = new Float32Array(F.months.length);
         F.months.forEach((m: any, mi: number) => {
@@ -287,8 +299,15 @@ export class FlowMap {
     // 길(옅게) — 먼 길은 나라마다 한 줄(신항·공항만), 가까운 길은 목적지마다
     ctx.lineWidth = 1; ctx.strokeStyle = "rgba(25,23,20,0.10)"; ctx.beginPath();
     this.legsG.forEach((L, i) => { const m = this.gMeta[i]; if (m.dir || (m.g !== 0 && m.g !== this.gates.length - 1) || (near && m.g === this.gates.length - 1)) return; this.legPath(L, P, o); });
-    if (near) this.legsL.forEach((L, i) => { if (!this.lMeta[i].dir) this.legPath(L, P, o); });
+    if (near && !this.D.sudo) this.legsL.forEach((L, i) => { if (!this.lMeta[i].dir) this.legPath(L, P, o); });
     ctx.stroke();
+    // 수도권 고속도로 통로 — 굵기 = 그 구간을 지나는 목적지 몫(추정) · 넷으로 묶어 한 번씩 칠한다
+    if (near) this.cB.forEach((B, b) => {
+      if (!B.length) return;
+      ctx.beginPath();
+      for (let i = 0; i < B.length; i += 4) { P(B[i], B[i + 1], 0, o); ctx.moveTo(o[0], o[1]); P(B[i + 2], B[i + 3], 0, o); ctx.lineTo(o[0], o[1]); }
+      ctx.lineCap = "round"; ctx.lineWidth = 1 + b * 1.6; ctx.strokeStyle = `rgba(179,54,30,${0.10 + b * 0.05})`; ctx.stroke();
+    });
     // 점 — 꼬리(지난 0.3초)를 끈다. 들어오는 것 = 주홍 · 나가는 것 = 바다색
     const TAIL = 0.4, heads: number[] = [], spread = near ? 5 : 2.5, maxTail = near ? 26 : 34;
     for (const dir of [1, 0]) {
@@ -326,8 +345,10 @@ export class FlowMap {
     });
     // 목적지(가까이에서만) — 원 넓이 = 창고 개소
     if (near) {
-      const F = this.D.flows, nmax = Math.max(...F.dests.map((d: any) => d.n));
-      for (const d of F.dests) { P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
+      const nmax = Math.max(...this.dests.map((d: any) => d.n));
+      // 거점(자리만) — 작은 네모
+      for (const h of this.D.sudo?.hubs || []) { P(mx(h.lon), my(h.lat), 0, o); ctx.strokeStyle = "rgba(25,23,20,0.75)"; ctx.lineWidth = 1.3; ctx.strokeRect(o[0] - 3.5, o[1] - 3.5, 7, 7); }
+      for (const d of this.dests) { P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
     }
     // 나라 점(멀리에서만)
     if (!near) for (const p of this.D.flows.partners) { P(mx(p.sea[0][0]), my(p.sea[0][1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }
@@ -369,8 +390,8 @@ export class FlowMap {
     } else if (this.touring) this.cam.bearing += dt * (this.cam.zoom > 6 ? 1.6 : 0.8); // 머무는 동안 천천히 돈다
     if (this.touring && !this.tour) {
       this.tourT += dt;
-      const hold = this.tourStep % 2 === 0 ? 9 : 10;
-      if (this.tourT > hold) { this.tourT = 0; this.tourStep++; this.flyTo(this.tourStep % 2 ? this.views.incheon : this.views.asia, 4.2); }
+      const hold = this.tourStep % 2 === 0 ? 9 : 10, tv = this.tourViews;
+      if (tv.length > 1 && this.tourT > hold) { this.tourT = 0; this.tourStep++; this.flyTo(this.views[tv[this.tourStep % tv.length]], 4.2); }
     }
   }
 

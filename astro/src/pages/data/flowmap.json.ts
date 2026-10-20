@@ -25,7 +25,10 @@ export function GET() {
     for (const [r, c, v] of cells.slice(0, 3200)) pts.push(Math.round((S.bbox[0] + (c + 0.5) * S.step) * 1000) / 1000, Math.round((S.bbox[3] - (r + 0.5) * S.step) * 1000) / 1000, v);
     density = { pts, period: S.period, source: S.source };
   }
-  const body = { world: W.rings, density, near: { bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], land, road, ct }, flows: F,
+  // 수도권 물류 흐름 층(있을 때만 · tools-build/corridors_derive.py) — 고속도로 길 · 통로 굵기 · 거점 · 경기 밀집지(몫 = 가정)
+  const sp = join(repoRoot(), "data/derived/sudo_corridors.json");
+  const sudo = existsSync(sp) ? JSON.parse(readFileSync(sp, "utf-8")) : null;
+  const body = { world: W.rings, density, sudo, near: { bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], land, road, ct }, flows: F,
     credit: { world: W.source, near: `${L.source || "OpenStreetMap"} · ${L.license || "ODbL"}`, ct: "NOAA ETOPO 2022" } };
   return new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" } });
 }
