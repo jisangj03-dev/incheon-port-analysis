@@ -25,25 +25,20 @@
   "/no-such-page.html"
  ],
  "lighthouse": [
-  "/",
-  "/map.html",
-  "/tools/delivery-reach.html",
-  "/tools/import-cost.html"
+  "/"
  ],
  "range": "/tiles/incheon.pmtiles",
- "run": 2,
+ "run": 3,
  "open": [
+  "/"
+ ],
+ "og": [
   "/",
   "/map.html",
-  "/tools/port-pulse.html",
-  "/tools/delivery-reach.html",
-  "/tools/trade-race.html",
-  "/tools/import-cost.html",
-  "/tools/chokepoint.html",
-  "/tools/anchorage.html",
-  "/tools/bid-radar.html",
   "/notes.html",
-  "/notes/port-yoy.html",
-  "/notes/ai-ops.html"
+  "/about.html",
+  "/tools/",
+  "/tools/import-cost.html",
+  "/reports/report_05_컨테이너_수지.html"
  ]
 }

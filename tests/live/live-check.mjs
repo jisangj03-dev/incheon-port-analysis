@@ -1,4 +1,5 @@
 // 공개 사이트 실물 점검(A-7) — Actions 에서만 돈다. 결과는 마크다운 한 장(표준 출력)으로.
+//  ⑥ [2026-10-20 #71] 공유 카드 — 지면 og:image · /assets/og.jpg = /og/home.jpg(바이트) · 1200×630
 //  ⑤ [2026-10-20 공개] 실제 브라우저로 열기 — 상태 · 화면 오류 · 외부 요청 0(Cloudflare 비컨 예외)
 //  ① 지면 응답(200/404) ② PMTiles range 요청 206(판정 v2 주의 ③) ③ Cloudflare 비컨 스니펫 존재 ④ Lighthouse 모바일(실물)
 //  Lighthouse 「권장」이 왜 96 이었는지(로컬 서버 비컨 오류 추정)를 실물에서 가른다 — 감점 항목 이름을 같이 적는다.
@@ -54,5 +55,19 @@ if (cfg.open?.length) {
     await pg.close();
   }
   await br.close();
+}
+// ⑥ 공유 카드 — 지면이 가리키는 og:image 와, 옛 주소 /assets/og.jpg 가 새 홈 카드와 같은 그림인가(SHA-256 · JPEG 크기)
+if (cfg.og?.length) {
+  const { createHash } = await import("node:crypto");
+  const jpg = async (u) => { const r = await fetch(u); const b = Buffer.from(await r.arrayBuffer()); let wh = "—";
+    for (let i = 2; i < b.length - 9;) { if (b[i] !== 0xff) break; const m = b[i + 1], n = b.readUInt16BE(i + 2); if (m === 0xc0 || m === 0xc2) { wh = `${b.readUInt16BE(i + 7)}×${b.readUInt16BE(i + 5)}`; break; } i += 2 + n; }
+    return { st: r.status, n: b.length, h: createHash("sha256").update(b).digest("hex").slice(0, 12), wh }; };
+  L.push("", "## ⑥ 공유 카드(og:image)", "", "| 지면 | og:image |", "|---|---|");
+  for (const p of cfg.og) {
+    const html = await (await fetch(encodeURI(cfg.base + p))).text();
+    L.push(`| \`${p}\` | ${(html.match(/<meta property="og:image" content="([^"]+)"/)?.[1] || "없음").replace(cfg.base, "")} |`);
+  }
+  const a = await jpg(cfg.base + "/og/home.jpg"), b = await jpg(cfg.base + "/assets/og.jpg");
+  L.push("", `- \`/og/home.jpg\` → ${a.st} · ${a.wh} · ${a.n}B · sha256 ${a.h}`, `- \`/assets/og.jpg\` → ${b.st} · ${b.wh} · ${b.n}B · sha256 ${b.h}`, `- 같은 그림: **${a.h === b.h && a.st === 200 ? "예" : "아니오"}**`);
 }
 console.log(L.join("\n"));
