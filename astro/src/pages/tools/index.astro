@@ -12,14 +12,15 @@ const R = room("tools"), S = room("sim"), A = answers();
 <Studio ask={false} title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
   <article class="s-wrap hub" data-content="tools">
     <h1 class="s-prose">{R.title}</h1>
-    <p class="s-lead s-prose">{R.lead} 모든 도구는 공개 1차 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
+    <p class="s-lead s-prose">{R.lead} 모든 도구는 공개 1차 데이터(정부 통계 · IMF PortWatch · OpenStreetMap)로 움직이고(배송 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
     {/* 도구마다 지금의 답(4차 화면 판정 Q1 — 질문만 여섯 줄이었다) · 숫자는 그 도구가 읽는 파생 파일에서 */}
     <ol class="tl">
       {(R.items || []).map((r: any) => { const a = A[r.href]; return <li><a href={u(r.href)}>
         <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}</> : null}</span>
-        <span class="tl__body"><span class="s-cap">{r.who}</span><h2 class="tl__q">{r.q || r.title}</h2>{a && <span class="tl__a">{a.text}</span>}</span>
+        <span class="tl__body"><span class="s-cap">{r.who}</span><h2 class="tl__q">{r.q || r.title}</h2>{a && <span class="tl__a">{a.text}</span>}{a?.src && <span class="tl__src s-cap">출처 · {a.src}</span>}</span>
       </a></li>; })}
     </ol>
+    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
     <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
       <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>
@@ -39,6 +40,8 @@ const R = room("tools"), S = room("sim"), A = answers();
   .tl__body { display: grid; gap: 4px; min-width: 0; }
   .tl__q { font-size: var(--s-t-h3); font-weight: 600; line-height: 1.35; color: var(--s-ink); margin: 0; }
   .tl__a { color: var(--s-ink-2); }
+  .tl__src { color: var(--s-ink-3); }
+  .tl__terms { margin-top: var(--s-4); } .tl__terms summary { cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; }
   @media (max-width: 560px) { .tl a { grid-template-columns: 1fr; gap: var(--s-2); } }
   .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
   .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }

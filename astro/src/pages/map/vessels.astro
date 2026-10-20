@@ -54,14 +54,14 @@ const n = V.months.length;
     // 오른쪽 여백 R 은 끝 이름표(「평택·당진 421」)가 칸 안에 들어오는 폭
     const draw = (i: number) => {
       const W = Math.max(300, host.clientWidth), H = W < 600 ? 220 : Math.round(Math.max(200, Math.min(280, innerHeight * 0.3))), // 1280×720 에서 인천 선이 접힘선에 눌렸다(2차 화면 판정)
-        Lp = 4, R = W < 600 ? 96 : 112, T = 10, B = 26, n = D.months.length;
+        Lp = 4, R = W < 600 ? 96 : 112, T = 26 /* 위 26px = 커서 날짜 자리(선·이름표 위 · 8차 화면 판정: 390 에서 날짜가 「부산」 이름표에 가렸다) */, B = 26, n = D.months.length;
       const x = (k: number) => Lp + (k * (W - Lp - R)) / (n - 1), y = (v: number) => H - B - (v * (H - T - B)) / max;
       let g = `<line x1="${Lp}" x2="${W - R}" y1="${H - B}" y2="${H - B}" stroke="var(--s-rule)"/>`;
       // 연도 눈금(화면 판정 10/20 — 양끝만 있어 언제인지 못 읽었다) · 좁으면 두 해마다
       const yStep = W < 600 ? 2 : 1;
       D.months.forEach((m: string, k: number) => { if (m.endsWith("-01") && Number(m.slice(0, 4)) % yStep === 0 && x(k) > 18 && x(k) < W - R - 18) g += `<line x1="${x(k).toFixed(1)}" x2="${x(k).toFixed(1)}" y1="${H - B}" y2="${H - B + 4}" stroke="var(--s-ink-3)"/><text x="${x(k).toFixed(1)}" y="${H - 6}" font-size="11.5" text-anchor="middle" fill="var(--s-ink-3)">${m.slice(0, 4)}</text>`; });
       // 흐르는 달 커서 — 지금 그리는 달과 그 달 인천 척수
-      g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-ink-3)" stroke-dasharray="2 3"/><text x="${(x(i) < 90 ? x(i) + 6 : x(i) - 6).toFixed(1)}" y="${T + 10}" font-size="12.5" font-weight="600" text-anchor="${x(i) < 90 ? "start" : "end"}" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${D.months[i]}</text>`;
+      g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-ink-3)" stroke-dasharray="2 3"/><text x="${Math.min(Math.max(x(i), 30), W - R - 30).toFixed(1)}" y="14" font-size="12.5" font-weight="600" text-anchor="middle" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${D.months[i]}</text>`;
       const ends: { y: number; t: string; c: string; b: boolean }[] = [];
       for (const [p, c, w] of LINES) {
         const v = D.s[p] as number[];

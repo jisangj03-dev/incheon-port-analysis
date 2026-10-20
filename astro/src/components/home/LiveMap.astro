@@ -29,12 +29,12 @@ const CT = existsSync(join(repoRoot(), "data/derived/supply_hs85.json")) ? J("da
 const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 ---
 <section class="live" data-content="home-live" aria-labelledby="live-h">
-  <!-- [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) -->
+  {/* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) */}
   <div class="live__hero">
   <div class="live__text">
     <p class="s-cap live__who">{PF.name} · SCM 작업실</p>
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
-    <p class="s-lead s-prose live__one">{L.ym} 금액 · 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 원천 「전국」 줄).</span></p>
+    <p class="s-lead s-prose live__one">{L.ym} 금액 · 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 통계의 전국 합계).</span></p>
     <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
       <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · <span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> · <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></span></p>
     <div class="live__cta">
@@ -49,7 +49,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문 지도 — 인천공항을 오간 나라별 항공화물(${F.air_cargo?.from}~${F.air_cargo?.through} 월평균)을 점으로, 도착은 주홍 · 출발은 바다색. 바다(인천항)는 나라별 공개 통계가 없어 점이 없다.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span>(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길</span> · 원 = 물류창고 개소</p>
+    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span> · 한 달 = 7초(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길(2015~21 누적)</span> · 원 = 물류창고 개소</p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>

@@ -57,13 +57,13 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     const D = J("data/derived/chokepoints.json");
     const rows: Record<string, unknown>[] = [];
     for (const p of D.points) { for (const [w, v] of p.weeks) rows.push({ 길목: p.ko, 구분: "통항(주 평균 · 척/일)", 주_또는_나라: w, 값: v }); for (const t of p.top) rows.push({ 길목: p.ko, 구분: "교역(전국 · 12달 · 백만 달러)", 주_또는_나라: t.name, 값: t.musd }); }
-    return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 경유 표 = 선커밋 §5 · 계산 tools-build/v3/choke_derive.py` };
+    return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 나라 → 길목 경유 = 대표 항로 가정(지면 「이 길목을 거치는 것으로 셈한 나라」) · 계산 tools-build/v3/choke_derive.py` };
   },
   // 품목 트리맵 레이스 — 해 × HS 2단위(인천 소재 기업 · 백만 달러)
   "trade-race": () => {
     const D = J("data/derived/trade_race.json");
     return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
-      note: `${D.source} · 사업장 소재지(인천) 기준 · 계산 tools-build/v3/race_derive.py` };
+      note: `${D.source} · 관세청이 인천(시도 28)으로 집계한 업체 실적 — 업체를 시도에 넣는 기준은 공개 명세에 없다(입·출항 관문 기준이 아니다) · 계산 tools-build/v3/race_derive.py` };
   },
   // 수도권 배송 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
   "delivery-reach": () => {
@@ -80,7 +80,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   "vessel-replay": () => {
     const V = J("data/derived/vessel_replay.json");
     const ports = Object.keys(V.ocean_arrivals);
-    return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `선박 리플레이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
+    return { rows: V.months.map((m: string, i: number) => Object.fromEntries([["연월", m], ...ports.map((p) => [`${p}_외항선_입항척수`, V.ocean_arrivals[p][i]]), ["인천_연안선_입항척수", V.incheon_coastal[i]]])), note: `외항선 입항 추이 · 해양수산부 항만별 선박입출항실적 · 월 집계(개별 선박 아님) · 외항 = 국적선+외국선 · 계산 ${V.command}` };
   },
   // 수요예측 원장 — 덧붙이기만 하는 예측 기록 그대로(발행·기준월·목표월·수평·모델·예측값)
   "forecast-ledger": () => {

@@ -72,7 +72,7 @@ export function layout(items: { hs: string; name: string; v: number }[], rank: M
   const mk = (N: number) => {
     const keep = new Set(bySize.slice(0, N).map((x) => x.hs));
     const head = items.filter((x) => keep.has(x.hs)).sort((a, b) => (rank.get(a.hs) ?? 999) - (rank.get(b.hs) ?? 999));
-    const restN = items.length - head.length, rest = items.filter((x) => !keep.has(x.hs)).reduce((s, x) => s + x.v, 0);
+    const restI = items.filter((x) => !keep.has(x.hs) && x.v > 0), restN = restI.length, rest = restI.reduce((s, x) => s + x.v, 0); // 그 해 0 인 류는 세지 않는다(8차 사실 대조: 「그 밖 86개 류」에 0 인 류 넷)
     const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${restN}개 류`, v: rest }] : head;
     return { list, R: squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H }) };
   };

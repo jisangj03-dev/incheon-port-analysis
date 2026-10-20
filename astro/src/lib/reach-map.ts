@@ -84,8 +84,10 @@ export class ReachMap {
     const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width;
     const oc = [[ox - 12 - ow, oy - 14], [ox + 12, oy - 14], [ox - ow / 2, oy - 22], [ox - ow / 2, oy + 22], [ox - 12 - ow, oy + 14], [ox + 12, oy + 14]]
       .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2);
-    const og = oc.find((c) => !clash(c.bx, dots)) || oc[0] || { ax: ox + 12, ay: oy - 14, bx: [ox + 10, oy - 22, ox + 14 + ow, oy - 6] };
-    ctx.strokeText(oname, og.ax, og.ay); ctx.fillStyle = "#191714"; ctx.fillText(oname, og.ax, og.ay);
+    // 출발지 이름은 출발점 바로 옆(왼쪽·오른쪽 위 둘 중 화면에 드는 쪽)에 바탕 상자와 함께 — 도시 점을 피해 멀리 가면 다른 점의 이름처럼 읽혔다(8차 화면 판정 · 390) · 도시 이름표가 이 자리를 피한다
+    const og = oc.slice(0, 2).find((c) => !clash(c.bx, dots)) || oc[0] || { ax: ox + 12, ay: oy - 14, bx: [ox + 10, oy - 22, ox + 14 + ow, oy - 6] };
+    ctx.fillStyle = "rgba(243,239,229,0.92)"; ctx.fillRect(og.bx[0] - 2, og.bx[1], og.bx[2] - og.bx[0] + 4, og.bx[3] - og.bx[1]);
+    ctx.fillStyle = "#191714"; ctx.fillText(oname, og.ax, og.ay);
     const oBox = og.bx; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
     ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 18), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
