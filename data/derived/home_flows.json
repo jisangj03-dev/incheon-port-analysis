@@ -366,25 +366,59 @@
   },
   {
    "ym": "2026-07",
-   "port_imp": 79.1,
-   "port_exp": 38.3,
+   "port_imp": 78.9,
+   "port_exp": 38.1,
    "air_imp": 239.1,
-   "air_exp": 552.3,
-   "nat_imp": 685.7,
-   "nat_exp": 989.6,
-   "imp_total": 318.2,
-   "exp_total": 590.6,
-   "total": 908.7,
+   "air_exp": 551.2,
+   "nat_imp": 685.4,
+   "nat_exp": 992.0,
+   "imp_total": 318.0,
+   "exp_total": 589.3,
+   "total": 907.3,
    "imp_share_pct": 46.4,
-   "exp_share_pct": 59.7,
+   "exp_share_pct": 59.4,
    "teu": {
     "신항": 184.0,
     "남항": 66.0,
     "국제여객부두": 32.0
    }
+  },
+  {
+   "ym": "2026-08",
+   "port_imp": 71.7,
+   "port_exp": 31.8,
+   "air_imp": 245.3,
+   "air_exp": 617.6,
+   "nat_imp": 634.9,
+   "nat_exp": 983.7,
+   "imp_total": 316.9,
+   "exp_total": 649.4,
+   "total": 966.3,
+   "imp_share_pct": 49.9,
+   "exp_share_pct": 66.0,
+   "teu": {
+    "신항": 199.0,
+    "남항": 50.0,
+    "국제여객부두": 32.0
+   }
+  },
+  {
+   "ym": "2026-09",
+   "port_imp": 82.0,
+   "port_exp": 37.0,
+   "air_imp": 277.0,
+   "air_exp": 769.0,
+   "nat_imp": 710.8,
+   "nat_exp": 1210.5,
+   "imp_total": 359.0,
+   "exp_total": 806.0,
+   "total": 1165.0,
+   "imp_share_pct": 50.5,
+   "exp_share_pct": 66.6,
+   "teu": null
   }
  ],
- "last": "2026-07",
+ "last": "2026-09",
  "partners": [
   {
    "id": "CN",

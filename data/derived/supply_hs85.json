@@ -90,11 +90,11 @@
    "id": "customs",
    "title": "통관 — 어느 관문으로 들어오나",
    "data": {
-    "ym": "202607",
+    "ym": "202609",
     "gates": [
      {
       "name": "인천국제공항",
-      "share_pct": 34.9
+      "share_pct": 39.0
      },
      {
       "name": "인천항",
@@ -102,11 +102,11 @@
      },
      {
       "name": "부산항·부산신항",
-      "share_pct": 19.6
+      "share_pct": 19.2
      },
      {
       "name": "평택항",
-      "share_pct": 5.5
+      "share_pct": 5.6
      }
     ],
     "scope": "전 품목 · 수입 신고 금액 기준(관세청 항구·공항별 = 입항지 기준 · 통관 세관 기준이 아니다)"
@@ -148,8 +148,8 @@
  "counter": {
   "text": "바다로 들어오는 수입은 부산이 인천항보다 크다",
   "incheon_port_pct": 11.5,
-  "busan_pct": 19.6,
-  "ym": "202607"
+  "busan_pct": 19.2,
+  "ym": "202609"
  },
  "computed": "2026-10-20",
  "command": "python tools-build/supply_derive.py",

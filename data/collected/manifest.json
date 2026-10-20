@@ -361,6 +361,44 @@
    "totalCount": null
   }
  },
+ "porttrade": {
+  "202607": {
+   "complete": true,
+   "fetched_kst": "2026-10-20 18:09",
+   "http": "200",
+   "pages": 1,
+   "resultCode": "00",
+   "resultMsg": "정상서비스.",
+   "rows": 532,
+   "rows_raw": 532,
+   "sha256": "97fea6d2caecb0bb090b8a56ec4f4e4ab9fc3aa2e3dfba63b6db8a6b130f564c",
+   "totalCount": null
+  },
+  "202608": {
+   "complete": true,
+   "fetched_kst": "2026-10-20 18:09",
+   "http": "200",
+   "pages": 1,
+   "resultCode": "00",
+   "resultMsg": "정상서비스.",
+   "rows": 502,
+   "rows_raw": 502,
+   "sha256": "30edd4a4df646f8d1e50e2cd467baeb311ba1c459adc0dd67706b1bc8c8e62d1",
+   "totalCount": null
+  },
+  "202609": {
+   "complete": true,
+   "fetched_kst": "2026-10-20 18:09",
+   "http": "200",
+   "pages": 1,
+   "resultCode": "00",
+   "resultMsg": "정상서비스.",
+   "rows": 512,
+   "rows_raw": 512,
+   "sha256": "a1b28d801d2949e1bb58078ba444a833a334030bfc10b82bf9961ef0a0a0b66e",
+   "totalCount": null
+  }
+ },
  "sido-item-incheon": {
   "202607": {
    "complete": true,
@@ -426,15 +464,15 @@
   },
   "202609": {
    "complete": true,
-   "fetched_kst": "2026-10-12 15:56",
+   "fetched_kst": "2026-10-20 18:09",
    "http": "200",
    "pages": 1,
    "resultCode": "00",
    "resultMsg": "NORMAL_SERVICE",
-   "rows": 0,
-   "rows_raw": 0,
-   "sha256": "1a48459982cef6457bfa7ed89d6e7c375acee27f59f9ec2fdfde73f6c8c61285",
-   "totalCount": 0
+   "rows": 1,
+   "rows_raw": 30,
+   "sha256": "413af6e732f7bf09a4422768f39ddf9460ba3342327b9cf83805dece94c7af8a",
+   "totalCount": 30
   }
  }
 }
