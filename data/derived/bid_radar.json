@@ -1,14 +1,14 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-20 18:09",
+ "snapshot": "2026-10-20 18:46",
  "window_days": 21,
- "scanned": 8839,
- "n": 30,
+ "scanned": 8831,
+ "n": 31,
  "group_counts": {
   "연구·계획": 7,
   "행사·전시": 3,
-  "운송·배송": 11,
+  "운송·배송": 12,
   "보관·창고": 2,
   "통관·무역": 3,
   "항만·해운·항공": 4
@@ -307,6 +307,18 @@
    "presmptPrce": 90909091,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01778798&bidPbancOrd=000",
    "group": "통관·무역"
+  },
+  {
+   "bidNtceNo": "R26BK01782177",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "[가칭]코레일유통물류 PMI 컨설팅 용역",
+   "ntceInsttNm": "코레일유통(주)",
+   "dminsttNm": "코레일유통(주)",
+   "bidNtceDt": "2026-10-20 18:18:09",
+   "bidClseDt": "2026-11-02 10:00:00",
+   "presmptPrce": 234545455,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01782177&bidPbancOrd=000",
+   "group": "운송·배송"
   },
   {
    "bidNtceNo": "R26BK01777752",
