@@ -17,7 +17,7 @@ OUT = os.path.join(ROOT, "data/derived/gg_warehouse.json")
 DIAG = os.path.join(ROOT, "data/collected/gg_warehouse_diag.json")
 PK = "15083282"
 PAGE = f"https://www.data.go.kr/data/{PK}/fileData.do"
-UA = {"User-Agent": "Mozilla/5.0 (측심 수집 · github actions)", "Referer": PAGE}
+UA = {"User-Agent": "Mozilla/5.0 (sounding-collector; github actions)", "Referer": PAGE}  # 머리글은 latin-1 — 한글을 넣으면 요청이 안 나간다(첫 실행 10/20)
 ADDR = ["소재지도로명주소", "소재지지번주소", "도로명주소", "지번주소", "소재지", "주소", "창고소재지", "소재지주소"]
 diag = {"page": PAGE, "tried": []}
 
