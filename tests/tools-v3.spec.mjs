@@ -289,13 +289,15 @@ test("등시선: 시간대 표 = isochrones × 배율", () => {
   I.origins.forEach((o, i) => { for (const t of RS.slots) for (const [c, m] of Object.entries(o.cities)) expect(RS.table[i][t.id].car[c], `${o.name} ${t.id} ${c}`).toBe(m == null ? null : Math.round(m * t.k)); });
 });
 
-// [#67 ②③] 홈 — 개편 전 설명(「혼잡은 반영하지 않습니다」)이 없고 · 경기 밀집지 이름표는 「비중 추정」
-test("홈: 개편 전 설명 0 · 이름표 「비중 추정」", async ({ page }) => {
+// [#67 ②③ · 2026-10-20 선장님] 홈 — 개편 전 설명(「혼잡은 반영하지 않습니다」)이 없고 · 지도 이름표는 이름만(「비중 추정」 등 설명 0 — 방법은 지도 아래 접기)
+test("홈: 개편 전 설명 0 · 지도 이름표는 이름만 · 「비중 추정」 0", async ({ page }) => {
   await page.goto(`${B}/`);
   await expect(page.locator("main")).not.toContainText("혼잡은 반영하지 않습니다");
   await expect(page.locator("main")).toContainText("화물차 제한을 고를 수 있습니다");
   await page.waitForFunction(() => document.querySelectorAll(".fm-lb").length > 0, null, { timeout: 30_000 });
   const t = await page.evaluate(() => [...document.querySelectorAll(".fm-lb")].map((e) => e.textContent).join("|"));
   expect(t).not.toContain("몫 가정");
-  if (t.includes("밀집지")) expect(t).toContain("비중 추정");
+  expect(t).not.toContain("비중 추정");
+  expect(await page.locator(".live__legend").innerText()).not.toContain("추정");
+  expect(await page.evaluate(() => [...document.querySelectorAll(".fm-lb i")].length), "이름표에 설명 줄").toBe(0);
 });

@@ -38,7 +38,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
       <p class="s-cap">지도 · 인천 · {lastYm}</p>
       <h1 class="s-prose">바다 문 {sea}곳, 하늘 문 {air}곳.</h1>
       <p class="s-lead s-prose">점 크기는 그 달 컨테이너 처리량입니다. {lastYm} 가장 큰 문은 <span class="s-signal">{top.id}</span>({top.v}천TEU). 달이 흐르면 점이 숨 쉬듯 커졌다 작아집니다.</p>
-      <p class="counter s-prose"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(통관 관문 기준).</p>
+      <p class="counter s-prose"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준).</p>
       <p class="s-cap s-prose">반대 지표 출처 {sourceLine("kcs-porttrade")} · 계산 tools-build/supply_derive.py(<a href={u("/data/supply-hs85.csv")}>CSV</a>).</p>
     </section>
   </div>
@@ -73,6 +73,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
   <script>
     import { initDsMap } from "../lib/ds-map";
     import { initHaedo } from "../lib/haedo";
+    import { reduced, pace, paused, setPaused } from "../lib/motion";
     // [2026-10-15 공개 전 개편 P0] 들어오자마자 돈다 — 클릭 없이.
     //  · 첫 장면 = 해도 정지 그림 위에서 달이 흐른다(점 넓이 = 그 달 처리량 · 원 반지름만 바꾼다 — 가볍다 · 모바일 성능 90)
     //  · 넓은 화면은 한가할 때 maplibre 를 받아 이어 돈다 · 좁은 화면은 사람이 움직이면 받는다(maplibre 실행이 모바일 성능 56 의 주범이었다 · 10-14)
@@ -83,11 +84,12 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
     const P = JSON.parse(document.getElementById("ds-map-data")!.textContent || "[]");
     const MD = JSON.parse(document.getElementById("ds-map-months")!.textContent || "{}");
     const slider = document.getElementById("ds-m") as HTMLInputElement, play = document.getElementById("ds-play") as HTMLButtonElement;
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches, lite = matchMedia("(max-width: 720px)").matches;
+    // [2026-10-20 · 품질기준 Q7] 동작 줄이기 = 달은 천천히 계속 넘어간다 · 멈춤은 단추(기억 · lib/motion.ts)
+    const reduce = reduced(), lite = matchMedia("(max-width: 720px)").matches;
     const last = (p: any) => (p.values ? p.values[p.values.length - 1] : null);
     const vmax = Math.max(1, ...P.map((p: any) => last(p) || 0));
     const W = window as any;
-    W.__mapPlay = { held: reduce, i: MD.months.length - 1, frames: 0 };
+    W.__mapPlay = { held: paused(), i: MD.months.length - 1, frames: 0, step: 900 / pace() };
     let pt: any = null, rt: any = 0, started = false;
     const pset = (i: number) => {
       W.__mapPlay.i = i; W.__mapPlay.frames++;
@@ -99,13 +101,13 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
       }
     };
     const pbtn = () => { play.textContent = pt ? "멈춤" : "재생"; play.setAttribute("aria-pressed", String(!pt)); };
-    const pstart = () => { if (pt || W.__mapPlay.held) return; pt = setInterval(() => pset((W.__mapPlay.i + 1) % MD.months.length), 900); pbtn(); };
+    const pstart = () => { if (pt || W.__mapPlay.held) return; pt = setInterval(() => pset((W.__mapPlay.i + 1) % MD.months.length), W.__mapPlay.step); pbtn(); };
     const pstop = () => { clearInterval(pt); pt = null; pbtn(); };
-    const ptouch = () => { pstop(); clearTimeout(rt); if (!W.__mapPlay.held && !reduce) rt = setTimeout(pstart, 6000); };
-    const onPlay = () => { if (pt) { W.__mapPlay.held = true; pstop(); } else { W.__mapPlay.held = false; pstart(); } };
+    const ptouch = () => { pstop(); clearTimeout(rt); if (!W.__mapPlay.held) rt = setTimeout(pstart, 6000); };
+    const onPlay = () => { if (pt) { W.__mapPlay.held = true; setPaused(true); pstop(); } else { W.__mapPlay.held = false; setPaused(false); pstart(); } };
     const onSlide = () => { ptouch(); pset(Number(slider.value)); };
     play.addEventListener("click", onPlay); slider.addEventListener("input", onSlide);
-    if (!reduce) { pbtn(); setTimeout(pstart, 1200); } else pbtn();
+    pbtn(); if (!W.__mapPlay.held) setTimeout(pstart, 1200);
     // 움직이는 지도(maplibre)로 넘긴다 — 넘길 때 달·멈춤 상태를 그대로 준다
     const EV = ["scroll", "pointerdown", "pointermove", "keydown", "touchstart", "wheel"] as const;
     // 첫 장면은 maplibre 가 다 그릴(idle) 때까지 계속 돈다 — 받는 동안 멈춘 화면이 없게(ds-map 이 idle 에서 부른다)

@@ -24,8 +24,8 @@ const box = { l: ((C[0] - A[0]) / (A[2] - A[0])) * 100, t: ((A[3] - C[3]) / (A[3
 const mx = Math.max(...F.map((f: any) => f.ships_seen));
 const yr = L.date.slice(0, 4);
 ---
-<Studio title="위성으로 본 인천 묘박지 — 배가 얼마나 기다리나" description="Sentinel-2 위성 사진 위에 Sentinel-1 레이더로 센 배를 올려, 구름·밤과 무관하게 인천 앞바다 묘박지에 기다리는 배를 날짜별로 본다." current="tools" ogImage="/og/tool-anchorage.jpg" lateFonts>
-  <ToolShell id="anchorage" who="선사 · 터미널 · 포워더" asOf={L.date} q="인천 앞바다 묘박지에 배가 얼마나 기다리나?" lead={`${L.date} 위성 사진의 먼바다 상자 안에서 배로 보이는 물체 ${L.ships_seen}개. 달마다 가장 맑은 날 한 장씩 넘겨 봅니다.`}
+<Studio title="위성으로 본 인천 묘박지 — 배가 얼마나 떠 있나" description="Sentinel-2 위성 사진 위에 Sentinel-1 레이더로 센 배를 올려, 구름·밤과 무관하게 인천 앞바다 묘박지에 기다리는 배를 날짜별로 본다." current="tools" ogImage="/og/tool-anchorage.jpg" lateFonts>
+  <ToolShell id="anchorage" who="선사 · 터미널 · 포워더" asOf={L.date} q="인천 앞바다 묘박지에 배가 얼마나 떠 있나?" lead={`${L.date} 위성 사진의 먼바다 상자 안에서 배로 보이는 물체 ${L.ships_seen}개. 달마다 가장 맑은 날 한 장씩 넘겨 봅니다.`}
     updated={S.made} source={`${sourceLine("copernicus-s2")}${R1 ? " · Copernicus Sentinel-1 RTC(Microsoft Planetary Computer)" : ""} · Contains modified Copernicus Sentinel data ${yr}`} csv={u("/data/anchorage.csv")} csvName="incheon-anchorage-s2.csv" note={`타일 ${S.tile} · 달마다 한 장`}
     how={`AWS 공개 Sentinel-2 L2A 에서 인천 앞바다 창만 읽고(실제색), 달마다 구름이 가장 적은 장면을 골랐다. 배 어림 = ${S.method}.`}
     limits={`그 장면이 찍힌 한 순간이다(사진 오전 11시 무렵 · 레이더는 궤도 시각) — 하루·한 달 평균이 아니다.${R1 ? " 레이더는 한 궤도(같은 시각)만 쓴다 — 시각이 다르면 떠 있는 배 수가 달라진다. 레이더 배 세기는 물 위 밝은 덩어리(배경보다 " + R1.method.kdb + "dB · 절대 " + (R1.method.abs_db ?? "—") + "dB 이상 · " + R1.method.min_px + "~" + R1.method.max_px + "화소)를 센 것이라 부표·작은 섬·양식장이 섞이고, 붙어 있는 배는 하나로 셀 수 있다. 배 자리 원은 경위도를 사진 칸에 곧게 옮긴 개략이다." : ""}`+" 부두에 붙은 배·작은 배·구름 아래 배는 빠지고, 부표·작은 바위가 섞일 수 있다. 구름이 3% 넘는 장면은 「신뢰 낮음」으로 적는다."}>
@@ -59,6 +59,7 @@ const yr = L.date.slice(0, 4);
   <script type="application/json" id="anc-sar" set:html={JSON.stringify(RF.map((f: any) => ({ d: f.date, n: f.n, s: f.ships.map(pt).map((v: number[]) => v.map((x) => Math.round(x * 100) / 100)) })))}></script>
   <script type="application/json" id="anc-data" data-last={iL} set:html={JSON.stringify(F.map((f: any) => ({ ...f, img: u(f.img) })))}></script>
   <script>
+    import { pace, paused } from "../../lib/motion";
     const F = JSON.parse(document.getElementById("anc-data")!.textContent!), $ = (id: string) => document.getElementById(id)!;
     // [2026-10-15 P1 ④] 넘김 = 크로스페이드(두 장을 겹쳐 새 장이 다 풀린 뒤 서서히) · 미리 불러오기 · 날짜 막대 · 묘박지 확대(기본)
     let img = $("anc-img") as HTMLImageElement, back = $("anc-img-b") as HTMLImageElement;
@@ -89,8 +90,8 @@ const yr = L.date.slice(0, 4);
     $("anc-zoom").addEventListener("click", () => { const fig = $("anc-fig"), on = fig.dataset.zoom !== "1"; fig.dataset.zoom = on ? "1" : "0"; $("anc-zoom").textContent = on ? "전체 보기" : "묘박지 확대"; $("anc-zoom").setAttribute("aria-pressed", String(on)); });
     const stop = () => { clearInterval(timer); timer = null; $("anc-play").textContent = "넘겨 보기"; $("anc-play").setAttribute("aria-pressed", "false"); };
     $("anc-play").addEventListener("click", () => { if (timer) return stop(); timer = setInterval(() => show(cur + 1), 1400); $("anc-play").textContent = "멈춤"; $("anc-play").setAttribute("aria-pressed", "true"); });
-    // 3초 답 — 다 뜬 뒤 첫 달부터 지금까지 한 번 넘긴다(움직임 줄이기면 그대로)
-    const go = () => { pre(); if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; const end = cur; let k = 0; show(0); timer = setInterval(() => { k++; show(k); if (k >= F.length - 1) { stop(); setTimeout(() => show(end), 700); } }, 600); $("anc-play").textContent = "멈춤"; };
+    // 3초 답 — 다 뜬 뒤 첫 달부터 지금까지 한 번 넘긴다(동작 줄이기 = 천천히 · 겹쳐 풀기 없이 · 멈춤을 골랐으면 그대로 — 품질기준 Q7)
+    const go = () => { pre(); if (paused()) return; const end = cur; let k = 0; show(0); timer = setInterval(() => { k++; show(k); if (k >= F.length - 1) { stop(); setTimeout(() => show(end), 700); } }, 600 / pace()); $("anc-play").textContent = "멈춤"; };
     document.readyState === "complete" ? setTimeout(go, 400) : addEventListener("load", () => setTimeout(go, 400), { once: true });
   </script>
 </Studio>

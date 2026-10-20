@@ -8,6 +8,41 @@ export const mx = (lon: number) => (lon + 180) / 360;
 export const my = (lat: number) => { const s = Math.sin((lat * Math.PI) / 180); return 0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI); };
 const R_EARTH_M = 40075016.7; // 적도 둘레 — 메르카토르 1 = 이 길이(위도 보정은 cos)
 
+/** 점들이 화면 안쪽 여백(몫 l·r·t·b) 안에 다 들어오는 가장 가까운 카메라 — 줌을 낮춰 가며 찾고, 화면 중심 몫(ox·oy)으로 가운데 맞춘다.
+ *  홈 첫 화면이 인천(서)·서울·경부·영동축(동)을 한 장에 담게(2026-10-20 · 글 기둥과 지도 칸이 나뉜 뒤 캔버스 모양이 폭마다 다르다) */
+export function fitCam(base: Cam, W: number, H: number, pts: number[][], m = { l: 0.08, r: 0.08, t: 0.2, b: 0.18 }): Cam {
+  const o = [0, 0, 0];
+  for (let z = base.zoom; z > 4; z -= 0.05) {
+    const c: Cam = { ...base, zoom: z, ox: 0, oy: 0 };
+    let ok = false;
+    for (let it = 0; it < 4; it++) {
+      const P = projector(c, W, H).fn; let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const [lon, lat] of pts) { P(mx(lon), my(lat), 0, o); x0 = Math.min(x0, o[0]); x1 = Math.max(x1, o[0]); y0 = Math.min(y0, o[1]); y1 = Math.max(y1, o[1]); }
+      c.ox! += (W * (m.l + (1 - m.r)) / 2 - (x0 + x1) / 2) / W; c.oy! += (H * (m.t + (1 - m.b)) / 2 - (y0 + y1) / 2) / H;
+      ok = x1 - x0 <= W * (1 - m.l - m.r) && y1 - y0 <= H * (1 - m.t - m.b);
+    }
+    if (ok) return c;
+  }
+  return { ...base };
+}
+
+/** 홈 첫 화면이 한 장에 담아야 할 자리 — 인천 관문 둘(공항·신항) · 서울 · 김포 · 광주 · 이천 · 안성(경부·영동축) · 자리는 데이터 파일에서 */
+/** 홈 첫 화면 카메라의 바탕(자리·줌은 fitCam 이 맞춘다) · 여백 몫 — 위는 지평 안개, 아래는 범례·지도 단추 자리 */
+export const HERO_CAM: Cam = { lon: 126.9, lat: 37.35, zoom: 9.6, pitch: 42, bearing: 8 };
+export const HERO_M = { l: 0.07, r: 0.07, t: 0.2, b: 0.22 }, HERO_M_NARROW = { l: 0.06, r: 0.06, t: 0.14, b: 0.26 };
+export const HERO_IDS = ["서울특별시", "김포", "광주", "이천", "안성"];
+export function heroPts(D: { flows: any; sudo?: any }): number[][] {
+  const F = D.flows, S = D.sudo, pts: number[][] = [[F.air_gate.lon, F.air_gate.lat], ...F.sea_gates.slice(0, 1).map((g: any) => [g.lon, g.lat])];
+  for (const id of HERO_IDS) { const d = (S?.dests ?? F.dests ?? []).find((x: any) => x.id === id); if (d) pts.push([d.lon, d.lat]); }
+  return pts;
+}
+/** 인천 관문 가까이(둘러보기 두 번째 장면) — 공항 · 항만 셋 · 인천 물류창고가 몰린 두 구(자리는 데이터 파일에서) */
+export function gatePts(D: { flows: any; sudo?: any }): number[][] {
+  const F = D.flows, S = D.sudo, pts: number[][] = [[F.air_gate.lon, F.air_gate.lat], ...F.sea_gates.map((g: any) => [g.lon, g.lat])];
+  for (const id of ["서해구", "남동구"]) { const d = (S?.dests ?? []).find((x: any) => x.id === id); if (d) pts.push([d.lon, d.lat]); }
+  return pts;
+}
+
 /** 카메라 → 투영 함수. (X,Y)=메르카토르 0..1, h=높이(메르카토르 단위). 화면 밖·카메라 뒤는 깊이를 잘라 아래로 밀어낸다. */
 export function projector(c: Cam, W: number, H: number) {
   const S = 512 * 2 ** c.zoom, cx = mx(c.lon) * S, cy = my(c.lat) * S;
@@ -122,7 +157,9 @@ export const VIEWS_M: Record<string, Cam> = {
 export type Opts = { unit: number; monthSec: number; maxDpr: number; lite: boolean; onMonth?: (i: number) => void; onFrame?: (f: FlowMap) => void;
   /** 점 진하기(1 = 기본 · 따라가기처럼 배경으로 깔 때는 낮춘다) */ dim?: number;
   /** 덧그림 — 점 위·안개 아래(따라가기의 상자·길) */ overlay?: (ctx: CanvasRenderingContext2D, P: (x: number, y: number, h?: number, out?: number[]) => number[], near: boolean) => void;
-  /** 카메라를 밖에서 몬다(따라가기 — 스크롤이 카메라) */ camStep?: (f: FlowMap, dt: number) => void };
+  /** 카메라를 밖에서 몬다(따라가기 — 스크롤이 카메라) */ camStep?: (f: FlowMap, dt: number) => void;
+  /** 데이터 흐름 속도 배율(동작 줄이기 = lib/motion.ts SLOW) */ speed?: number;
+  /** 차분하게 — 카메라 비행·관문 반짝임 없이(동작 줄이기 · docs/품질기준.md Q7) */ calm?: boolean };
 
 export class FlowMap {
   cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; D: Data; o: Opts;
@@ -298,7 +335,7 @@ export class FlowMap {
     }
     // 길(옅게) — 먼 길은 나라마다 한 줄(신항·공항만), 가까운 길은 목적지마다
     ctx.lineWidth = 1; ctx.strokeStyle = "rgba(25,23,20,0.10)"; ctx.beginPath();
-    this.legsG.forEach((L, i) => { const m = this.gMeta[i]; if (m.dir || (m.g !== 0 && m.g !== this.gates.length - 1) || (near && m.g === this.gates.length - 1)) return; this.legPath(L, P, o); });
+    this.legsG.forEach((L, i) => { const m = this.gMeta[i]; if (m.dir || (m.g !== 0 && m.g !== this.gates.length - 1) || near) return; this.legPath(L, P, o); }); // 가까이 = 바다 길·하늘 길 선 없음(관문에서 퍼지는 길만)
     if (near && !this.D.sudo) this.legsL.forEach((L, i) => { if (!this.lMeta[i].dir) this.legPath(L, P, o); });
     ctx.stroke();
     // 수도권 고속도로 통로 — 굵기 = 그 구간을 지나는 목적지 몫(추정) · 넷으로 묶어 한 번씩 칠한다
@@ -313,8 +350,11 @@ export class FlowMap {
     for (const dir of [1, 0]) {
       ctx.beginPath();
       for (let i = 0; i < this.N; i++) {
-        const r = this.pr[i]; if (this.routes[r].dir !== dir) continue;
+        const r = this.pr[i], R = this.routes[r]; if (R.dir !== dir) continue;
         const age = this.t - this.pt[i];
+        // [2026-10-20 · Q3] 가까이 보는 화면에서는 바다 위 구간을 그리지 않는다 — 해상망 끝 마디 → 부두는 계산한 길이 아니라 직선이라(섬을 가로지른다).
+        //   들어오는 점은 부두에서 나타나 수도권으로 퍼지고, 나가는 점은 부두에서 사라진다(그 앞뒤 바다 길은 「아시아」 보기에서)
+        if (near && this.gates[this.gMeta[R.g].g].kind === "sea" && (R.dir === 0 ? age < this.legsG[R.g].dur : age > this.legsL[R.l].dur)) continue;
         this.pos(r, age, o); const h = P(o[0], o[1], o[2], o2); const x1 = h[0], y1 = h[1];
         if (x1 < -20 || x1 > W + 20 || y1 < -20 || y1 > H + 20) continue;
         this.pos(r, Math.max(0, age - TAIL), o); P(o[0], o[1], o[2], o);
@@ -339,7 +379,7 @@ export class FlowMap {
     // 관문 — 고리가 도착할 때 반짝인다
     this.gates.forEach((g, gi) => {
       P(mx(g.lon), my(g.lat), 0, o);
-      const r0 = near ? (g.kind === "air" ? 6 : 4.5) : 3.5, a = this.arrive[gi];
+      const r0 = near ? (g.kind === "air" ? 6 : 4.5) : 3.5, a = this.o.calm ? 0 : this.arrive[gi];
       ctx.beginPath(); ctx.arc(o[0], o[1], r0 + a * 7, 0, Math.PI * 2); ctx.strokeStyle = `rgba(179,54,30,${0.25 + 0.5 * a})`; ctx.lineWidth = 1.5; ctx.stroke();
       ctx.beginPath(); ctx.arc(o[0], o[1], r0, 0, Math.PI * 2); ctx.fillStyle = "#b3361e"; ctx.fill();
     });
@@ -371,7 +411,7 @@ export class FlowMap {
   // ── 카메라 ──
   /** 밀도 값(0~255) → 세기 묶음 0~3 */
   static dBucket(v: number) { return v < 90 ? 0 : v < 150 ? 1 : v < 205 ? 2 : 3; }
-  flyTo(to: Cam, dur = 3.2) { this.tour = { from: { ...this.cam }, to: { ...to }, t0: this.t, dur }; }
+  flyTo(to: Cam, dur = 3.2) { if (this.o.calm || !this.running) { this.cam = { ...to }; this.tour = null; if (!this.running) this.draw(); return; } this.tour = { from: { ...this.cam }, to: { ...to }, t0: this.t, dur }; }
   private camStep(dt: number) {
     if (this.tour) {
       const k = Math.min(1, (this.t - this.tour.t0) / this.tour.dur), e = k < 0.5 ? 4 * k * k * k : 1 - (-2 * k + 2) ** 3 / 2;
@@ -387,7 +427,7 @@ export class FlowMap {
       let db = b.bearing - a.bearing; if (db > 180) db -= 360; if (db < -180) db += 360;
       this.cam.bearing = a.bearing + db * e;
       if (k >= 1) this.tour = null;
-    } else if (this.touring) this.cam.bearing += dt * (this.cam.zoom > 6 ? 1.6 : 0.8); // 머무는 동안 천천히 돈다
+    } else if (this.touring) this.cam.bearing += dt * (this.cam.zoom > 6 ? 0.5 : 0.8); // 머무는 동안 천천히 돈다(가까이는 아주 천천히 — 맞춘 틀 밖으로 이천·안성이 나가지 않게 · 2026-10-20)
     if (this.touring && !this.tour) {
       this.tourT += dt;
       const hold = this.tourStep % 2 === 0 ? 9 : 10, tv = this.tourViews;
@@ -400,7 +440,7 @@ export class FlowMap {
     this.running = true; this.last = performance.now();
     const loop = (now: number) => {
       if (!this.running) return;
-      const dt = Math.min(0.25, (now - this.last) / 1000); this.last = now; // 느린 기기에서도 한 달 = 7초(장면이 드물면 한 걸음이 크다)
+      const dt = Math.min(0.25, (now - this.last) / 1000) * (this.o.speed ?? 1); this.last = now; // 느린 기기에서도 한 달 = 7초(장면이 드물면 한 걸음이 크다)
       this.step(dt); if (this.o.camStep) this.o.camStep(this, dt); else this.camStep(dt); this.draw();
       this.raf = requestAnimationFrame(loop);
     };

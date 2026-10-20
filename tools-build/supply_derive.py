@@ -5,6 +5,7 @@
   python tools-build/supply_derive.py [--selftest]
 """
 import csv, datetime, json, os, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/supply_hs85.json")
@@ -40,7 +41,8 @@ def derive():
     sea = {"ym": last["기준연월"], "kteu": float(last["당월_천TEU"]), "yoy_pct": float(last["전년대비_당월_%"]) if last["전년대비_당월_%"] else None,
            "scope": "인천항 컨테이너 전체 — 품목을 가르지 않는다"}
     # ③ 통관 — 관세청 항구·공항별 수출입: 전국 수입액 중 각 관문의 비중(반대 지표: 바다로는 부산이 인천항보다 크다)
-    pt = rows("analysis/porttrade_202412_202607.csv")
+    from flows_derive import porttrade  # 일회성 파일 + 예약 수집(2026-10-20)
+    _, pt = porttrade()
     pym = max(r["reqYymm"] for r in pt)
     agg = {}
     for r in pt:
@@ -52,7 +54,7 @@ def derive():
         {"name": "인천항", "share_pct": pct(gate("인천항"), total)},
         {"name": "부산항·부산신항", "share_pct": pct(gate("부산항", "부산신항"), total)},
         {"name": "평택항", "share_pct": pct(gate("평택항"), total)},
-    ], "scope": "전 품목 · 수입 신고 금액 기준(통관 관문별)"}
+    ], "scope": "전 품목 · 수입 신고 금액 기준(관세청 항구·공항별 = 입항지 기준 · 통관 세관 기준이 아니다)"}
     inc, bus = customs["gates"][1]["share_pct"], customs["gates"][2]["share_pct"]
     counter = {"text": f"바다로 들어오는 수입은 부산이 인천항보다 크다", "incheon_port_pct": inc, "busan_pct": bus, "ym": pym}
     # ④ 인천 소재 기업의 전기기기 수입 — 관세청 시도별 품목별(소재지 기준 · 통관 항구 기준이 아니다)

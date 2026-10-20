@@ -70,8 +70,19 @@ DT = os.path.join(ROOT, "data/derived/choke_detour.json")
 NI = os.path.join(ROOT, "data/collected/nitemtrade.csv")
 HS = os.path.join(ROOT, "data/hs2_short.json")
 # 운임 충격 창 — 그 길목이 실제로 막혔던 때만(지금 원천 기간 2022-11~ 안에서는 홍해 사태 하나): 평소 = 2023-11 주 평균(공격 본격화 전) · 충격 = 2024 년 가장 높은 주
+# [2026-10-20 사실 대조] 정해 둔 사건이 없는 길목도 통항 자료에서 막힘을 찾는다 — 4주 이상 이어서 2023년 평균의 30% 아래면 그 첫 주가 사건 시작.
+#   (호르무즈는 2026-03 부터 하루 30척 아래인데 「막힌 적이 없어 실측이 없다」고 적었다 — 자기 자료와 모순)
+AUTO_ROUTES = {"hormuz": ["KMEI"], "malacca": ["KSEI"], "taiwan": ["KCI", "KSEI"]}
+def blockage(p, frac=0.3, run=4):
+    w = p.get("weeks") or []
+    base = [v for d_, v in w if d_.startswith("2023") and v is not None]
+    if not base: return None
+    lim = frac * sum(base) / len(base)
+    for i in range(len(w) - run + 1):
+        if all(w[j][1] is not None and w[j][1] < lim for j in range(i, i + run)): return w[i][0], w[-1][0], round(lim, 1)
+    return None
 SHOCK = {"redsea": {"event": "홍해 사태(2023-12~ · 후티 공격으로 수에즈 우회)", "base": ("2023-11-01", "2023-11-30"), "peak": ("2024-01-01", "2024-12-31"), "routes": ["KNEI", "KMDI"]}}
-ROUTE_KO = {"KNEI": "북유럽", "KMDI": "지중해"}
+ROUTE_KO = {"KNEI": "북유럽", "KMDI": "지중해", "KMEI": "중동", "KSEI": "동남아", "KCI": "중국", "KJI": "일본"}
 
 
 def extras(d):
@@ -92,6 +103,13 @@ def extras(d):
         p["rule"] = {"countries": [{"c": c, "name": names.get(c, c)} for c in cs], "basis": "선커밋 §5 경유 표 — 그 나라와의 바닷길이 이 길목을 지난다고 본 것(대표 항로 · 나라 안 항만별 차이는 무시)"}
         if dt and p["id"] in dt["points"]: p["detour"] = {**dt["points"][p["id"]], "knot": dt["knot"]}
         sh = SHOCK.get(p["id"])
+        if not sh and p["id"] in AUTO_ROUTES:
+            bl = blockage(p)
+            if bl:
+                import datetime as _d
+                st = _d.date.fromisoformat(bl[0])
+                sh = {"event": f"통항 급감({bl[0][:7]}~ · 주 평균 하루 {bl[2]}척 아래 4주 이상 — PortWatch)", "base": ((st - _d.timedelta(weeks=8)).isoformat(), (st - _d.timedelta(days=1)).isoformat()),
+                      "peak": (bl[0], bl[1]), "routes": AUTO_ROUTES[p["id"]]}
         if sh and kc:
             out = []
             for r in sh["routes"]:

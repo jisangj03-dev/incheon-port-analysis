@@ -5,8 +5,8 @@
 import Trust from "./Trust.astro";
 import { aiMark } from "../../lib/profile";
 import { abs } from "../../lib/site";
-interface Props { id: string; who: string; q: string; lead?: string; updated: string; asOf?: string; source: string; csv: string; csvName: string; note?: string; advice?: boolean; limits: string; how: string }
-const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how } = Astro.props;
+interface Props { id: string; who: string; q: string; lead?: string; updated: string; asOf?: string; source: string; csv: string; csvName: string; note?: string; advice?: boolean; limits: string; how: string ; mark?: string }
+const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how, mark } = Astro.props;
 // 퍼가기(B7) — 이 지면 주소의 끝 이름 = 퍼가기 지면 이름(og-cards.mjs 가 도구 목록 rooms.json 의 id 로 쓴다)
 const slug = Astro.url.pathname.replace(/\/$/, "").split("/").pop()!.replace(/\.html$/, "");
 // 제목의 「물류·무역」 같은 가운뎃점 묶음이 「·」 앞에서 갈리지 않게 낱말 잇개(U+2060)로 붙인다 — keep-all 만으로는 크롬이 「·」 앞에서 끊었다(채팅 최종 검수 10/15)
@@ -29,7 +29,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
       <dt>어떻게</dt><dd data-note="how">{how}</dd>
       <dt>한계</dt><dd data-note="limits">{limits}</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+    <p class="s-cap" data-ai-mark>{mark ?? aiMark()}</p>
   </footer>
 </article>
 <style>

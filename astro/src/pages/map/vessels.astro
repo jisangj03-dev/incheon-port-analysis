@@ -42,6 +42,7 @@ const n = V.months.length;
     <p class="s-cap" data-ai-mark>{aiMark()}</p>
   </article>
   <script>
+    import { pace, paused, setPaused } from "../../lib/motion";
     const D = JSON.parse(document.getElementById("vr-data")!.textContent || "{}");
     const host = document.getElementById("vr-chart")!, slider = document.getElementById("vr-m") as HTMLInputElement, play = document.getElementById("vr-play") as HTMLButtonElement;
     // 인천이 주인공 — 주홍 굵은 선을 맨 마지막(맨 앞)에 · 부산은 회색 대비선(2026-10-14 채팅 검수: 부산 선만 보이고 인천이 안 보였다)
@@ -72,8 +73,8 @@ const n = V.months.length;
     };
     // [2026-10-15 공개 전 개편 P0] 들어오자마자 돈다 — 끝 달에서 2.5초 쉬고 처음부터 다시. 만지면(달 막대) 멈췄다가 6초 뒤 다시 ·
     // 「멈춤」 단추로 멈춘 것(held)은 그대로 · 동작 줄이기면 돌지 않는다(마지막 달 그대로)
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let timer: any = null, rt: any = 0, endT: any = 0, held = reduce;
+    // [2026-10-20 · 품질기준 Q7] 동작 줄이기 = 천천히 계속 돈다 · 멈춤은 단추(기억)
+    let timer: any = null, rt: any = 0, endT: any = 0, held = paused();
     (window as any).__vrPlay = { get on() { return !!timer; }, get held() { return held; } };
     const stop = () => { clearInterval(timer); clearTimeout(endT); timer = null; play.textContent = "재생"; play.setAttribute("aria-pressed", "false"); };
     const start = () => {
@@ -84,12 +85,12 @@ const n = V.months.length;
         const k = Number(slider.value) + 1;
         if (k >= D.months.length) { clearInterval(timer); endT = setTimeout(() => { if (timer && !held) start(); }, 2500); return; }
         slider.value = String(k); draw(k);
-      }, 120);
+      }, 120 / pace());
     };
     const touch = () => { stop(); clearTimeout(rt); if (!held) rt = setTimeout(() => { if (!timer && !held) start(); }, 6000); };
-    play.addEventListener("click", () => { clearTimeout(rt); if (timer) { held = true; stop(); } else { held = false; start(); } });
+    play.addEventListener("click", () => { clearTimeout(rt); if (timer) { held = true; setPaused(true); stop(); } else { held = false; setPaused(false); start(); } });
     slider.addEventListener("input", () => { touch(); draw(Number(slider.value)); });
-    if (!reduce) setTimeout(() => { if (!timer && !held) start(); }, 900);
+    if (!held) setTimeout(() => { if (!timer && !held) start(); }, 900);
     new ResizeObserver(() => draw(Number(slider.value))).observe(host);
     draw(Number(slider.value));
   </script>

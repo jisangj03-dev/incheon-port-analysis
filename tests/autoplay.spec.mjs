@@ -43,25 +43,51 @@ test("홈: 손대지 않아도 지도가 받아져 돌고(수도권 첫 화면) 
   expect((await st()).tour).toBe(true);
 });
 
-test("홈: 동작 줄이기면 돌지 않는다", async ({ page }) => {
+// [2026-10-20 · docs/품질기준.md Q7 · 선장님 노트북 실측] 동작 줄이기(Windows 「애니메이션 효과」 꺼짐)에서도 흐름 점은 느리게 흐른다 —
+// 카메라·반짝임만 멈춘다. 멈춤은 지도 구석 단추(키보드 가능 · 다시 열어도 기억).
+test("홈: 동작 줄이기에서도 흐름이 움직인다(프레임 차이) · 카메라는 그대로 · 멈춤 단추는 기억", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`${B}/`, { waitUntil: "load" });
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
-  const st = await page.evaluate(() => ({ run: window.__fm.running, tour: window.__fm.touring }));
-  expect(st).toEqual({ run: false, tour: false });
-  await expect(page.locator("#fm-tour")).toHaveAttribute("aria-pressed", "false");
+  const st = () => page.evaluate(() => ({ run: window.__fm.running, tour: window.__fm.touring, cam: JSON.stringify(window.__fm.cam), t: window.__fm.t }));
+  const snap = () => page.evaluate(() => { const c = document.getElementById("fm"), o = document.createElement("canvas"); o.width = 96; o.height = 64; o.getContext("2d").drawImage(c, 0, 0, 96, 64); return o.toDataURL(); });
+  const a = await st();
+  expect(a.run, "동작 줄이기인데 흐름이 멈췄다").toBe(true);
+  expect(a.tour, "동작 줄이기인데 카메라가 둘러본다").toBe(false);
+  const f0 = await snap();
+  await expect.poll(async () => (await snap()) !== f0, { timeout: 15_000, message: "동작 줄이기에서 화면(점)이 안 바뀐다" }).toBe(true);
+  const b = await st();
+  expect(b.t, "흐름 시계가 안 간다").toBeGreaterThan(a.t);
+  expect(b.cam, "동작 줄이기인데 카메라가 움직였다").toBe(a.cam);
+  // 멈춤 — 키보드로
+  await page.locator("#fm-play").focus(); await page.keyboard.press("Enter");
+  await expect(page.locator("#fm-play")).toHaveAttribute("aria-pressed", "true");
+  expect((await st()).run).toBe(false);
+  await page.reload({ waitUntil: "load" });
+  await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
+  expect((await st()).run, "멈춤을 기억하지 못한다").toBe(false);
+  await expect(page.locator("#fm-play")).toHaveAttribute("aria-pressed", "true");
+  await page.locator("#fm-play").click();
+  expect((await st()).run).toBe(true);
 });
 
-test("선박 리플레이: 클릭 없이 달이 흐른다 · 동작 줄이기면 그대로", async ({ page, browser }) => {
+test("선박 리플레이: 클릭 없이 달이 흐른다 · 동작 줄이기에서도 천천히 · 멈춤을 고르면 그대로", async ({ page, browser }) => {
   await page.goto(`${B}/map/vessels.html`, { waitUntil: "load" });
   const m0 = await page.getAttribute("#vr-chart", "data-month");
   await expect.poll(() => page.getAttribute("#vr-chart", "data-month"), { timeout: 10_000, message: "손대지 않았는데 달이 안 바뀐다" }).not.toBe(m0);
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const p2 = await ctx.newPage();
   await p2.goto(`${B}/map/vessels.html`, { waitUntil: "load" });
-  await p2.waitForTimeout(2500);
-  expect(await p2.evaluate(() => window.__vrPlay.on)).toBe(false);
+  const r0 = await p2.getAttribute("#vr-chart", "data-month");
+  await expect.poll(() => p2.getAttribute("#vr-chart", "data-month"), { timeout: 10_000, message: "동작 줄이기에서 달이 안 넘어간다" }).not.toBe(r0);
   await ctx.close();
+  const ctx3 = await browser.newContext({ reducedMotion: "reduce" });
+  await ctx3.addInitScript(() => { try { localStorage.setItem("sc:motion", "paused"); } catch {} });
+  const p3 = await ctx3.newPage();
+  await p3.goto(`${B}/map/vessels.html`, { waitUntil: "load" });
+  await p3.waitForTimeout(2500);
+  expect(await p3.evaluate(() => window.__vrPlay.on), "멈춤을 골랐는데 돈다").toBe(false);
+  await ctx3.close();
 });
 
 // [2026-10-15 P0 · 단추 다섯] 지도 단추(아시아·수도권·인천·멈춤·관문 숫자)가 숫자판·범례와 겹치지 않는다 — 좁은 화면에서 두 줄로 넘쳐 범례를 덮었다
@@ -72,7 +98,7 @@ for (const w of [0, 320]) test(`홈: 지도 단추가 숫자판·범례와 겹�
   expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth), "가로 넘침").toBeLessThanOrEqual(0);
   const r = await page.evaluate(() => {
     const box = (e) => e.getBoundingClientRect();
-    const btns = [...document.querySelectorAll(".live__ctl .s-btn")].map(box), hud = [...document.querySelectorAll(".live__hud > p")].map(box);
+    const btns = [...document.querySelectorAll(".live__ctl .s-btn")].map(box), hud = [...document.querySelectorAll(".live__legend, .live__stat")].map(box);
     const hit = (a, b) => a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1;
     const right = document.querySelector(".live__stage").getBoundingClientRect().right;
     return { rows: new Set(btns.map((b) => Math.round(b.top))).size, tall: btns.filter((b) => b.height > 52).length, out: btns.filter((b) => b.right > right + 1).length, overlaps: btns.flatMap((b, i) => hud.filter((h) => hit(b, h)).map(() => i)) };

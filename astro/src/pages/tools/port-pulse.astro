@@ -31,7 +31,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
     limits="오늘이 아니라 원천의 마지막 날짜(머리의 「○일 기준」)까지다. AIS 를 끈 배·작은 배는 빠질 수 있고, 연안 여객선은 세지 않는다. 추정 교역량(톤)은 PortWatch 의 모델 추정치라 관세청 통계와 다르다.">
     <div slot="answer" class="pulse">
       <p class="pulse__word"><b class={J.pct > D.rule.threshold_pct ? "up" : J.pct < -D.rule.threshold_pct ? "dn" : ""} id="pl-pct" data-og-num={`${J.word} · 인천항 최근 7일 입항`}>{sign(J.pct)}%</b> <span id="pl-word">{J.word}</span>
-        <small id="pl-sub">최근 7일 {J.recent_avg}척/일 · 평소 {J.base_avg}척/일{big && ` · 가장 크게 움직인 선종 = ${big.ko}(${big.r} ← ${big.b})`}</small></p>
+        <small id="pl-sub">최근 7일 {J.recent_avg}척/일 · 평소 {J.base_avg}척/일{big && ` · 하루 척수가 가장 크게 바뀐 선종(차이 기준) = ${big.ko}(${big.r} ← ${big.b})`}</small></p>
       <figure class="pulse__fig" id="pl-fig" data-port="Incheon">
         <div id="pl-chart" set:html={pulseSvg(I.days, "all", 182, D.rule.recent, D.rule.base, oddOf("Incheon"))} />
         <figcaption class="s-cap"><span class="k k--bar"></span>일별 입항 척수 <span class="k k--line"></span>7일 평균 <span class="k k--avg"></span>평소(직전 13주 평균) <span class="k k--rec"></span>최근 7일 · {D.asof} 기준</figcaption>

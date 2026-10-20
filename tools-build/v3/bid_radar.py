@@ -13,6 +13,15 @@ WINDOW = 21
 GROUPS = [("운송·배송", ["운송", "화물", "택배", "배송", "물류"]), ("보관·창고", ["보관", "창고", "풀필먼트", "콜드체인", "냉장창고", "냉동창고", "냉동 컨테이너", "냉동컨테이너", "하역"]),
           ("통관·무역", ["통관", "보세", "수출", "수입", "무역", "원산지", "FTA", "공급망", "SCM", "포워딩"]), ("항만·해운·항공", ["항만", "해운", "컨테이너", "항공화물"])]
 INCLUDE = [w for _, ws in GROUPS for w in ws]
+# [2026-10-20 사실 대조] 「HSCMT」(전자파 시험) 이 「SCM」 부분 일치로 통관·무역에 들어갔고, 「통관대행」 용역이 앞 묶음(운송)에 먼저 걸렸다 →
+#   영문 낱말은 앞뒤가 영문이 아닐 때만 맞는다 · 통관·무역의 고유 낱말(통관·보세·원산지·FTA·포워딩)은 다른 묶음보다 먼저 본다
+import re as _re
+FIRST = ("통관·무역", ["통관", "보세", "원산지", "FTA", "포워딩"])
+def has(nm, w):
+    return bool(_re.search(rf"(?<![A-Za-z]){_re.escape(w)}(?![A-Za-z])", nm)) if w.isascii() else w in nm
+def group_of(nm):
+    if any(has(nm, w) for w in FIRST[1]): return FIRST[0]
+    return next((gn for gn, ws in GROUPS if any(has(nm, w) for w in ws)), None)
 EXCLUDE = ["통학", "여객", "관광", "수학여행", "셔틀", "전세버스", "급식", "폐기물", "음식물", "장애인", "환자", "시신", "운구",
            # 바꿈 2026-10-15(첫 스냅샷을 본 뒤 · 선커밋 ③-가 폐기 규칙): 「홍보관」의 보관 · 제설장비 「창고구간」 · 화물차 임차·리스 · 헬륨냉동 · 방사선감시기
            "홍보관", "제설", "임차", "리스", "헬륨", "방사선",
@@ -26,13 +35,13 @@ def pick(rows, now):
     out, seen = [], set()
     for r in rows:
         nm = str(r.get("bidNtceNm", ""))
-        if not any(w in nm for w in INCLUDE) or any(w in nm for w in EXCLUDE): continue
+        if group_of(nm) is None or any(w in nm for w in EXCLUDE): continue
         close = str(r.get("bidClseDt") or "")
         if not close or close[:16] <= now.strftime("%Y-%m-%d %H:%M"): continue
         key = r.get("bidNtceNo")  # 같은 공고의 다른 차수는 하나로(뒤 차수가 남는다 — 아래에서 덮어쓴다)
         if key in seen: out = [x for x in out if x["bidNtceNo"] != key]
         seen.add(key)
-        g = next(gn for gn, ws in GROUPS if any(w in nm for w in ws))
+        g = group_of(nm)
         item = {k: r.get(k) for k in KEEP}
         try: item["presmptPrce"] = int(float(item["presmptPrce"])) if item.get("presmptPrce") not in (None, "") else None
         except ValueError: item["presmptPrce"] = None
@@ -90,5 +99,14 @@ def selftest():
     print("selftest 1/1 ok"); return 0
 
 
+def regroup():
+    """지난 스냅샷을 새 규칙으로 다시 묶는다(원천을 다시 부르지 않는다 — 공고 이름만 쓴다)"""
+    d = json.load(open(OUT, encoding="utf-8"))
+    d["items"] = [dict(x, group=group_of(x["bidNtceNm"])) for x in d["items"] if group_of(x["bidNtceNm"])]
+    d["n"] = len(d["items"]); d["group_counts"] = {g: sum(1 for x in d["items"] if x["group"] == g) for g, _ in GROUPS}
+    json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("다시 묶음", d["group_counts"]); return 0
+
+
 if __name__ == "__main__":
-    sys.exit(selftest() if "--selftest" in sys.argv else main())
+    sys.exit(selftest() if "--selftest" in sys.argv else regroup() if "--regroup" in sys.argv else main())

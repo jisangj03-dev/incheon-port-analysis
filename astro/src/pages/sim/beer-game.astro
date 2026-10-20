@@ -158,7 +158,7 @@ const S = R.stages.length;
   @keyframes beer-box { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
   @keyframes beer-ord { 0% { right: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { right: calc(100% - 8px); opacity: 0; } }
   @keyframes beer-short { 50% { background: rgba(179, 54, 30, 0.18); } }
-  @media (prefers-reduced-motion: reduce) { .chain :global(.pipe.go i) { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .chain :global(.pipe.go .box), .chain :global(.pipe.go .ord) { animation-duration: 2.2s; } } /* 동작 줄이기 = 물건·주문은 천천히 흐른다(품질기준 Q7) */
   .quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--s-4); }
   .quick :global(.s-btn) { min-height: 44px; padding: 0 14px; font-variant-numeric: tabular-nums; }
   .quick :global(.is-inc) { border-color: var(--s-signal); color: var(--s-signal); }

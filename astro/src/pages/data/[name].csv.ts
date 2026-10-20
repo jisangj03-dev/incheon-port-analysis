@@ -23,7 +23,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       if (s.id === "sea") rows.push({ 구간: s.title, 항목: "컨테이너", 값: d.kteu, 단위: "천TEU", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "전년 같은 달 대비", 값: d.yoy_pct, 단위: "%", 기준월: ym, 범위: d.scope });
       if (s.id === "customs") for (const g of d.gates) rows.push({ 구간: s.title, 항목: g.name, 값: g.share_pct, 단위: "% (전국 수입액 중)", 기준월: ym, 범위: d.scope });
       if (s.id === "firms") rows.push({ 구간: s.title, 항목: "인천 소재 수입자 전기기기 수입", 값: d.imp_kusd, 단위: "천 달러", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "인천 수입 중 비중", 값: d.share_of_incheon_imports_pct, 단위: "%", 기준월: ym, 범위: d.scope });
-      if (s.id === "warehouse") rows.push({ 구간: s.title, 항목: "물류창고", 값: d.sites, 단위: "곳", 기준월: "", 범위: d.scope }, { 구간: s.title, 항목: "보세(관세법)", 값: d.bonded_sites, 단위: "곳", 기준월: "", 범위: d.scope });
+      if (s.id === "warehouse") rows.push({ 구간: s.title, 항목: "물류창고", 값: d.sites, 단위: "곳", 기준월: "", 범위: d.scope }, { 구간: s.title, 항목: "보세창고(관세법 제174조 특허)", 값: d.bonded_sites, 단위: "곳", 기준월: "", 범위: d.scope });
     }
     return { rows, note: `전기기기(HS 85) 구간별 원천 숫자 · 계산 ${D.command} · ${D.computed}` };
   },

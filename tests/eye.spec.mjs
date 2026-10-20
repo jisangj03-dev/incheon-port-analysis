@@ -1,6 +1,7 @@
 // 지면 눈 검사(2026-10-14 채팅 검수) — 출고 검사의 「차트 주 계열 가시」 · 잘린 글자 0 · 상자 없음.
 // 모든 공개 면 × 두 폭(desktop-1440 · iphone-13). 주 계열이 있는 차트 지면은 1440 첫 화면 안에 주 계열이 들어와야 한다.
 import { test, expect } from "@playwright/test";
+import { still } from "./lib/still.mjs";
 import { mainSeries, clipped, boxes } from "./lib/chart-checks.mjs";
 const B = "/incheon-port-analysis";
 import { readdirSync } from "node:fs";
@@ -12,7 +13,7 @@ const MAIN = { "/map/vessels.html": "#vr-chart svg", "/sim/forecast.html": "#fc-
 
 for (const p of PAGES) test(`눈 검사 — ${p}`, async ({ page }, info) => {
   // [2026-10-15 P0] 지면이 클릭 없이 돈다(선박 리플레이는 첫 달부터 다시) — 눈 검사는 설계 화면(마지막 달 · 정지)을 본다 → 동작 줄이기로 연다
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await still(page); // 정지 화면 = 동작 줄이기 + 멈춤(2026-10-20 · 동작 줄이기만으로는 흐름이 멈추지 않는다)
   await page.goto(encodeURI(`${B}${p}`), { waitUntil: "networkidle" });
   if (MAIN[p]) await page.waitForSelector(MAIN[p]);
   await page.waitForTimeout(300);

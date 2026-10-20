@@ -20,7 +20,7 @@ const jsonld = reg.sources.filter((s: any) => s.kogl !== "해당 없음" || s.id
       <table>
         <thead><tr><th scope="col">출처</th><th scope="col">기관</th><th scope="col">이용허락</th><th scope="col">공공누리</th><th scope="col">상업 이용</th><th scope="col">가공</th><th scope="col">확인</th></tr></thead>
         <tbody>
-          {reg.sources.map((s: any) => (
+          {reg.sources.filter((s: any) => !s.retired).map((s: any) => (
             <tr id={s.id}>
               <th scope="row">{s.name}<br /><small>{s.where}</small></th>
               <td>{s.owner}</td><td>{s.license}</td>

@@ -4,9 +4,9 @@
  "snapshot": "2026-10-15 20:07",
  "window_days": 21,
  "scanned": 8205,
- "n": 29,
+ "n": 28,
  "group_counts": {
-  "운송·배송": 17,
+  "운송·배송": 16,
   "보관·창고": 1,
   "통관·무역": 5,
   "항만·해운·항공": 6
@@ -230,7 +230,7 @@
    "bidClseDt": "2026-10-20 12:00:00",
    "presmptPrce": 78759009,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01759458&bidPbancOrd=000",
-   "group": "운송·배송"
+   "group": "통관·무역"
   },
   {
    "bidNtceNo": "R26BK01768734",
@@ -315,18 +315,6 @@
    "presmptPrce": 136363636,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01767584&bidPbancOrd=000",
    "group": "운송·배송"
-  },
-  {
-   "bidNtceNo": "R26BK01773756",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "[국책과제]2026년 HSCMT 전원불안정성 대응 전자파 적합 시험 평가 용역",
-   "ntceInsttNm": "(주)에이치에스씨엠티",
-   "dminsttNm": "(주)에이치에스씨엠티",
-   "bidNtceDt": "2026-10-15 16:17:30",
-   "bidClseDt": "2026-10-27 10:00:00",
-   "presmptPrce": 25000000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773756&bidPbancOrd=000",
-   "group": "통관·무역"
   },
   {
    "bidNtceNo": "R26BK01773881",

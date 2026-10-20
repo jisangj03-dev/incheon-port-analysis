@@ -22,8 +22,8 @@ const W = (n: number) => `${((100 * n) / S.commits_total).toFixed(2)}%`;
 <Studio title="AI 운영실 1쪽 — 이 작업실은 AI와 어떻게 일하나" description="이 작업실이 AI와 어떻게 돌아가는지, 저장소 git 기록으로 센 숫자 — 커밋 구성, 머지된 PR, 정정 커밋까지." current="notes">
   <article class="s-wrap ops" data-content="ds-ai-ops">
     <p class="s-cap">노트 · AI 운영실 공개 사례</p>
-    <h1 class="s-prose">이 작업실은 AI가 만들고, 사람이 머지합니다.</h1>
-    <p class="s-lead s-prose">{S.first_day}부터 {S.last_day}까지 이 저장소 main 에 들어간 커밋 <b>{S.commits_total}</b>개 가운데 <b class="s-signal">{S.ai_share_pct}%</b>에 AI 세션 꼬리표가 붙어 있습니다. 공개(머지)는 매번 운영자가 했습니다.</p>
+    <h1 class="s-prose">이 작업실은 AI가 만들고, 사람이 정하고 검수합니다.</h1>
+    <p class="s-lead s-prose">{S.first_day}부터 {S.last_day}까지 이 저장소 main 에 들어간 커밋 <b>{S.commits_total}</b>개 가운데 <b class="s-signal">{S.ai_share_pct}%</b>에 AI 세션 꼬리표가 붙어 있습니다. 주제와 판정 기준은 운영자가 정하고, 머지·배포는 2026-09-09부터 운영자 위임으로 AI 세션이 합니다(공개 판단은 운영자 승인 뒤).</p>
 
     <p class="counter s-prose"><b>반대 지표</b> — 같은 기간 제목에 정정·되돌림이 적힌 커밋 <b class="s-signal">{S.corrections}</b>개({S.corrections_pct}%). AI가 만든 것도 틀리고, 틀린 것을 고치는 데 커밋이 듭니다(제목으로만 셌으니 실제보다 적을 수 있습니다).</p>
 

@@ -32,11 +32,11 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
     q="바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?"
     lead={`${F.ko} 통항이 2023년 같은 달보다 ${F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}. 이 길목을 지나는 나라와의 교역은 한국 수입의 ${F.imp_pct}% · 수출의 ${F.exp_pct}%(전국 · 최근 12달). 인천 관문은 전국 수입의 ${D.incheon_imp_share_pct}%를 받습니다(${D.incheon_ym}).`}
     updated={D.fetched} source={`${sourceLine("imf-portwatch")} · ${sourceLine("kcs-nation")} · ${sourceLine("kobc-kcci")} · ${sourceLine("searoute-marnet")}`} csv={u("/data/chokepoint.csv")} csvName="chokepoint-shock.csv" note="통항 = 주 평균 · 교역 = 전국 · 최근 12달"
-    how={`PortWatch 길목별 일별 통항(AIS 추정)을 주 평균으로 그리고, 지금(마지막 28일 평균)을 2023년 같은 달 평균(사태 전)과 견줬다. 교역 몫 = 관세청 국가별 수출입(${ym(D.months[0])}~${ym(D.months[1])} 합)에서 그 길목을 보통 지나는 나라(선커밋 경유 표)의 몫.`}
+    how={`PortWatch 길목별 일별 통항(AIS 추정)을 주 평균으로 그리고, 최근(마지막 28일 평균)을 2023년 같은 달 평균(사태 전)과 견줬다. 교역 몫 = 관세청 국가별 수출입(${ym(D.months[0])}~${ym(D.months[1])} 합)에서 그 길목을 보통 지나는 나라(선커밋 경유 표)의 몫.`}
     limits={`${D.air_note || ""} 나라 → 길목 경유는 보통 항로의 가정이다(환적·우회는 따지지 않는다). 우회 일수는 해상 경로망의 최단 거리 차를 16노트로 나눈 것이다(기항·혼잡 미반영).`+" 중국·일본·미주는 표에 없다. 「흔들리는 액수」는 통항이 줄어든 비율만큼 교역도 준다는 단순 비례 가정이고 실제 손실이 아니다. 인천 관문만의 몫이 아니라 전국 기준이다(인천×나라 공개 자료가 없다). 통항 급감의 원인은 이 지면이 확인하지 않는다(보도로만 확인)."}>
     <div slot="answer" class="ck">
       <p class="ck__big"><b id="ck-pct" data-og-num={`${F.ko} 통항 · 2023년 같은 달 대비`} class={F.vs_base_pct != null && F.vs_base_pct < -10 ? "dn" : ""}>{F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}</b>
-        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 지금 하루 <b id="ck-now">{F.now28}</b>척</span></p>
+        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 최근 28일 하루 평균 <b id="ck-now">{F.now28}</b>척 <small>({F.asof}까지)</small></span></p>
       <figure class="ck__fig" id="ck-fig">
         <div class="ck__plot">
         <div class="ax" id="ck-axis" data-furniture>{L0.ticks.map(([y, v]) => <span class="ax__y" style={`top:${((Number(y) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{L0.yrs.map(([x, y]) => <span class="ax__x" style={`left:${((Number(x) / VW) * 100).toFixed(2)}%`}>{y}</span>)}</div>

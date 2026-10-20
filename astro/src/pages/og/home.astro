@@ -1,7 +1,7 @@
 ---
 // 홈 공유 카드(2026-10-20 채팅 급함) — 도구 카드(og/tool.astro)와 같은 틀 · 1200×630. 빌드 뒤 tests/capture/og-cards.mjs 가 찍어
 // og/home.jpg 로 바꾸고 assets/og.jpg 에도 덮어쓴다(옛 캐시 주소). 숫자는 data/derived/home_flows.json 마지막 달에서만 · 지도는
-// data/derived/sudo_corridors.json(수도권 흐름 층 · 굵기 = 비중 추정)과 land_incheon.geojson(OSM) — 홈 지도와 같은 원천.
+// data/derived/sudo_corridors.json(수도권 흐름 층)과 land_incheon.geojson(OSM) — 홈 지도와 같은 원천.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
@@ -78,7 +78,7 @@ const marks = [
     <div class="eb">수도권 공급망 · 인천 관문</div>
     <h1>한국 수입의 <b>{M.imp_share_pct}%<small>가</small></b>인천으로 들어옵니다</h1>
     <p>인천공항 + 인천항 · 수출은 {M.exp_share_pct}%<br />{M.ym} 수입 신고액 기준 · 관세청</p>
-    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span>지도: 수도권 물류 흐름 · 굵기 = 비중 추정 · OSM</span></div>
+    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span>지도: 수도권 물류 흐름 · © OpenStreetMap</span></div>
   </div>
 </body>
 </html>

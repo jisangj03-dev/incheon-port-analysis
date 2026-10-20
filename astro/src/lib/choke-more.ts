@@ -7,7 +7,7 @@ export function chokeMore(p: any): string {
     : `<p><b>막히면</b> ${d.route} — ${d.note}</p>`;
   const sh = s && s.routes?.length
     ? `<p><b>운임 충격(실측)</b> ${s.event}: ${s.routes.map((x: any) => `${x.ko} 운임지수 <b>+${x.pct}%</b>(평소 ${n(x.base)} → ${x.peak_week} ${n(x.peak)})`).join(" · ")} <small>(KCCI · 평소 = ${s.base_window[0].slice(0, 7)} 주 평균)</small></p>`
-    : `<p><b>운임 충격</b> 원천 기간(2022-11~)에 이 길목이 막힌 적이 없어 실측이 없습니다.</p>`;
+    : `<p><b>운임 충격</b> 원천 기간(PortWatch 2023~)에 이 길목 통항이 2023년 평균의 30% 아래로 4주 넘게 떨어진 적이 없어, 사건 전후 운임을 견주지 않았습니다.</p>`;
   const hs = h && h.items?.length
     ? `<p><b>품목(HS 2단위 · ${h.ym.slice(0, 4)}-${h.ym.slice(4)})</b> ${h.items.map((x: any) => `${x.name} ${x.pct}%`).join(" · ")}</p>`
     : `<p><b>품목</b> 관세청 품목별 국가별 원천에 이 길목 나라들의 줄이 없어 싣지 않았습니다.</p>`;

@@ -129,9 +129,8 @@
       "commercial": "미확인(vidIQ 약관 원문 확인은 채팅 몫)",
       "modify": "해당 없음",
       "checked": "2026-10-12 · 기준 19",
-      "used_by": [
-        "home"
-      ]
+      "used_by": [],
+      "retired": "2026-10-20 — 홈 개편(2026-10-14)으로 영상을 뺐다. 지면에 영상 0 · 출처 대장 공개 목록에서 내림(기록은 남김)"
     },
     {
       "id": "kcs-nitemtrade",
@@ -212,7 +211,7 @@
       "where": "portwatch.imf.org(ArcGIS 피처 서비스 · Daily_Ports_Data · Daily_Chokepoints_Data)",
       "license": "IMF 저작권·이용 약관(imf.org/external/terms.htm) — 자료(data) 부분은 추출 허용 · 비상업 이용 · 상업 재사용은 허락 필요(2차 정리 · 원문 대조 [미확인] → terms-check 워크플로)",
       "kogl": "해당 없음(IMF 약관)",
-      "commercial": "허락 필요 — 이 작업실은 판매 0(커리어 사이트)이라 비상업 범위",
+      "commercial": "허락 필요(상업 재사용) — 종전 판단 「판매 0(커리어 사이트)이라 비상업」은 2026-10-15 P2(「사업」 · 중소기업 문의 창구)로 전제가 바뀌었다 → 재판단 [선장님 판단 대기 · 2026-10-20 사실 대조]",
       "modify": "추정·가공 표기 조건으로 허용으로 읽음 [미확인]",
       "checked": "2026-10-14 terms-check — imf.org 약관 화면 본문 추출 0자(스크립트 렌더) · FAQ 30,936자 받았으나 약관 문장 없음 → 원문 대조 [미확인] 그대로. 지면에 「IMF PortWatch」 출처 · 추정치 표기",
       "used_by": [

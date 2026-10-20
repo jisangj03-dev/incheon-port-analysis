@@ -9,7 +9,6 @@ import { poster, PW, PH } from "../../lib/home-poster";
 import { u } from "../../lib/site";
 import { profile } from "../../lib/profile";
 import { sourceLine } from "../../lib/sources";
-import Contact from "../scene/Contact.astro";
 import { room } from "../../lib/rooms";
 import Trust from "../scene/Trust.astro";
 
@@ -17,6 +16,8 @@ const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
 const SC = existsSync(join(repoRoot(), "data/derived/sudo_corridors.json")) ? J("data/derived/sudo_corridors.json") : null; // 수도권 물류 흐름 층(추정 · 캡션용)
 const PF = profile();
+const rev = (x: string) => [...x].reverse().join("");
+const hasMail = !!(PF.contact?.mail?.user && PF.contact?.mail?.domain); // 문의 메일 — 주소는 원문에 두지 않고 누를 때 조립(Contact 스크립트가 [data-c=mail] 을 다 받는다)
 // 관문 → 실무 도구(rooms.json tools 방 · gate 칸이 있는 것만) — 관문을 누르면 이어지는 도구
 const TOOLS = ((room("tools")?.items || []) as any[]).filter((t) => t.gate);
 const L = F.months[F.months.length - 1];
@@ -26,34 +27,34 @@ const PO = poster();
 const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 ---
 <section class="live" data-content="home-live" aria-labelledby="live-h">
-  <div class="s-wrap live__text">
-    <p class="s-cap live__who">{PF.name} · SCM 작업실 · {PF.affiliation}</p>
+  <!-- [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) -->
+  <div class="live__hero">
+  <div class="live__text">
+    <p class="s-cap live__who">{PF.name} · SCM 작업실</p>
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
-    <p class="s-lead s-prose">{L.ym} 수입 신고액 기준(인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천으로 나갑니다.<span class="live__more"> 이 관문을 지나 수도권의 물류·무역·유통으로 흐르는 공급망을 공공 데이터로 읽습니다.</span></p>
-    <p class="s-prose live__ask">물류비·관세·재고·수요예측·항만 — 중소기업·셀러라면 이런 질문을 <b>귀사 숫자로</b> 같이 풀어 보세요. 문의는 메일 한 통이면 됩니다.</p>
-    <div class="live__cta"><Contact ask /><a class="s-btn s-btn--ghost live__q" href="#questions">같이 푸는 질문 보기</a></div>
+    <p class="s-lead s-prose live__one">{L.ym} 수입 신고액 기준(인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천으로 나갑니다.</p>
+    <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
+      <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · <span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> · <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></span></p>
+    <div class="live__cta">
+      <a class="s-btn live__q" href="#questions">같이 푸는 질문 보기</a>
+      {hasMail && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
+    </div>
   </div>
 
   <div class="live__frame">
   <div class="live__stage" id="live-stage">
     <img class="live__poster" src={u("/assets/home-poster.svg")} alt="" width={PW} height={PH} decoding="async" />
-    <span class="live__pulse" aria-hidden="true" style={`--gx:${PO.gate[0] - PW / 2};--gy:${PO.gate[1] - PH / 2}`}></span>
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문을 지나는 교역 흐름 — ${L.ym} 인천공항·인천항 수출입 ${fmt(L.total)}억 달러. 들어오는 것(수입)은 주홍, 나가는 것(수출)은 바다색 점.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
-  </div>
-
-  <div class="live__hud" id="fm-hud" aria-live="off">
-    <p class="live__ym"><span id="fm-ym">{L.ym}</span> <span class="live__unit">인천 관문을 지난 수출입</span></p>
-    <p class="live__total"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span></p>
-    <p class="live__split"><span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></p>
-    <p class="live__legend">월 통계를 흐름으로 그린 것 — 실시간 위치가 아닙니다 · <span id="fm-unit">점 하나 ≈ 1억 달러</span><span id="fm-dens" hidden> · 옅은 푸른 결 = 세계은행 선박 밀도(2015~2021 누적)</span></p>
-  </div>
-  <div class="live__ctl" role="group" aria-label="지도 보기">
-    <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
-    <button type="button" class="s-btn s-btn--ghost" data-view="sudo">수도권</button>
-    <button type="button" class="s-btn s-btn--ghost" data-view="incheon" aria-label="인천 관문">인천<span class="lg">&nbsp;관문</span></button>
-    <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true" aria-label="둘러보기 멈춤"><span class="lg">둘러보기&nbsp;</span>멈춤</button>
-    <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel">관문 숫자</button>
+    <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
+    <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 · 월 통계를 흐름으로(실시간 위치 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span><span id="fm-dens" hidden> · 푸른 결 = 선박 밀도</span></p>
+    <div class="live__ctl" role="group" aria-label="지도 보기">
+      <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
+      <button type="button" class="s-btn s-btn--ghost" data-view="sudo">수도권</button>
+      <button type="button" class="s-btn s-btn--ghost" data-view="incheon" aria-label="인천 관문">인천<span class="lg">&nbsp;관문</span></button>
+      <button type="button" class="s-btn s-btn--ghost" id="fm-tour" aria-pressed="true" aria-label="둘러보기 멈춤"><span class="lg">둘러보기&nbsp;</span>멈춤</button>
+      <button type="button" class="s-btn s-btn--ghost" id="fm-gates" aria-expanded="false" aria-controls="fm-panel">관문 숫자</button>
+    </div>
   </div>
   <aside class="live__panel" id="fm-panel" hidden aria-label="관문별 숫자">
     <button type="button" class="live__x" id="fm-x" aria-label="닫기">×</button>
@@ -71,21 +72,25 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     </ol>
   </aside>
   </div>
+  </div>
 
   <div class="s-wrap live__foot">
-    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 하늘 아크의 나라 몫은 인천공항 실측 항공화물(나라별 도착·출발 톤 · 직화물+환적+우편 · {F.air_cargo ? `${F.air_cargo.through.slice(0, 4)}년 ${Number(F.air_cargo.through.slice(5, 7))}월까지` : "—"} · 인천국제공항공사)입니다. 바다 항로의 나라 몫은 전국 비중을 그대로 썼고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘은 <b>가정</b>입니다.{SC && <> 수도권 길은 관문에서 목적지까지 OpenStreetMap 고속도로의 최단 거리이고, 붉은 통로 굵기는 그 구간을 지나는 목적지 몫의 합입니다 — 실제 화물 경로·교통량이 아닌 <b>추정</b>입니다. {SC.assume}. 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD)은 자리만 표시한 개략 위치입니다.</>} 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
+    <details class="live__how"><summary class="s-cap">이 지도를 만든 방법·출처</summary>
+    <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(입항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 전국 수출 총계가 2026-02~06 사이 계단식으로 오른 까닭은 확인하지 못했다 [미확인](보고서 #08) — 수출 비중의 분모다.</p>
+    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 하늘 아크의 나라 몫은 인천공항 실측 항공화물(나라별 도착·출발 톤 · 직화물+환적+우편 · {F.air_cargo ? `${F.air_cargo.through.slice(0, 4)}년 ${Number(F.air_cargo.through.slice(5, 7))}월까지` : "—"} · 인천국제공항공사)입니다. 바다 항로의 나라 몫은 전국 비중을 그대로 썼고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘은 <b>가정</b>입니다.{SC && <> 수도권 길은 관문에서 목적지까지 OpenStreetMap 고속도로의 최단 거리이고, 붉은 통로 굵기는 그 구간을 지나는 목적지 몫의 합입니다 — 실제 화물 경로·교통량이 아닌 <b>추정</b>입니다. {SC.assume}. 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD)은 자리만 표시한 개략 위치입니다.</>} 나라 점은 대표 항만·공항 자리입니다. 바다 길은 해상망 최단 경로(searoute 1.5.0 · Eurostat MARNET), 하늘 길은 대권(최단 거리)으로 계산한 길이지 그 달 실제로 지난 배·비행기의 항적이 아닙니다. 가까이 보는 화면에서는 해상망 끝에서 부두까지가 직선이라 바다 위 점을 그리지 않습니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
+    </details>
   </div>
   <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>
 </section>
 
 <script>
-  import { FlowMap, VIEWS, VIEWS_M, type Cam } from "../../lib/flowmap";
+  import { FlowMap, VIEWS, VIEWS_M, fitCam, heroPts, gatePts, HERO_CAM, HERO_M, HERO_M_NARROW, type Cam } from "../../lib/flowmap";
+  import { reduced, pace, paused, setPaused } from "../../lib/motion";
   const stage = document.getElementById("live-stage") as HTMLElement, cv = document.getElementById("fm") as HTMLCanvasElement;
-  // 글 블록이 숫자판 높이만큼 아래 자리를 남긴다(--live-hud) — 범례가 두 줄로 꺾이면 고정값(168px)을 넘어 연락 단추와 겹쳤다(QA · hero.spec) → 실제 높이로
-  { const hud = document.getElementById("fm-hud"), live = stage.closest(".live") as HTMLElement | null;
-    if (hud && live) { const fit = () => live.style.setProperty("--live-hud", `${Math.ceil(hud.offsetHeight)}px`); fit(); if ("ResizeObserver" in window) new ResizeObserver(fit).observe(hud); } }
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // [2026-10-20 · docs/품질기준.md Q7] 동작 줄이기 = 점은 느리게 계속 흐르고 카메라·반짝임만 멈춘다 · 멈춤은 단추로(기억)
+  const reduce = reduced();
+  let still = paused();
   const lite = matchMedia("(max-width: 720px)").matches; // 좁은 화면 = 가벼운 판(점 절반 · 해상도 1.5배까지)
   const $ = (id: string) => document.getElementById(id)!;
   const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -95,16 +100,18 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const tick = (el: HTMLElement, to: number) => {
     const from = Number(el.dataset.v ?? el.textContent!.replace(/,/g, "")) || 0, t0 = performance.now();
     el.dataset.v = String(to);
+    if (reduce) { el.textContent = fmt(to); return; }
     const f = (now: number) => { const k = Math.min(1, (now - t0) / 700), e = 1 - (1 - k) ** 3; el.textContent = fmt(from + (to - from) * e); if (k < 1) requestAnimationFrame(f); };
     requestAnimationFrame(f);
   };
 
   // 이름표 — 우선순위 높은 것부터 놓고 겹치면 뺀다(매 장면)
-  type LB = { el: HTMLElement; lon: number; lat: number; pri: number; near: boolean | null; w: number; h: number; dx: number; dy: number };
+  type LB = { el: HTMLElement; lon: number; lat: number; pri: number; near: boolean | null; w: number; h: number; dx: number; dy: number; inc?: boolean };
   const LBS: LB[] = [];
-  const mk = (html: string, lon: number, lat: number, pri: number, near: boolean | null, cls = "") => {
+  // inc = 인천 안 자세한 이름(구·부두·거점) — 「인천 관문」 가까이 볼 때만(수도권 한 장에서는 인천 둘레가 이름으로 덮였다 · 2026-10-20)
+  const mk = (html: string, lon: number, lat: number, pri: number, near: boolean | null, cls = "", inc = false) => {
     const el = document.createElement("span"); el.className = `fm-lb ${cls}`; el.dataset.label = ""; el.innerHTML = html; $("fm-labels").append(el);
-    LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8 });
+    LBS.push({ el, lon, lat, pri, near, w: 0, h: 0, dx: 8, dy: -8, inc });
   };
   // 글자·숫자판·단추 자리(이름표가 피한다) — 화면 크기·글꼴·글 블록 크기가 바뀔 때만 다시 잰다(매 장면 재면 배치 계산이 장면마다 돈다)
   // [2026-10-20 #67 · 1568×709 검수] 글 블록은 문단마다가 아니라 한 덩어리(합친 상자 + 여백 14px)로 피한다 — 문단 틈에 이름표가 앉으면 본문과 겹쳐 보였다.
@@ -113,7 +120,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const fixedBoxes = (H: number) => {
     const sr = stage.getBoundingClientRect(), box = (r: DOMRect, p: number, q: number) => [r.left - sr.left - p, r.top - sr.top - q, r.right - sr.left + p, r.bottom - sr.top + q];
     const txt = [...document.querySelectorAll<HTMLElement>(".live__text > *")].map((e) => e.getBoundingClientRect()).filter((r) => r.width && r.height);
-    const out = [...document.querySelectorAll<HTMLElement>(".live__hud > *, .live__ctl")].map((e) => box(e.getBoundingClientRect(), 6, 4));
+    const out = [...document.querySelectorAll<HTMLElement>(".live__ctl, .live__legend, .live__pause")].map((e) => box(e.getBoundingClientRect(), 6, 4));
     if (txt.length) out.push(box(new DOMRect(Math.min(...txt.map((r) => r.left)), Math.min(...txt.map((r) => r.top)), Math.max(...txt.map((r) => r.right)) - Math.min(...txt.map((r) => r.left)), Math.max(...txt.map((r) => r.bottom)) - Math.min(...txt.map((r) => r.top))), 14, 14));
     return out.filter((b) => b[3] > 0 && b[1] < H);
   };
@@ -122,10 +129,10 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   document.fonts?.ready.then(refit);
   { const tx = document.querySelector(".live__text"); if (tx && "ResizeObserver" in window) new ResizeObserver(refit).observe(tx); }
   const place = (f: FlowMap) => {
-    const near = f.cam.zoom > 6.2, W = f.W, H = f.H;
+    const near = f.cam.zoom > 6.2, W = f.W, H = f.H, detail = f.cam.zoom > (f.views.sudo.zoom + f.views.incheon.zoom) / 2;
     const taken: number[][] = [...(fixed ??= fixedBoxes(H))];
     for (const l of [...LBS].sort((a, b) => b.pri - a.pri)) {
-      const want = l.near === null || l.near === near;
+      const want = (l.near === null || l.near === near) && (!l.inc || detail);
       if (!want) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; }
       if (!l.w) { const r = l.el.getBoundingClientRect(); l.w = r.width; l.h = r.height; }
       const s = f.screen(l.lon, l.lat);
@@ -149,26 +156,31 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     if (D.density) document.getElementById("fm-dens")!.hidden = false;
     const F = D.flows;
     const unit = lite ? 1 : 0.4;
-    const views = cv.clientWidth < 760 || cv.clientWidth / cv.clientHeight < 1.1 ? VIEWS_M : VIEWS;
+    // [2026-10-20] 보기 = 지도 칸 모양에 맞춘 카메라 — 수도권 = 인천 관문(서)·서울·김포·광주·이천·안성(경부·영동축)이 한 장에 · 인천 관문 = 공항·항만·창고 몰린 구
+    const fit = (): Record<string, Cam> => {
+      const W = cv.clientWidth || 800, H = cv.clientHeight || 600, narrow = W < 640, M = narrow ? HERO_M_NARROW : HERO_M;
+      return { asia: { ...(narrow ? VIEWS_M : VIEWS).asia, ox: 0, oy: 0.04 }, sudo: fitCam(HERO_CAM, W, H, heroPts(D), M), incheon: fitCam({ ...HERO_CAM, zoom: 11, pitch: 50, bearing: 18 }, W, H, gatePts(D), M) };
+    };
+    let views = fit(), viewNow = "sudo";
     $("fm-unit").textContent = `점 하나 ≈ ${unit}억 달러`;
     const cam: Cam = { ...views.sudo }; // [2026-10-15 P0] 첫 화면 = 수도권 · 「아시아」는 단추
-    fm = new FlowMap(cv, D, { unit, monthSec: 7, maxDpr: lite ? 1 : 2, lite, onFrame: place, onMonth: (i) => {
+    fm = new FlowMap(cv, D, { unit, monthSec: 7, maxDpr: lite ? 1 : 2, lite, speed: pace(), calm: reduce, onFrame: place, onMonth: (i) => {
       const m = F.months[i];
       $("fm-ym").textContent = m.ym;
       tick($("fm-total"), m.total); tick($("fm-imp"), m.imp_total); tick($("fm-exp"), m.exp_total);
       panel(i);
     } }, cam);
     // 이름표 — 멀리: 나라·인천 / 가까이: 관문·목적지
-    for (const p of F.partners) mk(`<b>${p.name}</b><i>수입 ${p.imp_pct}% · 수출 ${p.exp_pct}%</i>`, p.sea[0][0], p.sea[0][1], p.imp_pct + p.exp_pct, false);
-    mk(`<b class="s-signal">인천</b><i>공항 + 항만</i>`, F.air_gate.lon, F.air_gate.lat, 1000, false, "fm-lb--gate");
-    mk(`<b class="s-signal">인천공항</b><i>하늘 관문</i>`, F.air_gate.lon, F.air_gate.lat, 1000, true, "fm-lb--gate");
-    for (const g of F.sea_gates) mk(`<b class="s-signal">${g.id}</b>`, g.lon, g.lat, 900 - g.lon, true, "fm-lb--gate");
-    // 목적지 — 수도권 층이 있으면 그 목적지(경기 밀집지 여섯은 비중이 추정이라 개소를 적지 않는다 · 「몫 가정」은 뜻이 안 읽혀 「비중 추정」 · #67) · 거점 · 고속도로 이름
+    for (const p of F.partners) mk(`<b>${p.name}</b>`, p.sea[0][0], p.sea[0][1], p.imp_pct + p.exp_pct, false);
+    mk(`<b class="s-signal">인천</b>`, F.air_gate.lon, F.air_gate.lat, 1000, false, "fm-lb--gate");
+    mk(`<b class="s-signal">인천공항</b>`, F.air_gate.lon, F.air_gate.lat, 1000, true, "fm-lb--gate");
+    for (const g of F.sea_gates) mk(`<b class="s-signal">${g.id}</b>`, g.lon, g.lat, 900 - g.lon, true, "fm-lb--gate", g.id !== F.sea_gates[0].id);
+    // 목적지 — 이름만(설명·추정 표기는 지도 아래 방법 칸에 · 2026-10-20 선장님 「지도 라벨은 도시 이름만」)
     const S = D.sudo;
-    for (const d of S?.dests ?? F.dests) mk(`<b>${d.id === "서울특별시" ? "서울" : d.id}</b><i>${String(d.basis || "").startsWith("가정") ? "경기 물류 밀집지 · 비중 추정" : `창고 ${d.n.toLocaleString("ko-KR")}곳`}</i>`, d.lon, d.lat, d.n, true);
-    for (const h of S?.hubs ?? []) mk(`<b>${h.id}</b><i>${h.note}</i>`, h.lon, h.lat, 60, true, "fm-lb--hub");
+    for (const d of S?.dests ?? F.dests) mk(`<b>${d.id === "서울특별시" ? "서울" : d.id}</b>`, d.lon, d.lat, d.n, true, "", /[구군]$/.test(d.id));
+    for (const h of S?.hubs ?? []) mk(`<b>${h.id}</b>`, h.lon, h.lat, 60, true, "fm-lb--hub", h.lon < 126.8 && h.lat > 37.3);
     for (const l of S?.labels ?? []) mk(`<b>${l.id}</b>`, l.lon, l.lat, 40, true, "fm-lb--hw");
-    fm.views = views; (window as any).__fm = fm;
+    fm.views = views; (window as any).__fm = fm; (window as any).__fmViews = () => views;
     // [2026-10-15 P0 · 모바일 성능] 좁은 화면의 첫 장면은 해상도 배율 1 — GPU 없이 칠하는 환경에서 배율 1.5 는 장면마다 70ms 를 넘겼고 1 이면 긴 작업이 거의 0(실측).
     // 사람이 만지거나 15초가 지나면 1.5 로 올려 선을 또렷하게 한다(움직임은 처음부터 같다 — 픽셀 수만 다르다)
     if (lite && (devicePixelRatio || 1) > 1) {
@@ -177,25 +189,26 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       setTimeout(sharp, 15000);
     }
     fm.warm(lite ? 6 : 9);
-    fm.touring = !reduce; stage.dataset.touring = reduce ? "0" : "1"; fm.draw();
-    stage.dataset.ready = "1";
-    if (!reduce) fm.start(); else hold = true;
-    tourBtn();
-    // 보이지 않으면 쉰다
-    new IntersectionObserver(([e]) => { if (!fm) return; if (e.isIntersecting && !reduce) fm.start(); else fm.stop(); }).observe(stage);
-    document.addEventListener("visibilitychange", () => { if (!fm) return; if (document.hidden) fm.stop(); else if (!reduce) fm.start(); });
-    addEventListener("resize", () => { fm!.resize(); fm!.draw(); });
+    hold = reduce; // 동작 줄이기 = 카메라 둘러보기만 꺼 둔다(점은 흐른다)
+    fm.touring = !hold; stage.dataset.touring = hold ? "0" : "1"; fm.draw();
+    stage.dataset.ready = "1"; stage.dataset.motion = reduce ? "reduce" : "full";
+    if (!still) fm.start();
+    tourBtn(); playBtn();
+    // 보이지 않으면 쉰다 · 멈춤을 골랐으면 그대로
+    new IntersectionObserver(([e]) => { if (!fm) return; if (e.isIntersecting && !still) fm.start(); else fm.stop(); }).observe(stage);
+    document.addEventListener("visibilitychange", () => { if (!fm) return; if (document.hidden) fm.stop(); else if (!still) fm.start(); });
+    addEventListener("resize", () => { if (!fm) return; fm.resize(); views = fit(); fm.views = views; if (!fm.tour && !fm.touring && views[viewNow]) fm.cam = { ...views[viewNow] }; fm.draw(); });
   }
   // ── 자동 재생 [2026-10-15 공개 전 개편 P0] — 들어오자마자 돈다. 만지면(끌기·바퀴·보기 단추) 카메라가 멈췄다가 6초 뒤 다시 돈다.
   //    「둘러보기 멈춤」 단추로 멈춘 것(hold)은 다시 누를 때까지 그대로 · 동작 줄이기(prefers-reduced-motion)면 처음부터 hold.
   let hold = false, resumeT = 0;
   const RESUME_MS = 6000;
   const tourBtn = () => { const b = $("fm-tour"); b.innerHTML = hold ? "둘러보기" : `<span class="lg">둘러보기\u00a0</span>멈춤`; b.setAttribute("aria-label", hold ? "둘러보기" : "둘러보기 멈춤"); b.setAttribute("aria-pressed", String(!hold)); };
-  const resume = () => { if (!fm || hold || reduce) return; fm.touring = true; fm.tourT = 0; stage.dataset.touring = "1"; };
+  const resume = () => { if (!fm || hold) return; fm.touring = true; fm.tourT = 0; stage.dataset.touring = "1"; };
   const stopTour = () => {
     if (!fm) return;
     fm.touring = false; fm.tour = null; stage.dataset.touring = "0"; (window as any).__fmStops = ((window as any).__fmStops || 0) + 1; // 시험 손잡이 — 멈춘 횟수
-    clearTimeout(resumeT); if (!hold && !reduce) resumeT = window.setTimeout(resume, RESUME_MS);
+    clearTimeout(resumeT); if (!hold) resumeT = window.setTimeout(resume, RESUME_MS);
   };
   (window as any).__fmResumeMs = RESUME_MS;
 
@@ -227,14 +240,22 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     if (!fm) return; stopTour();
     const v = b.dataset.view!;
     fm.tourViews = v === "asia" ? ["asia"] : ["sudo", "incheon"]; fm.tourStep = v === "incheon" ? 1 : 0;
-    fm.flyTo(fm.views[v], 3.2); if (!fm.running) fm.start();
+    viewNow = v === "asia" ? "asia" : v; fm.flyTo(fm.views[v], 3.2); if (!fm.running && !still) fm.start();
   });
   $("fm-tour").addEventListener("click", () => {
     if (!fm) return;
     hold = !hold; tourBtn();
     if (hold) { clearTimeout(resumeT); fm.touring = false; fm.tour = null; stage.dataset.touring = "0"; }
-    else { clearTimeout(resumeT); resume(); fm.start(); }
+    else { clearTimeout(resumeT); resume(); if (!still) fm.start(); }
   });
+  // 흐름 멈춤/재생 — 지도 칸 구석 · 키보드로 누를 수 있다 · 지면을 옮겨도 기억(lib/motion.ts)
+  const playBtn = () => { const b = $("fm-play"); b.setAttribute("aria-pressed", String(still)); b.setAttribute("aria-label", still ? "흐름 재생" : "흐름 멈춤"); b.querySelector(".live__pt")!.textContent = still ? "재생" : "멈춤"; b.dataset.state = still ? "paused" : "playing"; };
+  $("fm-play").addEventListener("click", () => {
+    still = !still; setPaused(still); playBtn();
+    if (!fm) return;
+    if (still) fm.stop(); else fm.start();
+  });
+  playBtn();
   // 관문 숫자 판 — 달이 바뀌면 같이 바뀐다
   let D0: any = null;
   const panel = (i: number) => {
@@ -265,58 +286,51 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
 </script>
 
 <style>
+  /* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 넓은 화면 = 12단 — 글 기둥 5단(사이트 글 줄에 맞춰 왼쪽) · 지도 칸 7단(오른쪽 끝까지).
+     지도를 글 밑에 깔던 판(인천이 글에 가려짐 · 숫자판·단추가 접힘선에 걸림)을 버렸다. 첫 화면 높이 = 창 높이 − 머리띠, 안에서 끝난다. */
   .live { position: relative; }
-  .live__stage { position: relative; height: clamp(560px, calc(100svh - 92px), 980px); overflow: hidden; touch-action: pan-y; }
-  /* 글자 쪽은 종이로 옅게 덮는다(상자 없이 · 오른쪽으로 사라지는 바림) */
-  .live__stage::after { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(245,242,235,0.92) 0%, rgba(245,242,235,0.78) 30%, rgba(245,242,235,0) 58%); }
+  .live__hero { position: relative; }
+  .live__text { position: relative; z-index: 3; }
+  .live__text h1 { font-size: clamp(30px, 3.3vw, 58px); line-height: 1.16; margin: var(--s-2) 0 var(--s-3); text-wrap: balance; }
+  .live__one { margin: 0; max-width: 34em; }
+  .live__stat { margin: var(--s-5) 0 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-variant-numeric: tabular-nums; }
+  .live__stat > b { font-size: clamp(34px, 3.2vw, 52px); font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .live__unit { font-size: 14px; color: var(--s-ink-2); }
+  .live__sub { flex-basis: 100%; font-size: 14px; color: var(--s-ink-2); margin-top: 6px; }
+  .live__sub b { color: var(--s-ink); font-weight: 600; }
+  .live__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }
+  .k { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 5px 0 2px; }
+  .k-in { background: var(--s-signal); } .k-out { background: var(--s-sea-t); }
+
+  .live__frame { position: relative; }
+  .live__stage { position: relative; overflow: hidden; touch-action: pan-y; background: #f3efe5; container-type: size; }
   .live__poster, .live__cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .live__poster { object-fit: cover; }
-  /* 정지 그림 위 인천 고리 — 그림이 화면을 덮도록 커진 배율(cover)을 컨테이너 단위로 따라간다 */
-  .live__stage { container-type: size; }
-  .live__pulse { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border: 2px solid #b3361e; border-radius: 50%; pointer-events: none;
-    left: calc(50% + var(--gx) * max(100cqw / 1600, 100cqh / 900)); top: calc(50% + var(--gy) * max(100cqw / 1600, 100cqh / 900));
-    animation: live-pulse 2.2s ease-out infinite; will-change: transform, opacity; }
-  .live__stage[data-ready="1"] .live__pulse { display: none; }
-  @keyframes live-pulse { from { transform: scale(0.4); opacity: 0.9; } to { transform: scale(2.2); opacity: 0; } }
-  @media (prefers-reduced-motion: reduce) { .live__pulse { animation: none; } }
   .live__cv { opacity: 0; transition: opacity 0.8s ease; cursor: grab; }
   .live__stage[data-ready="1"] .live__cv { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .live__cv { transition: none; } }
   .live__labels { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-  .live__labels :global(.fm-lb) { position: absolute; left: 0; top: 0; font: 500 13px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; visibility: hidden;
+  .live__labels :global(.fm-lb) { position: absolute; left: 0; top: 0; font: 600 14px/1.2 var(--s-font); color: var(--s-ink); white-space: nowrap; visibility: hidden;
     text-shadow: 0 0 3px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); will-change: transform; }
   .live__labels :global(.fm-lb b) { display: block; font-weight: 650; font-size: 14px; }
-  .live__labels :global(.fm-lb i) { display: block; font-style: normal; font-size: 11.5px; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
   .live__labels :global(.fm-lb--gate b) { font-size: 15px; }
   .live__labels :global(.fm-lb--hw b) { font-size: 12px; font-weight: 600; font-style: italic; color: var(--s-signal); }
-  .live__labels :global(.fm-lb--hub b) { font-size: 13px; }
-  .live__frame { position: relative; }
-  .live__text { position: absolute; top: 0; left: 0; right: 0; z-index: 3; padding-top: var(--s-6); pointer-events: none; }
-  .live__text > * { max-width: 40rem; }
-  .live__text a, .live__text button { pointer-events: auto; }
-  .live__text h1 { font-size: clamp(30px, 4.4vw, 60px); margin: var(--s-2) 0 var(--s-3); text-shadow: 0 0 14px var(--s-paper), 0 0 4px var(--s-paper); }
-  .live__text .s-lead, .live__ask { text-shadow: 0 0 8px var(--s-paper), 0 0 3px var(--s-paper); }
-  .live__ask { margin-top: var(--s-3); }
-  .live__cta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-3); }
-  .live__cta :global(.s-contact) { margin: var(--s-4) 0 0; }
-  .live__q { margin-top: var(--s-4); }
-  .live__hud { position: absolute; left: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; pointer-events: none;
-    text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper), 0 0 2px var(--s-paper); }
-  .live__hud p { margin: 0; }
-  /* 범례에 밀도 문구가 붙으면 숫자판이 단추 줄 앞까지 늘어난다(CI 글꼴에서 겹침 · QA 247) — 넓은 화면은 단추 줄(최대 52%)과 반대쪽 40% 안에서 꺾는다 */
-  .live__legend { max-width: min(40vw, 30em); }
-  .live__ym { font-style: italic; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
-  .live__total b { font-size: clamp(34px, 4vw, 52px); font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .live__unit { font-size: 13px; color: var(--s-ink-2); margin-left: 6px; }
-  .live__split { font-size: 14px; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
-  .live__split b { color: var(--s-ink); margin-right: 10px; }
-  .k { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
-  .k-in { background: var(--s-signal); } .k-out { background: var(--s-sea-t); }
-  .live__legend { font-size: 12px; color: var(--s-ink-3); margin-top: 4px !important; }
-  .live__ctl { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); bottom: 22px; z-index: 3; display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; max-width: 52%; }
-  .live__ctl .s-btn { background: rgba(245, 242, 235, 0.88); min-height: 40px; padding: 0 14px; font-size: 14px; }
-  .live__panel { position: absolute; right: max(16px, calc((100vw - var(--s-max, 1200px)) / 2)); top: 50%; transform: translateY(-50%); z-index: 3; width: min(340px, calc(100% - 32px));
+  .live__labels :global(.fm-lb--hub b) { font-size: 13px; font-weight: 600; }
+
+  /* 지도 칸 안 — 범례 한 줄(아래) · 보기 단추(아래) · 흐름 멈춤(오른쪽 위 구석) */
+  .live__legend { position: absolute; left: 16px; right: 16px; bottom: 66px; z-index: 3; margin: 0; font-size: 12.5px; color: var(--s-ink-2); pointer-events: none;
+    text-shadow: 0 0 4px var(--s-paper), 0 0 2px var(--s-paper); }
+  .live__ctl { position: absolute; left: 16px; right: 16px; bottom: 14px; z-index: 3; display: flex; gap: 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .live__ctl .s-btn { background: rgb(245 242 235 / 0.92); min-height: 44px; padding: 0 14px; font-size: 14px; white-space: nowrap; flex: 0 0 auto; }
+  .live__pause { position: absolute; right: 12px; top: 12px; z-index: 4; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--s-rule); background: rgb(245 242 235 / 0.92); color: var(--s-ink); font: 600 14px/1 var(--s-font); cursor: pointer; }
+  .live__pause:focus-visible { outline: 2px solid var(--s-signal); outline-offset: 2px; }
+  .live__pi { width: 10px; height: 12px; border-left: 3px solid currentColor; border-right: 3px solid currentColor; box-sizing: border-box; }
+  .live__pause[data-state="paused"] .live__pi { border: 0; width: 0; height: 0; border-left: 10px solid currentColor; border-top: 6px solid transparent; border-bottom: 6px solid transparent; }
+
+  .live__panel { position: absolute; right: 12px; top: 64px; z-index: 5; width: min(340px, calc(100% - 24px));
     background: var(--s-paper); border-top: 2px solid var(--s-signal); padding: 18px 20px 16px; box-shadow: 0 12px 40px rgba(25, 23, 20, 0.14);
-    max-height: calc(100% - 32px); overflow: auto; overscroll-behavior: contain; } /* 도구 목록이 붙어 판이 길어졌다 — 무대 밖으로 잘리지 않게 */
+    max-height: calc(100% - 150px); overflow: auto; overscroll-behavior: contain; }
   .live__panel h2 { font-size: 13px; font-weight: 600; letter-spacing: 0; margin: 0 40px 0 0; line-height: 1.4; }
   .live__x { position: absolute; right: 6px; top: 6px; width: 44px; height: 44px; border: 0; background: none; font-size: 22px; cursor: pointer; color: var(--s-ink-2); }
   .live__dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 10px 0 14px; font-variant-numeric: tabular-nums; }
@@ -328,45 +342,34 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__bars i { display: block; height: 6px; width: var(--w); background: var(--s-signal); border-radius: 1px; }
   .live__bars b { font-weight: 500; color: var(--s-ink-2); font-variant-numeric: tabular-nums; }
   .live__foot { padding-top: var(--s-4); }
-  /* [2026-10-15 채팅 검수] 낮은 창(1536×640 등)에서 글 블록이 아래 숫자판·연락 단추와 겹쳤다 — 무대 높이가 창 높이만 보고 정해졌기 때문.
-     넓은 화면에서는 글과 무대를 한 칸(grid)에 겹쳐 두고, 글 블록 아래에 숫자판 높이만큼 자리를 남긴다 → 글이 길면 무대가 늘어난다(겹칠 수 없다).
-     시험 = tests/hero.spec.mjs(너비 1280·1440·1536 × 높이 640·720·900 · 겹침 0) */
-  @media (min-width: 721px) {
-    .live { display: grid; grid-template-columns: minmax(0, 1fr); }
-    .live > .live__text, .live > .live__frame { grid-row: 1; grid-column: 1; }
-    .live > .live__foot { grid-row: 2; grid-column: 1; }
-    .live__text { position: relative; align-self: start; padding-bottom: calc(var(--live-hud, 192px) + 30px); }
-    /* [#67 · 1568×709 검수] 글·단추 밑으로 고속도로 선·점이 진하게 지나가 겹쳐 보였다 — 글 블록 자리만 바탕색으로 옅게 가린다(숫자판 자리는 빼고) */
-    .live__text > * { background: rgb(245 242 235 / 0.62); box-shadow: 0 0 34px 26px rgb(245 242 235 / 0.62); }
-    .live__cta :global(.s-btn--ghost), .live__q { background: rgb(245 242 235 / 0.94); }
-    .live__frame { display: flex; flex-direction: column; }
-    .live__stage { flex: 1 0 auto; height: auto; min-height: clamp(560px, calc(100svh - 92px), 980px); }
+  .live__how summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .live__how[open] summary { margin-bottom: var(--s-2); }
+
+  @media (min-width: 900px) {
+    .live__hero { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(16px, 2vw, 32px);
+      height: clamp(500px, calc(100svh - var(--live-top, 92px)), 960px);
+      padding-left: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); }
+    .live__text { grid-column: 1 / span 5; align-self: center; padding: var(--s-5) 0; }
+    .live__frame { grid-column: 6 / -1; height: 100%; }
+    .live__stage { height: 100%; }
   }
-  @media (max-width: 720px) {
-    /* 좁은 화면 — 글자를 위에 따로 두고(덮지 않는다) 지도를 그 아래 넓게 */
-    .live__text { position: static; padding-top: var(--s-4); pointer-events: auto; }
-    .live__text h1 { font-size: 29px; text-shadow: none; margin-bottom: var(--s-2); }
-    .live__text .s-lead { font-size: 15.5px; line-height: 1.55; text-shadow: none; }
-    .live__ask { font-size: 15px; text-shadow: none; margin-top: var(--s-2); }
-    .live__cta { gap: 8px; }
-    .live__more { display: none; }
-    .live__cta :global(.s-contact) { margin-top: var(--s-3); gap: 8px; }
-    .live__cta :global(.s-btn), .live__q { min-height: 44px; padding: 0 12px; font-size: 14px; }
-    .live__q { margin-top: var(--s-3); }
-    .live__cta { flex-wrap: nowrap; } .live__cta :global(.s-contact) { flex-wrap: nowrap; }
-    .live__stage { height: 72svh; min-height: 520px; max-height: 760px; }
-    .live__stage::after { background: none; }
-    .live__hud { left: 16px; bottom: 70px; }
-    .live__total b { font-size: 30px; }
-    .live__legend { max-width: 22em; }
-    .live__ctl { left: 16px; right: 16px; bottom: 12px; max-width: none; justify-content: flex-start; gap: 6px; }
-    .live__ctl .s-btn { padding: 0 10px; font-size: 13px; min-height: 44px; }
-    .live__ctl :global(.lg) { display: none; } /* 좁은 화면 — 단추 다섯이 한 줄에 들게(전체 이름은 aria-label · 멈춤 단추는 스크립트가 다시 쓴다 → :global) */
-    .live__ctl { flex-wrap: nowrap; }
-    .live__ctl .s-btn { white-space: nowrap; flex: 0 0 auto; }
-    .live__panel { top: auto; bottom: 8px; transform: none; left: 16px; right: 16px; width: auto; }
+  @media (max-width: 899px) {
+    /* 좁은 화면 — 글이 위, 지도는 그 아래 전폭(인천이 첫 화면 안에 들게 지도 높이를 창의 절반 남짓으로) */
+    .live__text { padding: var(--s-4) var(--s-gutter) var(--s-4); }
+    .live__text h1 { font-size: clamp(28px, 7.6vw, 40px); }
+    .live__one { font-size: 15.5px; line-height: 1.55; }
+    .live__stat { margin-top: var(--s-3); }
+    .live__stat > b { font-size: 30px; }
+    .live__sub { font-size: 13px; }
+    .live__cta { margin-top: var(--s-4); gap: 8px; }
+    .live__cta .s-btn { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
+    .live__stage { height: clamp(380px, 58svh, 620px); }
+    .live__legend { bottom: 64px; font-size: 12px; }
+    .live__ctl { gap: 6px; }
+    .live__ctl .s-btn { padding: 0 10px; font-size: 13px; }
+    .live__ctl :global(.lg) { display: none; } /* 단추 다섯이 한 줄에 들게(전체 이름은 aria-label · 멈춤 단추는 스크립트가 다시 쓴다 → :global) */
+    .live__panel { top: auto; bottom: 8px; left: 12px; right: 12px; width: auto; max-height: calc(100% - 70px); }
   }
-  /* 아주 좁은 화면(320) — 단추 다섯이 한 줄에 들게 여백을 줄인다(출고 검사 가로 넘침 0) */
   @media (max-width: 360px) {
     .live__ctl { gap: 4px; }
     .live__ctl .s-btn { padding: 0 7px; font-size: 12.5px; }
