@@ -18,8 +18,6 @@ const base = process.env.CAPTURE_BASE;   // 있으면 GitHub Pages 세 화면을
 const PAGES_ROOT = base ? `${base}/incheon-port-analysis` : "https://jisangj03-dev.github.io/incheon-port-analysis";
 const SCREENS = [
   ["home", `${PAGES_ROOT}/`],
-  ["calculator", `${PAGES_ROOT}/tools/logistics-cost.html`],
-  ["warehouse-map", `${PAGES_ROOT}/tools/warehouse-map.html`],
   ["higgsfield", base ? null : "https://sounding.higgsfield.app/"],
 ];
 const SIZES = [
@@ -33,6 +31,7 @@ let bad = 0;
 for (const [sname, opts] of SIZES) {
   const { defaultBrowserType, ...ctxOpts } = opts;
   const ctx = await browser.newContext({ ...ctxOpts, reducedMotion: "reduce" });
+  await ctx.addInitScript(() => { try { localStorage.setItem("sc:motion", "paused"); } catch {} }); // 정지 화면(동작 줄이기만으로는 흐름이 멈추지 않는다 · 2026-10-20)
   for (const [name, url] of SCREENS) {
     if (!url) continue;
     const page = await ctx.newPage();

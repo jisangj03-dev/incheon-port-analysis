@@ -7,7 +7,9 @@
   · 바다 관문 안 갈래 — 인천항 컨테이너 부두군별 처리량(신항·남항·국제여객부두 · 천TEU · 같은 달)
   · 수도권 목적지 — 국토교통부 물류창고업 등록 개소(인천은 구·군별 · 서울·경기는 시·도 합계)
       [가정] 관문을 지난 화물이 창고 개소 비례로 흩어진다 — 실제 목적지 통계가 아니다
-  · 자리 — 나라 점은 대표 항만·공항, 목적지는 구청·도청 부근(개략). 항로·아크·육상선은 개념선(실제 항적 아님)
+  · 자리 — 나라 점은 대표 항만·공항, 목적지는 구청·도청 부근(개략)
+  · 길 — 바다 = 해상망 최단 경로(tools-build/sea_routes.py · searoute · Eurostat MARNET) · 하늘 = 대권 · 수도권 = OSM 고속도로 최단 거리.
+      계산한 길이지 실제 항적·궤적이 아니다(2026-10-20 · 종전 손으로 찍은 경유점 = 개념선을 걷었다)
   python tools-build/flows_derive.py [--selftest]
 """
 import csv, datetime, glob, json, os, sys
@@ -15,7 +17,7 @@ import csv, datetime, glob, json, os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/home_flows.json")
 
-# 나라 — 바다 대표 항만에서 인천까지 물길(대략의 경유점 · 육지를 피해 긋는다) · 하늘 대표 공항. 경도는 이어지게(미주 = +360).
+# 나라 — 바다 대표 항만(sea 의 첫 점 = 출발) · 하늘 대표 공항. 물길은 data/derived/sea_routes.json(계산) 이 있으면 그것을 쓴다 — 아래 경유점은 그 파일이 없을 때만(옛 개념선).
 PARTNERS = {
     "CN": {"name": "중국", "at": "상하이", "sea": [[121.9, 30.9], [123.2, 32.3], [124.6, 34.6], [125.3, 36.2]], "air": [121.80, 31.14]},
     "JP": {"name": "일본", "at": "도쿄", "sea": [[139.8, 35.4], [139.6, 34.6], [137.0, 33.9], [134.5, 33.0], [131.9, 31.3], [130.0, 31.6], [129.4, 33.3], [128.3, 34.2], [126.6, 33.95], [125.4, 34.5], [125.2, 35.8]], "air": [140.39, 35.77]},
@@ -56,10 +58,21 @@ def eok(usd):
     return round(usd / 1e8, 1)  # 억 달러
 
 
-def derive():
-    # ① 관문별 월 수출입(관세청 항구·공항별) — 전국 총계 줄(statKor "-")과 같이
+def porttrade():
+    """관세청 항구·공항별 — 일회성 파일(analysis/porttrade_*.csv) + 예약 수집(data/collected/porttrade.csv · 2026-10-20 추가). 같은 달은 수집 쪽을 쓴다."""
     pfile = sorted(glob.glob(os.path.join(ROOT, "analysis/porttrade_*.csv")))[-1]
     pt = rows(os.path.relpath(pfile, ROOT))
+    cp = os.path.join(ROOT, "data/collected/porttrade.csv")
+    if os.path.exists(cp):
+        new = [dict(r, reqYymm=r.get("reqYm") or r.get("reqYymm")) for r in rows("data/collected/porttrade.csv")]
+        got = {r["reqYymm"] for r in new}
+        pt = [r for r in pt if r["reqYymm"] not in got] + new
+    return pfile, pt
+
+
+def derive():
+    # ① 관문별 월 수출입(관세청 항구·공항별) — 전국 총계 줄(statKor "-")과 같이
+    pfile, pt = porttrade()
     agg = {}
     for r in pt:
         k = (r["reqYymm"], r["statKor"])
@@ -84,17 +97,29 @@ def derive():
                   "teu": {g: t.get(g) for g in SEA_GATES} if t else None})
     # ③ 나라 비중 — 전국 · 10개국 · 가장 최근 석 달 합(수입·수출 따로)
     nt = [r for r in rows("data/collected/nitemtrade.csv") if r["hsCd2"] == "-"]
-    nym = sorted({r["reqYm"] for r in nt})[-3:]
+    nmp = os.path.join(ROOT, "data/collected/v3/nation_months.json")
+    NM = json.load(open(nmp, encoding="utf-8"))["months"] if os.path.exists(nmp) else {}
+    both = sorted({r["reqYm"] for r in nt} & set(NM))  # 전국 분모가 있는 달로 맞춘다(없으면 품목 원천의 마지막 석 달)
+    nym = both[-3:] if both else sorted({r["reqYm"] for r in nt})[-3:]
     imp, exp = {}, {}
     for r in nt:
         if r["reqYm"] in nym: imp[r["cntyCd"]] = imp.get(r["cntyCd"], 0) + num(r["impDlr"]); exp[r["cntyCd"]] = exp.get(r["cntyCd"], 0) + num(r["expDlr"])
     ti, te = sum(imp.values()), sum(exp.values())
+    # [2026-10-20 사실 대조] imp_pct 는 10개국 합을 100 으로 본 몫(흐름 점 나누기용)이다 — 「전국」 몫이 아니다.
+    #   전국 몫 = 같은 달 관세청 국가별 수출입(전 국가 · nation_months.json) 합을 분모로 따로 낸다(달이 다 있을 때만)
+    nat_ok = all(m in NM for m in nym)
+    ni = sum(x["imp"] for m in nym for x in NM[m]) if nat_ok else None
+    ne = sum(x["exp"] for m in nym for x in NM[m]) if nat_ok else None
+    srp = os.path.join(ROOT, "data/derived/sea_routes.json")
+    SR = json.load(open(srp, encoding="utf-8")) if os.path.exists(srp) else None
     partners = []
     for c, p in PARTNERS.items():
         if c not in imp: continue
-        partners.append({"id": c, "name": p["name"], "at": p["at"], "sea": p["sea"], "air": p["air"],
+        sea = SR["routes"][c]["path"] if SR and c in SR.get("routes", {}) else p["sea"]
+        partners.append({"id": c, "name": p["name"], "at": p["at"], "sea": sea, "air": p["air"],
                          "imp_pct": round(100 * imp[c] / ti, 1), "exp_pct": round(100 * exp[c] / te, 1),
-                         "imp_eok": eok(imp[c] / len(nym)), "exp_eok": eok(exp[c] / len(nym))})
+                         "imp_eok": eok(imp[c] / len(nym)), "exp_eok": eok(exp[c] / len(nym)),
+                         "imp_nat_pct": round(100 * imp[c] / ni, 1) if ni else None, "exp_nat_pct": round(100 * exp[c] / ne, 1) if ne else None})
     partners.sort(key=lambda p: -(p["imp_pct"] + p["exp_pct"]))
     # 하늘 아크의 나라 몫 = 인천공항 실측 항공화물(나라별 도착·출발 톤 · 15062056 · 2026-10-15 선장님 승인) — 없으면 관세청 전국 비중(종전 가정)
     ac_path = os.path.join(ROOT, "data/derived/air_cargo.json")
@@ -119,14 +144,16 @@ def derive():
         "unit": "억 달러",
         "months": M, "last": last["ym"],
         "partners": partners, "partner_months": [f"{m[:4]}-{m[4:]}" for m in nym],
-        "sea_gates": [{"id": k, "lon": v["at"][0], "lat": v["at"][1], "approach": v["approach"]} for k, v in SEA_GATES.items()],
+        "sea_gates": [{"id": k, "lon": v["at"][0], "lat": v["at"][1], "approach": [] if SR else v["approach"]} for k, v in SEA_GATES.items()],
+        "sea_route": SR["tool"] if SR else None,
         "air_gate": {"id": AIR_GATE["id"], "lon": AIR_GATE["at"][0], "lat": AIR_GATE["at"][1]},
-        "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"]} if air else None,
+        "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"], "total_t": air["total_in_t"] + air["total_out_t"],
+                      "shown_pct": round(100 * sum((p.get("air_in_t") or 0) + (p.get("air_out_t") or 0) for p in partners) / (air["total_in_t"] + air["total_out_t"]), 1)} if air else None,
         "dests": dests,
         "assume": [
             "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",
             "관문을 지난 화물이 수도권 어디로 가는지는 통계가 없어, 물류창고 등록 개소 비례로 흩었다(인천 구·군 · 서울 · 경기).",
-            "나라 점은 대표 항만·공항, 목적지는 구청·도청 부근이다. 항로·아크·육상선은 개념선이다.",
+            "나라 점은 대표 항만·공항, 목적지는 구청·도청 부근이다. 바다 길은 해상망 최단 경로(searoute), 하늘 길은 대권, 수도권 길은 OSM 고속도로 최단 거리 — 계산한 길이지 실제 항적이 아니다." if SR else "나라 점은 대표 항만·공항, 목적지는 구청·도청 부근이다. 항로·아크·육상선은 개념선이다.",
         ],
         "sources": ["kcs-porttrade", "kcs-nitemtrade", "mof-incheon-port-stats", "molit-warehouse"] + (["iiac-route-cargo"] if air else []),
         "inputs": [os.path.relpath(pfile, ROOT), "data/collected/nitemtrade.csv", "analysis/terminal_monthly_long.csv", "analysis/warehouse_by_gu.csv", "analysis/warehouse_stats_by_sido.csv"],
@@ -147,7 +174,7 @@ def selftest():
     assert d["months"] and all(m["port_imp"] > 0 and m["air_exp"] > 0 for m in d["months"]), "관문 값이 비었다"
     assert 0 < L["imp_share_pct"] < 100 and 0 < L["exp_share_pct"] < 100
     assert abs(sum(p["imp_pct"] for p in d["partners"]) - 100) < 0.6, "나라 비중 합이 100 이 아니다"
-    assert all(p["sea"][-1][0] < 126 for p in d["partners"]), "물길 끝이 황해 밖이다"
+    assert all(p["sea"][-1][0] < 126.2 and p["sea"][-1][1] > 34 for p in d["partners"]), "물길 끝이 황해 밖이다"
     assert all(d_["n"] > 0 for d_ in d["dests"]) and any(d_["id"] == "경기도" for d_ in d["dests"])
     for p in d["partners"]:
         assert all(abs(a[0] - b[0]) < 25 for a, b in zip(p["sea"], p["sea"][1:])), f"{p['id']} 물길이 경도 180° 를 뛰어넘는다"

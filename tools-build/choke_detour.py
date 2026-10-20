@@ -37,7 +37,7 @@ def main():
             L1 = float("inf")
         rec = {"route": label, "open_nm": round(L0)}
         if L1 == float("inf") or L1 != L1 or L1 > 1e6 or L1 <= 0:  # 길이 없으면 경로망이 0 을 돌려준다
-            rec.update({"closed_nm": None, "extra_nm": None, "extra_days": None, "note": "우회 길 없음(바다로 돌아갈 길이 없다)"})
+            rec.update({"closed_nm": None, "extra_nm": None, "extra_days": None, "note": "바닷길 우회는 없다 — 걸프 안 항만에서 나가는 뱃길은 이 해협 하나뿐이다. 육상 출구는 송유관 둘(사우디 동서 송유관 → 홍해 얀부 · UAE 하브샨 → 오만만 푸자이라)뿐이라 원유 일부만 돌린다"})
         else:
             rec.update({"closed_nm": round(L1), "extra_nm": round(L1 - L0), "extra_days": round((L1 - L0) / (KNOT * 24), 1)})
         out["points"][pid] = rec

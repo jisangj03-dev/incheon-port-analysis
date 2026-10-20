@@ -1,7 +1,7 @@
 ---
 // 맥주 게임(정체성 §3-1) — 디자인 시스템 「해도」 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
 // 숫자는 규칙 파일에서만(정체성 §2-1).
-import { aiMark } from "../../lib/profile";
+import AiMark from "../../components/scene/AiMark.astro";
 import Studio from "../../layouts/Studio.astro";
 import { u } from "../../lib/site";
 import R from "../../../../data/sim/beer-game.json";
@@ -10,34 +10,35 @@ import { lastUpdated } from "../../lib/content";
 const RU = lastUpdated("data/sim/beer-game.json");
 const S = R.stages.length;
 ---
-<Studio title="맥주 게임 — 채찍효과를 직접 겪는다" description="소매·도매·유통·공장 중 한 단계를 맡아 주문을 넣고, 끝나면 단계별 주문 출렁임과 비용을 본다. 입력값은 서버로 가지 않는다." current="notes">
+<Studio ask={false} title="맥주 게임 — 채찍효과를 직접 겪는다" description="소매·도매·유통·공장 중 한 단계를 맡아 주문을 넣고, 끝나면 단계별 주문 출렁임과 비용을 본다. 입력값은 서버로 가지 않는다." current="tools">
   <div class="s-wrap ds-beer" data-sim="ds-beer">
     <section class="intro" aria-labelledby="h-wave">
       <p class="s-cap">시뮬레이션 · 맥주 게임</p>
       <h1 id="h-wave" class="s-prose">오는 중인 물건을 잊으면, 공장이 흔들립니다.</h1>
-      <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 막대를 움직여 보세요.</p>
+      {/* [2026-10-20 화면 판정] 답(○배)이 1280·1520 첫 화면 아래였다 → 질문 바로 밑 · 그림 위 */}
+      <p class="amp"><span id="amp-who"></span> 주문은 소비자 수요보다 <b id="amp" class="s-signal"></b> 출렁입니다. <small class="amp__def">출렁임 = 주문량의 분산 ÷ 소비자 수요의 분산</small></p>
       <figure class="wave-fig">
         <div id="wave" class="wave" data-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
+        <p class="s-prose wave-lead">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 아래 막대를 움직여 보세요.</p>
         <figcaption class="readout">
           <label class="beta" for="beta">
             <span>주문할 때 아직 오는 중인 물건을 셈에 넣는 정도 <b id="beta-out"></b></span>
             <input id="beta" type="range" min="0" max="1" step="0.01" value={R.autoPolicy.beta} />
             <span class="ends"><span>잊는다</span><span>다 센다</span></span>
           </label>
-          <p class="amp"><span id="amp-who"></span> 주문은 소비자 수요보다 <b id="amp" class="s-signal"></b> 출렁입니다.</p>
         </figcaption>
         <p class="try-cta"><a class="s-btn" href="#setup">직접 해 보기 — 한 단계를 맡아 {R.weeks}주</a> <span class="s-cap">끝나면 내 점수와 공유 카드가 나옵니다</span></p>
-        <Trust updated={RU} source="Sterman(1989) 보드게임 규칙 · 규칙 파일 data/sim/beer-game.json" csv="client" csvName="beer-game-wave.csv" note="모의 실험 — 실측 아님" />
-        <p class="s-cap note">막대를 옮겨도 숫자가 고르게 줄지 않는 구간이 있습니다. 주문·배송 지연이 겹쳐 생긴 계산 결과 그대로이고, 다듬지 않았습니다. 막대의 처음 자리는 원 논문이 참가자 주문에서 추정한 값입니다.</p>
+        <Trust updated={RU} source="Sterman(1989) 보드게임 규칙(단계 넷 · 지연 · 주문 습관)" csv="client" csvName="beer-game-wave.csv" note="모의 실험 — 실측 아님" />
+        <details class="note s-cap"><summary>읽는 법 · 한계</summary><p>막대를 옮겨도 숫자가 고르게 줄지 않는 구간이 있습니다. 주문·배송 지연이 겹쳐 생긴 계산 결과 그대로이고, 다듬지 않았습니다. 막대의 처음 자리는 원 논문이 참가자 주문에서 추정한 값입니다.</p></details>
       </figure>
     </section>
 
     <section id="setup" class="setup" aria-labelledby="h-try">
       <h2 id="h-try" class="s-prose">직접 해 보기</h2>
-      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다. 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
+      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다(공장은 만드는 데 {R.delays.production}주). 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
       <div class="pick">
         <label>맡을 단계<select id="role" class="s-input">{R.stages.map((s, i) => <option value={i}>{s.label}</option>)}</select></label>
-        <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자</option><option value="random">매주 들쭉날쭉</option></select></label>
+        <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자(Sterman 설정)</option><option value="random">매주 들쭉날쭉(논문 밖 연습용 · {R.demand.random.min}~{R.demand.random.max}상자)</option></select></label>
         <input type="hidden" id="seed" value="1" />
         <button type="button" id="start" class="s-btn">시작</button>
       </div>
@@ -77,7 +78,7 @@ const S = R.stages.length;
         <tbody id="rows"></tbody>
       </table>
       <p class="s-cap">출렁임 = 그 단계 주문이 흔들린 폭(분산) ÷ 소비자 수요가 흔들린 폭.</p>
-      <p class="s-cap">규칙 갱신 <time data-updated datetime={RU}>{RU}</time> · Sterman(1989) 보드게임 규칙 · 규칙 파일 data/sim/beer-game.json · 모의 실험 — 실측 아님</p>
+      <p class="s-cap">규칙 갱신 <time data-updated datetime={RU}>{RU}</time> · Sterman(1989) 보드게임 규칙 · 모의 실험 — 실측 아님</p>
       <p class="again"><button type="button" id="copy" class="s-btn s-btn--ghost">결과 주소 복사</button> <button type="button" id="again" class="s-btn s-btn--ghost">다시 하기</button></p>
     </section>
 
@@ -88,7 +89,7 @@ const S = R.stages.length;
         <dt>어떻게</dt><dd data-note="how">{R.notes.how} 원 규칙: <a href={R.source.doi}>{R.source.cite}</a></dd>
         <dt>한계</dt><dd data-note="limits">{R.notes.limits}</dd>
       </dl>
-      <p class="s-cap" data-ai-mark style="margin-top:16px">{aiMark()}</p>
+      <AiMark k="sim/beer-game" style="margin-top:16px" />
     </section>
   </div>
   <script is:inline defer src={u("/assets/js/beer-game.js")}></script>
@@ -106,16 +107,19 @@ const S = R.stages.length;
   /* beer-ui 의 차트가 쓰는 옛 변수 이름을 해도 토큰으로 잇는다 — 수요 점선(먹 3) · 소매 먹 · 도매·유통 바다 · 공장 신호 */
   .ds-beer { --mist: var(--s-ink-3); --sonar: var(--s-ink); --pass: var(--s-sea); --sodium: var(--s-sea-2); --fail: var(--s-signal); --hair-strong: var(--s-rule); --text: var(--s-ink-2); }
   .intro { padding: var(--s-6) 0 var(--s-7); }
-  .intro h1 { margin: var(--s-3) 0 var(--s-4); }
+  .intro h1 { margin: var(--s-3) 0 var(--s-3); }
   .wave-fig { margin: var(--s-5) 0 0; }
   .wave { min-height: 180px; }
   .wave :global(svg) { display: block; max-width: 100%; }
-  .readout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s-6); align-items: end; margin-top: var(--s-4); }
+  .readout { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-6); align-items: end; margin-top: var(--s-4); max-width: 40rem; }
   .beta { display: grid; gap: var(--s-2); font-size: var(--s-t-sm); color: var(--s-ink-2); }
   .beta b { color: var(--s-ink); }
   .beta input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
   .ends { display: flex; justify-content: space-between; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .note { margin-top: var(--s-4); max-width: 46rem; }
+  .intro .amp { margin: 0 0 var(--s-2); }
+  .amp__def { display: block; font-size: 12.5px; color: var(--s-ink-3); margin-top: 2px; }
+  @media (max-width: 600px) { .intro .amp b { font-size: 34px; } .intro .s-lead, .intro .wave-lead { display: none; } .intro h1 { margin-bottom: var(--s-2); } } /* 휴대폰 첫 화면에 그림·막대까지(시험 · 664px) */
   .amp { margin: 0; font-size: var(--s-t-lead); line-height: 1.5; color: var(--s-ink-2); }
   .amp b { font-size: clamp(40px, 5vw, 64px); font-weight: 650; letter-spacing: -0.04em; display: inline-block; line-height: 1; }
   .setup { padding: var(--s-7) 0; border-top: 1px solid var(--s-rule); }
@@ -158,7 +162,7 @@ const S = R.stages.length;
   @keyframes beer-box { 0% { left: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { left: calc(100% - 10px); opacity: 0; } }
   @keyframes beer-ord { 0% { right: 0; opacity: 0; } 15% { opacity: 1; } 85% { opacity: 1; } 100% { right: calc(100% - 8px); opacity: 0; } }
   @keyframes beer-short { 50% { background: rgba(179, 54, 30, 0.18); } }
-  @media (prefers-reduced-motion: reduce) { .chain :global(.pipe.go i) { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .chain :global(.pipe.go .box), .chain :global(.pipe.go .ord) { animation-duration: 2.2s; } } /* 동작 줄이기 = 물건·주문은 천천히 흐른다(품질기준 Q7) */
   .quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: var(--s-4); }
   .quick :global(.s-btn) { min-height: 44px; padding: 0 14px; font-variant-numeric: tabular-nums; }
   .quick :global(.is-inc) { border-color: var(--s-signal); color: var(--s-signal); }

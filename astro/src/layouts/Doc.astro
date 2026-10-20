@@ -5,7 +5,7 @@ import { BRAND } from "../lib/site";
 interface Props { title: string; description?: string; path: string; updated?: string; kind?: string }
 const { title, description, path, updated, kind = "문서" } = Astro.props;
 ---
-<Base title={title} description={description ?? `${title} — ${BRAND.name}의 기록 문서. ${BRAND.description}`.slice(0, 155)} path={path}>
+<Base title={title} description={description ?? `${title} — ${BRAND.name}의 기록 문서. ${BRAND.description}`.slice(0, 155)} path={path} noindex ask={false}> {/* [2026-10-20] 보고서를 내려 이 기록 문서들은 어디서도 링크되지 않는다 — 주소는 두고 검색 색인에서 뺀다(사실 대조 범위 밖 관찰) */}
   <div class="narrow" style="padding-top:2.5rem">
     <p class="eyebrow">{kind}{updated && <> · 마지막 갱신 {updated}</>}</p>
     <div class="doc" data-pagefind-body><slot /></div>

@@ -24,7 +24,9 @@ const C0 = (TB?.car ?? O.cities) as Record<string, number | null>;
 const rows = Object.entries(C0).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
 const W = TB?.within ?? O.cities_within, in1 = W["1h"], in2 = W["2h"];
 const seoul = C0["서울시청"];
-const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간 보정, 카카오 내비 ${t.n ?? 30}구간 대조)`);
+// 도로 등급 = OSM 분류를 우리말로(연결로·진입로는 생략 — 방법 칸이 개발 용어를 늘어놓았다 · 5차 사실 대조)
+const RK: Record<string, string> = { motorway: "고속도로", trunk: "자동차전용·간선", primary: "주간선", secondary: "보조간선", tertiary: "집산로", unclassified: "기타 도로", residential: "생활도로" };
+const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간대)`); // 보정 근거(카카오 내비 대조)는 아래 방법 칸에 — 답 문장 안 각주였다(9차 화면 판정 Q5)
 const NP = join(repoRoot(), "data/derived/navi_check.json");
 const NV = existsSync(NP) ? JSON.parse(readFileSync(NP, "utf-8")) : null;
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
@@ -35,13 +37,13 @@ const navi = NV?.status === "ok"
   : `내비 대조 미실시${NV?.reason ? `(${NV.reason})` : ""}.`;
 ---
 <Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 기본은 낮 시간대(카카오 내비 대조 보정) · 출근·화물차 판 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
-  <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 출발하면 서울시청까지 ${seoul ?? "—"}분${tag(DEF)}, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳.`}
+  <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 승용차로 출발하면 서울시청까지 ${seoul ?? "—"}분${tag(DEF)}, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳. 1.5톤 넘는 화물차는 아래에서 「화물차」를 고르세요.`}
     updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="기본 = 낮 시간대(카카오 내비 대조 보정 · 실측 소통 속도 아님)"
-    how={`OSM 대한민국 추출에서 수도권 도로만 읽어 도로 등급별 속도(고속 ${I.speeds_kmh.motorway} · 간선 ${I.speeds_kmh.trunk} · 주간선 ${I.speeds_kmh.primary} · 일반 ${I.speeds_kmh.residential} km/h)로 엮고, 출발지에서 가장 빠른 길을 풀었다(scipy 다익스트라). 칸 크기 ${I.step}°.`}
+    how={`OpenStreetMap 대한민국 자료에서 수도권 도로만 읽어 도로 등급별 속도(km/h — ${Object.entries(I.speeds_kmh).filter(([k]) => RK[k]).map(([k, v]) => `${RK[k]} ${v}`).join(" · ")})로 엮고, 출발지에서 가장 빠른 길(최단 시간 경로)을 풀었다. 칸 크기 ${I.step}°.`}
     limits={`기본으로 보이는 「낮」·「출근」은 자유 흐름 분에 카카오 내비 대조 오차 중앙값의 배율을 곱한 것이다 — 모든 길에 같은 비율이라 길마다 다른 막힘은 반영하지 않는다. 「자유 흐름」은 혼잡·신호를 반영하지 않아 실제보다 짧게 나온다. 「화물차」는 고속도로 최고속도 80km/h(도로교통법 시행규칙 — 적재 1.5톤 초과)와 OSM 의 화물차 통행 금지 길만 반영했다 — 도심 시간제 통행 제한은 빠졌다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
     <div slot="answer" class="reach">
       <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
-        <p class="reach__t" data-furniture><b id="reach-min">180</b><span>분 안</span></p>
+        <p class="reach__t" data-furniture><span>칠한 범위</span> <b id="reach-min">180</b><span>분 안</span></p>
         <p class="reach__legend" data-furniture>{STEPS.map((b) => <span><i style={`background:rgba(${b.c.join(",")},${b.a})`}></i>{b.max}</span>)}<span>분</span></p>
       </div>
       <ol class="reach__list" id="reach-list" aria-label="수도권 도시까지 도착 분">
@@ -54,8 +56,9 @@ const navi = NV?.status === "ok"
       {I.origins[0].b64_truck && <div class="seg" role="group" aria-label="차종" data-furniture id="reach-veh"><button type="button" class="s-btn" data-truck="0" aria-pressed="true">승용</button><button type="button" class="s-btn s-btn--ghost" data-truck="1" aria-pressed="false">화물차</button></div>}
       <label>상하차·준비 분 <input id="reach-prep" class="s-input" type="number" inputmode="numeric" min="0" max="120" step="5" value="0" /></label>
       <button type="button" class="s-btn s-btn--ghost" id="reach-play">다시 번지기</button>
+      <button type="button" class="s-btn s-btn--ghost" id="reach-stop" hidden>번지기 멈춤</button>
       <label class="reach__slider">문턱 <input id="reach-t" type="range" min="0" max="180" step="5" value="180" aria-label="도착 분 문턱" /></label>
-      <p class="s-cap reach__note" data-furniture>{SL.length > 1 ? `시간대 배율은 카카오 내비(미래 출발시각 · ${NV?.pairs?.length ?? 30}쌍)와 견준 오차 중앙값으로 모든 길의 시간을 같은 비율로 늘린 것입니다 — 실측 소통 속도가 아닙니다(국가교통정보센터 실측 속도는 키 신청 뒤).` : "시간대 배율은 내비 대조 결과가 없어 싣지 않았습니다."} 상하차·준비 분은 모든 도착 시간에 그대로 더합니다.</p>
+      <p class="s-cap reach__note" data-furniture>{SL.length > 1 ? `시간대 배율은 카카오 내비(미래 출발시각 · ${NV?.pairs?.length ?? 30}쌍)와 견준 오차 중앙값으로 모든 길의 시간을 같은 비율로 늘린 것입니다 — 실측 소통 속도가 아닙니다.` : "시간대 배율은 내비 대조 결과가 없어 싣지 않았습니다."} 상하차·준비 분은 모든 도착 시간에 그대로 더합니다.</p>
     </div>
   </ToolShell>
   <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/reach-geo.json"), k: DEF.k, tag: tag(DEF) })}></script>
@@ -69,7 +72,7 @@ const navi = NV?.status === "ok"
       const el = document.querySelector<HTMLElement>(".tool__lead"); if (!el || !rm) return;
       const o: any = rm.iso.origins[rm.o], C = (rm.truck && o.cities_truck) || o.cities, at = (m: number | null) => (m == null ? null : Math.round(m * rm!.k + rm!.prep));
       const v = Object.values(C as Record<string, number | null>).map(at), n = v.length, w = (h: number) => v.filter((m) => m != null && m <= h * 60).length;
-      el.textContent = `${o.name}에서 출발하면 ${rm.truck ? "화물차로 " : ""}서울시청까지 ${at(C["서울시청"]) ?? "—"}분${tagNow}, 표에 든 수도권 도시 ${n}곳 가운데 1시간 안 ${w(1)}곳 · 2시간 안 ${w(2)}곳.`;
+      el.textContent = `${o.name}에서 ${rm.truck ? "화물차(1.5톤 초과)" : "승용차"}로 출발하면 서울시청까지 ${at(C["서울시청"]) ?? "—"}분${tagNow}, 표에 든 수도권 도시 ${n}곳 가운데 1시간 안 ${w(1)}곳 · 2시간 안 ${w(2)}곳.${rm.truck ? "" : " 1.5톤 넘는 화물차는 아래에서 「화물차」를 고르세요."}`;
     };
     const list = (o: any, k = 1) => {
       const C = (rm?.truck && o.cities_truck) || o.cities;
@@ -86,6 +89,7 @@ const navi = NV?.status === "ok"
     const boot = async () => {
       const [iso, geo] = await Promise.all([fetch(M.src).then((r) => r.json()), fetch(M.geo).then((r) => r.json()).catch(() => null)]);
       rm = new ReachMap(cv, iso, geo); rm.k = M.k; rm.setOrigin(Number(sel.value)); rm.onFrame = mark; (window as any).__reach = rm;
+      const stopB = document.getElementById("reach-stop")!; rm.onPlay = (on) => { stopB.hidden = !on; }; stopB.addEventListener("click", () => rm?.stopPlay());
       cv.closest(".reach__map")!.setAttribute("data-ready", "1");
       rm.play(3.2);
     };
@@ -110,24 +114,27 @@ const navi = NV?.status === "ok"
 </Studio>
 <style>
   .reach { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: var(--s-5); align-items: start; }
-  .reach__map { position: relative; height: min(68vh, 620px); border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); background: #f3efe5; }
+  .reach__map { position: relative; aspect-ratio: 4 / 3; max-height: 760px; /* 격자 폭 안에서 도시 18곳이 여백을 두고 다 들게(6차 화면 판정 — 넓은 칸이면 파주·평택이 틀 끝에 걸렸다) */ border-top: 1px solid var(--s-rule); border-bottom: 1px solid var(--s-rule); background: #f3efe5; }
   .reach__map canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .reach__t { position: absolute; left: 14px; top: 10px; margin: 0; text-shadow: 0 0 6px var(--s-paper), 0 0 3px var(--s-paper); }
-  .reach__t b { font-size: clamp(36px, 4vw, 52px); font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-  .reach__t span { margin-left: 6px; color: var(--s-ink-2); }
+  /* [2026-10-20 화면 판정] 번지는 문턱(0→180분)은 답이 아니라 시계다 — 큰 숫자로 두면 번지는 중간값(171·176분)이 답처럼 찍혔다. 답은 머리 문장·오른쪽 표 */
+  .reach__t { font-size: var(--s-t-cap); color: var(--s-ink-2); }
+  .reach__t b { font-size: 15px; font-weight: 600; color: var(--s-ink); font-variant-numeric: tabular-nums; }
+  .reach__t span + b, .reach__t b + span { margin-left: 3px; }
   .reach__legend { position: absolute; left: 14px; bottom: 8px; margin: 0; font-size: 13px; color: var(--s-ink-2); text-shadow: 0 0 4px var(--s-paper); }
   .reach__legend { display: flex; gap: 0; align-items: center; }
   .reach__legend i { display: inline-block; width: 26px; height: 10px; margin: 0 3px 0 0; vertical-align: middle; }
   .reach__legend span + span { margin-left: 4px; }
   .reach__legend span { white-space: nowrap; }
+  @media (max-width: 420px) { .reach__legend { left: 8px; right: 8px; font-size: 11.5px; } .reach__legend i { width: 14px; margin-right: 2px; } .reach__legend span + span { margin-left: 2px; } } /* 320 폭에서 47px 넘쳤다(시험 10/20) */
   .reach__note { flex-basis: 100%; margin: 0; }
   .seg { display: flex; } .seg .s-btn { min-height: 44px; }
-  .reach__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; max-height: min(68vh, 620px); overflow: auto; }
+  .reach__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-variant-numeric: tabular-nums; align-content: start; } /* 높이 상한·스크롤을 걷음 — 1920 에서 마지막 줄이 글자 중간에서 잘렸다(6차 화면 판정) · 18줄 다 보인다 */
   .reach__list li { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid var(--s-rule); color: var(--s-ink-3); transition: color 0.3s; }
   .reach__list li.on { color: var(--s-ink); }
   .reach__list li b { font-size: 17px; } .reach__list li small { color: var(--s-ink-3); }
   .reach__ctl { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: end; }
   .reach__ctl label { display: grid; gap: 4px; font-size: var(--s-t-cap); color: var(--s-ink-3); }
   .reach__slider { flex: 1; min-width: 200px; } .reach__slider input { width: 100%; accent-color: var(--s-signal); min-height: 44px; margin: 0; }
-  @media (max-width: 760px) { .reach { grid-template-columns: 1fr; } .reach__map { height: 56vh; } .reach__list { max-height: none; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); } }
+  @media (max-width: 760px) { .reach { grid-template-columns: 1fr; } .reach__map { height: 56vh; aspect-ratio: auto; } .reach__list { max-height: none; grid-template-columns: 1fr 1fr; column-gap: var(--s-4); } }
 </style>

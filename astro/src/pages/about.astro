@@ -3,31 +3,24 @@
 // 신뢰 여섯(방법론 · 출처 · 오류 신고 · 자문 아님 · AI 표기 · 사이트 이름)은 종전 신뢰 지면에서 이어받는다. 주소 /about.html 유지.
 import Studio from "../layouts/Studio.astro";
 import Contact from "../components/scene/Contact.astro";
-import { getEntry, render } from "astro:content";
 import { BRAND, u, REPO, ISSUES } from "../lib/site";
-import { profile, aiMark } from "../lib/profile";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { repoRoot } from "../lib/content";
+import { profile } from "../lib/profile";
 const P = profile();
 // 만든 것 — 지면 하나 = 보여 주는 일 하나(이력서의 「프로젝트」 칸). 숫자는 적지 않는다(지면이 데이터에서 직접 보인다).
 const MADE = [
-  { t: "살아 있는 인천 물류 지도", href: "/", what: "관세청 항구·공항별 월 교역액을 흐름 밀도로 바꿔, 기울인 지도 위에 교역국 → 인천 관문 → 수도권 창고로 흐르게 그렸습니다.", skill: "공공 API 수집 · 데이터 파이프라인 · 원근 투영 캔버스 렌더러" },
-  { t: "공급망 따라가기", href: "/map/follow.html", what: "전기기기 하나가 해외 출발부터 통관·인천 수입자·창고까지 오는 길을 구간마다 원천 숫자로 잇고, 원천이 없는 구간은 「데이터 없음」으로 둡니다.", skill: "구간별 원천 연결 · 통관 관문 분석" },
+  { t: "인천 관문 흐름 지도(첫 화면)", href: "/", what: "머리 숫자는 관세청 항구·공항별 월 교역액(인천공항 + 인천항 ÷ 전국)이고, 지도 위 점은 인천국제공항공사가 공표한 나라별 항공화물 톤(도착·출발)을 하늘길(대권 계산) 위에 흘린 것입니다. 인천항은 나라별로 가른 공개 통계가 없어 점을 싣지 않고, 배가 실제로 다닌 바닷길은 선박 통행 밀도 층으로 보입니다. 인천 가까이는 물류창고 등록 개소를 원으로 깔았습니다.", skill: "공공 API 수집 · 자료 수집 자동화 · 지도를 직접 그리는 코드(외부 지도 서비스 없이)" },
   { t: "맥주 게임", href: "/sim/beer-game.html", what: "공급망 네 단계 가운데 하나를 직접 맡아 주문을 넣고, 채찍 효과로 비용이 어디서 터지는지 점수로 받습니다.", skill: "재고 정책 시뮬레이션 · 채찍 효과" },
-  { t: "수요예측 실험실", href: "/sim/forecast.html", what: "인천항 컨테이너 물량을 실제값이 나오기 전에 예측해 원장에 적고, 단순 기준선과 오차를 달마다 겨룹니다.", skill: "시계열 예측 · 사전 기록(선커밋) · 오차 평가" },
-  { t: "선박 리플레이", href: "/map/vessels.html", what: "해양수산부 항만별 외항선 입항을 달마다 다시 돌려, 인천을 다른 항만과 같은 축에 놓습니다.", skill: "장기 시계열 · 항만 비교" },
-  { t: "노트 · AI 운영실", href: "/notes.html", what: "인천항 전년 대비 같은 판정 글과, 이 작업실을 AI 와 어떻게 돌리는지 저장소 기록으로 잰 쪽.", skill: "판정 기준 선커밋 · AI 운영 · 출고 검사 자동화" },
+  { t: "수요예측 실험실", href: "/sim/forecast.html", what: "인천항 컨테이너 물량을 실제값이 나오기 전에 예측해 원장에 적고, 단순 기준선과 오차를 달마다 겨룹니다.", skill: "시계열 예측 · 사전 기록 · 오차 평가" },
+  { t: "외항선 입항 추이", href: "/map/vessels.html", what: "해양수산부 항만별 외항선 입항을 달마다 다시 돌려, 인천을 다른 항만과 같은 축에 놓습니다.", skill: "장기 시계열 · 항만 비교" },
+  { t: "실무 도구", href: "/tools/", what: "수도권 배송 등시선 · 환율과 수입원가 · 초크포인트 · 품목 트리맵 — 실무 질문 하나에 공공 데이터로 움직이는 답 하나.", skill: "실무 질문 설계 · 공공 API 수집 · 계산 검증" },
 ];
-const Q = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8")).questions as { q: string; href: string; see: string }[];
-const about = await getEntry("root", "about");
-const { Content } = about ? await render(about) : { Content: null };
 const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: `${BRAND.name} — 소개`, mainEntity: {
   "@type": "Person", name: P.name, affiliation: { "@type": "CollegeOrUniversity", name: P.affiliation },
   hasCredential: P.credentials.map((q) => ({ "@type": "EducationalOccupationalCredential", name: q })),
   ...(P.contact.linkedin ? { sameAs: [P.contact.linkedin] } : {}) } }];
+import AiMark from "../components/scene/AiMark.astro";
 ---
-<Studio title={`소개 — ${P.name}`} description={`${P.name}(${P.affiliation})의 SCM 작업실 측심 — 누가 왜 만드는지, 숫자를 어떻게 재는지, 어디로 연락하면 되는지.`} current="about" path="/about.html" jsonld={jsonld}>
+<Studio ask={false} title={`소개 — ${P.name}`} description={`${P.name}(${P.affiliation})의 SCM 작업실 측심 — 누가 왜 만드는지, 숫자를 어떻게 재는지, 어디로 연락하면 되는지.`} current="about" path="/about.html" jsonld={jsonld}>
   <article class="s-wrap ab" data-content="about">
     <p class="s-cap">소개</p>
     <h1 class="s-prose">{P.name}</h1>
@@ -51,25 +44,24 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
 
     <section class="ab-sec" id="ask" aria-labelledby="h-ask"><h2 id="h-ask">이런 일로 연락 주세요</h2>
       <ul class="ask-list">
-        <li><b>귀사 숫자로 다시 돌려 보기(중소기업·셀러)</b> — 지면의 계산을 귀사 물동량·재고·수입원가로. 아래 같은 질문들입니다. 「문의 틀로 메일」을 누르면 적을 칸이 미리 채워집니다.</li>
+        <li><b>귀사 숫자로 다시 돌려 보기(중소기업·셀러)</b> — 지면의 계산을 귀사 물동량·재고·수입원가로 — <a href={u("/#questions")}>첫 화면의 「같이 푸는 질문」</a> 같은 것들입니다. 「문의 틀로 메일」을 누르면 적을 칸이 미리 채워집니다.</li>
         <li><b>채용</b> — 물류·SCM·무역 데이터 분석 인턴·신입 자리.</li>
         <li><b>기사·자료 확인</b> — 수도권 물류·무역 숫자의 출처와 계산을 같이 봅니다.</li>
       </ul>
-      <ol class="qs-mini">{Q.map((q) => <li><a href={u(q.href)}>{q.q}</a></li>)}</ol>
       <Contact ask />
     </section>
     <section class="ab-sec" id="method"><h2>숫자를 어떻게 재나</h2>
       <p class="s-cap s-prose">틀린 숫자·깨진 링크는 <a href={ISSUES}>저장소 이슈</a>로 알려 주셔도 됩니다. 오류는 지우지 않고 고친 자리에 정정 표기로 남깁니다.</p>
       <ol class="s-index">
-        <li id="sources"><div><h3>공공 1차 데이터만</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
-        <li><div><h3>기준을 먼저 적는다</h3><p>판정하는 글은 데이터를 받기 전에 판정 기준을 문서로 커밋합니다. 못 미친 것도 못 미쳤다고 냅니다.</p></div></li>
+        <li id="sources"><div><h3>공공 데이터가 바탕</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
+        <li><div><h3>기준을 먼저 적는다</h3><p>판정하는 글은 데이터를 받기 전에 판정 기준을 먼저 적어 공개합니다. 못 미친 것도 못 미쳤다고 냅니다.</p></div></li>
         <li><div><h3>불리한 숫자도 같은 화면에</h3><p>지도와 노트는 편마다 인천이 약한 반대 지표를 하나 이상 같이 둡니다.</p></div></li>
         <li><div><h3>코드는 전부 공개</h3><p>수집·계산·차트·검사 코드는 <a href={REPO}>저장소</a>에 있습니다. 화면의 숫자는 그 코드가 데이터 파일에서 만든 것뿐입니다.</p></div></li>
       </ol>
     </section>
 
     <section class="ab-sec" id="ai"><h2>AI 표기</h2>
-      <p class="s-prose">이 작업실은 AI가 정리하고 사람이 검수해 냅니다. AI가 만든 산출물마다 <b>「{aiMark()}」</b>를 붙입니다 — 검수를 실제로 한 것에만 붙입니다. 지도·차트는 AI가 그린 그림이 아니라 공개 데이터를 코드로 그린 것입니다. 어떻게 돌아가는지는 <a href={u("/notes/ai-ops.html")}>AI 운영실 1쪽</a>에 숫자로 적었습니다.</p>
+      <p class="s-prose">이 작업실은 AI가 정리하고 사람이 운영합니다. AI가 만든 산출물마다 <b>「AI 정리」</b>를 붙이고, 사람이 숫자를 원자료와 직접 대조한 지면에만 <b>「{P.name} 검수」</b>를 더합니다 — 대조 기록은 <a href={`${REPO}/blob/main/docs/검수기록.md`}>검수 기록</a>에 한 줄씩 남습니다. 지도·차트는 AI가 그린 그림이 아니라 공개 데이터를 코드로 그린 것이고, 화면 숫자가 데이터 파일과 같은지는 공개 전에 자동 시험이 확인합니다.</p>
     </section>
 
     <section class="ab-sec" id="not-advice"><h2>자문이 아닙니다</h2>
@@ -80,7 +72,8 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
       <p class="s-prose">배가 눈금 매긴 줄에 추를 달아 내려 바닥까지의 깊이를 재는 일. 수도권 물류·무역·유통의 공공 데이터에 줄 하나를 내려 눈금을 읽습니다.</p>
     </section>
 
-    {Content && (<details class="ab-doc"><summary>이 저장소에 대하여 — 운영 원칙 전문</summary><div class="doc"><Content /></div></details>)}
+    {/* [2026-10-20 사실 대조] 「운영 원칙 전문」(content/about.md)은 정체성 전환 전 문면에 내부 경로·작업어가 섞여 지면에서 뺐다 — 원문은 저장소에 그대로 */}
+    <AiMark /> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>
 </Studio>
 <style>
@@ -98,8 +91,6 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
   .made h3 a { min-height: 44px; display: inline-flex; align-items: center; }
   .made p { margin: 0 0 var(--s-1); }
   .ask-list { margin: 0 0 var(--s-4); padding-left: 1.1em; display: grid; gap: var(--s-2); }
-  .qs-mini { margin: 0; padding-left: 1.4em; display: grid; gap: var(--s-1); color: var(--s-ink-2); }
-  .qs-mini a { min-height: 44px; display: inline-flex; align-items: center; }
   @media (max-width: 560px) { .cv > div { grid-template-columns: 1fr; gap: var(--s-2); } }
   .ab-sec { margin-top: var(--s-8); padding-top: var(--s-5); border-top: 1px solid var(--s-rule); max-width: 46rem; }
   .ab-sec h2 { margin-bottom: var(--s-4); }

@@ -1,0 +1,36 @@
+# 해양수산부 국가별 컨테이너 탐색(2026-10-20 · 품질기준 Q3) — 인천항을 나라별로 가른 실측이 있는가. 명세·응답 머리만 그 브랜치에 남긴다. 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
+name: mof-probe
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/v3/mof_nation_probe.py", ".github/workflows/mof-probe.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: mof-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  probe:
+    if: startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 탐색
+        working-directory: tools-build/v3
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python mof_nation_probe.py
+      - name: 결과 커밋(그 브랜치에)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f data/collected/v3/mof_nation_probe.json ] && git add data/collected/v3/mof_nation_probe.json
+          git diff --cached --quiet && exit 0
+          git commit -m "해양수산부 국가별 컨테이너 탐색 — mof-probe 워크플로"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push

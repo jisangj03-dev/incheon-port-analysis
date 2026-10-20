@@ -29,7 +29,7 @@ interface Props {
   /** 좁은 화면에서 글꼴 CSS 를 사람이 만진 뒤에 붙인다(홈 · 2026-10-14 실측: 글꼴 규칙 216개를 붙이는 배치 계산이 모바일 TBT 의 2/3) */
   lateFonts?: boolean;
 }
-const { title, description = BRAND.description, path, ogImage = "/assets/og.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
+const { title, description = BRAND.description, path, ogImage = "/og/home.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
 const P = profile();
 const fullTitle = title ? `${title} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 const canonical = abs(path);
@@ -52,9 +52,9 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
   <meta name="theme-color" content="#f5f2eb" />
   <link rel="icon" type="image/svg+xml" href={u("/assets/favicon.svg")} />
   <link rel="apple-touch-icon" href={u("/assets/apple-touch-icon.png")} />
-  <!-- 글꼴 CSS(본문 Pretendard 동적 부분집합 · 제목 Noto Serif KR 700 · 둘 다 OFL)는 첫 그림이 찍힌 뒤 붙인다 — 2026-10-14 출고 검사:
+  {/* 글꼴 CSS(본문 Pretendard 동적 부분집합 · 제목 Noto Serif KR 700 · 둘 다 OFL)는 첫 그림이 찍힌 뒤 붙인다 — 2026-10-14 출고 검사:
        비동기 preload 로도 글꼴 30여 묶음(약 700KB)이 첫 그림과 같은 때 받아져 모바일 성능이 61 이었다(글꼴을 막으면 99).
-       font-display: optional 이라 늦게 온 글꼴은 그 화면에서 쓰지 않고(밀림 0) 다음 화면부터 캐시로 쓴다. 스크립트가 없으면 noscript 로. -->
+       font-display: optional 이라 늦게 온 글꼴은 그 화면에서 쓰지 않고(밀림 0) 다음 화면부터 캐시로 쓴다. 스크립트가 없으면 noscript 로. */}
   <script is:inline define:vars={{ FONT_CSS: [fonts && u("/fonts/pretendard/pretendard.css"), u("/fonts/noto-serif-kr/noto-serif-kr-700.css")].filter(Boolean), LATE: lateFonts }}>
     // 첫 그림(first-contentful-paint)이 찍힌 뒤에 붙인다 — load 가 첫 그림보다 빠른 가벼운 지면에서 load 에 붙이면 그 CSS 가 첫 그림을 붙잡았다(시뮬레이션 지면 100 → 76).
     let done = false;

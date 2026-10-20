@@ -1,4 +1,4 @@
-"""수입원가 계산기 파생 — data/collected/v3/kcs_fx_weeks.json(관세청 관세환율 · 수입 · 주간) → data/derived/import_cost.json.
+"""수입원가 계산기 파생 — data/collected/v3/kcs_fx_weeks.json(관세청 과세환율 · 수입 · 주간) → data/derived/import_cost.json.
 지면 첫 화면의 예시(같은 물건 · 지금 주 vs 52주 전)를 여기서 계산해 숫자를 데이터 파일에 둔다(화면 수치 = 데이터 파일).
 계산식은 astro/src/lib/import-cost.ts 와 같다(시험이 둘을 맞춘다). 참고용 · 자문 아님.
   python tools-build/v3/fx_derive.py [--selftest]
@@ -9,6 +9,13 @@ IN, OUT = os.path.join(ROOT, "data/collected/v3/kcs_fx_weeks.json"), os.path.joi
 CUR = ["USD", "CNY", "JPY", "EUR"]
 # 예시(지면 첫 화면) — 기본세율 8% 는 많은 공산품의 관세율표 기본세율이지만 품목마다 다르다(지면에 적는다)
 EX = {"goods": 10000, "freight": 0, "insurance": 0, "incoterm": "CIF", "duty_pct": 8, "vat_pct": 10, "cur": "USD"}
+
+
+def week_ago(W, key, weeks):
+    """마지막 행 날짜에서 weeks 주 전에 가장 가까운 행(날짜 기준 · 빠진 주가 있어도 맞다)"""
+    import datetime as _d
+    t = _d.date.fromisoformat(str(W[-1][key])[:10]) - _d.timedelta(weeks=weeks)
+    return min(W[:-1] or W, key=lambda w: abs((_d.date.fromisoformat(str(w[key])[:10]) - t).days))
 
 
 def jsround(x): return math.floor(x + 0.5)
@@ -33,11 +40,11 @@ def landed(goods, freight, insurance, incoterm, fx, duty_pct, vat_pct=10, inland
 
 def derive(src):
     W = src["weeks"]
-    AGO = 52  # 견줄 주 = 52주 전(1년 전 같은 무렵)
-    now, ago = W[-1], W[-1 - AGO] if len(W) > AGO else W[0]
+    AGO = 52  # 견줄 주 = 52주 전(1년 전 같은 무렵) — 행 수가 아니라 날짜로 고른다(빠진 주가 있으면 52번째 앞 행이 57주 전이 됐다 · 2026-10-20 사실 대조)
+    now = W[-1]; ago = week_ago(W, "from", AGO)
     a = landed(EX["goods"], 0, 0, "CIF", ago["USD"], EX["duty_pct"]); b = landed(EX["goods"], 0, 0, "CIF", now["USD"], EX["duty_pct"])
     hi = max(W, key=lambda w: w["USD"]); lo = min(W, key=lambda w: w["USD"])
-    return {"_설명": "관세청 관세환율(수입 · 주간 · 원/통화 1단위, JPY 는 1엔) + 첫 화면 예시 계산(1만 달러 CIF · 관세 8% · 부가세 10%). 참고용 · 자문 아님.",
+    return {"_설명": "관세청 과세환율(수입 · 주간 · 원/통화 1단위, JPY 는 1엔) + 첫 화면 예시 계산(1만 달러 CIF · 관세 8% · 부가세 10%). 참고용 · 자문 아님.",
             "source": src["source"], "fetched": src["fetched"], "asof": now["from"], "currencies": CUR,
             "weeks": [[w["from"]] + [w.get(c) for c in CUR] for w in W],
             "example": {**EX, "ago_weeks": AGO, "now": {"week": now["from"], "fx": now["USD"], **b}, "ago": {"week": ago["from"], "fx": ago["USD"], **a},
@@ -64,7 +71,7 @@ def kcci_part(today=None):
     expected = today - dt.timedelta(days=today.weekday())  # 이번 주 월요일(발표 14시 — 화요일부터는 반영돼 있어야 한다)
     last = dt.date.fromisoformat(W[-1]["date"])
     keys = [k for k in keys if k in ROUTE_KO] or keys  # 화면 표 묶음(Mainlane 등)만 온 때는 그대로
-    ago = W[-53] if len(W) > 52 else W[0]
+    ago = week_ago(W, "date", 52)
     chg = {k: round(100 * (W[-1][k] / ago[k] - 1), 1) for k in keys if W[-1].get(k) and ago.get(k)}
     return {"source": "한국해양진흥공사 KCCI(공공데이터포털 15131881 → KOBC 누리집)", "fetched": K["fetched"], "last_week": W[-1]["date"], "first_week": W[0]["date"],
             "names": {k: ROUTE_KO.get(k, k) for k in keys}, "ago_week": ago["date"], "chg_52w_pct": chg,

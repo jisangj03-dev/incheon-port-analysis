@@ -1,10 +1,27 @@
 ---
 // 차트 신뢰 꼬리(OWID Grapher 원리) — 마지막 갱신일 · 출처 · CSV 내려받기를 차트 바로 아래 한 줄로. 모든 차트가 이것을 단다.
 // csv 가 "client" 면 화면이 지금 그린 계열을 그 자리에서 CSV 로 만든다(시뮬레이션 — 서버 0 · 외부 요청 0).
+// [2026-10-20 · docs/품질기준.md Q5] 출처 줄이 행정 문구(공공누리 유형 · 이용허락범위 · 라이선스)로 본문을 덮었다 →
+//   한 줄에는 「누가 낸 무슨 자료」만, 이용 조건은 그 아래 접기(details)로. 문구는 지우지 않는다(출처 표시 의무 · 출고 검사 ⑥).
 import Updated from "../Updated.astro";
 interface Props { updated: string; source: string; csv?: string; csvName?: string; note?: string }
 const { updated, source, csv, csvName = "data.csv", note } = Astro.props;
+const TERMS = /공공누리|이용허락|CC BY|CC0|ODbL|퍼블릭 도메인|Public Domain|라이선스|license|Apache|Contains modified|저작권|허락|출처 대장에 없음/i;
+// 괄호·낫표 안의 「 · 」는 가르지 않는다(이용허락 문구가 괄호 안에서 잘려 「…확인)」만 남던 것 · 2026-10-20 사실 대조 C1)
+const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts = source.split(" · ");
+  for (const p of parts) { cur = cur ? `${cur} · ${p}` : p; d += (p.match(/[(「（]/g) || []).length - (p.match(/[)」）]/g) || []).length; if (d <= 0) { out.push(cur.trim()); cur = ""; d = 0; } }
+  if (cur) out.push(cur.trim()); return out.filter(Boolean); })();
+// 한 줄에는 출처 둘까지 — 셋 이상이면 「외 N」로 줄이고 나머지는 접기 안(2026-10-20 2차 화면 판정: 수입원가·초크포인트 출처가 3~4줄로 펼쳐졌다)
+const names = segs.filter((x) => !TERMS.test(x));
+const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
+const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
-<p class="s-trust"><Updated date={updated} source={source} />{note && <> · {note}</>}{csv && (csv === "client"
+<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
+{terms.length > 0 && <details class="s-terms"><summary>{names.length > 2 ? "출처 전부 · 이용 조건" : "이용 조건"}</summary><p>{[...new Set(terms)].join(" · ")}</p></details>}
+<style>
+  .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
+  .s-terms summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; }
+  .s-terms p { margin: 2px 0 0; max-width: 60em; }
+</style>

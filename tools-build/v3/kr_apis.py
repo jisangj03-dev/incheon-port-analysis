@@ -66,11 +66,32 @@ def probe():
     write("data/collected/v3/api_probe.json", out)
 
 
+def latest_ym():
+    """공표된 마지막 달 — 지난달이 이미 나왔으면 지난달, 아니면 그 앞 달. 45일 고정 지연은 9월이 나온 10/20 에도 8월에서 멈췄다(사실 대조 3차 C1~C3)."""
+    first = datetime.date.today().replace(day=1)
+    prev = first - datetime.timedelta(days=1)
+    url = "https://apis.data.go.kr/1220000/nationtrade/getNationtradeList"
+    for k in range(3):
+        st, b = get(url, {"serviceKey": KEY, "strtYymm": prev.strftime("%Y%m"), "endYymm": prev.strftime("%Y%m")}, timeout=40, tries=2)
+        rc, msg, rows = parse(scrub(b))
+        if rows and any(float(r.get("expDlr") or 0) > 0 for r in rows): say("공표된 마지막 달", prev.strftime("%Y%m")); return prev.replace(day=1)
+        time.sleep(3 * (k + 1))
+    d = (prev.replace(day=1) - datetime.timedelta(days=1)).replace(day=1)
+    say("공표된 마지막 달(지난달 없음)", d.strftime("%Y%m")); return d
+
+
+_LAST = None
+def last_month():
+    global _LAST
+    if _LAST is None: _LAST = latest_ym()
+    return _LAST
+
+
 def sido_years():
     """관세청 시도별 품목별(인천 28) — 한 해(1~12월)를 한 번에 물으면 연간 합으로 답한다(priodTitle = 연도)."""
     url = "https://apis.data.go.kr/1220000/sidoitemtrade/getSidoitemtradeList"
     today = datetime.date.today()
-    last = (today.replace(day=1) - datetime.timedelta(days=45))  # 공표 지연
+    last = last_month()  # 공표된 마지막 달
     years = {}
     for y in range(2016, last.year + 1):
         end = f"{y}12" if y < last.year else last.strftime("%Y%m")
@@ -114,7 +135,7 @@ def fx_weeks(since="2024-01-07"):
 def nation_months(n=12):
     """관세청 국가별 수출입실적(전국 · 승인됨) — 최근 n 달, 달마다 한 번(초크포인트 충격). 금액 = 달러."""
     url = "https://apis.data.go.kr/1220000/nationtrade/getNationtradeList"
-    last = (datetime.date.today().replace(day=1) - datetime.timedelta(days=45)).replace(day=1)
+    last = last_month()
     months, d = [], last
     for _ in range(n): months.append(d.strftime("%Y%m")); d = (d - datetime.timedelta(days=1)).replace(day=1)
     out = {}

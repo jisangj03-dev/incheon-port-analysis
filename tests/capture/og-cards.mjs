@@ -2,7 +2,7 @@
 //   node tests/capture/og-cards.mjs [dist 폴더]     기본 astro/dist · 시험 서버(tests/serve.mjs)를 스스로 띄웠다 내린다
 // 빌드 직후 · 배포 전에 돈다(pages.yml · sounding-qa.yml). 하나라도 못 찍으면 종료 1 — 깨진 카드를 배포하지 않는다.
 import { chromium } from "@playwright/test";
-import { readdirSync, unlinkSync, existsSync, statSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readdirSync, unlinkSync, existsSync, statSync, readFileSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import { spawn } from "node:child_process";
 
@@ -45,7 +45,7 @@ if (existsSync(join(dir, "tool.html")) && TOOLS.length) {
       const v = await rd.evaluate(() => {
         const T = (s) => (document.querySelector(s)?.textContent || "").replace(/\s+/g, " ").trim(), n = document.querySelector("[data-og-num]");
         return { q: T(".tool__q"), lead: T(".tool__lead"), who: T(".tool__head .s-cap").replace(/ · [^·]*기준$/, ""), asof: T(".tool__asof"),
-          num: (n?.textContent || "").replace(/\s+/g, "").trim(), unit: n?.getAttribute("data-og-num") || "", source: T(".tool__foot .s-trust"),
+          num: (n?.textContent || "").replace(/\s+/g, "").trim(), unit: n?.getAttribute("data-og-num") || "", source: T(".tool__foot .s-trust").replace(/ · CSV$/, ""), // 끝의 CSV 링크 글자는 아래 퍼가기 지면이 따로 단다(「CSV · CSV」 겹침 · 3차 사실 대조)
           csv: document.querySelector(".tool__foot a[download]")?.getAttribute("href") || "" };
       });
       if (!v.q || !v.num) throw new Error(`질문 또는 큰 숫자를 못 읽었다(${t.href})`);
@@ -71,6 +71,9 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
   writeFileSync(join(dir, "cards.json"), JSON.stringify({ _설명: "도구 카드에 찍힌 값(카드를 찍는 순간 도구 지면에서 읽음) — 시험이 지면과 대조한다", cards }, null, 1));
   unlinkSync(join(dir, "tool.html"));
 }
+// 홈 카드 = 지면 기본 카드(Base.astro ogImage 기본값 /og/home.jpg) · 옛 주소 /assets/og.jpg 를 미리 긁어 간 곳도 새 그림을 받게 덮어쓴다(2026-10-20)
+if (existsSync(join(dir, "home.jpg"))) { mkdirSync(join(dist, "assets"), { recursive: true }); copyFileSync(join(dir, "home.jpg"), join(dist, "assets", "og.jpg")); console.log("assets/og.jpg ← og/home.jpg"); }
+else { bad++; console.error("홈 카드 og/home.jpg 가 없다 — assets/og.jpg 를 못 바꿨다"); }
 bad += tbad;
 await browser.close();
 srv.kill();

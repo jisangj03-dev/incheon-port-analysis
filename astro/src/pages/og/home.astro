@@ -1,0 +1,81 @@
+---
+// 홈 공유 카드(2026-10-20 채팅 급함) — 도구 카드(og/tool.astro)와 같은 틀 · 1200×630. 빌드 뒤 tests/capture/og-cards.mjs 가 찍어
+// og/home.jpg 로 바꾸고 assets/og.jpg 에도 덮어쓴다(옛 캐시 주소). 숫자는 data/derived/home_flows.json 마지막 달에서만 · 지도는
+// data/derived/sudo_corridors.json(수도권 흐름 층)과 land_incheon.geojson(OSM) — 홈 지도와 같은 원천.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { repoRoot } from "../../lib/content";
+import { u, BRAND } from "../../lib/site";
+
+const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
+const F = J("data/derived/home_flows.json"), SC = J("data/derived/sudo_corridors.json"), LD = J("data/derived/land_incheon.geojson");
+const M = F.months[F.months.length - 1];
+
+// 지도 칸 — 글 칸 오른쪽(관문 경도 126.45° = x 690) · 위경도 단순 투영(위도 37.4° 코사인) · 1° = 600px
+const MX0 = 560, MW = 640, MH = 630, S = 600, KX = Math.cos((37.4 * Math.PI) / 180);
+const px = (lon: number, lat: number) => [690 + (lon - 126.45) * KX * S, 315 - (lat - 37.4) * S];
+const path = (c: number[][], close = false) => {
+  const q: number[][] = [];
+  for (const [a, b] of c) { const p = px(a, b), l = q[q.length - 1]; if (!l || Math.abs(p[0] - l[0]) + Math.abs(p[1] - l[1]) > 1.5) q.push(p); }
+  return q.length > 1 ? "M" + q.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join("L") + (close ? "Z" : "") : "";
+};
+const land = LD.features.filter((f: any) => f.properties.kind === "land").map((f: any) => path(f.geometry.coordinates[0], true)).join("");
+const roads = LD.features.filter((f: any) => f.properties.kind === "road").map((f: any) => path(f.geometry.coordinates)).join("");
+// [2026-10-20 7차 사실 대조] 수도권 흐름선(창고 개소 비례 · 경기 몫 균등 = 가정 배분)을 걷었다 — 홈 지도에서도 이미 뺀 층이다. 카드에는 관문과 땅·길만.
+// 이름표 — 관문 둘 · 서울 · 수도권 거점 셋(위치는 sudo_corridors.json 에서)
+const find = (id: string) => [...SC.gates, ...SC.hubs, ...SC.dests].find((x: any) => x.id === id);
+const marks = [
+  { id: "인천공항", dx: 0, dy: -16, anchor: "middle", gate: true },
+  { id: "신항", name: "인천항 신항", dx: 12, dy: 24, anchor: "start", gate: true },
+  { id: "서울특별시", name: "서울", dx: 10, dy: -10, anchor: "start" },
+  ].map((m) => { const p = find(m.id); return p ? { ...m, name: m.name || m.id, p: px(p.lon, p.lat) } : null; }).filter(Boolean) as any[];
+---
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" /><meta name="robots" content="noindex" /><title>홈 카드 틀</title>
+  <link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} />
+  <style>
+    html, body { margin: 0; }
+    body { width: 1200px; height: 630px; overflow: hidden; background: #f5f2eb; color: #191714; font-family: "Pretendard Variable", Pretendard, "Noto Sans CJK KR", sans-serif; word-break: keep-all; }
+    .c { position: relative; box-sizing: border-box; width: 1200px; height: 630px; padding: 56px 72px 48px; display: flex; flex-direction: column; border-top: 10px solid #b3361e; }
+    .map { position: absolute; inset: 0; }
+    .eb, h1, p, .foot { position: relative; }
+    .eb { font-size: 22px; font-weight: 600; color: #5b554c; letter-spacing: .02em; }
+    h1 { margin: 18px 0 0; font-size: 56px; line-height: 1.22; letter-spacing: -0.03em; font-weight: 800; }
+    h1 b { display: block; font-size: 128px; line-height: 1.02; letter-spacing: -0.045em; color: #b3361e; font-variant-numeric: tabular-nums; margin: 6px 0 4px; }
+    h1 small { font-size: 56px; letter-spacing: -0.03em; color: #191714; margin-left: 6px; }
+    p { margin: 20px 0 0; font-size: 23px; line-height: 1.5; color: #3a352e; }
+    .foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; font-size: 19px; color: #5b554c; }
+    .foot span + span { font-size: 15px; }
+    .foot strong { color: #191714; font-weight: 800; font-size: 22px; }
+  </style>
+</head>
+<body>
+  <div class="c" data-og-ready>
+    <svg class="map" viewBox="0 0 1200 630" aria-hidden="true">
+      <defs>
+        <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#f5f2eb" stop-opacity="1" /><stop offset="0.49" stop-color="#f5f2eb" stop-opacity="1" /><stop offset="0.555" stop-color="#f5f2eb" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id="foot" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.86" stop-color="#f5f2eb" stop-opacity="0" /><stop offset="0.96" stop-color="#f5f2eb" stop-opacity="0.94" />
+        </linearGradient>
+      </defs>
+      <rect x={MX0} y="0" width={MW} height={MH} fill="#e8e5dc" />
+      <path d={land} fill="#dccfb2" />
+      <path d={roads} fill="none" stroke="#cbbd9f" stroke-width="1" />
+      {marks.map((m) => <g>
+        <circle cx={m.p[0]} cy={m.p[1]} r={m.gate ? 7 : 5} fill={m.gate ? "#b3361e" : "#191714"} stroke="#f5f2eb" stroke-width="2" />
+        <text x={m.p[0] + m.dx} y={m.p[1] + m.dy} text-anchor={m.anchor} font-size="17" font-weight="700" fill="#191714" stroke="#f5f2eb" stroke-width="4" paint-order="stroke">{m.name}</text>
+      </g>)}
+      <rect x="0" y="0" width="1200" height="630" fill="url(#fade)" />
+      <rect x="0" y="0" width="1200" height="630" fill="url(#foot)" />
+    </svg>
+    <div class="eb">수도권 공급망 · 인천 관문</div>
+    <h1>한국 수입의 <b>{M.imp_share_pct}%<small>가</small></b>인천으로 들어옵니다</h1>
+    <p>인천공항 + 인천항 · 수출은 {M.exp_share_pct}%<br />{M.ym} 입·출항지 기준 · 관세청 항구·공항별</p>
+    <div class="foot"><span><strong>{BRAND.name}</strong> · 공공 1차 데이터로 움직이는 SCM 작업실</span><span>지도: 인천 관문 · © OpenStreetMap</span></div>
+  </div>
+</body>
+</html>

@@ -80,11 +80,14 @@ test("③ 개인정보 — 메일 원문 · 전화번호 · 학번 · 집 주소
   expect(JSON.stringify(P.contact.mail)).not.toContain("@");
 });
 
-test("④ AI 표기 — AI 산출물 지면마다 「AI 정리 · 실명 검수」 · 검수 전 표기 0", () => {
-  const MARK = `AI 정리 · ${P.name} 검수`;
-  for (const f of ["map.html", "map/follow.html", "map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html", "notes/ai-ops.html"]) {
-    const html = read(f);
-    expect(html, `${f} 표기`).toMatch(new RegExp(`data-ai-mark[^>]*>\\s*${MARK.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+test("④ AI 표기 — AI 산출물 지면마다 「AI 정리」 · 「실명 검수」는 검수 기록(docs/검수기록.md)에 그 지면이 있을 때만(지침 §2.2-4 · 2026-10-20 사실 대조)", () => {
+  const LOG = readFileSync("docs/검수기록.md", "utf-8").split("\n").filter((l) => l.startsWith("| 20"));
+  for (const f of ["map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html"].filter(Boolean)) {
+    const html = read(f), logged = LOG.some((l) => (l.split("|")[2] || "").includes(f.replace(/\.html$/, "")));
+    const m = html.match(/data-ai-mark[^>]*>\s*([^<]+)</);
+    expect(m, `${f} 표기`).toBeTruthy();
+    expect(m[1].trim().startsWith("AI 정리"), `${f} 표기`).toBe(true);
+    expect(m[1].includes(`${P.name} 검수`), `${f} — 검수 기록 ${logged ? "있음" : "없음"}`).toBe(logged);
   }
   for (const f of HTML) expect(read(f), `${f} 「검수 전」`).not.toContain("AI 정리 · 검수 전");
 });
@@ -97,16 +100,15 @@ test("⑤ 자문 아님 고지 · 실명 — 모든 지면 바닥글", () => {
   }
 });
 
-test("⑥ 공공 데이터 차트의 출처 줄 = 출처 대장 그대로(공공누리 유형 포함)", () => {
-  const DATAPAGES = ["index.html", "map.html", "map/follow.html", "map/vessels.html", "notes/port-yoy.html"];
+test("⑥ 공공 데이터 차트의 출처 줄 = 출처 대장 그대로(공공누리 유형 포함 · 이용 조건은 줄 아래 접기 — 품질기준 Q5)", () => {
+  const DATAPAGES = ["index.html", "map/vessels.html", "notes/port-yoy.html"];
   for (const f of DATAPAGES) {
     const trust = [...read(f).matchAll(/<p class="s-trust[^"]*"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => m[1]);
     expect(trust.length, `${f} 신뢰 꼬리`).toBeGreaterThan(0);
-    for (const t of trust) expect(t, f).toContain("공공누리");
+    for (const t of trust) expect(t, `${f} 출처 한 줄에 행정 문구`).not.toMatch(/공공누리|이용허락/);
+    expect(read(f), `${f} 이용 조건 접기`).toMatch(/<details class="s-terms"[^>]*>[\s\S]*?공공누리[\s\S]*?<\/details>/);
   }
   expect(read("sim/forecast.html")).toContain("공공누리");
-  // 보고서는 출처 대장의 used_by 로 이용허락 줄을 단다
-  for (const f of HTML.filter((f) => /^reports\/[^/]+\.html$/.test(f) && !f.endsWith("index.html"))) expect(read(f), f).toMatch(/data-sources[^>]*>출처와 이용허락 — [^<]*공공누리/);
 });
 
 test("⑦ 자산 출처 — 그림·영상·글꼴은 목록에 적힌 자리에서만(기준 사이트 자산 복제 0)", () => {

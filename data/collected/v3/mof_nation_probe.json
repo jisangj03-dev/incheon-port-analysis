@@ -1,0 +1,228 @@
+{
+ "checked": "2026-10-20",
+ "ym": "202608",
+ "sets": {
+  "15057250": {
+   "name": "국가별컨테이너처리실적",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/1192000/SsopCargContnNat2",
+     "https://apis.data.go.kr/1192000/SsopCargContnNat2/Ym"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 서비스키 serviceKey 100 필수 - 공공데이터포털에서 받은 인증키 페이지 번호 pageNo 4 옵션 1 페이지번호 한 페이지 결과 수 numOfRows 4 옵션 10 조회 결과 데이터 최대 개수(최대 50) 조회시작연월 sym 6 필수 201701 조회시작 연월 조회종료연월 eym 6 필수 201712 조회종료 연월 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 결과코드 resultCode 2 필수 00 결과코드 결과메시지 resultMsg 50 필수 NORMAL_SERVICE 결과메시지 한 페이지 결과 수 numOfRows 2 필수 10 한 페이지 결과 수 페이지 번호 pageNo 2 필수 1 페이지번호 전체 결과 수 totalCount 40 필수 3 전체 결과 수 통계 연월 useYm 6 필수 201701 통계 연월 국가코드 natCd 2 옵션 GH 국가코드 국가명 natNm 10 옵션 가나 국가명 수입-컨테이너TEU합계 eContnTeuTotal 4 옵션 3968 수입-컨테이너TEU합계 수입-내국선박컨테이너TEU합계 eIntrvsslContnTeuTotal 8 옵션 0 수입-내국선박컨테이너TEU합계 수입-내국선박적컨테이너TEU eIntrvsslFcontnTeu 8 옵션 0 수입-내국선박적컨테이너TEU 수입-내국선박공컨테이너TEU eIntrvsslEcontnTeu 8 옵션 0 수입-내국선박공컨테이너TEU 수입-외국선박컨테이너TEU합계 eFnshplContnTeuTotal 8 옵션 3968 수입-외국선박컨테이너TEU합계 수입-외국선박적컨테이너TEU eFnshpFcontnTeu 8 옵션 2472 수입-외국선박적컨테이너TEU 수입-외국선박공컨테이너TEU eFnshpEcontnTeu 8 옵션 1496 수입-외국선박공컨테이너TEU 수출-컨테이너TEU합계 tContnTeuTotal 8 옵션 9127 수출-컨테이",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "해양수산부_국가별컨테이너처리실적 통계정보 | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgCd": "030"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgNm": "인천"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgCd": "030"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnNat2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgNm": "인천"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    }
+   ]
+  },
+  "15059131": {
+   "name": "수출입컨테이너처리실적",
+   "spec": {
+    "status": 200,
+    "endpoints": [
+     "https://apis.data.go.kr/1192000/SsopCargContnImxprt2",
+     "https://apis.data.go.kr/1192000/SsopCargContnImxprt2/Ym"
+    ],
+    "ops": [
+     "getCategoryClass",
+     "getElementById",
+     "getMypageUrl",
+     "getOrCreateQuickSummary",
+     "getSsoApiUrl",
+     "getTemplate"
+    ],
+    "request_vars": "요청변수(Request Parameter) 해당 오픈API의 요청변수(Request Parameter) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 서비스키 serviceKey 100 필수 - 공공데이터포털에서 받은 인증키 페이지 번호 pageNo 4 옵션 1 페이지번호 한 페이지 결과 수 numOfRows 4 옵션 10 한 페이지 결과 수 조회시작연월 sym 6 필수 201701 조회시작연월 조회종료연월 eym 6 필수 201712 조회종료연월 출력결과(Response Element) 해당 오픈API의 출력결과(Response Element) 항목에 대한 표로, 국문항목명, 영문 항목명, 항목크기, 항목구분, 샘플데이터, 항목 설명순으로 나열됩니다. 항목명(국문) 항목명(영문) 항목크기 항목구분 샘플데이터 항목설명 결과코드 resultCode 2 필수 00 결과코드 결과메시지 resultMsg 50 필수 NORMAL_SERVICE 결과메시지 한 페이지 결과 수 numOfRows 2 필수 10 한 페이지 결과 수 페이지 번호 pageNo 2 필수 1 페이지번호 전체 결과 수 totalCount 40 필수 10 전체 결과 수 통계 연월 useYm 6 필수 201701 통계 연월 수입-컨테이너TEU합계 eContnTeuTotal 13 옵션 1913651.75 수입-컨테이너TEU합계 수입-내국선박컨테이너TEU합계 eIntrvsslContnTeuTotal 13 옵션 678945.75 수입-내국선박컨테이너TEU합계 수입-내국선박적컨테이너TEU eIntrvsslFcontnTeu 13 옵션 365188 수입-내국선박적컨테이너TEU 수입-내국선박공컨테이너TEU eIntrvsslEcontnTeu 13 옵션 313757.75 수입-내국선박공컨테이너TEU 수입-외국선박컨테이너TEU합계 eFnshplContnTeuTotal 13 옵션 1234706 수입-외국선박컨테이너TEU합계 수입-외국선박적컨테이너TEU eFnshpFcontnTeu 13 옵션 728984 수입-외국선박적컨테이너TEU 수입-외국선박공컨테이너TEU eFnshpEcontnTeu 13 옵션 505722 수입-외국선박공컨테이너TEU 수출-컨테이너TEU합계 tContnTeuTotal 13 옵션 1822998.5 수출-컨테이너TEU합계 수출-내국선",
+    "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+    "title": "해양수산부_수출입컨테이너처리실적 통계정보 | 공공데이터포털"
+   },
+   "calls": [
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgCd": "030"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgNm": "인천"
+     },
+     "status": 400,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgCd": "030"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    },
+    {
+     "url": "https://apis.data.go.kr/1192000/SsopCargContnImxprt2/Ym",
+     "params": {
+      "sym": "202608",
+      "eym": "202608",
+      "prtAgNm": "인천"
+     },
+     "status": 403,
+     "resultCode": "?",
+     "resultMsg": "",
+     "rows": 0,
+     "keys": [],
+     "sample": [],
+     "body_head": ""
+    }
+   ]
+  }
+ }
+}

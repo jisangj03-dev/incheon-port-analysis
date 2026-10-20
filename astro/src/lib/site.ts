@@ -35,9 +35,8 @@ export const go = (id: string) => u(`/go/${id}.html`);
 export const newsletterHref = () => (OUT.newsletter.live ? go("newsletter") : go("blog"));
 export const newsletterLabel = () => (OUT.newsletter.live ? "뉴스레터 구독" : "새 글 받아보기");
 
-// 구조 넷(정체성 §2) — 지도(본체) · 시뮬레이션 · 노트 · 소개
+// 구조(정체성 §2 · 2026-10-20 품질 재정비) — 첫 화면이 지도(본체)다 · 도구 · 노트 · 소개. 지도 지면(/map.html)은 내렸다(빈 지도 · docs/품질기준.md).
 export const NAV = [
-  { id: "map", href: "/map.html", label: "지도" },
   { id: "tools", href: "/tools/", label: "도구" },
   { id: "notes", href: "/notes.html", label: "노트" },
   { id: "about", href: "/about.html", label: "소개" },

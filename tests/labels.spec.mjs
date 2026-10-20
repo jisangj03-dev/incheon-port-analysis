@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 import { overlaps } from "./lib/label-overlap.mjs";
 import { lowContrast } from "./lib/contrast.mjs";
 const B = "/incheon-port-analysis";
-const PAGES = ["/", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/tools/warehouse-map.html"];
+const PAGES = ["/", "/tools/", "/map/vessels.html", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/about.html"];
 const check = async (page, where) => { const r = await overlaps(page); expect(r.out, `${where} 라벨 겹침(보이는 라벨 ${r.n}개)`).toEqual([]); return r.n; };
 
 for (const p of PAGES) test(`라벨 겹침 0 — ${p}`, async ({ page }) => {
@@ -13,35 +13,6 @@ for (const p of PAGES) test(`라벨 겹침 0 — ${p}`, async ({ page }) => {
   await page.waitForTimeout(300);
   await check(page, p);
   expect(await lowContrast(page), `${p} 그림 속 글자 명암비`).toEqual([]);
-});
-
-test("라벨 겹침 0 — 움직이는 지도(달 처음·끝)", async ({ page }) => {
-  await page.goto(`${B}/map.html`, { waitUntil: "networkidle" });
-  await page.mouse.move(20, 20);
-  await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
-  await page.click("#ds-play"); // 자동 재생을 멈춘다
-  for (const v of ["0", await page.locator("#ds-m").getAttribute("max")]) {
-    await page.locator("#ds-m").fill(v);
-    await page.waitForTimeout(300);
-    expect(await check(page, `지도 달 ${v}`), "지도 이름표가 있어야 한다").toBeGreaterThan(4);
-    expect(await lowContrast(page), `지도 달 ${v} 명암비`).toEqual([]);
-  }
-});
-
-test("라벨 겹침 0 — 공급망 따라가기 단계마다", async ({ page }) => {
-  // [2026-10-15 · QA 142·147·155] CI(소프트웨어 렌더링)에서 1440 지도 루프가 주 스레드를 막아 단계 확인 자체가 15초 넘게 안 돌아왔다(모바일 lite 는 통과).
-  // 이 시험이 보는 것은 「전환이 끝난 뒤」의 꼬리표 배치다 → 동작 줄이기로 연다: 지면 설계상 루프가 안 돌고 카메라는 목표로 바로 가며 스크롤마다 한 번 그린다
-  // (동작 줄이기 독자가 보는 바로 그 최종 화면). 단계 고르기는 시험이 같은 스크롤 위치에서 직접 부른다. 판정(단계 일치 · 겹침 0)은 그대로다
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(`${B}/map/follow.html`, { waitUntil: "networkidle" });
-  let seen = 0;
-  for (const id of await page.locator(".st[data-s]").evaluateAll((a) => a.map((x) => x.getAttribute("data-s")))) {
-    await page.evaluate((id) => { const el = document.querySelector(`[data-s="${id}"]`); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); }, id);
-    await expect.poll(async () => { await page.evaluate(() => window.__followPick?.()); return page.getAttribute(".story", "data-step"); }, { timeout: 10_000 }).toBe(id);
-    await expect.poll(async () => (await overlaps(page)).out, { timeout: 10_000, message: `따라가기 ${id} 라벨 겹침` }).toEqual([]);
-    seen += (await overlaps(page)).n;
-  }
-  expect(seen, "따라가기 꼬리표가 보여야 겹침 0 이 뜻이 있다").toBeGreaterThan(5); // 2026-10-15 실측 9(단계마다 1~2)
 });
 
 test("라벨 겹침 0 — 선박 리플레이 달 처음·끝 · 맥주 게임 막대 양 끝", async ({ page }) => {

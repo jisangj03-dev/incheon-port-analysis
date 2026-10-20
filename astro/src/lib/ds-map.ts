@@ -1,4 +1,5 @@
 import { placeLabels, boxesOf } from "./label-place";
+import { pace, paused, setPaused } from "./motion";
 // 지도 — 해도 색으로 다시 칠한 내장 PMTiles 바탕 + 장소 넷(크기 = 마지막 달 처리량). 셰입맵처럼 덜어 낸다:
 // 길·건물·라벨 층은 빼고, 땅·물·해안선만. 글리프 서버가 없어 이름은 HTML 표지로 단다(외부 요청 0).
 type Place = { id: string; label: string; kind: string; lon: number; lat: number; approx?: boolean; v: number | null; values?: (number | null)[] | null };
@@ -63,16 +64,7 @@ export async function initDsMap() {
   // 점은 스타일만 읽히면 단다(load 는 바탕 원천까지 기다려 바탕이 실패하면 점도 같이 사라진다)
   map.once("style.load", () => {
     map.addSource("places", { type: "geojson", data: placesAt(MD ? MD.months.length - 1 : 0) });
-    // 흐름선 — 항만 → 서울 개념선(길은 실제 경로 아님 · 굵기만 그 달 처리량). 공항은 컨테이너 통계가 없어 없다.
-    if (MD) {
-      map.addSource("flows", { type: "geojson", data: flowsAt(MD.months.length - 1) });
-      map.addLayer({ id: "flow", type: "line", source: "flows", layout: { "line-cap": "round" },
-        paint: { "line-color": ["case", ["get", "top"], C.signal, C.ink], "line-opacity": ["case", ["get", "top"], 0.7, 0.28], "line-width": ["get", "w"], "line-dasharray": [0, 4, 3] } });
-      map.addLayer({ id: "flow-to", type: "circle", source: { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [MD.to.lon, MD.to.lat] } } } as any,
-        paint: { "circle-radius": 4, "circle-color": C.paper, "circle-stroke-color": C.signal, "circle-stroke-width": 2 } });
-      const el = document.createElement("div"); el.className = "ds-label"; el.innerHTML = `<b>${MD.to.label}</b><em>수도권 대표 지점</em>`;
-      LB.push({ el, lon: MD.to.lon, lat: MD.to.lat, r: () => 5, pri: 1e6 }); layer.append(el);
-    }
+    // [2026-10-20 · docs/품질기준.md Q3] 항만 → 서울 흐름선(개념선 — 길이 실제 경로가 아님)을 뺐다. 점 = 그 달 실제 처리량만.
     map.addLayer({ id: "dots", type: "circle", source: "places", paint: {
       "circle-radius": ["get", "r"], "circle-color": ["case", ["get", "top"], C.signal, C.ink], "circle-opacity": 0.85,
       "circle-stroke-color": C.paper, "circle-stroke-width": 1.5 } });
@@ -120,20 +112,10 @@ export async function initDsMap() {
   function placesAt(i: number): any {
     return { type: "FeatureCollection", features: P.map((p) => { const v = valAt(p, i); return { type: "Feature", properties: { id: p.id, r: radius(v), top: p.v === topLast && p.v != null }, geometry: { type: "Point", coordinates: [p.lon, p.lat] } }; }) };
   }
-  function flowsAt(i: number): any {
-    const to = MD!.to;
-    return { type: "FeatureCollection", features: P.filter((p) => p.kind === "port" && valAt(p, i)).map((p) => {
-      const v = valAt(p, i) as number, a = [p.lon, p.lat], b = [to.lon, to.lat];
-      const c = [(a[0] + b[0]) / 2 - (b[1] - a[1]) * 0.25, (a[1] + b[1]) / 2 + (b[0] - a[0]) * 0.12]; // 완만한 곡선(개념선)
-      const pts = Array.from({ length: 33 }, (_, k) => { const t = k / 32, u = 1 - t; return [u * u * a[0] + 2 * u * t * c[0] + t * t * b[0], u * u * a[1] + 2 * u * t * c[1] + t * t * b[1]]; });
-      return { type: "Feature", properties: { id: p.id, w: 0.8 + 3.2 * Math.sqrt(v / vmax), top: p.v === topLast }, geometry: { type: "LineString", coordinates: pts } };
-    }) };
-  }
   const slider = document.getElementById("ds-m") as HTMLInputElement | null, play = document.getElementById("ds-play") as HTMLButtonElement | null;
   const setMonth = (i: number) => {
     if (!MD || !map.getSource("places")) return;
     (map.getSource("places") as any).setData(placesAt(i));
-    (map.getSource("flows") as any)?.setData(flowsAt(i));
     document.getElementById("ds-ym")!.textContent = MD.months[i];
     for (const p of P) { const n = document.querySelector(`[data-v="${p.id}"]`); const v = valAt(p, i); if (n) n.innerHTML = `${v ?? "—"}<small>천TEU</small>`; }
     for (const p of P) curR[p.id] = radius(valAt(p, i));
@@ -142,25 +124,22 @@ export async function initDsMap() {
     $("ds-map").dataset.month = MD.months[i];
     const ps = (window as any).__mapPlay; if (ps) { ps.i = i; ps.frames++; }
   };
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let timer: any = null, dashT: any = null;
-  const DASH = [[0, 4, 3], [0.5, 4, 2.5], [1, 4, 2], [1.5, 4, 1.5], [2, 4, 1], [2.5, 4, 0.5], [3, 4, 0], [0, 0.5, 3, 3.5], [0, 1, 3, 3], [0, 1.5, 3, 2.5], [0, 2, 3, 2], [0, 2.5, 3, 1.5], [0, 3, 3, 1], [0, 3.5, 3, 0.5]];
+  let timer: any = null;
   const start = () => {
     if (!MD) return;
     play && (play.textContent = "멈춤", play.setAttribute("aria-pressed", "false"));
-    timer = setInterval(() => setMonth((Number(slider?.value || 0) + 1) % MD.months.length), 900);
-    let k = 0; dashT = setInterval(() => { if (map.getLayer("flow")) map.setPaintProperty("flow", "line-dasharray", DASH[(k = (k + 1) % DASH.length)]); }, 90);
+    timer = setInterval(() => setMonth((Number(slider?.value || 0) + 1) % MD.months.length), 900 / pace()); // 동작 줄이기 = 천천히(품질기준 Q7)
   };
-  const stop = () => { clearInterval(timer); clearInterval(dashT); timer = dashT = null; play && (play.textContent = "재생", play.setAttribute("aria-pressed", "true")); };
+  const stop = () => { clearInterval(timer); timer = null; play && (play.textContent = "재생", play.setAttribute("aria-pressed", "true")); };
   // [2026-10-15 P0] 만지면(달 막대·끌기·확대) 멈췄다가 6초 뒤 다시 돈다 · 「멈춤」 단추로 멈춘 것(held)은 그대로 — 첫 장면(해도 그림)의 상태를 이어받는다
-  const PS = ((window as any).__mapPlay ||= { held: reduce, i: MD ? MD.months.length - 1 : 0, frames: 0 });
+  const PS = ((window as any).__mapPlay ||= { held: paused(), i: MD ? MD.months.length - 1 : 0, frames: 0 });
   let rt: any = 0;
-  const touch = () => { stop(); clearTimeout(rt); if (!PS.held && !reduce) rt = setTimeout(() => { if (!timer && !PS.held) start(); }, 6000); };
+  const touch = () => { stop(); clearTimeout(rt); if (!PS.held) rt = setTimeout(() => { if (!timer && !PS.held) start(); }, 6000); };
   slider?.addEventListener("input", () => { touch(); setMonth(Number(slider.value)); });
-  play?.addEventListener("click", () => { clearTimeout(rt); if (timer) { PS.held = true; stop(); } else { PS.held = false; start(); } });
+  play?.addEventListener("click", () => { clearTimeout(rt); if (timer) { PS.held = true; setPaused(true); stop(); } else { PS.held = false; setPaused(false); start(); } });
   for (const ev of ["dragstart", "zoomstart", "rotatestart", "pitchstart"]) map.on(ev, (e: any) => { if (e.originalEvent) touch(); });
   // 첫 장면에서 흐르던 달에서 이어 돈다
-  map.once("idle", () => { (window as any).__mapPosterStop?.(); if (MD && PS.i != null) setMonth(PS.i); if (reduce || PS.held) stop(); else start(); });
+  map.once("idle", () => { (window as any).__mapPosterStop?.(); if (MD && PS.i != null) setMonth(PS.i); if (PS.held) stop(); else start(); });
   // 다 그린 뒤(idle) 상태를 적는다 — 시험이 이것을 기다렸다가 화면 픽셀을 잰다
   map.once("idle", () => {
     const base = has && map.isSourceLoaded("protomaps");

@@ -24,16 +24,16 @@ def derive(src):
             hs = r["hsSgn"].strip()
             a = agg.setdefault(hs, {"hs": hs, "name": SHORT.get(hs) or r.get("korePrlstNm", "").strip(), "full": r.get("korePrlstNm", "").strip(), "exp": 0.0, "imp": 0.0})
             a["exp"] += num(r.get("expUsdAmt")); a["imp"] += num(r.get("impUsdAmt"))
-        items = [{**a, "exp": round(a["exp"] / 1000, 1), "imp": round(a["imp"] / 1000, 1)} for a in agg.values()]
+        items = [{**a, "exp": round(a["exp"] / 1000, 3), "imp": round(a["imp"] / 1000, 3)} for a in agg.values()]  # 소수 셋째(천 달러) — 한 자리로 반올림하면 작은 류가 0 이 돼 「그 밖 N개 류」 셈에서 빠졌다(9차 사실 대조)
         te, ti = sum(i["exp"] for i in items) or 1, sum(i["imp"] for i in items) or 1
         for i in items: i["exp_pct"] = round(100 * i["exp"] / te, 1); i["imp_pct"] = round(100 * i["imp"] / ti, 1)
         tx = max(items, key=lambda i: i["exp"]); tm = max(items, key=lambda i: i["imp"])
         thr = rec.get("through", f"{y}12")
         years.append({"y": y, "through": thr, "partial": not thr.endswith("12"),
-                      "exp_total": round(sum(i["exp"] for i in items), 1), "imp_total": round(sum(i["imp"] for i in items), 1),
+                      "exp_total": round(sum(v["exp"] for v in agg.values()) / 1000, 1), "imp_total": round(sum(v["imp"] for v in agg.values()) / 1000, 1),  # 총계 = 원자료 합(품목별 반올림 값의 합이 아니다 · 2차 사실 대조)
                       "top_exp": {"hs": tx["hs"], "name": tx["name"], "pct": tx["exp_pct"]}, "top_imp": {"hs": tm["hs"], "name": tm["name"], "pct": tm["imp_pct"]},
                       "items": sorted(items, key=lambda i: -(i["exp"] + i["imp"]))})
-    return {"_설명": "인천 소재 기업의 품목별(HS 2단위) 수출입 — 연도별. 통관 항구가 아니라 사업장 주소(시도) 기준이다.",
+    return {"_설명": "인천 소재 기업의 품목별(HS 2단위) 수출입 — 연도별. 입·출항 관문(항구·공항) 기준이 아니라 사업장 주소(시도) 기준이다.",
             "source": src.get("source"), "fetched": src.get("fetched"), "unit": "백만 달러", "years": years}
 
 
