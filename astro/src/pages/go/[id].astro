@@ -1,5 +1,7 @@
 ---
 // 바깥 링크 이동 지면(개편 기준 22·29) — 이 지면의 방문 수 = 그 링크의 클릭 수(Cloudflare 분석 · 쿠키 0).
+// [2026-10-15 P1 ⑤] 뉴스레터 「차단됨」 — 미리보기(샌드박스 틀) 안에서 beehiiv 로 넘어가면 beehiiv 가 틀 안 표시를 거부해 「차단됨」이 떴다. 공개판은 최상위 창이라 넘어간다.
+//   그래서 바닥글 구독 링크는 새 창으로 열고(target=_blank · rel=noopener), 이 지면의 손 링크는 최상위 창(_top)으로 연다. 자동 이동(meta refresh)은 그대로 — 방문 수 = 클릭 수.
 // LIVE 가 꺼진 링크(크몽 판매 동선 · 2026-10-14 걷음)는 주소만 살리고 첫 화면으로 돌려보낸다(기존 주소 유지).
 import Base from "../../layouts/Base.astro";
 import Redirect from "../../layouts/Redirect.astro";
@@ -16,7 +18,7 @@ const { id } = Astro.params;
   <div class="s-wrap" style="padding-top:64px;padding-bottom:64px">
     <p class="s-cap">바깥 링크</p>
     <h1 class="s-prose">{label}(으)로 이동합니다</h1>
-    <p class="s-lead s-prose">바로 넘어가지 않으면 <a href={to} rel="noopener">여기를 누르세요</a>. 측심 밖의 지면입니다.</p>
+    <p class="s-lead s-prose">바로 넘어가지 않으면 <a href={to} rel="noopener" target="_top">여기를 누르세요</a>. 측심 밖의 지면입니다.</p>
   </div>
 </Base>
 ) : (

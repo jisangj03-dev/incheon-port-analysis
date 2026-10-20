@@ -107,7 +107,7 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
         <li><a href={u("/data.html")}>데이터 출처와 이용허락</a></li>
         <li><a href={REPO}>원시 데이터와 재현 코드</a></li>
         <li><a href={ISSUES}>틀린 곳 알리기</a></li>
-        <li><a href={newsletterHref()} data-newsletter>{newsletterLabel()}</a></li>
+        <li><a href={newsletterHref()} data-newsletter target="_blank" rel="noopener" aria-label={`${newsletterLabel()} (새 창)`}>{newsletterLabel()} ↗</a></li>
       </ul>
     </div>
     <p class="foot__legal">
