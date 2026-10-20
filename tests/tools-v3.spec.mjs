@@ -76,7 +76,7 @@ test("계산식 = 파생 스크립트(fx_derive.py 예시 숫자를 브라우저
   const sum = (await page.locator("#cs-body tr.sum td").last().innerText()).replace(/,/g, "");
   expect(Number(sum)).toBe(E.now.cost); // 원가 = 부가세 제외(채팅 최종 검수 10/15)
   const paid = (await page.locator("#cs-body tr.paid td").last().innerText()).replace(/,/g, "");
-  expect(Number(paid)).toBe(E.now.landed); // 납부 합계 = 관세·부가세 포함
+  expect(Number(paid)).toBe(E.now.landed); // 총 지급액 = 과세가격 + 세금 전부(세관 납부세액 줄은 따로)
   expect(E.now.landed - E.now.cost).toBe(E.now.vat);
 });
 
@@ -111,23 +111,12 @@ test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달
   await expect(page.locator("input[name=freight]")).toHaveValue(String(want));
 });
 
-test("입찰 레이더: 담당자 개인정보 0 · 스냅샷 시각 · 「검수 안 함」 · 키 0 · CSV = 목록(선커밋 ③-가)", async ({ page, request }) => {
-  const raw = J("data/derived/bid_radar.json"), R = JSON.parse(raw);
-  expect(raw).not.toMatch(/Ofcl|TelNo|Email|serviceKey/);
-  expect(R.n).toBeGreaterThanOrEqual(5);
-  for (const x of R.items) expect(x.bidClseDt.slice(0, 16) > R.snapshot, `${x.bidNtceNo} 스냅샷 때 이미 마감`).toBe(true);
-  const csv = await (await request.get(`${B}/data/bid-radar.csv`)).text();
-  expect(csv).not.toMatch(/Ofcl|TelNo|Email|serviceKey/);
-  expect(csv.trim().split(/\r?\n/).length - 2).toBe(R.n);
-  await page.goto(`${B}/tools/bid-radar.html`, { waitUntil: "networkidle" });
-  await expect(page.locator(".tool__asof")).toContainText(`${R.snapshot} 수집`);
-  await expect(page.locator(".br__auto")).toHaveText("자동 수집 · 고르는 규칙 그대로 · 검수 안 함");
-  await expect(page.locator("#br-items li")).toHaveCount(R.n);
-  // 머리 숫자 = 보는 시각에 아직 마감 전인 공고 수 · 마감 지난 공고는 기본으로 숨긴다(화면 판정 10/20 — 「마감 전 29건」 옆에 전 행 「마감 지남」)
-  const now = Date.now(), live = R.items.filter((x) => Date.parse(x.bidClseDt.replace(" ", "T") + "+09:00") > now).length;
-  await expect(page.locator("#br-n")).toHaveText(String(live));
-  await expect(page.locator("#br-items li:visible .br__gone:visible")).toHaveCount(0);
-  await expect(page.locator("#br-items li:visible")).toHaveCount(live);
+// [2026-10-20] 입찰 레이더는 내렸다(공고명 낱말 분류가 물류가 아닌 공고를 섞었다) — 리디렉트만 남는다
+test("입찰 레이더: 내림 — 도구 목록으로 넘김 · 색인 제외", async ({ page }) => {
+  const html = J("astro/dist/tools/bid-radar.html");
+  expect(html).toContain('content="noindex');
+  expect(html).toMatch(/http-equiv="refresh"[^>]*tools\//);
+  expect(J("astro/dist/sitemap.xml")).not.toContain("bid-radar");
 });
 
 test("도구 제목 — 가운뎃점(·)이 줄머리에 오지 않는다(360·390·768·1280·1440 · 채팅 최종 검수 10/15)", async ({ page }, info) => {

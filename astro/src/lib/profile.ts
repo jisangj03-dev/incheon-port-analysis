@@ -13,5 +13,14 @@ let _p: Profile | null = null;
 export function profile(): Profile {
   return (_p ??= JSON.parse(readFileSync(join(repoRoot(), "data/profile.json"), "utf-8")));
 }
-/** AI 산출물 표기 — 「AI 정리 · 〈실명〉 검수」(정체성 §2-4) */
-export const aiMark = () => `AI 정리 · ${profile().name} 검수`;
+/** AI 산출물 표기(정체성 §2-4 · 지침 §2.2-4) — 「〈실명〉 검수」는 **검수 기록(docs/검수기록.md)에 그 지면 줄이 있을 때만**.
+ *  [2026-10-20 독립 사실 대조] 기록이 report_07 한 줄뿐인데 공개 지면 아홉에 「〈실명〉 검수」가 붙어 있었다 → 기록이 없는 지면은 「AI 정리」만.
+ *  지면 주소(예: "/sim/forecast.html")나 문서 이름을 주면 그 이름이 기록 표의 「문서」 칸에 있는지 본다. */
+let _rev: string | null = null;
+export function reviewed(key?: string): boolean {
+  if (!key) return false;
+  _rev ??= (() => { try { return readFileSync(join(repoRoot(), "docs/검수기록.md"), "utf-8"); } catch { return ""; } })();
+  const k = key.replace(/^\//, "").replace(/\.html$/, "");
+  return _rev.split("\n").some((l) => l.startsWith("| 20") && l.split("|")[2]?.includes(k));
+}
+export const aiMark = (key?: string) => (reviewed(key) ? `AI 정리 · ${profile().name} 검수` : "AI 정리");

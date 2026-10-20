@@ -81,6 +81,7 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
   svg.innerHTML =
     `<line x1="${L}" y1="${H - Bt}" x2="${W - Rt}" y2="${H - Bt}" stroke="var(--s-rule)"/>` +
     `<text x="${L}" y="${H - 8}" font-size="13" fill="var(--s-ink-3)">1주</text>` +
+    `<text x="${L + 2}" y="${T + 2}" font-size="12" fill="var(--s-ink-3)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">↑ 주마다 넣은 주문(상자)</text>` +
     `<text x="${W - Rt}" y="${H - 8}" font-size="13" text-anchor="end" fill="var(--s-ink-3)">${n}주</text>` +
     series
       .map(

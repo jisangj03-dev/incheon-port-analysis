@@ -33,7 +33,7 @@ export const HERO_M = { l: 0.07, r: 0.07, t: 0.2, b: 0.22 }, HERO_M_NARROW = { l
 export const HERO_IDS = ["서울특별시", "김포", "광주", "이천", "안성"];
 export function heroPts(D: { flows: any; sudo?: any }): number[][] {
   const F = D.flows, S = D.sudo, pts: number[][] = [[F.air_gate.lon, F.air_gate.lat], ...F.sea_gates.slice(0, 1).map((g: any) => [g.lon, g.lat])];
-  for (const id of HERO_IDS) { const d = (S?.dests ?? F.dests ?? []).find((x: any) => x.id === id); if (d) pts.push([d.lon, d.lat]); }
+  for (const id of HERO_IDS) { const d = (S?.dests ?? F.dests ?? []).find((x: any) => x.id === id && !String(x.basis || "").startsWith("가정")); if (d) pts.push([d.lon, d.lat]); }
   return pts;
 }
 /** 인천 관문 가까이(둘러보기 두 번째 장면) — 공항 · 항만 셋 · 인천 물류창고가 몰린 두 구(자리는 데이터 파일에서) */
@@ -159,13 +159,17 @@ export type Opts = { unit: number; monthSec: number; maxDpr: number; lite: boole
   /** 덧그림 — 점 위·안개 아래(따라가기의 상자·길) */ overlay?: (ctx: CanvasRenderingContext2D, P: (x: number, y: number, h?: number, out?: number[]) => number[], near: boolean) => void;
   /** 카메라를 밖에서 몬다(따라가기 — 스크롤이 카메라) */ camStep?: (f: FlowMap, dt: number) => void;
   /** 데이터 흐름 속도 배율(동작 줄이기 = lib/motion.ts SLOW) */ speed?: number;
-  /** 차분하게 — 카메라 비행·관문 반짝임 없이(동작 줄이기 · docs/품질기준.md Q7) */ calm?: boolean };
+  /** 차분하게 — 카메라 비행·관문 반짝임 없이(동작 줄이기 · docs/품질기준.md Q7) */ calm?: boolean;
+  /** [2026-10-20 · 품질기준 Q3 · 독립 화면 판정] 관문 → 내륙 목적지 점 흐름을 그리나 — 끄면 점은 관문에서 끝나고(관측된 관문 교역액까지만),
+   *  내륙은 실측 창고 개소 원만 정지 층으로 남는다(목적지 몫 배분은 관측이 아니라 모형이라 첫 화면에서 뺐다) */ inland?: boolean;
+  /** 이 줌보다 가까울 때만 인천 안 원·거점 네모를 그린다(이름표가 그때만 보인다 — 이름 없는 표식 0) */ detailZoom?: number };
 
 export class FlowMap {
   cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; D: Data; o: Opts;
   cam: Cam; W = 0; H = 0; dpr = 1;
   legsG: Leg[] = []; gMeta: { p: number; g: number; dir: number }[] = [];
   legsL: Leg[] = []; lMeta: { g: number; d: number; dir: number }[] = [];
+  wh: any[] = []; // 정지 층 — 실측 창고 개소 원
   gates: { id: string; lon: number; lat: number; kind: "sea" | "air" }[] = [];
   routes: { g: number; l: number; dir: number; rate: Float32Array }[] = []; // rate[month] = 점/초
   // 점(입자) — 구조체 배열 대신 평면 배열
@@ -213,10 +217,14 @@ export class FlowMap {
     // 목적지 — 수도권 층이 있으면 그 목적지(경기 = 밀집지 여섯)와 고속도로 길, 없으면 개념선
     const S = data.sudo;
     this.dests = S?.dests?.length ? S.dests : F.dests;
-    if (S?.corridors) for (const c of S.corridors) { const b = Math.min(3, Math.floor(Math.sqrt(c.w) * 4)); this.cB[b].push(mx(c.pts[0][0]), my(c.pts[0][1]), mx(c.pts[1][0]), my(c.pts[1][1])); }
+    const inland = this.o.inland !== false;
+    // 정지 층(원 넓이 = 창고 개소) — 실측인 것만(경기 밀집지 몫이 「가정」이면 원을 그리지 않는다)
+    this.wh = this.dests.filter((d: any) => !String(d.basis || "실측").startsWith("가정"));
+    if (!inland) this.dests = [{ id: "관문", n: 1, lon: 0, lat: 0 }];
+    if (inland && S?.corridors) for (const c of S.corridors) { const b = Math.min(3, Math.floor(Math.sqrt(c.w) * 4)); this.cB[b].push(mx(c.pts[0][0]), my(c.pts[0][1]), mx(c.pts[1][0]), my(c.pts[1][1])); }
     this.dests.forEach((d: any, di: number) => this.gates.forEach((g, gi) => {
       for (const dir of [0, 1]) {
-        let ll = S?.routes?.[`${gi}|${di}`] ?? bend([g.lon, g.lat], [d.lon, d.lat], (gi % 2 ? -1 : 1) * 0.16);
+        let ll = !inland ? [[g.lon, g.lat], [g.lon + 0.0005, g.lat]] : S?.routes?.[`${gi}|${di}`] ?? bend([g.lon, g.lat], [d.lon, d.lat], (gi % 2 ? -1 : 1) * 0.16);
         if (dir) ll = [...ll].reverse();
         lIdx[`${gi}|${di}|${dir}`] = this.legsL.length; this.legsL.push(legFrom(ll, SPEED.land)); this.lMeta.push({ g: gi, d: di, dir });
       }
@@ -321,12 +329,13 @@ export class FlowMap {
     }
     // 선박 밀도 「빛줄기」(세계은행 2015~2021 누적) — 세기 넷으로 나눠 한 번씩 칠하고, 칸마다 다른 위상으로 천천히 숨 쉰다(움직이는 배가 아니다)
     if (this.dX.length) {
-      const now = performance.now() / 1000, sz = near ? 2.6 : 1.7, A = [0.10, 0.18, 0.30, 0.46];
+      const sz = near ? 2.6 : 1.7, A = [0.10, 0.18, 0.30, 0.46];
       let b = -1;
       for (let k = 0; k <= this.dX.length; k++) {
         const v = k < this.dX.length ? this.dV[k] : -2;
         if (v !== b) { // 묶음이 바뀌면 칠한다 — 묶음마다 다른 위상으로 천천히 숨 쉰다(움직이는 배가 아니다)
-          if (b >= 0) { ctx.fillStyle = `rgba(52,84,98,${(A[b] * (0.82 + 0.18 * Math.sin(now * 1.1 + b * 1.7))).toFixed(3)})`; ctx.fill(); }
+          // [2026-10-20] 숨 쉬는 깜빡임은 데이터가 아니라 연출이라 뺐다 · 색은 수출 점(청회)과 겹치지 않게 회녹
+          if (b >= 0) { ctx.fillStyle = `rgba(104,116,96,${A[b].toFixed(3)})`; ctx.fill(); }
           if (v < 0) break; b = v; ctx.beginPath();
         }
         P(this.dX[k], this.dY[k], 0, o); if (o[0] < -4 || o[0] > W + 4 || o[1] < -4 || o[1] > H + 4) continue;
@@ -385,10 +394,12 @@ export class FlowMap {
     });
     // 목적지(가까이에서만) — 원 넓이 = 창고 개소
     if (near) {
-      const nmax = Math.max(...this.dests.map((d: any) => d.n));
+      const nmax = Math.max(1, ...this.wh.map((d: any) => d.n)), det = c.zoom > (this.o.detailZoom ?? 0);
+      // 이름표 규칙과 같다 — 인천 안(구·군 · 인천 쪽 거점)은 가까이 들어왔을 때만(이름 없이 원·네모만 남지 않게)
+      const inInc = (lon: number, lat: number) => lon < 126.8 && lat > 37.3;
       // 거점(자리만) — 작은 네모
-      for (const h of this.D.sudo?.hubs || []) { P(mx(h.lon), my(h.lat), 0, o); ctx.strokeStyle = "rgba(25,23,20,0.75)"; ctx.lineWidth = 1.3; ctx.strokeRect(o[0] - 3.5, o[1] - 3.5, 7, 7); }
-      for (const d of this.dests) { P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
+      for (const h of this.D.sudo?.hubs || []) { if (inInc(h.lon, h.lat) && !det) continue; P(mx(h.lon), my(h.lat), 0, o); ctx.strokeStyle = "rgba(25,23,20,0.75)"; ctx.lineWidth = 1.3; ctx.strokeRect(o[0] - 3.5, o[1] - 3.5, 7, 7); }
+      for (const d of this.wh) { if (/[구군]$/.test(d.id) && !det) continue; P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
     }
     // 나라 점(멀리에서만)
     if (!near) for (const p of this.D.flows.partners) { P(mx(p.sea[0][0]), my(p.sea[0][1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }

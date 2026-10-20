@@ -37,10 +37,10 @@ export const GROUPS: { id: string; label: string; from: number; to: number; c: s
   { id: "chem", label: "화학·플라스틱·고무", from: 28, to: 40, c: "#7ea0ad" },
   { id: "light", label: "가죽·목재·종이·섬유·신발", from: 41, to: 67, c: "#c2a98a" },
   { id: "stone", label: "석재·유리·귀금속", from: 68, to: 71, c: "#b7aa95" },
-  { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#5f6c75" },
+  { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#7a6f62" },
   { id: "mach", label: "기계류(84)", from: 84, to: 84, c: "#4f6a78" },
   { id: "elec", label: "전기기기(85)", from: 85, to: 85, c: "#b3361e" },
-  { id: "trans", label: "수송기기", from: 86, to: 89, c: "#5d7a86" },
+  { id: "trans", label: "수송기기", from: 86, to: 89, c: "#3e8a8c" },
   { id: "prec", label: "정밀·광학·기타", from: 90, to: 99, c: "#a08c7a" },
 ];
 /** 칸 색 위 글자 — 밝기로 고른다(어두운 칸에 검은 글자가 명암비 4.5 를 못 넘었다 · 2026-10-14 Lighthouse) */

@@ -93,7 +93,7 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await page.locator("#fm-x").click();
   await expect(page.locator("#fm-panel")).toBeHidden();
   // 흐름은 월 통계를 그린 것 — 실시간이 아니라고 화면에 적었다
-  await expect(page.locator(".live__legend")).toContainText("실시간 위치 아님");
+  await expect(page.locator(".live__legend")).toContainText("실시간 아님");
   // 같이 푸는 질문 — 질문마다 지면 하나
   const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions;
   await expect(page.locator(".qs > li")).toHaveCount(Q.length);

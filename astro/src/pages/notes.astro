@@ -7,7 +7,7 @@ import { room } from "../lib/rooms";
 import { u } from "../lib/site";
 const R = room("notes");
 ---
-<Studio title="노트 — 측심" description={R.lead} current="notes" path="/notes.html">
+<Studio ask={false} title="노트 — 측심" description={R.lead} current="notes" path="/notes.html">
   <article class="s-wrap hub" data-content="notes">
     <p class="s-cap">노트</p>
     <h1 class="s-prose">{R.title}</h1>

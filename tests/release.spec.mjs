@@ -80,11 +80,14 @@ test("③ 개인정보 — 메일 원문 · 전화번호 · 학번 · 집 주소
   expect(JSON.stringify(P.contact.mail)).not.toContain("@");
 });
 
-test("④ AI 표기 — AI 산출물 지면마다 「AI 정리 · 실명 검수」 · 검수 전 표기 0", () => {
-  const MARK = `AI 정리 · ${P.name} 검수`;
-  for (const f of ["map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html"]) {
-    const html = read(f);
-    expect(html, `${f} 표기`).toMatch(new RegExp(`data-ai-mark[^>]*>\\s*${MARK.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
+test("④ AI 표기 — AI 산출물 지면마다 「AI 정리」 · 「실명 검수」는 검수 기록(docs/검수기록.md)에 그 지면이 있을 때만(지침 §2.2-4 · 2026-10-20 사실 대조)", () => {
+  const LOG = readFileSync("docs/검수기록.md", "utf-8").split("\n").filter((l) => l.startsWith("| 20"));
+  for (const f of ["map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html", "tools/port-pulse.html"]) {
+    const html = read(f), logged = LOG.some((l) => (l.split("|")[2] || "").includes(f.replace(/\.html$/, "")));
+    const m = html.match(/data-ai-mark[^>]*>\s*([^<]+)</);
+    expect(m, `${f} 표기`).toBeTruthy();
+    expect(m[1].trim().startsWith("AI 정리"), `${f} 표기`).toBe(true);
+    expect(m[1].includes(`${P.name} 검수`), `${f} — 검수 기록 ${logged ? "있음" : "없음"}`).toBe(logged);
   }
   for (const f of HTML) expect(read(f), `${f} 「검수 전」`).not.toContain("AI 정리 · 검수 전");
 });

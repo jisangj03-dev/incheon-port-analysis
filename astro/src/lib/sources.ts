@@ -12,14 +12,15 @@ export function source(id: string): Src | null {
 }
 /** 공개면 문구 — 출처 대장의 작업 기록 말(운영자 호칭·세션·워크플로 이름·저장소 경로)을 독자 말로 바꾼다(화면 판정 10/20 Q8).
  *  대장 원문은 저장소에 그대로 남는다(확인 경위의 정본) — 지면만 걸러 보인다. */
+// 작업 기록 말 — 지면에 보이면 독자가 작업 로그를 읽게 된다(2026-10-20 화면 판정·사실 대조)
+const INTERNAL = /Actions|워크플로|workflow|세션|선커밋|판정 v\d|\.ya?ml\b|\.py\b|\.mjs\b|크론|운영자 손|_KEY|비밀|앱 \d{4,}|(?:data|analysis|tools-build|docs)\/|api_probe|terms-check|ops_stats|kogl-check|blob|\bPASS\b|\bFAIL\b|→ 자동|사실 대조|판단 대기|주의 ⑥/;
 export function pub(t: string): string {
-  return String(t ?? "")
-    .replace(/선장님/g, "운영자")
-    .replace(/세션이 /g, "").replace(/세션 —/g, "운영 측 —").replace(/세션에서/g, "작업 환경에서")
-    .replace(/[A-Za-z-]+ 워크플로가/g, "자동 화면 점검이").replace(/[A-Za-z-]+ 워크플로/g, "자동 화면 점검")
-    .replace(/\s*\((?:data|analysis|tools-build|docs)\/[^)]*\)/g, "")
-    .replace(/(?:data|analysis|tools-build|docs)\/[\w./-]+/g, "저장소 기록")
-    .replace(/\s{2,}/g, " ").trim();
+  let x = String(t ?? "").replace(/선장님/g, "운영자");
+  // 괄호 안이 작업 기록이면 괄호째 뺀다(안쪽 괄호부터)
+  for (let i = 0; i < 4; i++) x = x.replace(/\s*[(（]([^()（）]*)[)）]/g, (m, inner) => (INTERNAL.test(inner) ? "" : m));
+  // 「 · 」·「 — 」로 나뉜 조각 가운데 작업 기록인 것은 뺀다
+  x = x.split(" · ").map((seg) => seg.split(" — ").filter((p) => !INTERNAL.test(p)).join(" — ")).filter((seg) => seg.trim() && !INTERNAL.test(seg)).join(" · ");
+  return x.replace(/\[미확인\]/g, "(미확인)").replace(/\s{2,}/g, " ").replace(/\s+([,.)])/g, "$1").trim();
 }
 /** 신뢰 꼬리용 한 줄 — 「기관 · 이름 · 공공누리 유형」 */
 export function sourceLine(id: string): string {

@@ -33,7 +33,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
       <slot name="more" />
       <div class="tool__embed"><p>퍼가기 — 이 도구의 카드를 내 글에 싣기</p><label>복사해서 붙여 넣는 코드(분석 스크립트 없음)<textarea readonly rows="3">{embedCode}</textarea></label></div>
     </details>
-    <p class="s-cap" data-ai-mark>{mark ?? aiMark()}</p>
+    <p class="s-cap" data-ai-mark>{mark ?? aiMark(`tools/${slug}`)}</p>
   </footer>
 </article>
 <style>

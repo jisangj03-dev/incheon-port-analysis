@@ -10,7 +10,7 @@ import { u } from "../../lib/site";
 import { sourceLine } from "../../lib/sources";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { repoRoot } from "../../lib/content";
+import { repoRoot, lastUpdated } from "../../lib/content";
 
 const N = notes();
 const me = N.find((n) => n.id === "note-port-yoy")!;
@@ -46,7 +46,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
     </figure>
 
     <p class="counter s-prose"><b>반대 지표</b> — 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>선박 리플레이</a>.</p>
-    <Trust updated={P.updated} source={sourceLine("mof-vessel")} note="반대 지표 · 월 집계(개별 선박 아님)" />
+    <Trust updated={lastUpdated("data/derived/vessel_replay.json")} source={sourceLine("mof-vessel")} note="반대 지표 · 월 집계(개별 선박 아님)" />
 
     <section class="grow">
       <h2>이 노트가 자라려면</h2>
@@ -68,7 +68,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
       </div>
     </section>
     <p class="s-cap legend">{STAGES.map((s) => <span><i class="st-dot" data-s={s} aria-hidden="true"></i> {s}</span>)} — 초안(심었다) · 갱신 중(달마다 숫자가 바뀐다) · 정본(먼저 적은 기준으로 판정을 마쳤다)</p>
-    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+    <p class="s-cap" data-ai-mark>{aiMark("notes/port-yoy")}</p>
   </article>
 </Studio>
 <style>

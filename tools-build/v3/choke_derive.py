@@ -100,7 +100,7 @@ def extras(d):
     rules = dict((pid, cs) for pid, _, _, cs in POINTS)
     for p in d["points"]:
         cs = rules[p["id"]]
-        p["rule"] = {"countries": [{"c": c, "name": names.get(c, c)} for c in cs], "basis": "선커밋 §5 경유 표 — 그 나라와의 바닷길이 이 길목을 지난다고 본 것(대표 항로 · 나라 안 항만별 차이는 무시)"}
+        p["rule"] = {"countries": [{"c": c, "name": names.get(c, c)} for c in cs], "basis": "그 나라와의 바닷길이 이 길목을 지난다고 본 것(대표 항로 · 나라 안 항만별 차이와 해협 밖 다른 출구는 무시)"}
         if dt and p["id"] in dt["points"]: p["detour"] = {**dt["points"][p["id"]], "knot": dt["knot"]}
         sh = SHOCK.get(p["id"])
         if not sh and p["id"] in AUTO_ROUTES:
@@ -109,7 +109,8 @@ def extras(d):
                 import datetime as _d
                 st = _d.date.fromisoformat(bl[0])
                 sh = {"event": f"통항 급감({bl[0][:7]}~ · 주 평균 하루 {bl[2]}척 아래 4주 이상 — PortWatch)", "base": ((st - _d.timedelta(weeks=8)).isoformat(), (st - _d.timedelta(days=1)).isoformat()),
-                      "peak": (bl[0], bl[1]), "routes": AUTO_ROUTES[p["id"]]}
+                      # 막힘이 원천 마지막 주까지 이어지면 운임은 KCCI 마지막 주까지 본다(통항 원천이 KCCI 보다 늦게 끝나 정점을 놓쳤다 · 2026-10-20 사실 대조)
+                      "peak": (bl[0], "9999-12-31" if p.get("asof") and bl[1] >= (_d.date.fromisoformat(p["asof"]) - _d.timedelta(days=14)).isoformat() else bl[1]), "routes": AUTO_ROUTES[p["id"]]}
         if sh and kc:
             out = []
             for r in sh["routes"]:

@@ -22,8 +22,9 @@
   --s-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   /* 제목 글꼴 — 토큰 하나로 바꾼다(2026-10-14 확정: 제목 명조 · 본문 고딕). 고딕 단독으로 되돌리려면 아래 한 줄을 var(--s-font) 로. */
   --s-font-serif: "Noto Serif KR", "Nanum Myeongjo", serif;
-  --s-font-head: var(--s-font-serif);
-  --s-head-track: -0.015em;  /* 명조는 자간을 덜 좁힌다(고딕일 때 −0.03em) */
+  /* [2026-10-20 독립 화면 판정] 제목 안 한글은 고딕 폴백·숫자와 라틴만 명조로 떨어져 폴백 글꼴처럼 보였다 → 시안 전까지 제목도 본문 고딕 한 벌 */
+  --s-font-head: var(--s-font);
+  --s-head-track: -0.03em;
 
   /* 크기 단계 — 1.333(완전4도) · 본문 17 */
   --s-t-cap: 13px;

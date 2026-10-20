@@ -34,7 +34,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
         <small id="pl-sub">마지막 7일 {J.recent_avg}척/일 · 평소 {J.base_avg}척/일{big && ` · 하루 척수가 가장 크게 바뀐 선종(차이 기준) = ${big.ko}(${big.r} ← ${big.b})`}</small></p>
       <figure class="pulse__fig" id="pl-fig" data-port="Incheon">
         <div id="pl-chart" set:html={pulseSvg(I.days, "all", 182, D.rule.recent, D.rule.base, oddOf("Incheon"))} />
-        <figcaption class="s-cap"><span class="k k--bar"></span>일별 입항 척수 <span class="k k--line"></span>7일 평균 <span class="k k--avg"></span>평소(직전 13주 평균) <span class="k k--rec"></span>최근 7일 · {D.asof} 기준</figcaption>
+        <figcaption class="s-cap"><span class="k k--bar"></span>일별 입항 척수 <span class="k k--line"></span>7일 평균 <span class="k k--avg"></span>평소(직전 13주 평균) <span class="k k--rec"></span>최근 7일 · {D.asof} 기준{oddOf("Incheon").length > 0 && <> <span class="k k--odd"></span>흐린 막대 = 해양수산부 월 통계와 어긋난 달(아래 「원천 점검」)</>}</figcaption>
       </figure>
       <ol class="pulse__cmp" aria-label="부산·평택과 견줌(각자의 평소 대비)">
         {order.map((k) => { const j = P[k].judge; return <li data-port={k} class={k === "Incheon" ? "on" : ""}><button type="button" data-port={k} aria-pressed={k === "Incheon" ? "true" : "false"}>
@@ -97,6 +97,8 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
   .pulse__fig :global(.pb rect) { fill: #b8b0a0; transform-box: fill-box; transform-origin: 50% 100%; }
   .pulse__fig :global(.pb rect.on) { fill: var(--s-signal); }
   .pulse__fig :global(.pb rect.odd) { fill: #ddd6c8; }
+  .k--odd { background: #ddd6c8; }
+  .pulse__fig :global(text.pt) { paint-order: stroke; stroke: var(--s-paper); stroke-width: 4px; stroke-linejoin: round; } /* 「평소」 이름표가 7일 평균 선에 묻히지 않게 */
   .pulse__odd { margin: 0; max-width: 52rem; }
   .pulse__cmp .stale { font-style: normal; color: var(--s-signal); }
   .pulse__fig :global(.pa) { stroke: #191714; stroke-width: 1.4; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }

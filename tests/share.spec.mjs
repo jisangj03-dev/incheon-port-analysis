@@ -36,7 +36,7 @@ test("B6 도구 — 도구마다 1200×630 카드 · og:image · 카드 숫자 =
   test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
   test.skip(!existsSync("astro/dist/og/cards.json"), "npm run site:og 를 안 돌렸다");
   const C = JSON.parse(readFileSync("astro/dist/og/cards.json", "utf-8")).cards;
-  expect(TOOLS.length).toBeGreaterThanOrEqual(6); // 2026-10-20 묘박지 내림
+  expect(TOOLS.length).toBeGreaterThanOrEqual(5); // 2026-10-20 묘박지·입찰 레이더 내림
   for (const t of TOOLS) {
     expect(jpegSize(readFileSync(`astro/dist/og/tool-${t.id}.jpg`)), t.id).toEqual({ w: 1200, h: 630 });
     const html = await (await request.get(`/incheon-port-analysis${t.href}`)).text();

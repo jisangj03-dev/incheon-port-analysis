@@ -103,7 +103,7 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
       <dt>어떻게</dt><dd data-note="how">{L.notes.how}</dd>
       <dt>한계</dt><dd data-note="limits">{L.notes.limits}</dd>
     </dl>
-    <p class="s-cap" data-ai-mark>{aiMark()}</p>
+    <p class="s-cap" data-ai-mark>{aiMark("sim/forecast")}</p>
   </article>
   <script>
     import { textColor } from "../../lib/ds-beer";
@@ -125,7 +125,7 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
       for (const v of [amax, amin]) g += `<line x1="${Lp}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--s-rule)" stroke-dasharray="1 4"/><text x="${Lp + 2}" y="${(y(v) - 4).toFixed(1)}" font-size="11.5" fill="var(--s-ink-3)">${v}${D.unit}</text>`;
       g += `<line x1="${x(ia).toFixed(1)}" x2="${x(ia).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-rule)" stroke-dasharray="2 3"/>`;
       g += `<text x="${Lp}" y="${H - 6}" font-size="12" fill="var(--s-ink-3)">${fmt(D.act[0][0])}</text><text x="${W - R}" y="${H - 6}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">${fmt(all[n - 1])}</text>`;
-      g += `<text x="${(x(ia) - 6).toFixed(1)}" y="${T + 10}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">지금</text>`;
+      g += `<text x="${(x(ia) - 6).toFixed(1)}" y="${T + 10}" font-size="12" text-anchor="end" fill="var(--s-ink-3)">마지막 실제</text>`;
       g += `<polyline fill="none" stroke="var(--s-ink-2)" stroke-width="2" stroke-linejoin="round" points="${D.act.map((d: any, k: number) => `${x(k).toFixed(1)},${y(d[1]).toFixed(1)}`).join(" ")}"/>`;
       g += `<polyline fill="none" stroke="var(--s-ink-3)" stroke-width="1.5" stroke-dasharray="2 4" points="${pts(D.b, ia + 1)}"/>`;
       g += `<polyline fill="none" stroke="var(--s-signal)" stroke-width="3" stroke-dasharray="7 5" stroke-linejoin="round" data-main="M1" points="${pts(D.m1, ia + 1)}"/>`;

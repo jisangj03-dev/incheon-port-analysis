@@ -19,7 +19,7 @@ const unk = (t: string) => /미확인|허락 필요|대기/.test(t);
 const day = (t: string) => (String(t).match(/\d{4}-\d{2}-\d{2}/) || ["—"])[0];
 const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").length };
 ---
-<Studio title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." current="about" path="/data.html" jsonld={jsonld}>
+<Studio ask={false} title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." current="about" path="/data.html" jsonld={jsonld}>
   <article class="s-wrap src">
     <header class="src__head">
       <p class="s-cap">데이터</p>
@@ -45,7 +45,7 @@ const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").len
             <p><b>이용허락</b> {pub(s.license)}</p>
             {pub(s.commercial) !== word(s.commercial) && <p><b>상업 이용</b> {pub(s.commercial)}</p>}
             {pub(s.modify) !== word(s.modify) && <p><b>가공</b> {pub(s.modify)}</p>}
-            <p><b>확인</b> {pub(s.checked)}</p>
+            <p><b>확인</b> {pub(s.checked) || day(s.checked)}</p>
           </details>
         </li>
       ))}
