@@ -42,7 +42,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
       <div class="yoy__ticks s-cap" aria-hidden="true">{bars.filter((b) => b.ym.endsWith("-01")).map((b) => <span style={`left:${(((b.x + bw / 2) / W) * 100).toFixed(2)}%`}>{b.ym.slice(0, 4)}</span>)}</div>
       <p class="yoy__last" style={`left:${(((bars[bars.length - 1].x + bw / 2) / W) * 100).toFixed(2)}%`} aria-hidden="true">{last.ym} <b class={(last.yoy as number) < 0 ? "s-signal" : ""}>{(last.yoy as number) > 0 ? "+" : (last.yoy as number) < 0 ? "−" : ""}{Math.abs(last.yoy as number)}%</b></p>
       <div class="yoy__axis s-cap"><span>{S[0].ym}</span><span>0 위 = 작년보다 많음 · 0 아래(주홍) = 작년보다 적음</span><span>{last.ym}</span></div>
-      <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 %" />
+      <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 % · 공표값(수정된 전년 기준이라 선에서 잰 값과 최대 0.8%p 다르다)" />
     </figure>
 
     <p class="counter s-prose"><b>반대 지표</b> — 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>선박 리플레이</a>.</p>
