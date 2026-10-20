@@ -16,6 +16,7 @@ const rows = Object.entries(O.cities as Record<string, number | null>).sort((a, 
 const in1 = O.cities_within["1h"], in2 = O.cities_within["2h"];
 const seoul = O.cities["서울시청"];
 // 내비 대조(카카오모빌리티 미래 운행 정보 · 통계만 · tools-build/navi_check.py) — 없거나 미달이면 「미실시」를 그대로 적는다(선커밋 ① 내비 대조)
+const SL = existsSync(join(repoRoot(), "data/derived/reach_slots.json")) ? JSON.parse(readFileSync(join(repoRoot(), "data/derived/reach_slots.json"), "utf-8")).slots : [{ id: "자유 흐름", k: 1 }];
 const NP = join(repoRoot(), "data/derived/navi_check.json");
 const NV = existsSync(NP) ? JSON.parse(readFileSync(NP, "utf-8")) : null;
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
@@ -29,7 +30,7 @@ const navi = NV?.status === "ok"
   <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 출발하면 서울시청까지 ${seoul ?? "—"}분, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳.`}
     updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="자유 흐름 속도 가정 · 혼잡 미반영"
     how={`OSM 대한민국 추출에서 수도권 도로만 읽어 도로 등급별 속도(고속 ${I.speeds_kmh.motorway} · 간선 ${I.speeds_kmh.trunk} · 주간선 ${I.speeds_kmh.primary} · 일반 ${I.speeds_kmh.residential} km/h)로 엮고, 출발지에서 가장 빠른 길을 풀었다(scipy 다익스트라). 칸 크기 ${I.step}°.`}
-    limits={`혼잡·신호·상하차·통행 제한(화물차)을 반영하지 않아 실제보다 짧게 나온다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
+    limits={`「자유 흐름」은 혼잡·신호를 반영하지 않아 실제보다 짧게 나온다. 「화물차」는 고속도로 최고속도 80km/h(도로교통법 시행규칙 — 적재 1.5톤 초과)와 OSM 의 화물차 통행 금지 길만 반영했다 — 도심 시간제 통행 제한은 빠졌다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
     <div slot="answer" class="reach">
       <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
         <p class="reach__t" data-furniture><b id="reach-min">180</b><span>분 안</span></p>
@@ -41,10 +42,12 @@ const navi = NV?.status === "ok"
     </div>
     <div slot="controls" class="reach__ctl">
       <label>출발지 <select id="reach-o" class="s-input">{I.origins.map((o: any, i: number) => <option value={i} selected={o === O}>{o.name}{o.kind === "관문" ? " (관문)" : ""}</option>)}</select></label>
-      <div class="seg" role="group" aria-label="도로 사정 가정" data-furniture>{[[1, "자유 흐름"], [1.5, "×1.5 가정"], [2, "×2 가정"]].map(([k, l]) => <button type="button" class={k === 1 ? "s-btn" : "s-btn s-btn--ghost"} data-k={k} aria-pressed={k === 1 ? "true" : "false"}>{l}</button>)}</div>
+      <div class="seg" role="group" aria-label="시간대" data-furniture>{SL.map((t: any) => <button type="button" class={t.k === 1 ? "s-btn" : "s-btn s-btn--ghost"} data-k={t.k} aria-pressed={t.k === 1 ? "true" : "false"}>{t.k === 1 ? t.id : `${t.id} ×${t.k}`}</button>)}</div>
+      {I.origins[0].b64_truck && <div class="seg" role="group" aria-label="차종" data-furniture id="reach-veh"><button type="button" class="s-btn" data-truck="0" aria-pressed="true">승용</button><button type="button" class="s-btn s-btn--ghost" data-truck="1" aria-pressed="false">화물차</button></div>}
+      <label>상하차·준비 분 <input id="reach-prep" class="s-input" type="number" inputmode="numeric" min="0" max="120" step="5" value="0" /></label>
       <button type="button" class="s-btn s-btn--ghost" id="reach-play">다시 번지기</button>
       <label class="reach__slider">문턱 <input id="reach-t" type="range" min="0" max="180" step="5" value="180" aria-label="도착 분 문턱" /></label>
-      <p class="s-cap reach__note" data-furniture>「×1.5·×2 가정」은 막히는 시간대를 어림하려고 모든 길의 시간을 같은 배율로 늘린 것입니다 — 실측 혼잡 자료가 아닙니다.</p>
+      <p class="s-cap reach__note" data-furniture>{SL.length > 1 ? `시간대 배율은 카카오 내비(미래 출발시각 · ${NV?.pairs?.length ?? 30}쌍)와 견준 오차 중앙값으로 모든 길의 시간을 같은 비율로 늘린 것입니다 — 실측 소통 속도가 아닙니다(국가교통정보센터 실측 속도는 키 신청 뒤).` : "시간대 배율은 내비 대조 결과가 없어 싣지 않았습니다."} 상하차·준비 분은 모든 도착 시간에 그대로 더합니다.</p>
     </div>
   </ToolShell>
   <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/reach-geo.json") })}></script>
@@ -54,13 +57,16 @@ const navi = NV?.status === "ok"
     const cv = document.getElementById("reach-cv") as HTMLCanvasElement, sel = document.getElementById("reach-o") as HTMLSelectElement, sl = document.getElementById("reach-t") as HTMLInputElement;
     let rm: ReachMap | null = null;
     const list = (o: any, k = 1) => {
-      const ol = document.getElementById("reach-list")!, rows = Object.entries(o.cities as Record<string, number | null>).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
-      ol.innerHTML = rows.map(([n, m]) => `<li data-city="${n}"><span>${n}</span><b>${m == null ? "—" : Math.round(m * k)}</b><small>분</small></li>`).join("");
+      const C = (rm?.truck && o.cities_truck) || o.cities;
+      const ol = document.getElementById("reach-list")!, rows = Object.entries(C as Record<string, number | null>).sort((a, b) => (a[1] ?? 999) - (b[1] ?? 999));
+      const pp = rm ? rm.prep : 0;
+      ol.innerHTML = rows.map(([n, m]) => `<li data-city="${n}"><span>${n}</span><b>${m == null ? "—" : Math.round(m * k + pp)}</b><small>분</small></li>`).join("");
     };
     const mark = (r: ReachMap) => {
       document.getElementById("reach-min")!.textContent = String(r.t);
       const o = r.iso.origins[r.o];
-      for (const li of document.querySelectorAll<HTMLElement>("#reach-list li")) { const m = o.cities[li.dataset.city!]; li.classList.toggle("on", m != null && m * r.k <= r.t); }
+      const C = (r.truck && o.cities_truck) || o.cities;
+      for (const li of document.querySelectorAll<HTMLElement>("#reach-list li")) { const m = C[li.dataset.city!]; li.classList.toggle("on", m != null && m * r.k + r.prep <= r.t); }
     };
     const boot = async () => {
       const [iso, geo] = await Promise.all([fetch(M.src).then((r) => r.json()), fetch(M.geo).then((r) => r.json()).catch(() => null)]);
@@ -69,10 +75,17 @@ const navi = NV?.status === "ok"
       rm.play(3.2);
     };
     sel.addEventListener("change", () => { if (!rm) return; rm.setOrigin(Number(sel.value)); list(rm.iso.origins[rm.o], rm.k); rm.play(3.2); sl.value = "180"; });
-    for (const b of document.querySelectorAll<HTMLButtonElement>(".seg button")) b.addEventListener("click", () => {
-      if (!rm) return; rm.k = Number(b.dataset.k); for (const x of document.querySelectorAll<HTMLButtonElement>(".seg button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
+    for (const b of document.querySelectorAll<HTMLButtonElement>("#reach-veh button")) b.addEventListener("click", () => {
+      if (!rm) return; rm.truck = b.dataset.truck === "1"; rm.setOrigin(rm.o);
+      for (const x of document.querySelectorAll<HTMLButtonElement>("#reach-veh button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
       list(rm.iso.origins[rm.o], rm.k); rm.play(2.4); sl.value = "180";
     });
+    for (const b of document.querySelectorAll<HTMLButtonElement>(".seg:not(#reach-veh) button")) b.addEventListener("click", () => {
+      if (!rm) return; rm.k = Number(b.dataset.k); for (const x of document.querySelectorAll<HTMLButtonElement>(".seg:not(#reach-veh) button")) { const on = x === b; x.setAttribute("aria-pressed", String(on)); x.classList.toggle("s-btn--ghost", !on); }
+      list(rm.iso.origins[rm.o], rm.k); rm.play(2.4); sl.value = "180";
+    });
+    const prep = document.getElementById("reach-prep") as HTMLInputElement;
+    prep.addEventListener("input", () => { if (!rm) return; rm.prep = Math.max(0, Math.min(120, Number(prep.value) || 0)); list(rm.iso.origins[rm.o], rm.k); rm.draw(); mark(rm); });
     document.getElementById("reach-play")!.addEventListener("click", () => { rm?.play(3.2); sl.value = "180"; });
     sl.addEventListener("input", () => { if (!rm) return; cancelAnimationFrame(rm.raf); rm.t = Number(sl.value); rm.draw(); });
     addEventListener("resize", () => { if (rm) { rm.resize(); rm.draw(); } });

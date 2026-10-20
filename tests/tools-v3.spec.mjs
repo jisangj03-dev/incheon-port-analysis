@@ -10,8 +10,8 @@ const COMMON = ["data/rooms.json", "data/sources.json", "data/profile.json", "da
 const TOOLS = {
   "port-pulse": { data: ["data/derived/port_pulse.json"], answer: "#pl-fig", num: "#pl-pct", asof: true,
     act: async (p) => { const a = await p.locator("#pl-word").innerText(); await p.locator(".pulse__cmp button[data-port=Busan]").click(); await expect(p.locator("#pl-word")).not.toHaveText(a); } },
-  "delivery-reach": { data: ["data/derived/isochrones.json", ...(existsSync("data/derived/navi_check.json") ? ["data/derived/navi_check.json"] : [])], answer: ".reach__map", num: "#reach-min",
-    act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg button[data-k='2']").click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
+  "delivery-reach": { data: ["data/derived/isochrones.json", ...["data/derived/navi_check.json", "data/derived/reach_slots.json"].filter((f) => existsSync(f))], answer: ".reach__map", num: "#reach-min",
+    act: async (p) => { await p.waitForSelector(".reach__map[data-ready='1']"); const a = await p.locator("#reach-list li b").first().innerText(); await p.locator(".seg:not(#reach-veh) button").last().click(); await expect(p.locator("#reach-list li b").first()).not.toHaveText(a); } },
   "trade-race": { data: ["data/derived/trade_race.json", "data/hs2_short.json"], answer: "#race-box", num: "#race-total",
     act: async (p) => { await p.waitForSelector("#race-box[data-ready='1']"); await p.evaluate(() => window.__race.stop()); const a = await p.locator("#race-total").innerText(); await p.locator(".seg button[data-k=imp]").click(); await expect(p.locator("#race-k")).toHaveText("수입"); await expect(p.locator("#race-total")).not.toHaveText(a); } },
   "import-cost": { data: ["data/derived/import_cost.json"], answer: "#cs-fig", num: "#cs-diff", asof: true, advice: true,
@@ -185,6 +185,29 @@ test("수입원가: 표 가운데 정렬 · 내국세 줄 · 세액 10원 미만
   const t10 = (v) => Math.floor(v / 10 + 1e-9) * 10;
   expect(duty).toBe(t10(cv * 0.08)); expect(ex).toBe(t10((cv + duty) * 0.2)); expect(edu).toBe(t10(ex * 0.3)); expect(vat).toBe(t10((cv + duty + ex + edu) * 0.1));
   for (const v of [duty, ex, edu, vat]) expect(v % 10, "세액 10원 미만 버림").toBe(0);
+});
+
+// [2026-10-15 P1 ①] 등시선 — 시간대 배율(내비 대조 보정) 단추 · 상하차·준비 분을 넣으면 표의 도착 분이 그만큼 늘어난다
+test("등시선: 시간대 배율 = reach_slots.json · 상하차 분 더하기", async ({ page }) => {
+  await page.goto(`${B}/tools/delivery-reach.html`);
+  await page.waitForSelector(".reach__map[data-ready='1']");
+  const SL = JSON.parse(J("data/derived/reach_slots.json")).slots;
+  await expect(page.locator(".seg:not(#reach-veh) button")).toHaveCount(SL.length);
+  const first = async () => Number(await page.locator("#reach-list li b").first().innerText());
+  const a = await first();
+  await page.fill("#reach-prep", "30");
+  await expect.poll(first).toBe(a + 30);
+});
+
+// [2026-10-15 P1 ①] 등시선 화물차 판 — 단추를 누르면 표가 화물차 도착 분(cities_truck)으로 바뀐다
+test("등시선: 화물차 판 = cities_truck", async ({ page }) => {
+  const I = JSON.parse(J("data/derived/isochrones.json"));
+  test.skip(!I.origins[0].b64_truck, "화물차 판 데이터 없음");
+  await page.goto(`${B}/tools/delivery-reach.html`);
+  await page.waitForSelector(".reach__map[data-ready='1']");
+  await page.locator("#reach-veh button[data-truck='1']").click();
+  const sel = Number(await page.locator("#reach-o").inputValue()), O = I.origins[sel];
+  await expect(page.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(O.cities_truck["서울시청"]));
 });
 
 // [2026-10-15 P1 ②] HS 코드 → 관세율표 — 기본·WTO 중 낮은 쪽이 관세율 칸에 · FTA 는 원산지증명이 있을 때만 고를 수 있다
