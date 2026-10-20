@@ -33,7 +33,9 @@ function run(R: Rules, B: any) {
     ($("play") as HTMLElement).hidden = false;
     $("who").textContent = `${R.stages[opt.role].label} 단계`;
     draw();
-    ($("order") as HTMLInputElement).focus();
+    document.dispatchEvent(new CustomEvent("beer:start", { detail: { g, opt } }));
+    ($("order") as HTMLInputElement).focus({ preventScroll: true });
+    ($("play") as HTMLElement).scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const draw = () => {
@@ -59,6 +61,7 @@ function run(R: Rules, B: any) {
     $("verdict").textContent = `총비용 ${fmt(s.totalCost)} — ${me.label}(나)의 주문은 소비자 수요보다 ${me.amplification == null ? "—" : me.amplification.toFixed(1) + "배"}, ${top.label}은 ${top.amplification == null ? "—" : top.amplification.toFixed(1) + "배"} 출렁였습니다.`;
     $("chart").innerHTML = chart(R, g);
     history.replaceState(null, "", "?" + B.encode({ ...opt, orders: mine }));
+    document.dispatchEvent(new CustomEvent("beer:done", { detail: { g, opt, s } }));
   };
 
   $("start").addEventListener("click", () => start());
@@ -72,6 +75,7 @@ function run(R: Rules, B: any) {
     if (!Number.isFinite(v) || v < 0) { $("say").textContent = "0 이상의 정수를 넣어 주세요."; return; }
     mine.push(v); B.step(g, v); inp.value = "";
     $("say").textContent = `${g.week}주차 주문 ${v}상자를 냈습니다.`;
+    document.dispatchEvent(new CustomEvent("beer:step", { detail: { g, opt } }));
     if (g.week >= R.weeks) finish(); else draw();
   });
 

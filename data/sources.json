@@ -40,7 +40,8 @@
         "report_11_터미널별_처리량",
         "report_12_터미널별_장기창",
         "물동량",
-        "map"
+        "map",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -54,7 +55,8 @@
       "modify": "허용(이용허락범위 「제한 없음」)",
       "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15101636 「관세청_항구 공항별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
-        "report_08_관세청_인천항_수출입신고"
+        "report_08_관세청_인천항_수출입신고",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -83,7 +85,8 @@
       "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15083282 「국토교통부_물류창고업등록정보_20250701」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
         "물류창고",
-        "tool:warehouse-map"
+        "tool:warehouse-map",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -141,7 +144,8 @@
       "modify": "허용(이용허락범위 「제한 없음」)",
       "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15100475 「관세청_품목별 국가별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
-        "follow"
+        "follow",
+        "홈 살아 있는 지도"
       ]
     },
     {
@@ -186,6 +190,21 @@
       "checked": "2026-10-14 ops_stats.py 집계",
       "used_by": [
         "ai-ops"
+      ]
+    },
+    {
+      "id": "naturalearth",
+      "name": "Natural Earth 1:50m 땅 면(홈 살아 있는 지도·공급망 따라가기의 먼 바탕)",
+      "owner": "Natural Earth(naturalearthdata.com)",
+      "where": "world-atlas 2.0.2(npm · ISC · Natural Earth 4.1.0 을 TopoJSON 으로 다시 묶은 것 · 묶음 SHA-256 고정 · tools-build/world_land.py)",
+      "license": "퍼블릭 도메인(naturalearthdata.com/about/terms-of-use)",
+      "kogl": "해당 없음(퍼블릭 도메인)",
+      "commercial": "허용",
+      "modify": "허용",
+      "checked": "2026-10-14",
+      "used_by": [
+        "홈 살아 있는 지도",
+        "공급망 따라가기"
       ]
     }
   ]

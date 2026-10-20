@@ -1,0 +1,20 @@
+---
+// 모든 지면 끝 — 「이 분석을 우리 회사 숫자로」(2026-10-14 선장님 판정 「사이트 목적이 와닿지 않는다」 · 채팅 위임 B).
+// 커리어 작업실의 출구: 실무자가 연락하게 만드는 한 줄 + LinkedIn·메일. 판매 문구·가격은 두지 않는다. 숫자를 적지 않는다(지면 숫자 검사 범위 안이다).
+import Contact from "./Contact.astro";
+import { profile } from "../../lib/profile";
+const P = profile();
+---
+<aside class="s-wrap ask" data-ask aria-labelledby="ask-h">
+  <hr class="s-rule" />
+  <p class="s-cap">이 분석을 우리 회사 숫자로</p>
+  <h2 id="ask-h" class="s-prose ask__h">방금 본 계산을 귀사의 물동량·재고·비용으로 다시 돌려 보고 싶다면, 연락 주세요.</h2>
+  <p class="s-prose ask__p">{P.name} · {P.affiliation}. 물류·SCM 데이터 분석을 같이 할 자리, 인턴·신입 채용, 기사 숫자 확인 — 어느 쪽이든 LinkedIn 메시지나 메일로 답합니다.</p>
+  <Contact />
+</aside>
+<style>
+  .ask { padding-top: var(--s-6); padding-bottom: var(--s-5); }
+  .ask .s-rule { margin-bottom: var(--s-6); }
+  .ask__h { font-size: clamp(22px, 2.4vw, 30px); line-height: 1.35; margin: var(--s-2) 0 var(--s-3); max-width: 34em; }
+  .ask__p { color: var(--s-ink-2); max-width: 40em; }
+</style>

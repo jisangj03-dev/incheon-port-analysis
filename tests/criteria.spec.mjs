@@ -68,7 +68,7 @@ test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · �
   await expect(page.locator("header.s-mast nav a")).toHaveText(["지도", "시뮬레이션", "노트", "소개"]);
   const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
   const vh = page.viewportSize().height;
-  const lead = page.locator(".hero__text .s-lead");
+  const lead = page.locator(".live__who");
   await expect(lead).toContainText(P.name);
   const b = await lead.boundingBox();
   expect(b && b.y + b.height <= vh, "실명 한 줄이 첫 화면 안").toBe(true);
