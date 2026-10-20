@@ -129,7 +129,7 @@ def extras(d):
                     agg[r["hsCd2"]] = agg.get(r["hsCd2"], 0) + float(r["expDlr"] or 0) + float(r["impDlr"] or 0)
             tot = sum(agg.values()) or 1
             p["hs_top"] = {"ym": last_ym, "items": [{"hs": h, "name": hsn.get(h, h), "musd": round(v / 1e6), "pct": round(100 * v / tot, 1)} for h, v in sorted(agg.items(), key=lambda kv: -kv[1])[:5]]}
-    d["air_note"] = "관세청 국가별 수출입은 항공·해상을 가르지 않는다 — 항공 비중이 큰 품목(반도체 등 85류)이 많은 나라는 바닷길 충격이 부풀려진다. 운송수단별 국가 통계를 찾는 중(원천 탐색)."
+    d["air_note"] = "관세청 국가별 수출입은 항공·해상을 가르지 않는다 — 항공 비중이 큰 품목(반도체 등 85류)이 많은 나라는 바닷길 충격이 부풀려진다. 운송수단별 국가 통계는 아직 싣지 않았다."
     return d
 
 

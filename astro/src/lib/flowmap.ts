@@ -250,8 +250,10 @@ export class FlowMap {
           let split = 1;
           // 부두군 몫 = 그 달 부두군별 컨테이너(천TEU) · 그 달 자료가 아직 없으면 자료가 있는 가장 가까운 앞 달(같게 나누지 않는다 · 2차 사실 대조)
           if (sea) { let T: any = null; for (let k = mi; k >= 0 && !T; k--) T = F.months[k].teu; T = T || {}; const tot = F.sea_gates.reduce((s: number, x: any) => s + (T[x.id] || 0), 0); split = tot ? (T[g.id] || 0) / tot : 1 / F.sea_gates.length; }
-          // 나라 몫 — 하늘 = 인천공항 실측 항공화물의 나라 몫(도착·출발 톤 · 전체 대비), 바다 = 관세청 국가별의 전국 대비 몫. 둘 다 「전체 대비」라 주요 10개국 밖 몫은 점이 없다(범례에 적는다)
-          const share = (!sea && p.air_in_pct != null ? (dir === 0 ? p.air_in_pct : p.air_out_pct) : dir === 0 ? (p.imp_nat_pct ?? p.imp_pct) : (p.exp_nat_pct ?? p.exp_pct)) / 100;
+          // 나라 몫(가정 하나) — 바다·하늘 모두 관세청 국가별의 「전국 대비」 몫을 관문에 그대로 쓴다. 관문별 나라 교차표가 없어서다.
+          //   [2026-10-20 3차 사실 대조] 하늘에 쓰던 인천공항 항공화물 톤 비중은 환적·우편이 섞여 교역 몫이 아니었다(홍콩 0.3% → 10%) — 걷었다.
+          //   10개국 밖 몫은 점이 없다(범례에 적는다)
+          const share = (dir === 0 ? (p.imp_nat_pct ?? p.imp_pct) : (p.exp_nat_pct ?? p.exp_pct)) / 100;
           rate[mi] = (v * share * (d.n / dSum) * split) / this.o.unit / this.o.monthSec;
         });
         // 들어오면 먼 길 → 가까운 길 · 나가면 가까운 길 → 먼 길

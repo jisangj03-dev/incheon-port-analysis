@@ -56,7 +56,7 @@ const navi = NV?.status === "ok"
       <button type="button" class="s-btn s-btn--ghost" id="reach-play">다시 번지기</button>
       <button type="button" class="s-btn s-btn--ghost" id="reach-stop" hidden>번지기 멈춤</button>
       <label class="reach__slider">문턱 <input id="reach-t" type="range" min="0" max="180" step="5" value="180" aria-label="도착 분 문턱" /></label>
-      <p class="s-cap reach__note" data-furniture>{SL.length > 1 ? `시간대 배율은 카카오 내비(미래 출발시각 · ${NV?.pairs?.length ?? 30}쌍)와 견준 오차 중앙값으로 모든 길의 시간을 같은 비율로 늘린 것입니다 — 실측 소통 속도가 아닙니다(국가교통정보센터 실측 속도는 키 신청 뒤).` : "시간대 배율은 내비 대조 결과가 없어 싣지 않았습니다."} 상하차·준비 분은 모든 도착 시간에 그대로 더합니다.</p>
+      <p class="s-cap reach__note" data-furniture>{SL.length > 1 ? `시간대 배율은 카카오 내비(미래 출발시각 · ${NV?.pairs?.length ?? 30}쌍)와 견준 오차 중앙값으로 모든 길의 시간을 같은 비율로 늘린 것입니다 — 실측 소통 속도가 아닙니다.` : "시간대 배율은 내비 대조 결과가 없어 싣지 않았습니다."} 상하차·준비 분은 모든 도착 시간에 그대로 더합니다.</p>
     </div>
   </ToolShell>
   <script type="application/json" id="reach-meta" set:html={JSON.stringify({ src: u("/data/isochrones.json"), geo: u("/data/reach-geo.json"), k: DEF.k, tag: tag(DEF) })}></script>

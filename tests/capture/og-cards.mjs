@@ -45,7 +45,7 @@ if (existsSync(join(dir, "tool.html")) && TOOLS.length) {
       const v = await rd.evaluate(() => {
         const T = (s) => (document.querySelector(s)?.textContent || "").replace(/\s+/g, " ").trim(), n = document.querySelector("[data-og-num]");
         return { q: T(".tool__q"), lead: T(".tool__lead"), who: T(".tool__head .s-cap").replace(/ · [^·]*기준$/, ""), asof: T(".tool__asof"),
-          num: (n?.textContent || "").replace(/\s+/g, "").trim(), unit: n?.getAttribute("data-og-num") || "", source: T(".tool__foot .s-trust"),
+          num: (n?.textContent || "").replace(/\s+/g, "").trim(), unit: n?.getAttribute("data-og-num") || "", source: T(".tool__foot .s-trust").replace(/ · CSV$/, ""), // 끝의 CSV 링크 글자는 아래 퍼가기 지면이 따로 단다(「CSV · CSV」 겹침 · 3차 사실 대조)
           csv: document.querySelector(".tool__foot a[download]")?.getAttribute("href") || "" };
       });
       if (!v.q || !v.num) throw new Error(`질문 또는 큰 숫자를 못 읽었다(${t.href})`);

@@ -52,7 +52,7 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
     <section class="ab-sec" id="method"><h2>숫자를 어떻게 재나</h2>
       <p class="s-cap s-prose">틀린 숫자·깨진 링크는 <a href={ISSUES}>저장소 이슈</a>로 알려 주셔도 됩니다. 오류는 지우지 않고 고친 자리에 정정 표기로 남깁니다.</p>
       <ol class="s-index">
-        <li id="sources"><div><h3>공공 1차 데이터만</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
+        <li id="sources"><div><h3>공공 데이터가 바탕</h3><p>쓰는 데이터 전부를 <a href={u("/data.html")}>출처 대장</a>에 적었습니다 — 출처마다 이용허락과 공공누리 유형. 확인하지 못한 유형은 「미확인」이라고 그대로 적습니다. 차트마다 갱신일·출처·CSV 내려받기가 붙습니다.</p></div></li>
         <li><div><h3>기준을 먼저 적는다</h3><p>판정하는 글은 데이터를 받기 전에 판정 기준을 먼저 적어 공개합니다. 못 미친 것도 못 미쳤다고 냅니다.</p></div></li>
         <li><div><h3>불리한 숫자도 같은 화면에</h3><p>지도와 노트는 편마다 인천이 약한 반대 지표를 하나 이상 같이 둡니다.</p></div></li>
         <li><div><h3>코드는 전부 공개</h3><p>수집·계산·차트·검사 코드는 <a href={REPO}>저장소</a>에 있습니다. 화면의 숫자는 그 코드가 데이터 파일에서 만든 것뿐입니다.</p></div></li>
@@ -72,6 +72,7 @@ const jsonld = [{ "@context": "https://schema.org", "@type": "AboutPage", name: 
     </section>
 
     {/* [2026-10-20 사실 대조] 「운영 원칙 전문」(content/about.md)은 정체성 전환 전 문면에 내부 경로·작업어가 섞여 지면에서 뺐다 — 원문은 저장소에 그대로 */}
+    <p class="s-cap" data-ai-mark>AI 정리</p> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>
 </Studio>
 <style>

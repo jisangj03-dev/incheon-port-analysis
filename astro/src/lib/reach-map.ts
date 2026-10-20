@@ -74,19 +74,22 @@ export class ReachMap {
     ctx.font = `700 ${this.W < 500 ? 11.5 : 13}px system-ui, sans-serif`; ctx.textBaseline = "middle"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(243,239,229,0.9)";
     const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width, oxL = ox - 12 - ow < 4 ? ox + 12 : ox - 12 - ow;
     ctx.strokeText(oname, oxL, oy - 14); ctx.fillStyle = "#191714"; ctx.fillText(oname, oxL, oy - 14);
+    const oBox = [oxL - 2, oy - 22, oxL + ow + 2, oy - 6]; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
     ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 18), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
-    const boxes: number[][] = [];
+    const boxes: number[][] = [oBox, [ox - 9, oy - 9, ox + 9, oy + 9]];
     ctx.font = `500 ${this.W < 500 ? 10.5 : 12}px system-ui, sans-serif`; ctx.textBaseline = "middle";
     for (const [nm, [x, y]] of Object.entries(this.iso.cities)) {
       const [cx, cy] = this.px(x, y), m0 = ((this.truck && (O as any).cities_truck) || O.cities)[nm], m = m0 == null ? null : Math.round(m0 * this.k + this.prep), on = m != null && m <= this.t;
-      const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width, bx = [cx + 6, cy - 7, cx + 6 + tw, cy + 7];
-      // 이름표가 들어갈 자리가 없으면 점도 그리지 않는다 — 이름 없는 점 0(2026-10-20 화면 판정 · 그 도시는 오른쪽 표에 있다)
-      if (bx[2] > this.W - 2 || boxes.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]))) continue;
-      boxes.push(bx);
+      const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width;
+      // 이름표 자리 넷(오른쪽·왼쪽·위·아래)을 차례로 — 모두 막히면 그때만 점도 뺀다(이름 없는 점 0 · 3차 화면 판정: 「용인 기흥」이 빠져 18곳인데 점 17)
+      const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13]];
+      let lx = 0, ly = 0, hit = true;
+      for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2) continue; if (boxes.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]))) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }
+      if (hit) continue;
       ctx.beginPath(); ctx.arc(cx, cy, on ? 3.5 : 2.5, 0, Math.PI * 2); ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.35)"; ctx.fill();
-      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(243,239,229,0.85)"; ctx.strokeText(label, cx + 6, cy);
-      ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.5)"; ctx.fillText(label, cx + 6, cy);
+      ctx.lineWidth = 3; ctx.strokeStyle = "rgba(243,239,229,0.85)"; ctx.strokeText(label, lx, ly);
+      ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.5)"; ctx.fillText(label, lx, ly);
     }
     this.onFrame?.(this);
   }

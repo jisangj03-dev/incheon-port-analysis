@@ -63,9 +63,12 @@ export class TreemapRace {
   render(anim = true) {
     const Y = this.years[this.i], W = this.host.clientWidth, H = this.host.clientHeight;
     const top = [...Y.items].sort((a, b) => (this.rank.get(a.hs) ?? 999) - (this.rank.get(b.hs) ?? 999));
-    const head = top.slice(0, this.o.top), rest = top.slice(this.o.top).reduce((s, x) => s + x.v, 0);
-    const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${top.length - head.length}개 류`, v: rest }] : head;
-    const R = squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H });
+    // 칸 수 = 모든 칸에 이름(짧은 이름 또는 「HS 00」)이 들어가는 만큼만 — 안 들어가는 작은 칸은 「그 밖」으로 묶는다(3차 화면 판정: 이름 없는 칸)
+    //   「그 밖」 = 머리 N 품목을 뺀 나머지 전부의 합(줄인 품목도 들어간다)
+    const mk = (N: number) => { const head = top.slice(0, N), rest = top.slice(N).reduce((s, x) => s + x.v, 0); const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${top.length - head.length}개 류`, v: rest }] : head; return { list, R: squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H }) }; };
+    let N = this.o.top, L = mk(N);
+    while (N > 3 && L.list.some((it, k) => { const r = L.R[k], code = it.hs === "etc" ? "그 밖" : `HS ${it.hs}`; return !(r.h > 22 && code.length * 13 + 14 < r.w); })) L = mk(--N);
+    const { list, R } = L;
     const live = new Set<string>();
     list.forEach((it, k) => {
       live.add(it.hs);
@@ -90,8 +93,10 @@ export class TreemapRace {
       const short = it.name.replace(/\s*\(.*\)$/, "");
       // 칸 폭에 들어가는 이름만(글자 하나 ≈ 13px) — 390 에서 「광학·정밀·의료기기」가 잘렸다(2차 화면 판정) · 안 들어가면 짧은 이름 → % 만 → 빈 칸(값은 누르면 · CSV)
       const fit = (t: string) => t.length * 13 + 14 < r.w;
-      const nm = big && fit(it.name) ? it.name : (big || mid) && fit(short) ? short : "";
-      el.innerHTML = nm ? `<b>${nm}</b> <i>${share.toFixed(1)}%</i>` : mid && r.w > 52 ? `<i>${share.toFixed(1)}%</i>` : "";
+      // 짧은 이름도 안 들어가면 HS 번호(「HS 90」 · 실무에서 쓰는 이름) — 그것도 안 되면 빈 칸(이름 없이 %만 남기지 않는다 · 3차 화면 판정)
+      const code = it.hs === "etc" ? "그 밖" : `HS ${it.hs}`;
+      const nm = big && fit(it.name) ? it.name : (big || mid) && fit(short) ? short : r.h > 22 && fit(code) ? code : "";
+      el.innerHTML = nm ? `<b>${nm}</b>${r.h > 34 || r.w > (nm.length + 6) * 13 ? ` <i>${share.toFixed(1)}%</i>` : ""}` : "";
       if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;

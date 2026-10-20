@@ -34,7 +34,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   <div class="live__text">
     <p class="s-cap live__who">{PF.name} · SCM 작업실</p>
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
-    <p class="s-lead s-prose live__one">{L.ym} 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 원천 「전국」 줄).</span></p>
+    <p class="s-lead s-prose live__one">{L.ym} 금액 · 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 원천 「전국」 줄).</span></p>
     <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
       <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · <span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> · <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></span></p>
     <div class="live__cta">
@@ -49,7 +49,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문을 지나는 교역 흐름 — ${L.ym} 인천공항·인천항 수출입 ${fmt(L.total)}억 달러. 들어오는 것(수입)은 주홍, 나가는 것(수출)은 바다색 점.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 = 그 달 관문 교역액 가운데 주요 10개국 몫(월 통계 · 실시간 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span> · 원 = 물류창고 등록 개소<span id="fm-dens" hidden> · 회녹 결 = 선박 통행 밀도(2015~21)</span></p>
+    <p class="live__legend"><span class="k k-in"></span>수입 <span class="k k-out"></span>수출 = 그 달 관문 교역액 × 전국 나라 몫(가정 · 수집한 10개국만 · 월 통계 · 실시간 아님) · <span id="fm-unit">점 하나 ≈ 1억 달러</span> · 원 = 물류창고 등록 개소<span id="fm-dens" hidden> · 회녹 결 = 선박 통행 밀도(2015~21)</span></p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
@@ -68,7 +68,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       <dt>전국 대비</dt><dd>수입 {L.imp_share_pct}% · 수출 {L.exp_share_pct}%</dd>
     </dl>
     {TOOLS.length > 0 && <><p class="s-cap">이 관문에서 이어지는 도구</p><ul class="live__tools">{TOOLS.map((t) => <li><a href={u(t.href)} title={t.q}>{t.title} →</a></li>)}</ul></>}
-    <p class="s-cap">{F.partners[0]?.imp_nat_pct != null ? `나라별 몫 — 전국 수입 대비 · 주요 교역 10개국 가운데 큰 순 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}` : `나라별 몫 — 주요 10개국 합을 100으로 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}`}</p>
+    <p class="s-cap">{F.partners[0]?.imp_nat_pct != null ? `나라별 몫 — 전국 수입 대비 · 수집한 10개국 가운데 큰 순 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}` : `나라별 몫 — 주요 10개국 합을 100으로 · ${F.partner_months[0]}~${F.partner_months[F.partner_months.length - 1]}`}</p>
     <ol class="live__bars">
       {[...F.partners].sort((a: any, b: any) => (b.imp_nat_pct ?? b.imp_pct) - (a.imp_nat_pct ?? a.imp_pct)).slice(0, 6).map((p: any) => { const v = p.imp_nat_pct ?? p.imp_pct; return <li><span>{p.name}</span><i style={`--w:${v}%`}></i><b>수입 {v}%</b></li>; })}
     </ol>
@@ -81,7 +81,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
     <details class="live__how"><summary class="s-cap">이 지도를 만든 방법·출처</summary>
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 2억 달러 안팎 다르다). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
-    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 점은 관문(인천공항·인천항 부두군)에서 끝나거나 시작한다 — 관문 너머 내륙으로 어디까지 갔는지는 월 통계에 없어 그리지 않는다. 하늘 길의 나라 몫은 인천공항 실측 항공화물(나라별 도착·출발 톤 · 직화물+환적+우편 · {F.air_cargo ? `${F.air_cargo.through.slice(0, 4)}년 ${Number(F.air_cargo.through.slice(5, 7))}월까지` : "—"} · 인천국제공항공사), 바다 길의 나라 몫은 전국 나라별 몫(관세청 국가별 · 인천항만의 나라별 몫이 아니다)이다. 바다 길은 해상망 최단 경로(searoute 1.5.0 · Eurostat MARNET), 하늘 길은 대권(최단 거리)으로 계산한 길이지 그 달 실제로 지난 배·비행기의 항적이 아니다. 가까이 보는 화면에서는 해상망 끝에서 부두까지가 직선이라 바다 위 점을 그리지 않는다.</p>
+    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 점은 관문(인천공항·인천항 부두군)에서 끝나거나 시작한다 — 관문 너머 내륙으로 어디까지 갔는지는 월 통계에 없어 그리지 않는다. 나라 몫은 가정이다 — 관문별 나라 교차표가 공개되지 않아, 관세청 국가별 수출입실적의 전국 몫(수집한 10개국)을 공항·항만에 똑같이 쓴다. 항만 금액은 그 달 부두군별 컨테이너(천TEU) 비율로 신항·남항·국제여객부두에 나눈다(벌크 화물도 같은 비율 — 가정). 바다 길은 해상망 최단 경로(searoute 1.5.0 · Eurostat MARNET), 하늘 길은 대권(최단 거리)으로 계산한 길이지 그 달 실제로 지난 배·비행기의 항적이 아니다. 가까이 보는 화면에서는 해상망 끝에서 부두까지가 직선이라 바다 위 점을 그리지 않는다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소(인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     </details>
     <p class="s-cap live__mark" data-ai-mark>{aiMark("index")}</p>
@@ -136,14 +136,18 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const place = (f: FlowMap) => {
     const near = f.cam.zoom > 6.2, W = f.W, H = f.H, detail = f.cam.zoom > (f.views.sudo.zoom + f.views.incheon.zoom) / 2;
     const taken: number[][] = [...(fixed ??= fixedBoxes(H))];
+    const off: { name: string; q: number[] }[] = [];
     for (const l of [...LBS].sort((a, b) => b.pri - a.pri)) {
       const want = (l.near === null || l.near === near) && (!l.inc || detail);
       if (!want) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; }
       if (!l.w) { const r = l.el.getBoundingClientRect(); l.w = r.width; l.h = r.height; }
       let s = f.screen(l.lon, l.lat);
-      // [2026-10-20 2차 화면 판정 — 화면 밖으로 나가는 선 끝에 이름이 없다] 나라 자리가 화면 밖이면 그 나라 바닷길이 화면 안에 마지막으로 남는 자리에 이름을 단다
+      // [2026-10-20 3차 화면 판정] 화면 밖 나라 이름을 바닷길이 들어오는 자리에 하나씩 달면 남쪽 길 넷이 한자리에 뭉쳤다(홍콩·베트남·싱가포르·대만 · 「독일」이 중국 남쪽) →
+      //   화면 밖 나라는 들어오는 가장자리별로 한 덩어리 이름표(「↓ 대만·홍콩·…」)로 묶는다 — 아래 edge()
       if (l.route && (s[0] < 24 || s[0] > W - 24 || s[1] < H * 0.15 || s[1] > H - 24)) {
-        for (const [lo, la] of l.route) { const q = f.screen(lo, la); if (q[0] > 40 && q[0] < W - 40 && q[1] > H * 0.18 && q[1] < H - 90) { s = q; break; } }
+        if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden";
+        if (want) for (const [lo, la] of l.route) { const q = f.screen(lo, la); if (q[0] > 30 && q[0] < W - 30 && q[1] > H * 0.18 && q[1] < H - 100) { off.push({ name: l.el.textContent || "", q }); break; } }
+        continue;
       }
       let ok = false, x = 0, y = 0;
       if (s[0] < 24 || s[0] > W - 24 || s[1] < H * 0.15 || s[1] > H - 24) { if (l.el.style.visibility !== "hidden") l.el.style.visibility = "hidden"; continue; } // 자리가 화면 가장자리·안개 속이면 뺀다
@@ -157,6 +161,25 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       if (l.el.style.visibility !== v) l.el.style.visibility = v;
       if (ok) { l.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + l.w + 3, y + l.h + 2]); }
     }
+    edge(off, W, H, taken);
+  };
+  // 화면 밖 나라 — 길이 들어오는 가장자리(위·오른쪽·아래·왼쪽)별로 이름을 묶어, 그 길들이 들어오는 자리의 가운데에 단다
+  const EDGE: HTMLElement[] = [];
+  const edge = (off: { name: string; q: number[] }[], W: number, H: number, taken: number[][]) => {
+    if (!EDGE.length) for (let i = 0; i < 4; i++) { const el = document.createElement("span"); el.className = "fm-lb fm-lb--edge"; el.dataset.label = ""; $("fm-labels").append(el); EDGE.push(el); }
+    const B: { name: string; q: number[] }[][] = [[], [], [], []], AR = ["↑", "→", "↓", "←"];
+    for (const o of off) { const d = [o.q[1], W - o.q[0], H - o.q[1], o.q[0]]; B[d.indexOf(Math.min(...d))].push(o); }
+    B.forEach((g, i) => {
+      const el = EDGE[i];
+      if (!g.length) { el.style.visibility = "hidden"; return; }
+      const txt = `${AR[i]} ${[...new Set(g.map((o) => o.name))].join("·")}`;
+      if (el.textContent !== txt) el.textContent = txt;
+      const r = el.getBoundingClientRect(), w = r.width, h = r.height;
+      const cx = g.reduce((a, o) => a + o.q[0], 0) / g.length, cy = g.reduce((a, o) => a + o.q[1], 0) / g.length;
+      let x = Math.max(6, Math.min(W - w - 6, cx - w / 2)), y = Math.max(H * 0.14, Math.min(H - h - 96, cy - h / 2));
+      for (let k = 0; k < 6 && taken.some((t) => x < t[2] && x + w > t[0] && y < t[3] && y + h > t[1]); k++) y += i === 2 ? -(h + 4) : h + 4;
+      el.style.visibility = "visible"; el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + w + 3, y + h + 2]);
+    });
   };
 
   async function boot() {
@@ -327,6 +350,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__labels :global(.fm-lb--hub b) { font-size: 13px; font-weight: 600; }
 
   /* 지도 칸 안 — 범례 한 줄(아래) · 보기 단추(아래) · 흐름 멈춤(오른쪽 위 구석) */
+  .live__labels :global(.fm-lb--edge) { font-size: 12.5px; color: var(--s-ink-2); font-weight: 600; }
   .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
   .live__legend { position: absolute; left: 16px; right: 16px; bottom: 66px; z-index: 3; margin: 0; font-size: 12.5px; color: var(--s-ink-2); pointer-events: none;
     text-shadow: 0 0 4px var(--s-paper), 0 0 2px var(--s-paper); }
@@ -375,7 +399,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__cta { margin-top: var(--s-4); gap: 8px; }
     .live__cta .s-btn { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
     .live__stage { height: clamp(380px, 58svh, 620px); }
-    .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
+    .live__labels :global(.fm-lb--edge) { font-size: 12.5px; color: var(--s-ink-2); font-weight: 600; }
+  .live__nat { display: block; font-size: 14px; color: var(--s-ink-3); margin-top: 4px; }
   .live__legend { bottom: 64px; font-size: 12px; }
     .live__ctl { gap: 6px; }
     .live__ctl .s-btn { padding: 0 10px; font-size: 13px; }
