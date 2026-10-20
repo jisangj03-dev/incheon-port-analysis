@@ -2,6 +2,7 @@
 // 판정 기준 = docs/측심_공개전개편_판정기준_선커밋_20261015.md P0.
 // CI(소프트웨어 렌더)에서 지도 루프가 주 스레드를 오래 잡으므로 「그림이 바뀌었나」 대신 상태(돌고 있나 · 단계·달이 바뀌나)를 본다.
 import { test, expect } from "@playwright/test";
+import { labelHits } from "./label-hits.mjs";
 
 const B = "/incheon-port-analysis";
 test.setTimeout(120_000);
@@ -91,4 +92,15 @@ for (const w of [0, 320]) test(`홈: 지도 단추가 숫자판·범례와 겹�
   expect(r.rows, "단추가 두 줄로 넘친다").toBe(1);
   expect(r.tall, "단추 글자가 두 줄로 꺾인다").toBe(0);
   expect(r.out, "단추가 화면 밖으로 나간다").toBe(0);
+});
+
+// [2026-10-20 #67 ③] 검수 크기 1568×709 · 움직이는 지도에서도 이름표 × 글·단추 겹침 0 — 움직이는 지도 시험은 이 파일에 모아 한 작업자에서 차례로(동시에 돌면 CI 에서 지도 둘이 CPU 를 나눠 120초를 넘겼다 · QA 288)
+test("히어로 — 1568×709 움직이는 지도에서도 이름표 × 글·단추 겹침 0", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
+  test.setTimeout(120_000);
+  await page.setViewportSize({ width: 1568, height: 709 });
+  await page.goto(`${B}/`, { waitUntil: "load" });
+  const bad = [];
+  for (let k = 0; k < 6; k++) { await page.waitForTimeout(1500); for (const h of await labelHits(page)) bad.push(h); }
+  expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);
 });

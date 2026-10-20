@@ -1,6 +1,7 @@
 // 홈 첫 화면(히어로) 겹침 0 — 2026-10-15 채팅 검수: 1536×640(노트북 크롬 실측)에서 「2026-07 인천 관문을 지난 수출입 908.7억 달러」가
 // LinkedIn 단추를 가렸다. 노트북 흔한 크기 9가지에서 글·단추·숫자판·지도 단추가 서로 겹치지 않는지 본다(지도 그림 위 겹침은 설계 — 글자끼리만).
 import { test, expect } from "@playwright/test";
+import { labelHits } from "./label-hits.mjs";
 const B = "/incheon-port-analysis";
 const SIZES = [1280, 1440, 1536].flatMap((w) => [640, 720, 900].map((h) => ({ width: w, height: h })));
 
@@ -39,16 +40,6 @@ test("히어로 — 너비 1280·1440·1536 × 높이 640·720·900 에서 글·
 // CI 에서 움직이는 지도가 주 스레드를 막아 16크기를 다 열면 5분을 넘었다(QA 287) → 16크기는 동작 줄이기(배치는 같다 · 위 시험과 같은 방법),
 // 검수한 1568×709 만 움직이는 그대로 여러 번 잰다
 const SIZES2 = [1280, 1440, 1536, 1568].flatMap((w) => [640, 709, 720, 900].map((h) => ({ width: w, height: h })));
-const labelHits = (page) => page.evaluate(() => {
-  const R = (e) => e.getBoundingClientRect(), txt = [...document.querySelectorAll(".live__text > *, .live__text a, .live__text button")].map((e) => [e.className?.toString().split(" ")[0] || e.tagName, R(e)]);
-  const out = [];
-  for (const l of document.querySelectorAll(".fm-lb")) {
-    if (getComputedStyle(l).visibility === "hidden") continue;
-    const a = R(l); if (!a.width) continue;
-    for (const [n, c] of txt) { const ox = Math.min(a.right, c.right) - Math.max(a.left, c.left), oy = Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top); if (ox > 1 && oy > 1) out.push(`${(l.textContent || "").slice(0, 10)} × ${n}`); }
-  }
-  return out;
-});
 test("히어로 — 지도 이름표 × 글·단추 겹침 0(너비 1280·1440·1536·1568 × 높이 640·709·720·900)", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
   test.setTimeout(240_000);
@@ -62,12 +53,4 @@ test("히어로 — 지도 이름표 × 글·단추 겹침 0(너비 1280·1440·
   }
   expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);
 });
-test("히어로 — 1568×709 움직이는 지도에서도 이름표 × 글·단추 겹침 0", async ({ page }, info) => {
-  test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
-  test.setTimeout(120_000);
-  await page.setViewportSize({ width: 1568, height: 709 });
-  await page.goto(`${B}/`, { waitUntil: "load" });
-  const bad = [];
-  for (let k = 0; k < 6; k++) { await page.waitForTimeout(1500); for (const h of await labelHits(page)) bad.push(h); }
-  expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);
-});
+// 1568×709 움직이는 지도 시험은 tests/autoplay.spec.mjs 에 있다 — 움직이는 지도 시험끼리 한 파일(한 작업자)에서 차례로 돌게(QA 288)
