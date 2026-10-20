@@ -87,7 +87,18 @@ def fetch():
                 j = json.loads(decode(body))
                 diag["tried"][-1]["json_keys"] = list(j.keys())[:12] if isinstance(j, dict) else None
                 # 응답 구조 진단(값은 앞부분만 · 개인정보 칸 없음 — 파일 메타)
-                diag["tried"][-1]["json_head"] = json.dumps(j, ensure_ascii=False)[:1500]
+                diag["tried"][-1]["json_head"] = json.dumps(j, ensure_ascii=False)[:600]
+                # 비어 있지 않은 칸만(파일 메타) — 1500자 머리에는 검색 조건 빈칸만 찼다(여섯째 실행 10/20)
+                def nonempty(o, pre=""):
+                    out = {}
+                    if isinstance(o, dict):
+                        for k, v in o.items():
+                            if isinstance(v, (dict, list)): out.update(nonempty(v, f"{pre}{k}."))
+                            elif v not in (None, "", 0, False): out[f"{pre}{k}"] = str(v)[:120]
+                    elif isinstance(o, list):
+                        for i, v in enumerate(o[:3]): out.update(nonempty(v, f"{pre}{i}."))
+                    return out
+                diag["tried"][-1]["json_set"] = dict(list(nonempty(j).items())[:80])
                 def pick(k):
                     for box in (j, j.get("fileDataRegistVO") or {}, j.get("dataSetFileDetailInfo") or {}):
                         if isinstance(box, dict) and box.get(k): return box.get(k)
