@@ -64,7 +64,7 @@ test("CSV = 지면 데이터(맥박·등시선·트리맵·환율·묘박지) ·
 test("도구 목록 · 홈 질문 · 관문 판이 같은 도구 목록(rooms.json)에서 나온다", async ({ page }) => {
   const R = JSON.parse(J("data/rooms.json")).rooms.find((r) => r.id === "tools").items;
   await page.goto(`${B}/tools/`, { waitUntil: "domcontentloaded" });
-  for (const t of R) await expect(page.locator(`main h2 a[href$="${t.href}"]`)).toBeVisible(); // 썸네일 링크는 같은 곳을 가리키는 덧링크라 보조기기에서 뺐다
+  for (const t of R) await expect(page.locator(`main .tl a[href$="${t.href}"] h2`)).toBeVisible(); // 도구 한 줄 = 링크 하나(지금의 답 + 질문 제목 · 4차 화면 판정 Q1)
   await page.goto(`${B}/`, { waitUntil: "domcontentloaded" });
   expect(await page.locator("#fm-panel .live__tools a").count()).toBe(R.filter((t) => t.gate).length);
 });

@@ -128,7 +128,7 @@ function legFrom(ll: number[][], speedKm: number, arc = 0): Leg {
 }
 
 /** 대권(큰 원) 경유점 — 하늘 길. 경도는 끊기지 않게 이어 붙인다. */
-function greatCircle(a: number[], b: number[], k = 24) {
+export function greatCircle(a: number[], b: number[], k = 24) {
   const r = Math.PI / 180, v = (p: number[]) => [Math.cos(p[1] * r) * Math.cos(p[0] * r), Math.cos(p[1] * r) * Math.sin(p[0] * r), Math.sin(p[1] * r)];
   const A = v(a), B = v(b), w = Math.acos(Math.min(1, A[0] * B[0] + A[1] * B[1] + A[2] * B[2]));
   const out: number[][] = [];
@@ -164,7 +164,7 @@ export const VIEWS_M: Record<string, Cam> = {
   incheon: { lon: 126.75, lat: 37.42, zoom: 8.45, pitch: 52, bearing: 18, ox: 0, oy: -0.08 },
 };
 
-export type Opts = { unit: number; monthSec: number; maxDpr: number; lite: boolean; onMonth?: (i: number) => void; onFrame?: (f: FlowMap) => void;
+export type Opts = { unit: number; monthSec: number; airTons?: boolean; maxDpr: number; lite: boolean; onMonth?: (i: number) => void; onFrame?: (f: FlowMap) => void;
   /** 점 진하기(1 = 기본 · 따라가기처럼 배경으로 깔 때는 낮춘다) */ dim?: number;
   /** 덧그림 — 점 위·안개 아래(따라가기의 상자·길) */ overlay?: (ctx: CanvasRenderingContext2D, P: (x: number, y: number, h?: number, out?: number[]) => number[], near: boolean) => void;
   /** 카메라를 밖에서 몬다(따라가기 — 스크롤이 카메라) */ camStep?: (f: FlowMap, dt: number) => void;
@@ -241,7 +241,11 @@ export class FlowMap {
     }));
     // 빈도 — 그 달 관문 교역액 × 나라 비중 × 목적지 비중(창고 개소) × 바다 부두군 비중(컨테이너) ÷ 점 하나 값 ÷ 한 달 초
     const dSum = this.dests.reduce((s: number, d: any) => s + d.n, 0);
+    // [2026-10-20 4차 화면 판정 Q3] airTons = 점은 인천공항 항공화물 실측(나라별 도착·출발 톤 · 인천국제공항공사)만 — 나라 몫 가정(관문 금액 × 전국 몫)을 걷는다.
+    //   바다는 인천항을 나라별로 가른 공개 통계가 없어 점을 싣지 않는다(해상 경로는 옅은 선으로만 · 계산한 길) · 톤은 반기 자료라 달마다 바뀌지 않는다(달 넘김 없음)
+    const AC = F.air_cargo, am = AC ? (Number(AC.through.slice(0, 4)) - Number(AC.from.slice(0, 4))) * 12 + Number(AC.through.slice(5, 7)) - Number(AC.from.slice(5, 7)) + 1 : 1;
     F.partners.forEach((p: any, pi: number) => this.gates.forEach((g, gi) => this.dests.forEach((d: any, di: number) => {
+      if (this.o.airTons && g.kind === "sea") return;
       for (const dir of [0, 1]) {
         const rate = new Float32Array(F.months.length);
         F.months.forEach((m: any, mi: number) => {
@@ -253,6 +257,7 @@ export class FlowMap {
           // 나라 몫(가정 하나) — 바다·하늘 모두 관세청 국가별의 「전국 대비」 몫을 관문에 그대로 쓴다. 관문별 나라 교차표가 없어서다.
           //   [2026-10-20 3차 사실 대조] 하늘에 쓰던 인천공항 항공화물 톤 비중은 환적·우편이 섞여 교역 몫이 아니었다(홍콩 0.3% → 10%) — 걷었다.
           //   10개국 밖 몫은 점이 없다(범례에 적는다)
+          if (this.o.airTons) { rate[mi] = ((dir === 0 ? p.air_in_t : p.air_out_t) || 0) / am * (d.n / dSum) / this.o.unit / this.o.monthSec; return; }
           const share = (dir === 0 ? (p.imp_nat_pct ?? p.imp_pct) : (p.exp_nat_pct ?? p.exp_pct)) / 100;
           rate[mi] = (v * share * (d.n / dSum) * split) / this.o.unit / this.o.monthSec;
         });
@@ -310,7 +315,7 @@ export class FlowMap {
   }
   private grow() { const n = this.pr.length * 2, a = new Int32Array(n), b = new Float32Array(n), c = new Float32Array(n); a.set(this.pr); b.set(this.pt); c.set(this.pj); this.pr = a; this.pt = b; this.pj = c; }
   /** 지난 열두 달만 돈다(마지막 달에서 시작 → 열한 달 전 → … → 마지막 달) — 오래된 달로 건너뛰어 보이지 않게 */
-  monthAt() { const n = this.D.flows.months.length, k = Math.min(12, n), base = n - k; return base + ((((k - 1) + Math.floor(this.t / this.o.monthSec)) % k) + k) % k; }
+  monthAt() { if (this.o.airTons) return this.D.flows.months.length - 1; const n = this.D.flows.months.length, k = Math.min(12, n), base = n - k; return base + ((((k - 1) + Math.floor(this.t / this.o.monthSec)) % k) + k) % k; }
   /** 처음에 점을 미리 깔아 둔다(빈 화면에서 시작하지 않게) — 지난 시간을 거꾸로 채운다 */
   warm(sec: number) { const t0 = this.t; this.t -= sec; const cb = this.o.onMonth; this.o.onMonth = undefined; for (let s = 0; s < sec; s += 1 / 15) this.step(1 / 15); this.t = t0; this.month = this.monthAt(); this.o.onMonth = cb; }
 
@@ -357,7 +362,8 @@ export class FlowMap {
     }
     // 길(옅게) — 먼 길은 나라마다 한 줄(신항·공항만), 가까운 길은 목적지마다
     ctx.lineWidth = 1; ctx.strokeStyle = "rgba(25,23,20,0.10)"; ctx.beginPath();
-    this.legsG.forEach((L, i) => { const m = this.gMeta[i]; if (m.dir || (m.g !== 0 && m.g !== this.gates.length - 1) || near) return; this.legPath(L, P, o); }); // 가까이 = 바다 길·하늘 길 선 없음(관문에서 퍼지는 길만)
+    // airTons = 하늘길만(점이 실린 길) — 양이 없는 바닷길 선은 이름 없는 표식이 된다(실제 바닷길은 선박 통행 밀도 층이 보인다)
+    this.legsG.forEach((L, i) => { const m = this.gMeta[i]; if (m.dir || (m.g !== 0 && m.g !== this.gates.length - 1) || near || (this.o.airTons && m.g !== this.gates.length - 1)) return; this.legPath(L, P, o); }); // 가까이 = 바다 길·하늘 길 선 없음(관문에서 퍼지는 길만)
     if (near && !this.D.sudo) this.legsL.forEach((L, i) => { if (!this.lMeta[i].dir) this.legPath(L, P, o); });
     ctx.stroke();
     // 수도권 고속도로 통로 — 굵기 = 그 구간을 지나는 목적지 몫(추정) · 넷으로 묶어 한 번씩 칠한다
@@ -424,7 +430,7 @@ export class FlowMap {
       for (const d of this.wh) { if (/[구군]$/.test(d.id) && !det) continue; P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
     }
     // 나라 점(멀리에서만)
-    if (!near) for (const p of this.D.flows.partners) { P(mx(p.sea[0][0]), my(p.sea[0][1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }
+    if (!near) for (const p of this.D.flows.partners) { const at = this.o.airTons ? p.air : p.sea[0]; /* 나라 점 = 이름표 자리(공항) */ P(mx(at[0]), my(at[1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }
     this.o.overlay?.(ctx, P, near);
     // 먼 곳은 종이로 흐린다(대기 원근 · 위쪽 글자 바림도 겸한다)
     const g = ctx.createLinearGradient(0, 0, 0, H * 0.42);

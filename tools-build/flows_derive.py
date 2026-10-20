@@ -147,7 +147,8 @@ def derive():
         "sea_gates": [{"id": k, "lon": v["at"][0], "lat": v["at"][1], "approach": [] if SR else v["approach"]} for k, v in SEA_GATES.items()],
         "sea_route": SR["tool"] if SR else None,
         "air_gate": {"id": AIR_GATE["id"], "lon": AIR_GATE["at"][0], "lat": AIR_GATE["at"][1]},
-        "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"]} if air else None,
+        "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"], "total_t": air["total_in_t"] + air["total_out_t"],
+                      "shown_pct": round(100 * sum((p.get("air_in_t") or 0) + (p.get("air_out_t") or 0) for p in partners) / (air["total_in_t"] + air["total_out_t"]), 1)} if air else None,
         "dests": dests,
         "assume": [
             "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",

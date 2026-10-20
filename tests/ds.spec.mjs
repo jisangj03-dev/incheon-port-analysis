@@ -75,10 +75,11 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   const tick = (sec) => page.evaluate((s) => { const f = window.__fm; f.step(s); f.o.camStep ? f.o.camStep(f, s) : f.camStep(s); f.draw(); }, sec);
   const s1 = await px(); await tick(0.4); const s2 = await px();
   expect(s1 === s2, "캔버스가 움직이지 않는다").toBe(false);
-  // 달이 흐르면 머리 숫자가 바뀐다(한 달 = 7초 — 시계를 한 달 앞으로 민다)
+  // [2026-10-20 4차 화면 판정 Q3] 점 = 인천공항 항공화물(반기 자료 월평균)이라 달이 넘어가지 않는다 — 머리 숫자는 마지막 달에 머문다(시계를 밀어도 그대로)
   const ym = await page.locator("#fm-ym").innerText();
   await page.evaluate(() => { window.__fm.t += 7; }); await tick(0.05);
-  await expect(page.locator("#fm-ym")).not.toHaveText(ym, { timeout: 10_000 });
+  await expect(page.locator("#fm-ym")).toHaveText(ym);
+  expect(await page.evaluate(() => window.__fm.routes.length)).toBeGreaterThan(0);
   // [2026-10-15 P0] 첫 화면 = 수도권(가까이) · 「아시아」 → 멀리 · 「인천 관문」 → 더 가까이(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
   // [2026-10-20] 첫 화면 = 동북아(관측된 흐름 — 교역국 ↔ 인천 관문 — 이 보이는 넓이 · 내륙 배분 흐름을 걷은 뒤) · 인천 관문 가까이보다 멀다
   expect((await st()).zoom, "첫 화면이 동북아가 아니다").toBeLessThan(7);
@@ -94,8 +95,9 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await expect(page.locator("#fm-p-dl")).toContainText("인천공항");
   await page.locator("#fm-x").click();
   await expect(page.locator("#fm-panel")).toBeHidden();
-  // 흐름은 월 통계를 그린 것 — 실시간이 아니라고 화면에 적었다
-  await expect(page.locator(".live__legend")).toContainText("실시간 아님");
+  // 점은 인천공항 항공화물 실측(반기 자료의 월평균) — 기간을 범례에 적었다(실시간이 아님이 기간으로 읽힌다 · 4차 화면 판정 Q5: 범례에 면책 문구 금지)
+  await expect(page.locator(".live__legend")).toContainText("월평균");
+  await expect(page.locator(".live__legend")).toContainText("항공화물");
   // 같이 푸는 질문 — 질문마다 지면 하나
   const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions;
   await expect(page.locator(".qs > li")).toHaveCount(Q.length);
