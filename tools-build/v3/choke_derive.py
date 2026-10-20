@@ -64,9 +64,59 @@ def derive(ck, nm, hf):
             "incheon_imp_share_pct": last and last.get("imp_share_pct"), "incheon_ym": last and last.get("ym"), "points": pts}
 
 
+# [2026-10-15 P1 ③] 덧붙임 — 경유 규칙 공개 · 우회 거리·일수(choke_detour.json) · 운임 충격(KCCI 실측 · 사태 창) · 품목(HS2) 상위
+KC = os.path.join(ROOT, "data/collected/v3/kcci_weeks.json")
+DT = os.path.join(ROOT, "data/derived/choke_detour.json")
+NI = os.path.join(ROOT, "data/collected/nitemtrade.csv")
+HS = os.path.join(ROOT, "data/hs2_short.json")
+# 운임 충격 창 — 그 길목이 실제로 막혔던 때만(지금 원천 기간 2022-11~ 안에서는 홍해 사태 하나): 평소 = 2023-11 주 평균(공격 본격화 전) · 충격 = 2024 년 가장 높은 주
+SHOCK = {"redsea": {"event": "홍해 사태(2023-12~ · 후티 공격으로 수에즈 우회)", "base": ("2023-11-01", "2023-11-30"), "peak": ("2024-01-01", "2024-12-31"), "routes": ["KNEI", "KMDI"]}}
+ROUTE_KO = {"KNEI": "북유럽", "KMDI": "지중해"}
+
+
+def extras(d):
+    kc = json.load(open(KC, encoding="utf-8"))["weeks"] if os.path.exists(KC) else []
+    dt = json.load(open(DT, encoding="utf-8")) if os.path.exists(DT) else None
+    hsn = json.load(open(HS, encoding="utf-8"))["names"] if os.path.exists(HS) else {}
+    rows = []
+    if os.path.exists(NI):
+        import csv
+        rows = [r for r in csv.DictReader(open(NI, encoding="utf-8")) if r["hsCd2"] not in ("-", "")]
+    last_ym = max((r["reqYm"] for r in rows), default=None)
+    names = {}
+    for nm_ in json.load(open(NM, encoding="utf-8"))["months"].values():
+        for r in nm_: names[r["c"]] = r["name"]
+    rules = dict((pid, cs) for pid, _, _, cs in POINTS)
+    for p in d["points"]:
+        cs = rules[p["id"]]
+        p["rule"] = {"countries": [{"c": c, "name": names.get(c, c)} for c in cs], "basis": "선커밋 §5 경유 표 — 그 나라와의 바닷길이 이 길목을 지난다고 본 것(대표 항로 · 나라 안 항만별 차이는 무시)"}
+        if dt and p["id"] in dt["points"]: p["detour"] = {**dt["points"][p["id"]], "knot": dt["knot"]}
+        sh = SHOCK.get(p["id"])
+        if sh and kc:
+            out = []
+            for r in sh["routes"]:
+                b = [w[r] for w in kc if sh["base"][0] <= w["date"] <= sh["base"][1] and w.get(r)]
+                k = [w for w in kc if sh["peak"][0] <= w["date"] <= sh["peak"][1] and w.get(r)]
+                if b and k:
+                    top = max(k, key=lambda w: w[r]); bv = sum(b) / len(b)
+                    out.append({"route": r, "ko": ROUTE_KO.get(r, r), "base": round(bv), "peak": round(top[r]), "peak_week": top["date"], "pct": round(100 * (top[r] / bv - 1), 1)})
+            p["shock"] = {"event": sh["event"], "base_window": list(sh["base"]), "routes": out} if out else None
+        else:
+            p["shock"] = None
+        if rows and last_ym:
+            agg = {}
+            for r in rows:
+                if r["reqYm"] == last_ym and r["cntyCd"] in cs:
+                    agg[r["hsCd2"]] = agg.get(r["hsCd2"], 0) + float(r["expDlr"] or 0) + float(r["impDlr"] or 0)
+            tot = sum(agg.values()) or 1
+            p["hs_top"] = {"ym": last_ym, "items": [{"hs": h, "name": hsn.get(h, h), "musd": round(v / 1e6), "pct": round(100 * v / tot, 1)} for h, v in sorted(agg.items(), key=lambda kv: -kv[1])[:5]]}
+    d["air_note"] = "관세청 국가별 수출입은 항공·해상을 가르지 않는다 — 항공 비중이 큰 품목(반도체 등 85류)이 많은 나라는 바닷길 충격이 부풀려진다. 운송수단별 국가 통계를 찾는 중(원천 탐색)."
+    return d
+
+
 def main():
     hf = json.load(open(HF, encoding="utf-8")) if os.path.exists(HF) else None
-    d = derive(json.load(open(CK, encoding="utf-8")), json.load(open(NM, encoding="utf-8")), hf)
+    d = extras(derive(json.load(open(CK, encoding="utf-8")), json.load(open(NM, encoding="utf-8")), hf))
     json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     for p in d["points"]: print(p["ko"], p["asof"], "주", len(p["weeks"]), "지금", p["now28"], "2023", p["base_2023_same_month"], p["vs_base_pct"], "· 수입", p["imp_pct"], "% 수출", p["exp_pct"], "%")
     return 0

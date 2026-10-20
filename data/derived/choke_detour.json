@@ -1,0 +1,33 @@
+{
+ "_설명": "대표 항로의 최단 해상 거리(해리) — 길목을 열었을 때 vs 막았을 때. 일수 = 늘어난 거리 ÷ (16노트 × 24시간) · 속력은 가정.",
+ "tool": "searoute 1.5.0 (Apache-2.0 · Eurostat MARNET)",
+ "knot": 16,
+ "points": {
+  "redsea": {
+   "route": "부산 → 로테르담(희망봉)",
+   "open_nm": 10957,
+   "closed_nm": 14267,
+   "extra_nm": 3310,
+   "extra_days": 8.6
+  },
+  "malacca": {
+   "route": "부산 → 로테르담",
+   "open_nm": 10957,
+   "closed_nm": 11525,
+   "extra_nm": 568,
+   "extra_days": 1.5
+  },
+  "hormuz": {
+   "route": "라스타누라(걸프) → 부산",
+   "open_nm": 6327,
+   "closed_nm": null,
+   "extra_nm": null,
+   "extra_days": null,
+   "note": "우회 길 없음(바다로 돌아갈 길이 없다)"
+  },
+  "taiwan": {
+   "route": "부산 → 싱가포르",
+   "note": "경로망에 대만해협 길목 표시가 없어 계산하지 않았다(대만 동쪽 우회 — 거리 차가 작다)"
+  }
+ }
+}

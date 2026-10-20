@@ -364,6 +364,20 @@
       ]
     },
     {
+      "id": "searoute-marnet",
+      "name": "searoute 1.5.0 해상 경로망(Eurostat MARNET 기반) — 초크포인트 우회 거리",
+      "owner": "searoute 개발자 · Eurostat",
+      "where": "pypi searoute==1.5.0 · tools-build/choke_detour.py 가 빌드 때 계산(지면은 계산 결과만)",
+      "license": "Apache-2.0(라이브러리 메타데이터 원문 확인 2026-10-15)",
+      "kogl": "해당 없음",
+      "commercial": "허용(Apache-2.0)",
+      "modify": "허용(Apache-2.0)",
+      "checked": "2026-10-15 세션이 설치한 패키지 METADATA 의 License 줄을 읽음",
+      "used_by": [
+        "초크포인트 충격"
+      ]
+    },
+    {
       "id": "kcs-tariff",
       "name": "관세청 품목번호별 관세율표(기본·WTO·FTA 협정세율 · HSK 10단위)",
       "owner": "관세청",
