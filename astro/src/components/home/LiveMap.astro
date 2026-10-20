@@ -71,7 +71,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   </div>
 
   <div class="s-wrap live__foot">
-    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 나라 비중은 전국 기준을 두 관문에 같은 비율로 나눴고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘 다 <b>가정</b>입니다. 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
+    <p class="s-cap">점이 들어오는 빈도 = 그 달 관문별 수출입액(관세청 항구·공항별). 하늘 아크의 나라 몫은 인천공항 실측 항공화물(나라별 도착·출발 톤 · 직화물+환적+우편 · {F.air_cargo ? `${F.air_cargo.through.slice(0, 4)}년 ${Number(F.air_cargo.through.slice(5, 7))}월까지` : "—"} · 인천국제공항공사)입니다. 바다 항로의 나라 몫은 전국 비중을 그대로 썼고, 수도권 목적지는 물류창고 등록 개소에 비례해 흩었습니다 — 둘은 <b>가정</b>입니다. 나라 점은 대표 항만·공항 자리, 항로·아크·육상선은 개념선입니다. 옅은 푸른 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아닙니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
   </div>
   <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>

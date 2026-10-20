@@ -96,6 +96,13 @@ def derive():
                          "imp_pct": round(100 * imp[c] / ti, 1), "exp_pct": round(100 * exp[c] / te, 1),
                          "imp_eok": eok(imp[c] / len(nym)), "exp_eok": eok(exp[c] / len(nym))})
     partners.sort(key=lambda p: -(p["imp_pct"] + p["exp_pct"]))
+    # 하늘 아크의 나라 몫 = 인천공항 실측 항공화물(나라별 도착·출발 톤 · 15062056 · 2026-10-15 선장님 승인) — 없으면 관세청 전국 비중(종전 가정)
+    ac_path = os.path.join(ROOT, "data/derived/air_cargo.json")
+    air = json.load(open(ac_path, encoding="utf-8")) if os.path.exists(ac_path) else None
+    if air:
+        for p in partners:
+            c = air["countries"].get(p["name"])
+            if c: p["air_in_pct"], p["air_out_pct"], p["air_in_t"], p["air_out_t"] = c["in_pct"], c["out_pct"], c["in_t"], c["out_t"]
     # ④ 목적지 — 물류창고 등록 개소
     gu = {r["이름"]: int(r["개소"]) for r in rows("analysis/warehouse_by_gu.csv")}
     sido = {}
@@ -114,13 +121,14 @@ def derive():
         "partners": partners, "partner_months": [f"{m[:4]}-{m[4:]}" for m in nym],
         "sea_gates": [{"id": k, "lon": v["at"][0], "lat": v["at"][1], "approach": v["approach"]} for k, v in SEA_GATES.items()],
         "air_gate": {"id": AIR_GATE["id"], "lon": AIR_GATE["at"][0], "lat": AIR_GATE["at"][1]},
+        "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"]} if air else None,
         "dests": dests,
         "assume": [
-            "관문별로 나라를 가른 공개 통계가 없어, 두 관문에 같은 나라 비중(전국 · 10개국 · 석 달 합)을 썼다.",
+            "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",
             "관문을 지난 화물이 수도권 어디로 가는지는 통계가 없어, 물류창고 등록 개소 비례로 흩었다(인천 구·군 · 서울 · 경기).",
             "나라 점은 대표 항만·공항, 목적지는 구청·도청 부근이다. 항로·아크·육상선은 개념선이다.",
         ],
-        "sources": ["kcs-porttrade", "kcs-nitemtrade", "mof-incheon-port-stats", "molit-warehouse"],
+        "sources": ["kcs-porttrade", "kcs-nitemtrade", "mof-incheon-port-stats", "molit-warehouse"] + (["iiac-route-cargo"] if air else []),
         "inputs": [os.path.relpath(pfile, ROOT), "data/collected/nitemtrade.csv", "analysis/terminal_monthly_long.csv", "analysis/warehouse_by_gu.csv", "analysis/warehouse_stats_by_sido.csv"],
     }
 

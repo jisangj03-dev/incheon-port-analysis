@@ -1,6 +1,6 @@
 {
  "_설명": "홈 살아 있는 지도 — tools-build/flows_derive.py 가 원천에서 계산한다. 흐름은 월 통계를 그린 것이지 실시간 위치가 아니다.",
- "made": "2026-10-14",
+ "made": "2026-10-15",
  "unit": "억 달러",
  "months": [
   {
@@ -415,7 +415,11 @@
    "imp_pct": 37.4,
    "exp_pct": 29.9,
    "imp_eok": 169.6,
-   "exp_eok": 239.5
+   "exp_eok": 239.5,
+   "air_in_pct": 24.5,
+   "air_out_pct": 11.6,
+   "air_in_t": 184126,
+   "air_out_t": 86008
   },
   {
    "id": "US",
@@ -498,7 +502,11 @@
    "imp_pct": 17.3,
    "exp_pct": 24.3,
    "imp_eok": 78.7,
-   "exp_eok": 194.3
+   "exp_eok": 194.3,
+   "air_in_pct": 12.3,
+   "air_out_pct": 28.7,
+   "air_in_t": 92299,
+   "air_out_t": 213205
   },
   {
    "id": "TW",
@@ -541,7 +549,11 @@
    "imp_pct": 10.3,
    "exp_pct": 9.3,
    "imp_eok": 47.0,
-   "exp_eok": 74.6
+   "exp_eok": 74.6,
+   "air_in_pct": 2.1,
+   "air_out_pct": 3.1,
+   "air_in_t": 16045,
+   "air_out_t": 23083
   },
   {
    "id": "VN",
@@ -608,7 +620,11 @@
    "imp_pct": 7.9,
    "exp_pct": 11.3,
    "imp_eok": 36.1,
-   "exp_eok": 90.7
+   "exp_eok": 90.7,
+   "air_in_pct": 6.9,
+   "air_out_pct": 7.0,
+   "air_in_t": 51673,
+   "air_out_t": 51769
   },
   {
    "id": "JP",
@@ -667,7 +683,11 @@
    "imp_pct": 10.9,
    "exp_pct": 3.6,
    "imp_eok": 49.6,
-   "exp_eok": 28.8
+   "exp_eok": 28.8,
+   "air_in_pct": 9.1,
+   "air_out_pct": 10.0,
+   "air_in_t": 68466,
+   "air_out_t": 74079
   },
   {
    "id": "HK",
@@ -718,7 +738,11 @@
    "imp_pct": 0.6,
    "exp_pct": 10.9,
    "imp_eok": 2.7,
-   "exp_eok": 87.2
+   "exp_eok": 87.2,
+   "air_in_pct": 10.0,
+   "air_out_pct": 5.2,
+   "air_in_t": 75077,
+   "air_out_t": 38875
   },
   {
    "id": "AU",
@@ -777,7 +801,11 @@
    "imp_pct": 6.9,
    "exp_pct": 2.7,
    "imp_eok": 31.1,
-   "exp_eok": 21.6
+   "exp_eok": 21.6,
+   "air_in_pct": 0.3,
+   "air_out_pct": 0.9,
+   "air_in_t": 2148,
+   "air_out_t": 6628
   },
   {
    "id": "SG",
@@ -852,7 +880,11 @@
    "imp_pct": 2.9,
    "exp_pct": 3.6,
    "imp_eok": 13.1,
-   "exp_eok": 29.0
+   "exp_eok": 29.0,
+   "air_in_pct": 3.1,
+   "air_out_pct": 3.5,
+   "air_in_t": 23200,
+   "air_out_t": 25956
   },
   {
    "id": "DE",
@@ -1031,7 +1063,11 @@
    "imp_pct": 4.3,
    "exp_pct": 1.2,
    "imp_eok": 19.6,
-   "exp_eok": 9.7
+   "exp_eok": 9.7,
+   "air_in_pct": 5.3,
+   "air_out_pct": 3.5,
+   "air_in_t": 39767,
+   "air_out_t": 25606
   },
   {
    "id": "IN",
@@ -1146,7 +1182,11 @@
    "imp_pct": 1.4,
    "exp_pct": 3.1,
    "imp_eok": 6.6,
-   "exp_eok": 25.0
+   "exp_eok": 25.0,
+   "air_in_pct": 0.3,
+   "air_out_pct": 0.5,
+   "air_in_t": 2255,
+   "air_out_t": 3715
   }
  ],
  "partner_months": [
@@ -1225,6 +1265,11 @@
   "id": "인천공항",
   "lon": 126.4696,
   "lat": 37.4634
+ },
+ "air_cargo": {
+  "through": "2026-06",
+  "from": "2026-01",
+  "source": "인천국제공항공사_항공사별 노선별 운송실적(공공데이터포털 15062056 · 이용허락범위 제한 없음)"
  },
  "dests": [
   {
@@ -1313,7 +1358,7 @@
   }
  ],
  "assume": [
-  "관문별로 나라를 가른 공개 통계가 없어, 두 관문에 같은 나라 비중(전국 · 10개국 · 석 달 합)을 썼다.",
+  "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",
   "관문을 지난 화물이 수도권 어디로 가는지는 통계가 없어, 물류창고 등록 개소 비례로 흩었다(인천 구·군 · 서울 · 경기).",
   "나라 점은 대표 항만·공항, 목적지는 구청·도청 부근이다. 항로·아크·육상선은 개념선이다."
  ],
@@ -1321,7 +1366,8 @@
   "kcs-porttrade",
   "kcs-nitemtrade",
   "mof-incheon-port-stats",
-  "molit-warehouse"
+  "molit-warehouse",
+  "iiac-route-cargo"
  ],
  "inputs": [
   "analysis/porttrade_202412_202607.csv",

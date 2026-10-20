@@ -98,3 +98,19 @@ test("트리맵: 재생이 끝나면 최신 온전한 해에 멈춘다(채팅 �
   await expect(page.locator("#race-play")).toHaveAttribute("aria-pressed", "false", { timeout: 25_000 }); // 끝
   await expect(page.locator("#race-y")).toHaveText(L.y);
 });
+
+test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달러 운임 아님」 · 제안 = 지수 변동률만", async ({ page }) => {
+  const K = JSON.parse(J("data/derived/import_cost.json")).kcci;
+  test.skip(!K, "KCCI 자료 없음 — 칸을 그리지 않는다");
+  await page.goto(`${B}/tools/import-cost.html`, { waitUntil: "networkidle" });
+  await expect(page.locator(".wave__asof")).toHaveText(K.last_week);
+  await expect(page.locator("#wave-note")).toContainText("달러 운임이 아닙니다");
+  await page.waitForTimeout(3500);
+  await page.fill("input[name=freight]", "1000");
+  const wk = await page.locator("input[name=wk]").inputValue();
+  const C = JSON.parse(J("data/derived/import_cost.json")), d = String(C.weeks[Number(wk)][0]), day = `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
+  let i0 = 0; K.weeks.forEach((w, i) => { if (w[0] <= day) i0 = i; });
+  const want = Math.round(1000 * (K.weeks[K.weeks.length - 1][1] / K.weeks[i0][1]));
+  await page.click("#wave-apply");
+  await expect(page.locator("input[name=freight]")).toHaveValue(String(want));
+});

@@ -182,7 +182,8 @@ export class FlowMap {
           const v = dir === 0 ? (sea ? m.port_imp : m.air_imp) : sea ? m.port_exp : m.air_exp;
           let split = 1;
           if (sea) { const T = m.teu || {}; const tot = F.sea_gates.reduce((s: number, x: any) => s + (T[x.id] || 0), 0); split = tot ? (T[g.id] || 0) / tot : 1 / F.sea_gates.length; }
-          const share = (dir === 0 ? p.imp_pct : p.exp_pct) / 100;
+          // 하늘은 인천공항 실측 항공화물의 나라 몫(도착·출발 톤), 바다는 전국 나라 비중(가정)
+          const share = (!sea && p.air_in_pct != null ? (dir === 0 ? p.air_in_pct : p.air_out_pct) : dir === 0 ? p.imp_pct : p.exp_pct) / 100;
           rate[mi] = (v * share * (d.n / dSum) * split) / this.o.unit / this.o.monthSec;
         });
         // 들어오면 먼 길 → 가까운 길 · 나가면 가까운 길 → 먼 길
