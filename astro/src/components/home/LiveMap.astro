@@ -46,10 +46,10 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   <div class="live__frame">
   <div class="live__stage" id="live-stage">
     <img class="live__poster" src={u("/assets/home-poster.svg")} alt="" width={PW} height={PH} decoding="async" />
-    <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문 지도 — 인천공항을 오간 나라별 항공화물(${F.air_cargo?.from}~${F.air_cargo?.through} 월평균)을 점으로, 도착은 주홍 · 출발은 바다색. 바닷길은 계산한 경로를 옅은 선으로.`}></canvas>
+    <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문 지도 — 인천공항을 오간 나라별 항공화물(${F.air_cargo?.from}~${F.air_cargo?.through} 월평균)을 점으로, 도착은 주홍 · 출발은 바다색. 바다(인천항)는 나라별 공개 통계가 없어 점이 없다.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span>(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길</span> · 원 = 물류창고 개소</p>
+    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span>(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길</span> · 원 = 물류창고 개소</p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
@@ -81,7 +81,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <Trust updated={F.made} source={`${sourceLine("kcs-porttrade")} · ${sourceLine("kcs-nitemtrade")}`} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" note="월별 · 억 달러" />
     <details class="live__how"><summary class="s-cap">이 지도를 만든 방법·출처</summary>
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 2억 달러 안팎 다르다). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
-    <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점을 싣지 않고, 해상망 최단 경로(searoute 1.5.0 · Eurostat MARNET)를 옅은 선으로만 그렸다.</p>
+    <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점도 길도 그리지 않았다 — 배가 실제로 다닌 바닷길은 회녹 결(세계은행 선박 통행 밀도)로 보인다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소(인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     </details>
     <p class="s-cap live__mark" data-ai-mark>{aiMark("index")}</p>
@@ -164,25 +164,32 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     edge(off, W, H, taken);
   };
   // 화면 밖 나라 — 길이 들어오는 가장자리(위·오른쪽·아래·왼쪽)별로 이름을 묶어, 그 길들이 들어오는 자리의 가운데에 단다
-  const EDGE: HTMLElement[] = [];
-  // 화면 밖 나라 — 하늘길이 화면에 들어오는 자리를 인천에서 본 방위(8방)로 묶는다. 화살표 = 그 방위(4차 화면 판정: 「→ 미국·호주」 — 호주는 남쪽인데 동쪽 화살표)
+  // 화면 밖 나라 — 나라마다 이름표 하나를 그 하늘길이 화면에 들어오는 자리에 단다. 화살표 = 인천에서 본 방위(8방).
+  //   [4차 화면 판정] 바닷길 기준 4방 묶음 → 「→ 미국·호주」(호주는 남쪽) · [5차] 「홍콩·베트남·싱가포르·대만」 한 덩어리가 여러 선을 맡아 선 끝에 이름이 없었다 → 나라마다 따로
+  const EDGE = new Map<string, HTMLElement>();
   const AR = ["→", "↘", "↓", "↙", "←", "↖", "↑", "↗"];
   const edge = (off: { name: string; q: number[] }[], W: number, H: number, taken: number[][]) => {
-    if (!EDGE.length) for (let i = 0; i < 8; i++) { const el = document.createElement("span"); el.className = "fm-lb fm-lb--edge"; el.dataset.label = ""; $("fm-labels").append(el); EDGE.push(el); }
     const D0 = (window as any).__fmdata?.flows, o0 = fm && D0 ? fm.screen(D0.air_gate.lon, D0.air_gate.lat) : [W / 2, H / 2];
-    const B: { name: string; q: number[] }[][] = Array.from({ length: 8 }, () => []);
-    for (const o of off) { const a = Math.atan2(o.q[1] - o0[1], o.q[0] - o0[0]); B[((Math.round(a / (Math.PI / 4)) % 8) + 8) % 8].push(o); }
-    B.forEach((g, i) => {
-      const el = EDGE[i];
-      if (!g.length) { el.style.visibility = "hidden"; return; }
-      const txt = `${AR[i]} ${[...new Set(g.map((o) => o.name))].join("·")}`;
+    const seen = new Set<string>();
+    for (const o of off) {
+      if (seen.has(o.name)) continue; seen.add(o.name);
+      let el = EDGE.get(o.name);
+      if (!el) { el = document.createElement("span"); el.className = "fm-lb fm-lb--edge"; el.dataset.label = ""; $("fm-labels").append(el); EDGE.set(o.name, el); }
+      const ang = Math.atan2(o.q[1] - o0[1], o.q[0] - o0[0]), txt = `${AR[((Math.round(ang / (Math.PI / 4)) % 8) + 8) % 8]} ${o.name}`;
       if (el.textContent !== txt) el.textContent = txt;
       const r = el.getBoundingClientRect(), w = r.width, h = r.height;
-      const cx = g.reduce((a, o) => a + o.q[0], 0) / g.length, cy = g.reduce((a, o) => a + o.q[1], 0) / g.length;
-      let x = Math.max(6, Math.min(W - w - 6, cx - w / 2)), y = Math.max(H * 0.14, Math.min(H - h - 96, cy - h / 2));
-      for (let k = 0; k < 6 && taken.some((t) => x < t[2] && x + w > t[0] && y < t[3] && y + h > t[1]); k++) y += cy > H / 2 ? -(h + 4) : h + 4;
-      el.style.visibility = "visible"; el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + w + 3, y + h + 2]);
-    });
+      // 들어오는 자리에서 화면 안쪽으로 조금 — 겹치면 선을 따라 안쪽으로 밀고, 그래도 겹치면 옆으로
+      const ux = -Math.cos(ang), uy = -Math.sin(ang);
+      let x = 0, y = 0, ok = false;
+      for (let k = 0; k < 10 && !ok; k++) for (const side of [0, 1, -1]) {
+        x = o.q[0] + ux * (10 + k * 14) - w / 2 + side * (w / 2 + 8); y = o.q[1] + uy * (10 + k * 14) - h / 2;
+        x = Math.max(6, Math.min(W - w - 6, x)); y = Math.max(H * 0.14, Math.min(H - h - 96, y));
+        if (!taken.some((t) => x < t[2] && x + w > t[0] && y < t[3] && y + h > t[1])) { ok = true; break; }
+      }
+      el.style.visibility = ok ? "visible" : "hidden";
+      if (ok) { el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + w + 3, y + h + 2]); }
+    }
+    for (const [n, el] of EDGE) if (!seen.has(n) && el.style.visibility !== "hidden") el.style.visibility = "hidden";
   };
 
   async function boot() {

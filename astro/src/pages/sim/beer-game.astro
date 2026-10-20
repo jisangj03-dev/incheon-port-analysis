@@ -17,9 +17,9 @@ const S = R.stages.length;
       <h1 id="h-wave" class="s-prose">오는 중인 물건을 잊으면, 공장이 흔들립니다.</h1>
       {/* [2026-10-20 화면 판정] 답(○배)이 1280·1520 첫 화면 아래였다 → 질문 바로 밑 · 그림 위 */}
       <p class="amp"><span id="amp-who"></span> 주문은 소비자 수요보다 <b id="amp" class="s-signal"></b> 출렁입니다. <small class="amp__def">출렁임 = 주문량의 분산 ÷ 소비자 수요의 분산</small></p>
-      <p class="s-lead s-prose">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 아래 막대를 움직여 보세요.</p>
       <figure class="wave-fig">
         <div id="wave" class="wave" data-label={`${R.weeks}주 동안 소비자 수요와 네 단계의 주문`}></div>
+        <p class="s-prose wave-lead">네 단계가 같은 습관으로 {R.weeks}주 동안 주문합니다. 아래 막대를 움직여 보세요.</p>
         <figcaption class="readout">
           <label class="beta" for="beta">
             <span>주문할 때 아직 오는 중인 물건을 셈에 넣는 정도 <b id="beta-out"></b></span>
@@ -29,13 +29,13 @@ const S = R.stages.length;
         </figcaption>
         <p class="try-cta"><a class="s-btn" href="#setup">직접 해 보기 — 한 단계를 맡아 {R.weeks}주</a> <span class="s-cap">끝나면 내 점수와 공유 카드가 나옵니다</span></p>
         <Trust updated={RU} source="Sterman(1989) 보드게임 규칙(단계 넷 · 지연 · 주문 습관)" csv="client" csvName="beer-game-wave.csv" note="모의 실험 — 실측 아님" />
-        <p class="s-cap note">막대를 옮겨도 숫자가 고르게 줄지 않는 구간이 있습니다. 주문·배송 지연이 겹쳐 생긴 계산 결과 그대로이고, 다듬지 않았습니다. 막대의 처음 자리는 원 논문이 참가자 주문에서 추정한 값입니다.</p>
+        <details class="note s-cap"><summary>읽는 법 · 한계</summary><p>막대를 옮겨도 숫자가 고르게 줄지 않는 구간이 있습니다. 주문·배송 지연이 겹쳐 생긴 계산 결과 그대로이고, 다듬지 않았습니다. 막대의 처음 자리는 원 논문이 참가자 주문에서 추정한 값입니다.</p></details>
       </figure>
     </section>
 
     <section id="setup" class="setup" aria-labelledby="h-try">
       <h2 id="h-try" class="s-prose">직접 해 보기</h2>
-      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다. 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
+      <p class="s-prose">이번엔 한 단계를 맡아 매주 직접 주문합니다. 자기 단계만 보입니다. 주문은 {R.delays.order}주, 물건은 {R.delays.shipping}주 늦게 닿습니다(공장은 만드는 데 {R.delays.production}주). 끝나면 같은 자리를 논문 참가자 습관이 맡았을 때와 비용을 겨룹니다.</p>
       <div class="pick">
         <label>맡을 단계<select id="role" class="s-input">{R.stages.map((s, i) => <option value={i}>{s.label}</option>)}</select></label>
         <label>소비자 수요<select id="demand" class="s-input"><option value="step">{R.demand.step.changeWeek}주차부터 {R.demand.step.before}상자 → {R.demand.step.after}상자</option><option value="random">매주 들쭉날쭉</option></select></label>
@@ -119,7 +119,7 @@ const S = R.stages.length;
   .note { margin-top: var(--s-4); max-width: 46rem; }
   .intro .amp { margin: 0 0 var(--s-2); }
   .amp__def { display: block; font-size: 12.5px; color: var(--s-ink-3); margin-top: 2px; }
-  @media (max-width: 600px) { .intro .amp b { font-size: 34px; } .intro .s-lead { display: none; } .intro h1 { margin-bottom: var(--s-2); } } /* 휴대폰 첫 화면에 그림·막대까지(시험 · 664px) */
+  @media (max-width: 600px) { .intro .amp b { font-size: 34px; } .intro .s-lead, .intro .wave-lead { display: none; } .intro h1 { margin-bottom: var(--s-2); } } /* 휴대폰 첫 화면에 그림·막대까지(시험 · 664px) */
   .amp { margin: 0; font-size: var(--s-t-lead); line-height: 1.5; color: var(--s-ink-2); }
   .amp b { font-size: clamp(40px, 5vw, 64px); font-weight: 650; letter-spacing: -0.04em; display: inline-block; line-height: 1; }
   .setup { padding: var(--s-7) 0; border-top: 1px solid var(--s-rule); }

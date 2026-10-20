@@ -133,7 +133,8 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   expect(V.source_rows).toBe(csv.length);
   expect(V.source_months[0]).toBe(yms.reduce((a, b) => (a < b ? a : b)));
   await expect(page.locator("[data-v1]")).toContainText(`원천 ${V.source_rows}행`);
-  await expect(page.locator("main, body").first()).toContainText("개별 선박 아님");
+  await expect(page.locator("main, body").first()).toContainText("월 집계");
+  await expect(page.locator("main, body").first()).toContainText("개별 선박의 항적이 아니다"); // 이름 = 「외항선 입항 추이」(「리플레이」는 AIS 항적 재생으로 읽혔다 · 5차 사실 대조)
   await expect(page.locator(".counter")).toContainText("반대 지표");
   // 처음 그려지는 달(서버가 낸 HTML) = 마지막 달 — 자동 재생이 곧 바꾸므로 HTML 원문으로 본다
   const html = await (await request.get(page.url())).text();

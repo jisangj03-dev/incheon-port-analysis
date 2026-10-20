@@ -53,7 +53,7 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
       <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 % · 공표값(수정된 전년 기준이라 선에서 잰 값과 최대 0.8%p 다르다)" />
     </figure>
 
-    <p class="counter s-prose"><b>같이 볼 숫자</b> — 컨테이너가 아니라 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>선박 리플레이</a>.</p>
+    <p class="counter s-prose"><b>같이 볼 숫자</b> — 컨테이너가 아니라 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>외항선 입항 추이</a>.</p>
     <Trust updated={lastUpdated("data/derived/vessel_replay.json")} source={sourceLine("mof-vessel")} note="외항선 입항 척수 · 월 집계(개별 선박 아님)" />
 
 

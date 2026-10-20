@@ -53,7 +53,7 @@ export function pulseSvg(days: Day[], k: string, span: number, recent = 7, base 
   g += "<g data-furniture>";
   const every = W < 600 ? 2 : 1; let mi = 0;
   s.forEach((x, i) => { if (x.d.endsWith("-01") && mi++ % every === 0) g += `<line x1="${X(i).toFixed(1)}" x2="${X(i).toFixed(1)}" y1="${Y(0)}" y2="${Y(0) + 5}" class="pg"/><text x="${(X(i) + 3).toFixed(1)}" y="${H - 6}" class="pt">${x.d.slice(2, 7).replace("-", ".")}</text>`; });
-  g += "</g>" + tag;
+  g += "</g>"; void tag; // 「평소」 이름은 범례·머리 줄이 든다 — 그림 안 이름표 상자가 7일 평균선·막대를 가렸다(5차 화면 판정)
   return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="pulse__svg" aria-hidden="true">${g}</svg>`;
 }
 

@@ -58,11 +58,11 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
 <Studio ask={false} current="tools" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
   <article class="s-wrap fc" data-sim="forecast">
     <p class="s-cap">시뮬레이션 · 수요예측 실험실</p>
-    <h1 class="s-prose">인천항 컨테이너, 다음 석 달을 먼저 적어 둡니다.</h1>
+    <h1 class="s-prose">인천항 컨테이너, 실제값이 나오기 전 석 달을 먼저 적어 둡니다.</h1>
     <p class="s-lead s-prose">{L.series.label} — 마지막 실제값은 <b>{ym(lastYm)} · {y[lastYm]}{L.series.unit}</b>. 점선이 실제값보다 먼저 적은 예측이고, 실제값이 나오면 맞았는지 그대로 채점합니다.</p>
 
     {/* [2026-10-20 화면 판정] 예측값이 그림 안 작은 이름표뿐이었다 → 다음 석 달 예측(M1)을 큰 숫자로 · 기준선은 옆에 작게 */}
-    <ol class="fc-next" aria-label="다음 석 달 예측">
+    <ol class="fc-next" aria-label="실제값이 나오기 전 석 달 예측">
       {fut.map((r, k) => <li class={k === 0 ? "on" : ""}><span>{ym(r.target)} 예측</span><b>{r.M1 ?? "—"}</b><small>{L.series.unit} · 기준선 {r.B ?? "—"}</small></li>)}
     </ol>
     <figure class="fc-fig" data-chart="forecast" aria-label={`${ym(act[0][0] as string)}부터 ${ym(lastYm)}까지 실제 처리량과 그 뒤 석 달 예측`}>

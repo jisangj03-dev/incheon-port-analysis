@@ -35,6 +35,13 @@ const sx = (i: number) => pad + ((mi(S[i].ym) - m0) * (W - 2 * pad)) / (mN - m0 
 const sy = (v: number) => H - pad - ((v - lo) * (H - 2 * pad)) / (hi - lo || 1);
 const spark = S.map((s, i) => `${i && mi(s.ym) - mi(S[i - 1].ym) === 1 ? "L" : "M"}${sx(i).toFixed(1)},${sy(s.v).toFixed(1)}`).join("");
 const iHi = vs.indexOf(hi), iLo = vs.indexOf(lo);
+// x 눈금 = 해마다 1월 · 끊긴 자리 = 원천에 없는 달(5차 화면 판정: x축이 없고 끊긴 구간에 설명이 없었다)
+const xm = (m: number) => pad + ((m - m0) * (W - 2 * pad)) / (mN - m0 || 1);
+const yTicks: { x: number; y: number }[] = []; for (let m = m0; m <= mN; m++) if (m % 12 === 0) yTicks.push({ x: xm(m), y: m / 12 });
+const gaps = S.slice(1).map((s, k) => ({ k, d: mi(s.ym) - mi(S[k].ym) })).filter((g) => g.d > 1).map((g) => {
+  const a = mi(S[g.k].ym) + 1, b = mi(S[g.k + 1].ym) - 1, f = (m: number) => `${Math.floor(m / 12)}-${String((m % 12) + 1).padStart(2, "0")}`;
+  return { x: (sx(g.k) + sx(g.k + 1)) / 2, t: a === b ? f(a) : f(a).slice(0, 4) === f(b).slice(0, 4) ? `${f(a)}~${f(b).slice(5)}` : `${f(a)}~${f(b)}` };
+});
 const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
 const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
 ---
@@ -60,9 +67,11 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
           </svg>
           <span id="now-dot" class="dot" style={`left:${pct(S.length - 1)};top:${((sy(last.v) / H) * 100).toFixed(2)}%`}></span>
           </div>
+          {gaps.map((g) => <span class="gap s-cap" style={`left:${((g.x / W) * 100).toFixed(2)}%`}>{g.t}<br />원천 없음</span>)}
           <span class="mark hi" style={`left:${pct(iHi)}`}>가장 많은 달 {S[iHi].ym} · {hi}</span>
           <span class="mark lo" style={`left:${pct(iLo)}`}>가장 적은 달 {S[iLo].ym} · {lo}</span>
         </div>
+        <div class="spark-x s-cap" aria-hidden="true">{yTicks.map((t) => <span style={`left:${((t.x / W) * 100).toFixed(2)}%`}>{t.y}</span>)}</div>
         <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
         <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU · 전년 대비는 공표값(수정된 전년 기준이라 선에서 잰 값과 최대 0.8%p 다르다)" />
       </figure>
@@ -111,6 +120,8 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
   .spark-box { position: relative; padding: 28px 0; }
   .spark-in { position: relative; }
   .spark svg { display: block; width: 100%; height: 180px; }
+  .spark-x { position: relative; height: 18px; margin-top: 4px; border-top: 1px solid var(--s-rule); padding-top: 2px; } .spark-x span::before { content: ""; position: absolute; left: 50%; top: -6px; height: 5px; border-left: 1px solid var(--s-ink-3); } .spark-x span { position: absolute; transform: translateX(-50%); font-size: 11.5px; color: var(--s-ink-3); }
+  .spark-box .gap { position: absolute; top: 40%; transform: translateX(-50%); font-size: 10.5px; line-height: 1.25; color: var(--s-ink-3); text-align: center; white-space: nowrap; }
   .dot { position: absolute; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--s-signal); }
   .mark { position: absolute; transform: translateX(-50%); font-size: var(--s-t-cap); color: var(--s-ink-3); white-space: nowrap; line-height: 1; }
   .mark.hi { top: 0; } .mark.lo { bottom: 0; }

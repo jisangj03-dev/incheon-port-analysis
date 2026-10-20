@@ -43,16 +43,20 @@ def derive(ck, nm, hf):
         for r in rows:
             d = str(r["date"])[:10]
             if d.startswith("2023-"): base_m.setdefault(d[5:7], []).append(float(r.get("n_total") or 0))
-        base = {m: round(sum(v) / len(v), 1) for m, v in base_m.items()}
+        # % 는 반올림 전 값으로(5차 사실 대조: 소수 한 자리 값으로 나눠 −64.58 이 −64.5 로 나왔다) · 화면에 싣는 평균만 한 자리
+        base_x = {m: sum(v) / len(v) for m, v in base_m.items()}
+        base = {m: round(v, 1) for m, v in base_x.items()}
         last28 = [float(r.get("n_total") or 0) for r in rows[-28:]]
-        now = round(sum(last28) / len(last28), 1) if last28 else None
+        now_x = sum(last28) / len(last28) if last28 else None
+        now = round(now_x, 1) if now_x is not None else None
         lm = str(rows[-1]["date"])[5:7] if rows else None
         b = base.get(lm) if lm else None
+        bx = base_x.get(lm) if lm else None
         sel = [tot[c] for c in cs if c in tot]
         se, si = sum(t["exp"] for t in sel), sum(t["imp"] for t in sel)
         top = sorted(sel, key=lambda t: -(t["exp"] + t["imp"]))[:8]
         pts.append({"id": pid, "pw": pw, "ko": ko, "asof": str(rows[-1]["date"])[:10] if rows else None, "weeks": wk,
-                    "now28": now, "base_2023_same_month": b, "vs_base_pct": round(100 * (now / b - 1), 1) if (now is not None and b) else None,
+                    "now28": now, "base_2023_same_month": b, "vs_base_pct": round(100 * (now_x / bx - 1), 1) if (now_x is not None and bx) else None,
                     "countries": len(sel), "exp_musd": round(se / 1e6), "imp_musd": round(si / 1e6),
                     "exp_pct": round(100 * se / E, 1), "imp_pct": round(100 * si / I, 1),
                     "monthly_musd": round((se + si) / len(months) / 1e6),

@@ -46,7 +46,7 @@ function run(R: Rules, B: any) {
 
 // 선 다섯 — 수요(점선 · 먹 3) · 소매·도매·유통(바다 농도) · 공장(신호 한 색). 범례 상자 없이 끝점에 직접 이름.
 function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
-  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 300, L = 2, Rt = W < 600 ? 74 : 96, T = 12, Bt = 28, n = g.week;
+  const W = Math.max(280, Math.round(host.clientWidth || 1000)), H = W < 600 ? 180 : 240, L = 30, Rt = W < 600 ? 74 : 96, T = 12, Bt = 28, n = g.week;
   const fs = W < 600 ? 12 : 15;
   const x = (i: number) => L + (i * (W - L - Rt)) / Math.max(1, n - 1);
   const y = (v: number) => H - Bt - (v * (H - T - Bt)) / ymax;
@@ -78,11 +78,16 @@ function render(host: HTMLElement, R: Rules, g: any, ymax: number) {
     if (ends[i].y > cap) ends[i].y = cap;
   }
   const endY = Object.fromEntries(ends.map((e) => [e.k, e.y]));
+  // 눈금 — 세로(상자 수)·가로(주) · 「83배」를 그림에서 읽을 수 있게(5차 화면 판정: y축 눈금 0)
+  const raw = ymax / 4, mag = 10 ** Math.floor(Math.log10(raw || 1)), stp = [1, 2, 5, 10].map((k) => k * mag).find((k) => k >= raw) || mag * 10;
+  let grid = "";
+  for (let v = 0; v <= ymax + 1e-9; v += stp) grid += `<line x1="${L}" x2="${W - Rt}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--s-rule)" stroke-dasharray="${v ? "2 4" : ""}"/><text x="${L - 6}" y="${(y(v) + 4).toFixed(1)}" font-size="11.5" text-anchor="end" fill="var(--s-ink-3)">${Math.round(v)}</text>`;
+  const wk = n > 24 ? 6 : 4;
+  for (let i = wk; i < n; i += wk) grid += `<text x="${x(i - 1).toFixed(1)}" y="${H - 8}" font-size="12" text-anchor="middle" fill="var(--s-ink-3)">${i}주</text>`;
   svg.innerHTML =
-    `<line x1="${L}" y1="${H - Bt}" x2="${W - Rt}" y2="${H - Bt}" stroke="var(--s-rule)"/>` +
-    `<text x="${L}" y="${H - 8}" font-size="13" fill="var(--s-ink-3)">1주</text>` +
+    grid +
+    `<text x="${L}" y="${H - 8}" font-size="12" fill="var(--s-ink-3)">1주</text>` +
     `<text x="${L + 2}" y="${T + 2}" font-size="12" fill="var(--s-ink-3)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">↑ 주마다 넣은 주문(상자)</text>` +
-    `<text x="${W - Rt}" y="${H - 8}" font-size="13" text-anchor="end" fill="var(--s-ink-3)">${n}주</text>` +
     series
       .map(
         (s, k) =>

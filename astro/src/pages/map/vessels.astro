@@ -1,5 +1,5 @@
 ---
-// 선박 리플레이(정체성 §3-3) — 월 집계 — 개별 선박 아님. 원천 = 해양수산부 항만별 선박입출항실적(Actions 수집 · 키는 시크릿 · 달마다 자동 갱신은 아직 없다).
+// 외항선 입항 추이(옛 이름 「선박 리플레이」 — 실무에서 AIS 항적 재생으로 읽혀 바꿨다 · 5차 사실 대조 · 정체성 §3-3) — 월 집계 — 개별 선박 아님. 원천 = 해양수산부 항만별 선박입출항실적(Actions 수집 · 키는 시크릿 · 달마다 자동 갱신은 아직 없다).
 // 숫자 = data/derived/vessel_replay.json(tools-build/vessel_derive.py). 달 막대 하나 + 재생 — 2015년부터 지금까지 외항선 입항이 흐른다.
 import { aiMark } from "../../lib/profile";
 import Studio from "../../layouts/Studio.astro";
@@ -15,9 +15,9 @@ const L = V.latest;
 const upd = lastUpdated("data/derived/vessel_replay.json");
 const n = V.months.length;
 ---
-<Studio title="선박 리플레이 — 항만별 외항선 입항, 2015년부터" description="해양수산부 항만별 선박입출항실적으로 인천·부산·평택당진·경인항의 외항선 입항을 달마다 다시 돌려 본다. 월 집계 — 개별 선박 아님." current="map">
+<Studio title="외항선 입항 추이 — 항만별, 2015년부터" description="해양수산부 항만별 선박입출항실적으로 인천·부산·평택당진·경인항의 외항선 입항을 달마다 다시 돌려 본다. 월 집계 — 개별 선박 아님." current="map">
   <article class="s-wrap vr" data-content="ds-vessels">
-    <p class="s-cap">도구 · 선박 리플레이 · 월 집계 — 개별 선박 아님</p>
+    <p class="s-cap">도구 · 외항선 입항 추이 · 항만별 월 집계</p>
     <h1 class="s-prose">인천항에 외항선이 한 달 {L.incheon}척 들어왔습니다.</h1>
     <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct}%</b>.</p>
 
@@ -61,7 +61,7 @@ const n = V.months.length;
       const yStep = W < 600 ? 2 : 1;
       D.months.forEach((m: string, k: number) => { if (m.endsWith("-01") && Number(m.slice(0, 4)) % yStep === 0 && x(k) > 18 && x(k) < W - R - 18) g += `<line x1="${x(k).toFixed(1)}" x2="${x(k).toFixed(1)}" y1="${H - B}" y2="${H - B + 4}" stroke="var(--s-ink-3)"/><text x="${x(k).toFixed(1)}" y="${H - 6}" font-size="11.5" text-anchor="middle" fill="var(--s-ink-3)">${m.slice(0, 4)}</text>`; });
       // 흐르는 달 커서 — 지금 그리는 달과 그 달 인천 척수
-      g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-ink-3)" stroke-dasharray="2 3"/><text x="${(x(i) < 90 ? x(i) + 6 : x(i) - 6).toFixed(1)}" y="${T + 10}" font-size="12.5" font-weight="600" text-anchor="${x(i) < 90 ? "start" : "end"}" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${D.months[i]}</text>`;
+      g += `<line x1="${x(i).toFixed(1)}" x2="${x(i).toFixed(1)}" y1="${T}" y2="${H - B}" stroke="var(--s-ink-3)" stroke-dasharray="2 3"/><text x="${(x(i) < 90 ? x(i) + 6 : x(i) - 6).toFixed(1)}" y="${T + 10}" font-size="12.5" font-weight="600" text-anchor="${x(i) < 90 ? "start" : "end"}" fill="var(--s-ink-2)" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${D.months[i]}</text>`;
       const ends: { y: number; t: string; c: string; b: boolean }[] = [];
       for (const [p, c, w] of LINES) {
         const v = D.s[p] as number[];
@@ -72,7 +72,7 @@ const n = V.months.length;
       }
       ends.sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
-      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:3px">${e.t}</text>`;
+      for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${e.t}</text>`;
       host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i]}척 · 부산 ${D.s["부산"][i]}척">${g}</svg>`;
       host.dataset.month = D.months[i];
     };
