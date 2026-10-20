@@ -6,15 +6,19 @@
 import Studio from "../../layouts/Studio.astro";
 import { room } from "../../lib/rooms";
 import { u } from "../../lib/site";
-const R = room("tools"), S = room("sim");
+import { answers } from "../../lib/answers";
+const R = room("tools"), S = room("sim"), A = answers();
 ---
 <Studio ask={false} title="도구 — 측심" description={R.lead} current="tools" path="/tools/">
   <article class="s-wrap hub" data-content="tools">
-    <p class="s-cap">도구</p>
     <h1 class="s-prose">{R.title}</h1>
     <p class="s-lead s-prose">{R.lead} 모든 도구는 공공 1차 데이터로 움직이고, 원문·CSV·갱신일을 붙입니다. 계산은 참고용이며 자문이 아닙니다.</p>
-    <ol class="s-index">
-      {(R.items || []).map((r: any) => <li><div><p class="s-cap">{r.who}</p><h2 class="h3"><a href={u(r.href)}>{r.q || r.title}</a></h2><p>{r.lead}</p></div></li>)}
+    {/* 도구마다 지금의 답(4차 화면 판정 Q1 — 질문만 여섯 줄이었다) · 숫자는 그 도구가 읽는 파생 파일에서 */}
+    <ol class="tl">
+      {(R.items || []).map((r: any) => { const a = A[r.href]; return <li><a href={u(r.href)}>
+        <span class="tl__num">{a ? <><b class={a.neg ? "s-signal" : ""}>{a.num}</b>{a.unit && <small>{a.unit}</small>}</> : null}</span>
+        <span class="tl__body"><span class="s-cap">{r.who}</span><span class="tl__q">{r.q || r.title}</span>{a && <span class="tl__a">{a.text}</span>}</span>
+      </a></li>; })}
     </ol>
     <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
@@ -26,7 +30,16 @@ const R = room("tools"), S = room("sim");
 <style>
   .hub { padding-top: var(--s-8); padding-bottom: var(--s-6); }
   .hub h1 { margin: var(--s-3) 0 var(--s-4); }
-  .hub .s-index { margin-top: var(--s-7); }
+  .tl { list-style: none; margin: var(--s-6) 0 0; padding: 0; border-top: 1px solid var(--s-rule); }
+  .tl li { border-bottom: 1px solid var(--s-rule); }
+  .tl a { display: grid; grid-template-columns: minmax(7.5rem, 11rem) 1fr; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; color: inherit; text-decoration: none; }
+  .tl a:hover .tl__q, .tl a:focus-visible .tl__q { text-decoration: underline; }
+  .tl__num b { font: 600 clamp(30px, 3.6vw, 44px)/1 var(--s-font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tl__num small { font-size: 15px; margin-left: 2px; color: var(--s-ink-2); }
+  .tl__body { display: grid; gap: 4px; min-width: 0; }
+  .tl__q { font-size: var(--s-t-h3); font-weight: 600; line-height: 1.35; color: var(--s-ink); }
+  .tl__a { color: var(--s-ink-2); }
+  @media (max-width: 560px) { .tl a { grid-template-columns: 1fr; gap: var(--s-2); } }
   .hub .h3 { font-size: var(--s-t-h3); margin: 0; }
   .aux { margin-top: var(--s-7); border-top: 1px solid var(--s-rule); padding-top: var(--s-4); max-width: 46rem; }
   .aux ul { margin: var(--s-3) 0 0; padding-left: 1.1em; display: grid; gap: var(--s-2); }

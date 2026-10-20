@@ -23,9 +23,9 @@ const odds = order.filter((k) => oddOf(k).length).map((k) => `${P[k].ko} ${range
 const inJudge = order.filter((k) => oddOf(k).some((m) => m >= P[k].judge.base_from.slice(0, 7) && m <= P[k].judge.recent_to.slice(0, 7))).map((k) => P[k].ko);
 const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.map((k) => [k, { ko: P[k].ko, days: P[k].days, odd: oddOf(k), stale_to: P[k].stale_to }])) };
 ---
-<Studio title="인천항 일일 맥박 — 입항이 평소보다 많은가" description="IMF PortWatch 일별 입항으로 인천항의 원천 공개 마지막 7일을 직전 13주 평소와 견주고, 부산·평택과 나란히 본다." current="tools" ogImage="/og/tool-port-pulse.jpg" lateFonts>
-  <ToolShell id="pulse" who="포워더 · 선사 · 터미널" asOf={D.asof} q="인천항 입항, 평소(직전 13주)보다 많은가 — PortWatch 일별 입항으로"
-    lead={`원천이 공개한 마지막 7일(${md(J.recent_from)}~${md(J.recent_to)} · PortWatch 는 약 열흘 늦게 공개) 하루 평균 ${J.recent_avg}척 — 평소(직전 13주) ${J.base_avg}척보다 ${sign(J.pct)}%, ${J.word}.`}
+<Studio title="인천항 일일 맥박 — 공개된 마지막 7일, 입항은 평소보다 많았나" description="IMF PortWatch 일별 입항으로 인천항의 원천 공개 마지막 7일을 직전 13주 평소와 견주고, 부산·평택과 나란히 본다." current="tools" ogImage="/og/tool-port-pulse.jpg" lateFonts>
+  <ToolShell id="pulse" who="포워더 · 선사 · 터미널" asOf={D.asof} q={`공개된 마지막 7일(${md(J.recent_from)}~${md(J.recent_to)}), 인천항 입항은 평소(직전 13주)보다 많았나`}
+    lead={`원천이 공개한 마지막 7일(${md(J.recent_from)}~${md(J.recent_to)} · PortWatch 는 약 열흘 늦게 공개) 하루 평균 ${J.recent_avg.toFixed(1)}척 — 평소(직전 13주) ${J.base_avg.toFixed(1)}척보다 ${sign(J.pct)}%, ${J.word}.`}
     updated={D.fetched} source={sourceLine("imf-portwatch")} csv={u("/data/port-pulse.csv")} csvName="port-pulse-incheon-busan-pyeongtaek.csv" note="일별 · AIS 기반 추정 · 며칠 늦게 갱신"
     how={`IMF PortWatch 가 선박 위치 신호(AIS)로 항만마다 하루 입항 척수를 센 값을 받아, 원천의 마지막 날짜까지 7일 평균을 그 앞 91일(13주) 평균과 견줬다. ±${D.rule.threshold_pct}% 를 넘으면 「많다·적다」, 그 안이면 「평소 수준」 — 이 문턱은 숫자를 보기 전에 정했다.`}
     limits="오늘이 아니라 원천의 마지막 날짜(머리의 「○일 기준」)까지다. AIS 를 끈 배·작은 배는 빠질 수 있고, 연안 여객선은 세지 않는다. 추정 교역량(톤)은 PortWatch 의 모델 추정치라 관세청 통계와 다르다.">
@@ -34,7 +34,7 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
         <small id="pl-sub">마지막 7일 {J.recent_avg}척/일 · 평소 {J.base_avg}척/일{big && ` · 하루 척수가 가장 크게 바뀐 선종(차이 기준) = ${big.ko}(${big.r} ← ${big.b})`}</small></p>
       <figure class="pulse__fig" id="pl-fig" data-port="Incheon">
         <div id="pl-chart" set:html={pulseSvg(I.days, "all", 182, D.rule.recent, D.rule.base, oddOf("Incheon"))} />
-        <figcaption class="s-cap"><span class="k k--bar"></span>일별 입항 척수 <span class="k k--line"></span>7일 평균 <span class="k k--avg"></span>평소(직전 13주 평균) <span class="k k--rec"></span>최근 7일 · {D.asof} 기준{oddOf("Incheon").length > 0 && <> <span class="k k--odd"></span>흐린 막대 = 해양수산부 월 통계와 어긋난 달(아래 「원천 점검」)</>}</figcaption>
+        <figcaption class="s-cap"><span class="k k--bar"></span>일별 입항 척수 <span class="k k--line"></span>7일 평균 <span class="k k--avg"></span>평소(직전 13주 평균) <span class="k k--rec"></span>공개된 마지막 7일 · {D.asof}까지{oddOf("Incheon").length > 0 && <> <span class="k k--odd"></span>흐린 막대 = 해양수산부 월 통계와 어긋난 달(아래 「원천 점검」)</>}</figcaption>
       </figure>
       <ol class="pulse__cmp" aria-label="부산·평택과 견줌(각자의 평소 대비)">
         {order.map((k) => { const j = P[k].judge; return <li data-port={k} class={k === "Incheon" ? "on" : ""}><button type="button" data-port={k} aria-pressed={k === "Incheon" ? "true" : "false"}>
@@ -102,7 +102,8 @@ const client = { types: D.types, rule: D.rule, ports: Object.fromEntries(order.m
   .pulse__odd { margin: 0; max-width: 52rem; }
   .pulse__cmp .stale { font-style: normal; color: var(--s-signal); }
   .pulse__fig :global(.pa) { stroke: #191714; stroke-width: 1.4; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
-  .pulse__fig :global(.pa-t) { fill: #191714; font-weight: 600; }
+  .pulse__fig :global(.pa-t) { fill: #191714; font-weight: 600; stroke: none; }
+  .pulse__fig :global(.pa-bg) { fill: var(--s-paper); stroke: var(--s-rule); stroke-width: 1px; }
   .pulse__fig :global(.pl) { fill: none; stroke: #191714; stroke-width: 2; vector-effect: non-scaling-stroke; }
   /* 움직임 — 준비되면 0 에서 자라 오른다(스크립트가 없으면 정지 화면 그대로) */
   .pulse__fig.ready:not(.go) :global(.pb rect) { transform: scaleY(0); }

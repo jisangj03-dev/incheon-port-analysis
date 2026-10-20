@@ -33,7 +33,7 @@ def derive(src):
                       "exp_total": round(sum(v["exp"] for v in agg.values()) / 1000, 1), "imp_total": round(sum(v["imp"] for v in agg.values()) / 1000, 1),  # 총계 = 원자료 합(품목별 반올림 값의 합이 아니다 · 2차 사실 대조)
                       "top_exp": {"hs": tx["hs"], "name": tx["name"], "pct": tx["exp_pct"]}, "top_imp": {"hs": tm["hs"], "name": tm["name"], "pct": tm["imp_pct"]},
                       "items": sorted(items, key=lambda i: -(i["exp"] + i["imp"]))})
-    return {"_설명": "인천 소재 기업의 품목별(HS 2단위) 수출입 — 연도별. 통관 항구가 아니라 사업장 주소(시도) 기준이다.",
+    return {"_설명": "인천 소재 기업의 품목별(HS 2단위) 수출입 — 연도별. 입·출항 관문(항구·공항) 기준이 아니라 사업장 주소(시도) 기준이다.",
             "source": src.get("source"), "fetched": src.get("fetched"), "unit": "백만 달러", "years": years}
 
 

@@ -72,9 +72,15 @@ export class ReachMap {
     ctx.beginPath(); ctx.arc(ox, oy, 7, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill();
     // 출발지 이름(2차 화면 판정 — 고리 두른 점에 이름이 없었다)
     ctx.font = `700 ${this.W < 500 ? 11.5 : 13}px system-ui, sans-serif`; ctx.textBaseline = "middle"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(243,239,229,0.9)";
-    const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width, oxL = ox - 12 - ow < 4 ? ox + 12 : ox - 12 - ow;
-    ctx.strokeText(oname, oxL, oy - 14); ctx.fillStyle = "#191714"; ctx.fillText(oname, oxL, oy - 14);
-    const oBox = [oxL - 2, oy - 22, oxL + ow + 2, oy - 6]; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
+    // 도시 점 자리 = 모든 이름표가 피할 자리(4차 화면 판정: 「용인 기흥」 점이 「수원 72분」 글자 한가운데 · 출발지 이름표가 다른 점까지 뻗었다)
+    const dots = Object.values(this.iso.cities).map(([x, y]) => { const [cx, cy] = this.px(x, y); return [cx - 4, cy - 4, cx + 4, cy + 4]; });
+    const clash = (bx: number[], list: number[][]) => list.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]));
+    const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width;
+    const oc = [[ox - 12 - ow, oy - 14], [ox + 12, oy - 14], [ox - ow / 2, oy - 22], [ox - ow / 2, oy + 22], [ox - 12 - ow, oy + 14], [ox + 12, oy + 14]]
+      .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2);
+    const og = oc.find((c) => !clash(c.bx, dots)) || oc[0] || { ax: ox + 12, ay: oy - 14, bx: [ox + 10, oy - 22, ox + 14 + ow, oy - 6] };
+    ctx.strokeText(oname, og.ax, og.ay); ctx.fillStyle = "#191714"; ctx.fillText(oname, og.ax, og.ay);
+    const oBox = og.bx; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
     ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 18), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
     const boxes: number[][] = [oBox, [ox - 9, oy - 9, ox + 9, oy + 9]];
@@ -83,9 +89,10 @@ export class ReachMap {
       const [cx, cy] = this.px(x, y), m0 = ((this.truck && (O as any).cities_truck) || O.cities)[nm], m = m0 == null ? null : Math.round(m0 * this.k + this.prep), on = m != null && m <= this.t;
       const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width;
       // 이름표 자리 넷(오른쪽·왼쪽·위·아래)을 차례로 — 모두 막히면 그때만 점도 뺀다(이름 없는 점 0 · 3차 화면 판정: 「용인 기흥」이 빠져 18곳인데 점 17)
-      const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13]];
+      const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13], [cx + 5, cy - 11], [cx - 5 - tw, cy - 11], [cx + 5, cy + 11], [cx - 5 - tw, cy + 11]];
+      const others = dots.filter((d) => !(d[0] === cx - 4 && d[1] === cy - 4));
       let lx = 0, ly = 0, hit = true;
-      for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2) continue; if (boxes.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]))) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }
+      for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2) continue; if (clash(bx, boxes) || clash(bx, others)) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }
       if (hit) continue;
       ctx.beginPath(); ctx.arc(cx, cy, on ? 3.5 : 2.5, 0, Math.PI * 2); ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.35)"; ctx.fill();
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(243,239,229,0.85)"; ctx.strokeText(label, lx, ly);

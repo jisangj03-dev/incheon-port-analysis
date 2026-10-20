@@ -5,7 +5,7 @@ import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
 import { u } from "../../lib/site";
 import { sourceLine } from "../../lib/sources";
-import { squarify, groupOf, GROUPS, inkOn } from "../../lib/treemap-race";
+import { layout, tileLabel, groupOf, GROUPS, inkOn } from "../../lib/treemap-race";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
@@ -21,19 +21,19 @@ const yrs = D.years.map((y: any) => ({ y: y.partial ? `${y.y}(1~${Number(y.throu
 const TOP = 10;
 const tot = new Map<string, number>(); for (const y of D.years) for (const it of y.items) tot.set(it.hs, (tot.get(it.hs) || 0) + it.exp / (y.exp_total || 1));
 const rank = new Map([...tot.entries()].sort((a, b) => b[1] - a[1]).map(([hs], i) => [hs, i]));
-const top = [...L.items].sort((a: any, b: any) => (rank.get(a.hs) ?? 999) - (rank.get(b.hs) ?? 999)), head = top.slice(0, TOP), rest = top.slice(TOP).reduce((s: number, x: any) => s + x.exp, 0);
-const list = [...head.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp, pct: i.exp_pct })), { hs: "etc", name: `그 밖 ${top.length - head.length}개 류`, v: rest, pct: null }];
-const R0 = squarify(list.map((x) => x.v), { x: 0, y: 0, w: 1000, h: 560 });
+// 첫 그림도 움직이는 그림과 같은 규칙(layout · tileLabel) — 빌드 때 그린 칸에 이름 없는 칸이 둘 있었다(4차 사실 대조)
+const { list: L0, R: R0 } = layout(L.items.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp })), rank, TOP, 1000, 560);
+const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? +((100 * x.v) / L.exp_total).toFixed(1) : (L.items.find((i: any) => i.hs === x.hs)?.exp_pct ?? null) }));
 ---
 <Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
-  <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${L.top_exp.pct}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
+  <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${Number(L.top_exp.pct).toFixed(1)}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
     updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" note="HS 2단위 · 백만 달러 · 관세청 시도(인천) 집계"
     how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천 소재 기업 수출(또는 수입)에서 그 품목의 몫. 전 기간 몫이 큰 열 품목만 칸을 따로 두고 나머지는 「그 밖 N개 류」로 묶었다."
-    limits="통관 항구(인천항·인천공항)가 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 확인하지 못했다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
+    limits="인천항·인천공항(입·출항 관문)을 지난 화물이 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 확인하지 못했다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
     <div slot="answer" class="race">
       <p class="race__y"><b id="race-y">{L.y}</b> <span id="race-k">수출</span> <i id="race-total" data-og-num={`백만 달러 · ${L.y}년 수출`}>{L.exp_total.toLocaleString("ko-KR")}</i><small>백만 달러</small></p>
       <div class="race__box" id="race-box" role="img" aria-label={`${L.y}년 인천 소재 기업 수출 품목 구성`}>
-        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{r.w > 90 && r.h > 50 && it.name.length * 13 + 14 < r.w && <><b>{it.name}</b>{it.pct != null && <i>{it.pct}%</i>}</>}</span>; })}
+        {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{(() => { const nm = tileLabel(it, r); return nm && <><b>{nm}</b>{it.pct != null && (r.h > 34 || r.w > (nm.length + 6) * 13) && <i>{it.pct}%</i>}</>; })()}</span>; })}
       </div>
       <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}<span><i style="background:#d9d1c0"></i>그 밖(작은 품목 묶음)</span></p>
     </div>

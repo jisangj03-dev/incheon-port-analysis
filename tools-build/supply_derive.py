@@ -57,7 +57,7 @@ def derive():
     ], "scope": "전 품목 · 수입 신고 금액 기준(관세청 항구·공항별 = 입항지 기준 · 통관 세관 기준이 아니다)"}
     inc, bus = customs["gates"][1]["share_pct"], customs["gates"][2]["share_pct"]
     counter = {"text": f"바다로 들어오는 수입은 부산이 인천항보다 크다", "incheon_port_pct": inc, "busan_pct": bus, "ym": pym}
-    # ④ 인천 소재 기업의 전기기기 수입 — 관세청 시도별 품목별(소재지 기준 · 통관 항구 기준이 아니다)
+    # ④ 인천 소재 기업의 전기기기 수입 — 관세청 시도별 품목별(소재지 기준 · 입·출항 관문 기준이 아니다)
     si = rows("data/collected/sido-item-incheon.csv")
     sym = max(r["reqYm"] for r in si)
     hs = next(r for r in si if r["reqYm"] == sym and r["hsSgn"] == HS)

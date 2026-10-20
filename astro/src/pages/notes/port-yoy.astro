@@ -24,6 +24,10 @@ const W = 1000, H = 260, pad = 28;
 const ymax = Math.max(...S.map((s) => Math.abs(s.yoy as number)), 1);
 const bw = (W - 2 * pad) / S.length;
 const y0 = H / 2;
+// y 눈금 — 막대 23개를 읽을 수 있게(4차 화면 판정: 값이 적힌 막대가 마지막 하나뿐 · 0 표시 없음)
+const tstep = ymax > 24 ? 10 : ymax > 9 ? 5 : 2;
+const ticks: number[] = []; for (let t = -Math.floor(ymax / tstep) * tstep; t <= ymax; t += tstep) ticks.push(t);
+const ty = (t: number) => y0 - (t / ymax) * (H / 2 - pad);
 const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / ymax) * (H / 2 - pad); return { x: pad + i * bw + 1, y: v >= 0 ? y0 - h : y0, h, neg: v < 0, ym: s.ym, v }; });
 ---
 <Studio ask={false} title={`${me.title} — 측심`} description="인천항 컨테이너 처리량을 작년 같은 달과 달마다 다시 견주는 노트. 숫자는 해양수산부 공표 계열에서." current="notes">
@@ -34,10 +38,14 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
 
 
     <figure class="yoy">
+      <div class="yoy__plot">
       <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${S[0].ym}부터 ${last.ym}까지 전년 같은 달 대비 증감`}>
-        <line x1={pad} x2={W - pad} y1={y0} y2={y0} stroke="var(--s-rule)" vector-effect="non-scaling-stroke" />
+        {ticks.filter((t) => t !== 0).map((t) => <line x1={pad} x2={W - pad} y1={ty(t).toFixed(1)} y2={ty(t).toFixed(1)} stroke="var(--s-rule)" stroke-dasharray="2 4" vector-effect="non-scaling-stroke" />)}
+        <line x1={pad} x2={W - pad} y1={y0} y2={y0} stroke="var(--s-ink-3)" vector-effect="non-scaling-stroke" />
         {bars.map((b) => <rect x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={Math.max(1, b.h).toFixed(1)} fill={b.neg ? "var(--s-signal)" : "var(--s-ink-2)"}><title>{b.ym} {b.v}%</title></rect>)}
       </svg>
+      <div class="yoy__y s-cap" aria-hidden="true">{ticks.map((t) => <span style={`top:${((ty(t) / H) * 100).toFixed(2)}%`}>{t > 0 ? `+${t}` : t < 0 ? `−${-t}` : "0"}%</span>)}</div>
+      </div>
       {/* 눈금 = 해마다 1월 · 마지막 막대 값(화면 판정 10/20 — 양끝 날짜만 있어 어느 달인지 못 읽었다) */}
       <div class="yoy__ticks s-cap" aria-hidden="true">{bars.filter((b) => b.ym.endsWith("-01")).map((b) => <span style={`left:${(((b.x + bw / 2) / W) * 100).toFixed(2)}%`}>{b.ym.slice(0, 4)}</span>)}</div>
       <p class="yoy__last" style={`left:${(((bars[bars.length - 1].x + bw / 2) / W) * 100).toFixed(2)}%`} aria-hidden="true">{last.ym} <b class={(last.yoy as number) < 0 ? "s-signal" : ""}>{(last.yoy as number) > 0 ? "+" : (last.yoy as number) < 0 ? "−" : ""}{Math.abs(last.yoy as number)}%</b></p>
@@ -45,28 +53,20 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
       <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="전년 같은 달 대비 % · 공표값(수정된 전년 기준이라 선에서 잰 값과 최대 0.8%p 다르다)" />
     </figure>
 
-    <p class="counter s-prose"><b>반대 지표</b> — 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>선박 리플레이</a>.</p>
-    <Trust updated={lastUpdated("data/derived/vessel_replay.json")} source={sourceLine("mof-vessel")} note="반대 지표 · 월 집계(개별 선박 아님)" />
+    <p class="counter s-prose"><b>같이 볼 숫자</b> — 컨테이너가 아니라 배로 세면 인천은 부산에 한참 못 미칩니다. {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(<b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>선박 리플레이</a>.</p>
+    <Trust updated={lastUpdated("data/derived/vessel_replay.json")} source={sourceLine("mof-vessel")} note="외항선 입항 척수 · 월 집계(개별 선박 아님)" />
 
-    <section class="grow">
-      <h2>이 노트가 자라려면</h2>
-      <ol class="s-prose">
-        <li>터미널별로 나눠 같은 달에 누가 줄었는지 본다 — 터미널별 월 처리량은 <a href={u("/data.html")}>공개 데이터</a>에 있다.</li>
-        <li>줄어든 달이 이어지는지, 한 달짜리인지 가를 기준을 데이터를 받기 전에 먼저 적는다.</li>
-        <li>그 기준을 통과하면 이 노트는 「정본」이 된다. 통과하지 못해도 지우지 않고 그 결과를 적는다.</li>
-      </ol>
-    </section>
 
-    <section class="links">
-      <div>
+    {(me.links.length > 0 || me.backlinks.length > 0) && <section class="links">
+      {me.links.length > 0 && <div>
         <h2 class="s-cap">이어지는 노트</h2>
         <ul>{me.links.map((id) => byId(id)).filter(Boolean).map((n) => <li><i class="st-dot" data-s={n!.stage} aria-hidden="true"></i> <a href={u(n!.href)}>{n!.title}</a></li>)}</ul>
-      </div>
-      <div>
+      </div>}
+      {me.backlinks.length > 0 && <div>
         <h2 class="s-cap">이 노트로 오는 노트</h2>
-        {me.backlinks.length ? <ul>{me.backlinks.map((id) => byId(id)).filter(Boolean).map((n) => <li><i class="st-dot" data-s={n!.stage} aria-hidden="true"></i> <a href={u(n!.href)}>{n!.title}</a></li>)}</ul> : <p class="s-cap">아직 없습니다 — 심은 지 얼마 안 된 노트입니다.</p>}
-      </div>
-    </section>
+        <ul>{me.backlinks.map((id) => byId(id)).filter(Boolean).map((n) => <li><i class="st-dot" data-s={n!.stage} aria-hidden="true"></i> <a href={u(n!.href)}>{n!.title}</a></li>)}</ul>
+      </div>}
+    </section>}
     <p class="s-cap legend">{STAGES.map((s) => <span><i class="st-dot" data-s={s} aria-hidden="true"></i> {s}</span>)} — 초안(심었다) · 갱신 중(달마다 숫자가 바뀐다) · 정본(먼저 적은 기준으로 판정을 마쳤다)</p>
     <p class="s-cap" data-ai-mark>{aiMark("notes/port-yoy")}</p>
   </article>
@@ -83,6 +83,9 @@ const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / yma
   .note h1 { margin: var(--s-3) 0 var(--s-5); max-width: 18em; }
   .yoy { margin: var(--s-7) 0 0; }
   .yoy svg { display: block; width: 100%; height: 220px; }
+  .yoy__plot { position: relative; padding-left: 40px; }
+  .yoy__y span { position: absolute; left: 0; width: 36px; text-align: right; transform: translateY(-50%); font-size: 11.5px; color: var(--s-ink-3); font-variant-numeric: tabular-nums; }
+  .yoy__ticks, .yoy__last { margin-left: 40px; }
   .yoy__axis { display: flex; justify-content: space-between; gap: var(--s-4); margin-top: var(--s-2); }
   .grow { margin-top: var(--s-8); border-top: 1px solid var(--s-rule); padding-top: var(--s-6); }
   .yoy { position: relative; }

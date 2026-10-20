@@ -48,6 +48,37 @@ export const inkOn = (hex: string) => { const n = parseInt(hex.slice(1), 16), c 
   const L = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; return (1.05 / (L + 0.05)) >= ((L + 0.05) / 0.0587) ? "#fff" : "#191714"; };
 export const groupOf = (hs: string) => { const n = Number(hs); return GROUPS.find((g) => n >= g.from && n <= g.to) || GROUPS[GROUPS.length - 1]; };
 
+// 칸이 좁을 때 쓰는 아주 짧은 이름(2~4자) — 「HS 90」처럼 코드만 남으면 무엇인지 안 읽혔다(4차 화면 판정)
+export const ALIAS: Record<string, string> = { "85": "전기", "27": "연료", "84": "기계", "87": "자동차", "72": "철강", "30": "의료용품", "29": "유기화학", "90": "광학", "26": "광석",
+  "33": "화장품", "39": "플라스틱", "44": "목재", "73": "철강품", "71": "귀금속", "76": "알루미늄", "74": "구리", "17": "당류", "12": "종자", "82": "공구", "03": "수산",
+  "10": "곡물", "38": "화학품", "94": "가구", "88": "항공기", "32": "도료", "62": "의류", "28": "무기화학", "81": "비금속", "83": "금속품", "23": "사료", "40": "고무", "48": "종이", "22": "음료", "21": "조제식품", "02": "육류" };
+/** 칸 이름 — 긴 이름 → 괄호 뺀 이름 → 짧은 이름 → 「HS 00」 → 빈 칸(글자 하나 ≈ 13px) */
+export function tileLabel(it: { hs: string; name: string }, r: { w: number; h: number }) {
+  const big = r.w > 84 && r.h > 40, mid = r.w > 46 && r.h > 26, fit = (t: string) => t.length * 13 + 14 < r.w;
+  if (it.hs === "etc") return r.h > 22 && fit("그 밖") ? (big && fit(it.name) ? it.name : "그 밖") : "";
+  const short = it.name.replace(/\s*\(.*\)$/, ""), alias = ALIAS[it.hs] || "", code = `HS ${it.hs}`;
+  if (big && fit(it.name)) return it.name;
+  if ((big || mid) && fit(short)) return short;
+  if (r.h > 22 && alias && fit(alias)) return alias;
+  if (r.h > 22 && fit(code)) return code;
+  return "";
+}
+/** 이름이 다 들어가는 만큼만 칸을 두고 나머지는 「그 밖」 — 남길 품목은 **그 해 금액이 큰 순**(모바일에서 의료용품 10.9% 가 접히고 철강 5.8% 가 남았다 · 4차 화면 판정) ·
+ *  칸 자리 순서는 전 기간 순위(rank)로 고정해 해마다 칸이 뛰지 않게 한다 */
+export function layout(items: { hs: string; name: string; v: number }[], rank: Map<string, number>, top: number, W: number, H: number) {
+  const bySize = [...items].sort((a, b) => b.v - a.v);
+  const mk = (N: number) => {
+    const keep = new Set(bySize.slice(0, N).map((x) => x.hs));
+    const head = items.filter((x) => keep.has(x.hs)).sort((a, b) => (rank.get(a.hs) ?? 999) - (rank.get(b.hs) ?? 999));
+    const restN = items.length - head.length, rest = items.filter((x) => !keep.has(x.hs)).reduce((s, x) => s + x.v, 0);
+    const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${restN}개 류`, v: rest }] : head;
+    return { list, R: squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H }) };
+  };
+  let N = Math.min(top, items.length), L = mk(N);
+  while (N > 3 && L.list.some((it, k) => !tileLabel(it, L.R[k]))) L = mk(--N);
+  return L;
+}
+
 export type RaceOpts = { top: number; onYear?: (y: Year, i: number) => void; onPick?: (hs: string) => void };
 
 export class TreemapRace {
@@ -62,12 +93,7 @@ export class TreemapRace {
   set(i: number, anim = true) { this.i = Math.max(0, Math.min(this.years.length - 1, i)); this.render(anim); this.o.onYear?.(this.years[this.i], this.i); }
   render(anim = true) {
     const Y = this.years[this.i], W = this.host.clientWidth, H = this.host.clientHeight;
-    const top = [...Y.items].sort((a, b) => (this.rank.get(a.hs) ?? 999) - (this.rank.get(b.hs) ?? 999));
-    // 칸 수 = 모든 칸에 이름(짧은 이름 또는 「HS 00」)이 들어가는 만큼만 — 안 들어가는 작은 칸은 「그 밖」으로 묶는다(3차 화면 판정: 이름 없는 칸)
-    //   「그 밖」 = 머리 N 품목을 뺀 나머지 전부의 합(줄인 품목도 들어간다)
-    const mk = (N: number) => { const head = top.slice(0, N), rest = top.slice(N).reduce((s, x) => s + x.v, 0); const list = rest > 0 ? [...head, { hs: "etc", name: `그 밖 ${top.length - head.length}개 류`, v: rest }] : head; return { list, R: squarify(list.map((x) => x.v), { x: 0, y: 0, w: W, h: H }) }; };
-    let N = this.o.top, L = mk(N);
-    while (N > 3 && L.list.some((it, k) => { const r = L.R[k], code = it.hs === "etc" ? "그 밖" : `HS ${it.hs}`; return !(r.h > 22 && code.length * 13 + 14 < r.w); })) L = mk(--N);
+    const L = layout(Y.items, this.rank, this.o.top, W, H);
     const { list, R } = L;
     const live = new Set<string>();
     list.forEach((it, k) => {
@@ -87,17 +113,11 @@ export class TreemapRace {
         el!.style.transform = `translate(${r.x.toFixed(1)}px,${r.y.toFixed(1)}px)`;
         el!.style.width = `${Math.max(0, r.w - 2).toFixed(1)}px`; el!.style.height = `${Math.max(0, r.h - 2).toFixed(1)}px`;
       });
-      const big = r.w > 84 && r.h > 40, mid = r.w > 46 && r.h > 26, tiny = r.w < 24 || r.h < 24;
+      const tiny = r.w < 24 || r.h < 24;
       // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
-      // 중간 칸도 이름을 단다(괄호 풀이를 뺀 짧은 이름) — %만 있는 칸은 무엇인지 읽히지 않았다(화면 판정 10/20)
-      const short = it.name.replace(/\s*\(.*\)$/, "");
-      // 칸 폭에 들어가는 이름만(글자 하나 ≈ 13px) — 390 에서 「광학·정밀·의료기기」가 잘렸다(2차 화면 판정) · 안 들어가면 짧은 이름 → % 만 → 빈 칸(값은 누르면 · CSV)
-      const fit = (t: string) => t.length * 13 + 14 < r.w;
-      // 짧은 이름도 안 들어가면 HS 번호(「HS 90」 · 실무에서 쓰는 이름) — 그것도 안 되면 빈 칸(이름 없이 %만 남기지 않는다 · 3차 화면 판정)
-      const code = it.hs === "etc" ? "그 밖" : `HS ${it.hs}`;
-      const nm = big && fit(it.name) ? it.name : (big || mid) && fit(short) ? short : r.h > 22 && fit(code) ? code : "";
+      const nm = tileLabel(it, r);
       el.innerHTML = nm ? `<b>${nm}</b>${r.h > 34 || r.w > (nm.length + 6) * 13 ? ` <i>${share.toFixed(1)}%</i>` : ""}` : "";
-      if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", mid ? `${share.toFixed(1)}% ${it.name}` : `${it.name} ${share.toFixed(1)}%`);
+      if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;
       el.style.color = inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c);
