@@ -24,7 +24,7 @@ const box = { l: ((C[0] - A[0]) / (A[2] - A[0])) * 100, t: ((A[3] - C[3]) / (A[3
 const mx = Math.max(...F.map((f: any) => f.ships_seen));
 const yr = L.date.slice(0, 4);
 ---
-<Studio title="위성으로 본 인천 묘박지 — 배가 얼마나 기다리나" description="달마다 가장 맑은 Sentinel-2 위성 사진으로 인천 앞바다 묘박지를 넘겨 보고, 먼바다 상자 안에 보인 배를 어림한다." current="tools" ogImage="/og/tool-anchorage.jpg" lateFonts>
+<Studio title="위성으로 본 인천 묘박지 — 배가 얼마나 기다리나" description="Sentinel-2 위성 사진 위에 Sentinel-1 레이더로 센 배를 올려, 구름·밤과 무관하게 인천 앞바다 묘박지에 기다리는 배를 날짜별로 본다." current="tools" ogImage="/og/tool-anchorage.jpg" lateFonts>
   <ToolShell id="anchorage" who="선사 · 터미널 · 포워더" asOf={L.date} q="인천 앞바다 묘박지에 배가 얼마나 기다리나?" lead={`${L.date} 위성 사진의 먼바다 상자 안에서 배로 보이는 물체 ${L.ships_seen}개. 달마다 가장 맑은 날 한 장씩 넘겨 봅니다.`}
     updated={S.made} source={`${sourceLine("copernicus-s2")}${R1 ? " · Copernicus Sentinel-1 RTC(Microsoft Planetary Computer)" : ""} · Contains modified Copernicus Sentinel data ${yr}`} csv={u("/data/anchorage.csv")} csvName="incheon-anchorage-s2.csv" note={`타일 ${S.tile} · 달마다 한 장`}
     how={`AWS 공개 Sentinel-2 L2A 에서 인천 앞바다 창만 읽고(실제색), 달마다 구름이 가장 적은 장면을 골랐다. 배 어림 = ${S.method}.`}

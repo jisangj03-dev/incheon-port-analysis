@@ -69,7 +69,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   "delivery-reach": () => {
     const I = J("data/derived/isochrones.json");
     return { rows: I.origins.flatMap((o: any) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 도착_분: m ?? "" }))),
-      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정 · 혼잡 미반영 · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
+      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정(이 CSV 는 자유 흐름 분 · 시간대 배율은 data/derived/reach_slots.json) · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
   },
   // 공공입찰 레이더 — 스냅샷 공고 한 줄씩(담당자 개인정보 칸 없음 · 목록 검수 안 함)
   "bid-radar": () => {

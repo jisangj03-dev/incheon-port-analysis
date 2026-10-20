@@ -27,7 +27,7 @@ const L0 = line(F);
 const sign = (v: number) => (v > 0 ? `+${v}` : `${v}`);
 const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.months };
 ---
-<Studio title="초크포인트 충격 — 바다 길목이 막히면 어느 교역이 흔들리나" description="IMF PortWatch 길목 통항과 관세청 국가별 수출입으로, 호르무즈·홍해·믈라카·대만해협이 막히면 한국 교역의 어느 몫이 그 길을 지나는지 본다." current="tools" ogImage="/og/tool-chokepoint.jpg" lateFonts>
+<Studio title="초크포인트 충격 — 바다 길목이 막히면 어느 교역이 흔들리나" description="IMF PortWatch 길목 통항과 관세청 국가별 수출입으로, 호르무즈·홍해·믈라카·대만해협이 막히면 한국 교역의 어느 몫이 그 길을 지나는지, 우회 거리·일수와 운임 충격까지 본다." current="tools" ogImage="/og/tool-chokepoint.jpg" lateFonts>
   <ToolShell id="choke" who="포워더 · 수출입 담당 · 구매" asOf={F.asof}
     q="바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?"
     lead={`${F.ko} 통항이 2023년 같은 달보다 ${F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}. 이 길목을 지나는 나라와의 교역은 한국 수입의 ${F.imp_pct}% · 수출의 ${F.exp_pct}%(전국 · 최근 12달). 인천 관문은 전국 수입의 ${D.incheon_imp_share_pct}%를 받습니다(${D.incheon_ym}).`}
