@@ -7,10 +7,11 @@ import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 import { poster, PW, PH } from "../../lib/home-poster";
 import { u } from "../../lib/site";
-import { profile, aiMark } from "../../lib/profile";
+import { profile } from "../../lib/profile";
 import { sourceLine } from "../../lib/sources";
 import { room } from "../../lib/rooms";
 import Trust from "../scene/Trust.astro";
+import AiMark from "../scene/AiMark.astro";
 
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
@@ -36,7 +37,16 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
     <p class="s-lead s-prose live__one">{L.ym} 금액 · 입·출항지 기준(관세청 항구·공항별 · 인천공항 + 인천항) — 수출은 {L.exp_share_pct}%가 인천에서 나갑니다. <span class="live__nat">같은 달 전국은 수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러(같은 통계의 전국 합계).</span></p>
     <p class="live__stat" id="fm-hud" aria-live="off"><b id="fm-total">{fmt(L.total)}</b><span class="live__unit">억 달러</span>
-      <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · <span class="k k-in"></span>수입 <b id="fm-imp">{fmt(L.imp_total)}</b> · <span class="k k-out"></span>수출 <b id="fm-exp">{fmt(L.exp_total)}</b></span></p>
+      <span class="live__sub"><span id="fm-ym">{L.ym}</span> 인천 관문을 지난 수출입 · 관문별로 나누면</span>
+      {/* [2026-10-21 채팅 검수 ① · 채점표 D1] 답(공항+항만 금액)과 지도(공항 항공화물 무게)가 갈려 「50.5%가 다 비행기로?」로 읽혔다 → 금액을 관문별로 갈라 첫 화면에 둔다 */}
+      {[["수입", "fm-imp", L.imp_total, L.air_imp, L.port_imp], ["수출", "fm-exp", L.exp_total, L.air_exp, L.port_exp]].map(([k, id, t, a, sp]: any) => { const ap = Math.round((a / t) * 100); return (
+        <span class="live__split" aria-label={`${k} ${fmt(t)}억 달러 가운데 인천공항 ${fmt(a)}(${ap}%) · 인천항 ${fmt(sp)}(${100 - ap}%)`}>
+          <span class="live__sk">{k} <b id={id}>{fmt(t)}</b></span>
+          <span class="live__bar" aria-hidden="true"><i class="air" style={`width:${ap}%`}></i><i class="sea"></i></span>
+          <span class="live__sv" aria-hidden="true">하늘 {ap}% · 바다 {100 - ap}%</span>
+        </span>); })}
+      {/* [2026-10-21 11차 화면 판정 H4] 390 에서 범례(지도 아래)가 접힘선 밑 — 지도가 무엇인지는 글 기둥에서 먼저 말한다 */}
+      <span class="live__mapis"><span class="lg-d">오른쪽</span><span class="lg-m">아래</span> 지도는 하늘 쪽만 그립니다 — 인천공항을 오간 나라별 항공화물 <b>무게</b>(톤 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균` : ""} · 위 금액과 단위·기간이 다름)</span></p>
     <div class="live__cta">
       <a class="s-btn live__q" href="#questions">같이 푸는 질문 보기</a>
       {hasMail && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
@@ -49,7 +59,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문 지도 — 인천공항을 오간 나라별 항공화물(${F.air_cargo?.from}~${F.air_cargo?.through} 월평균)을 점으로, 도착은 주홍 · 출발은 바다색. 바다(인천항)는 나라별 공개 통계가 없어 점이 없다.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span> · 한 달 = 7초(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길(2015~21 누적)</span><span id="fm-wh" hidden> · 원 = 물류창고 개소</span></p>
+    <p class="live__legend"><b class="live__lt">지도 = 하늘 쪽 · 무게</b> · <span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span> · <span id="fm-sec">한 달 = 7초</span>(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길(2015~21 누적)</span><span id="fm-wh" hidden> · 원 = 물류창고 개소</span></p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
@@ -84,7 +94,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점도 길도 그리지 않았다 — 배가 실제로 다닌 바닷길은 회녹 결(세계은행 선박 통행 밀도)로 보인다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소(인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
     </details>
-    <p class="s-cap live__mark" data-ai-mark>{aiMark("index")}</p>
+    <AiMark k="index" />
   </div>
   <script define:vars={{ src: u("/data/flowmap.json") }}>window.__fmsrc = src;</script>
 </section>
@@ -212,6 +222,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     };
     let views = fit(); viewNow = "sudo";
     $("fm-unit").textContent = `점 하나 ≈ ${unit}톤`;
+    $("fm-sec").textContent = `한 달 = ${String(Math.round((7 / pace()) * 10) / 10)}초`; /* 동작 줄이기 = 느리게(11차 사실 대조 M3 — 범례 7초가 17.5초로 돌았다) */
     const cam: Cam = { ...views.sudo }; // [2026-10-15 P0] 첫 화면 = 수도권 · 「아시아」는 단추
     fm = new FlowMap(cv, D, { unit, monthSec: 7, airTons: true, maxDpr: lite ? 1 : 2, lite, speed: pace(), calm: reduce, inland: false, onFrame: place, onMonth: (i) => {
       const m = F.months[i];
@@ -348,6 +359,17 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__unit { font-size: 14px; color: var(--s-ink-2); }
   .live__sub { flex-basis: 100%; font-size: 14px; color: var(--s-ink-2); margin-top: 6px; }
   .live__sub b { color: var(--s-ink); font-weight: 600; }
+  .live__split { flex-basis: 100%; display: grid; grid-template-columns: 7.2em minmax(60px, 1fr) auto; align-items: center; gap: 10px; font-size: 13.5px; color: var(--s-ink-2); margin-top: 4px; }
+  .live__sk b { color: var(--s-ink); font-weight: 600; }
+  .live__bar { display: flex; height: 8px; background: var(--s-paper-2, #ebe6da); }
+  .live__bar .air { background: var(--s-ink-2); }
+  .live__bar .sea { flex: 1; background: repeating-linear-gradient(135deg, var(--s-ink-3) 0 2px, transparent 2px 5px); }
+  .live__sv { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .live__lt { color: var(--s-ink); font-weight: 650; }
+  .live__mapis { flex-basis: 100%; font-size: 13.5px; color: var(--s-ink-2); margin-top: 6px; }
+  .live__mapis b { color: var(--s-ink); font-weight: 600; }
+  .lg-m { display: none; }
+  @media (max-width: 899px) { .lg-d { display: none; } .lg-m { display: inline; } .live__mapis { font-size: 13px; } }
   .live__cta { display: flex; flex-wrap: wrap; gap: var(--s-3); margin-top: var(--s-5); }
   .k { display: inline-block; width: 14px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 5px 0 2px; }
   .k-in { background: var(--s-signal); } .k-out { background: var(--s-sea-t); }
@@ -406,6 +428,13 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__frame { grid-column: 6 / -1; height: 100%; }
     .live__stage { height: 100%; }
   }
+  @media (min-width: 900px) and (max-height: 760px) {
+    /* 낮은 노트북 창(1536×640 등) — 관문별 막대 두 줄이 들어오며 글 기둥이 칸보다 길어져 지도 단추가 접힘선 밑으로 밀렸다(hero 시험) → 글 사이만 줄인다 */
+    .live__text { padding: var(--s-3) 0; }
+    .live__text h1 { margin: var(--s-1, 4px) 0 var(--s-2); font-size: clamp(30px, min(3.3vw, 6.4vh), 58px); }
+    .live__stat, .live__cta { margin-top: var(--s-3); }
+    .live__split { margin-top: 2px; }
+  }
   @media (max-width: 899px) {
     /* 좁은 화면 — 글이 위, 지도는 그 아래 전폭(인천이 첫 화면 안에 들게 지도 높이를 창의 절반 남짓으로) */
     .live__text { padding: var(--s-4) var(--s-gutter) var(--s-4); }
@@ -414,6 +443,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     .live__stat { margin-top: var(--s-3); }
     .live__stat > b { font-size: 30px; }
     .live__sub { font-size: 13px; }
+    .live__split { font-size: 13px; grid-template-columns: 6.6em minmax(40px, 1fr) auto; gap: 8px; }
     .live__cta { margin-top: var(--s-4); gap: 8px; }
     .live__cta .s-btn { min-height: 44px; padding: 0 14px; font-size: 14.5px; }
     .live__stage { height: clamp(380px, 58svh, 620px); }
