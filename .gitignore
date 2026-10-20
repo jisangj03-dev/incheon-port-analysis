@@ -39,6 +39,8 @@ analysis/geocode_cache.csv
 
 # 개편 도구(2026-10-10) — 설치물·빌드·시험 산출물. 정본은 package.json·package-lock.json 이다.
 node_modules/
+# 심볼릭 링크(작업 트리용)도 거른다 — 「node_modules/」 는 디렉터리만 걸러 링크가 커밋됐다(#74 QA 빌드 ENOENT)
+node_modules
 _site/
 .sass-cache/
 .jekyll-cache/
