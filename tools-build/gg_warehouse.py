@@ -10,7 +10,7 @@
   python tools-build/gg_warehouse.py            # 결과 data/derived/gg_warehouse.json · 진단 data/collected/gg_warehouse_diag.json
   python tools-build/gg_warehouse.py --selftest
 """
-import csv, io, json, os, re, sys, urllib.parse, urllib.request, datetime
+import csv, io, json, os, re, sys, urllib.parse, urllib.request, datetime, http.cookiejar, http.client
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/gg_warehouse.json")
@@ -22,12 +22,18 @@ ADDR = ["소재지도로명주소", "소재지지번주소", "도로명주소", 
 diag = {"page": PAGE, "tried": []}
 
 
+# 포털은 화면을 연 세션(쿠키)에서만 파일을 내준다 — 쿠키 없이 부르면 머리만 오고 끊겼다(IncompleteRead · 두 번째 실행 10/20)
+OPENER = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+
+
 def get(url, data=None, ctype=None):
     h = dict(UA)
     if ctype: h["Content-Type"] = ctype
     req = urllib.request.Request(url, data=data, headers=h)
-    with urllib.request.urlopen(req, timeout=90) as r:
-        return r.status, dict(r.headers), r.read()
+    with OPENER.open(req, timeout=90) as r:
+        try: body = r.read()
+        except http.client.IncompleteRead as e: body = e.partial
+        return r.status, dict(r.headers), body
 
 
 def decode(b):
@@ -88,6 +94,7 @@ def fetch():
                     m = re.search(rf'"{k}"\s*:\s*"?([A-Za-z0-9_]+)', json.dumps(j))
                     return m.group(1) if m else None
                 a, sn = pick("atchFileId"), pick("fileDetailSn") or 1
+                diag["tried"][-1]["picked"] = [a, sn]
                 if a:
                     st2, hd2, body = get(f"https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId={a}&fileDetailSn={sn}")
                     diag["tried"].append({"url": f"fileDownload {a}/{sn}", "status": st2, "type": hd2.get("Content-Type", ""), "bytes": len(body)})
