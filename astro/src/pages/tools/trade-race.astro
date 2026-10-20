@@ -23,7 +23,7 @@ const tot = new Map<string, number>(); for (const y of D.years) for (const it of
 const rank = new Map([...tot.entries()].sort((a, b) => b[1] - a[1]).map(([hs], i) => [hs, i]));
 // 첫 그림도 움직이는 그림과 같은 규칙(layout · tileLabel) — 빌드 때 그린 칸에 이름 없는 칸이 둘 있었다(4차 사실 대조)
 const { list: L0, R: R0 } = layout(L.items.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp })), rank, TOP, 1000, 560);
-const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? +((100 * x.v) / L.exp_total).toFixed(1) : (L.items.find((i: any) => i.hs === x.hs)?.exp_pct ?? null) }));
+const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? null : (L.items.find((i: any) => i.hs === x.hs)?.exp_pct ?? null) })); // 「그 밖」 % 는 움직이는 그림이 붙인다(빌드 때 계산한 % 는 데이터 파일에 없는 숫자 — §2-1)
 ---
 <Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
   <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${Number(L.top_exp.pct).toFixed(1)}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}

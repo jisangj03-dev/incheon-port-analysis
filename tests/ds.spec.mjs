@@ -132,7 +132,7 @@ test("선박 리플레이: 월 집계 표기 · 원천 대조 · 달 막대 · �
   const V = JSON.parse(readFileSync("data/derived/vessel_replay.json", "utf-8"));
   expect(V.source_rows).toBe(csv.length);
   expect(V.source_months[0]).toBe(yms.reduce((a, b) => (a < b ? a : b)));
-  await expect(page.locator("[data-v1]")).toContainText(`원천 ${V.source_rows}행`);
+  await expect(page.locator("[data-v1]")).toContainText(`원천 표 ${Number(V.source_rows).toLocaleString("ko-KR")}줄`);
   await expect(page.locator("main, body").first()).toContainText("월 집계");
   await expect(page.locator("main, body").first()).toContainText("개별 선박의 항적이 아니다"); // 이름 = 「외항선 입항 추이」(「리플레이」는 AIS 항적 재생으로 읽혔다 · 5차 사실 대조)
   await expect(page.locator(".counter")).toContainText("반대 지표");

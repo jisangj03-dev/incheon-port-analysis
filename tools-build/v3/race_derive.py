@@ -24,7 +24,7 @@ def derive(src):
             hs = r["hsSgn"].strip()
             a = agg.setdefault(hs, {"hs": hs, "name": SHORT.get(hs) or r.get("korePrlstNm", "").strip(), "full": r.get("korePrlstNm", "").strip(), "exp": 0.0, "imp": 0.0})
             a["exp"] += num(r.get("expUsdAmt")); a["imp"] += num(r.get("impUsdAmt"))
-        items = [{**a, "exp": round(a["exp"] / 1000, 1), "imp": round(a["imp"] / 1000, 1)} for a in agg.values()]
+        items = [{**a, "exp": round(a["exp"] / 1000, 3), "imp": round(a["imp"] / 1000, 3)} for a in agg.values()]  # 소수 셋째(천 달러) — 한 자리로 반올림하면 작은 류가 0 이 돼 「그 밖 N개 류」 셈에서 빠졌다(9차 사실 대조)
         te, ti = sum(i["exp"] for i in items) or 1, sum(i["imp"] for i in items) or 1
         for i in items: i["exp_pct"] = round(100 * i["exp"] / te, 1); i["imp_pct"] = round(100 * i["imp"] / ti, 1)
         tx = max(items, key=lambda i: i["exp"]); tm = max(items, key=lambda i: i["imp"])

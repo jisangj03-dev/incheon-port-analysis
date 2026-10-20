@@ -1,7 +1,7 @@
 // 지면 차트·보고서 위젯의 계열을 CSV 로(B7 · 퍼가기·내려받기 · 신뢰 꼬리). 차트와 같은 함수·같은 파일에서 나온다 — 화면과 파일이 갈라지지 않는다.
 import { emptyDirection, sizeDirection, terminals, items } from "../../lib/report-data";
 import { portMonthly, mapSeries } from "../../lib/data";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
@@ -63,13 +63,15 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   "trade-race": () => {
     const D = J("data/derived/trade_race.json");
     return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
-      note: `${D.source} · 관세청이 인천(시도 28)으로 집계한 업체 실적 — 업체를 시도에 넣는 기준은 공개 명세에 없다(입·출항 관문 기준이 아니다) · 계산 tools-build/v3/race_derive.py` };
+      note: `관세청 시도별 품목별 수출입실적(공공데이터포털 15101641) · 시도 = 인천(28) · 원천 금액은 천 달러 → 이 CSV 의 금액 열은 백만 달러 · 관세청이 인천(시도 28)으로 집계한 업체 실적 — 업체를 시도에 넣는 기준은 공개 명세에 없다(입·출항 관문 기준이 아니다) · 계산 tools-build/v3/race_derive.py` };
   },
   // 수도권 배송 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
   "delivery-reach": () => {
-    const I = J("data/derived/isochrones.json");
-    return { rows: I.origins.flatMap((o: any) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 도착_분: m ?? "" }))),
-      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정(이 CSV 는 자유 흐름 분 · 시간대 배율은 data/derived/reach_slots.json) · 계산 tools-build/v3/osm_iso.py · ${I.made}` };
+    const I = J("data/derived/isochrones.json"), RS = existsSync(join(repoRoot(), "data/derived/reach_slots.json")) ? J("data/derived/reach_slots.json") : null;
+    const SL = (RS?.slots ?? []).filter((t: any) => t.k !== 1);
+    // 화면 기본값(낮 등 시간대 보정 분)을 CSV 로도 재현하게 — 시간대별 열을 같이 싣는다(9차 사실 대조: 자유 흐름 분만 있었다)
+    return { rows: I.origins.flatMap((o: any, oi: number) => Object.entries(o.cities).map(([c, m]) => ({ 출발지: o.name, 구분: o.kind, 도시: c, 자유흐름_분: m ?? "", ...Object.fromEntries(SL.map((t: any) => [`${t.id}_분`, RS?.table?.[oi]?.[t.id]?.car?.[c] ?? ""])) }))),
+      note: `OpenStreetMap 기여자(ODbL) · 도로 등급별 자유 흐름 속도 가정 · 시간대 열 = 자유 흐름 분 × 카카오 내비 대조 배율(${SL.map((t: any) => `${t.id} ×${t.k}`).join(" · ")}) · ${I.made}` };
   },
   // 공공입찰 레이더 — 스냅샷 공고 한 줄씩(담당자 개인정보 칸 없음 · 목록 검수 안 함)
   "bid-radar": () => {
@@ -96,8 +98,10 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
 };
 
 // 원천 파일이 아직 없는 표(수집 워크플로가 만들 것)는 빼고 낸다 — 없는 파일로 빌드가 깨지지 않게
+// [2026-10-20 9차 사실 대조] 내린 지면만 쓰던 CSV 는 내지 않는다(링크 0 인데 주소로 열렸고 머리줄에 내부어가 남았다) — 만드는 함수는 남겨 다시 올릴 때 쓴다
+const DOWN_CSV = new Set(["empty-direction", "size-direction", "terminals", "items", "map-places", "port-pulse", "bid-radar", "ops-stats", "anchorage"]);
 export function getStaticPaths() {
-  return Object.keys(DATA).filter((name) => { try { DATA[name](); return true; } catch { return false; } }).map((name) => ({ params: { name } }));
+  return Object.keys(DATA).filter((n) => !DOWN_CSV.has(n)).filter((name) => { try { DATA[name](); return true; } catch { return false; } }).map((name) => ({ params: { name } }));
 }
 
 const cell = (v: unknown) => { const s = v === null || v === undefined ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };

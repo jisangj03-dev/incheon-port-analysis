@@ -26,7 +26,7 @@ const W = TB?.within ?? O.cities_within, in1 = W["1h"], in2 = W["2h"];
 const seoul = C0["서울시청"];
 // 도로 등급 = OSM 분류를 우리말로(연결로·진입로는 생략 — 방법 칸이 개발 용어를 늘어놓았다 · 5차 사실 대조)
 const RK: Record<string, string> = { motorway: "고속도로", trunk: "자동차전용·간선", primary: "주간선", secondary: "보조간선", tertiary: "집산로", unclassified: "기타 도로", residential: "생활도로" };
-const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간 보정, 카카오 내비 ${t.n ?? 30}구간 대조)`);
+const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간대)`); // 보정 근거(카카오 내비 대조)는 아래 방법 칸에 — 답 문장 안 각주였다(9차 화면 판정 Q5)
 const NP = join(repoRoot(), "data/derived/navi_check.json");
 const NV = existsSync(NP) ? JSON.parse(readFileSync(NP, "utf-8")) : null;
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
@@ -72,7 +72,7 @@ const navi = NV?.status === "ok"
       const el = document.querySelector<HTMLElement>(".tool__lead"); if (!el || !rm) return;
       const o: any = rm.iso.origins[rm.o], C = (rm.truck && o.cities_truck) || o.cities, at = (m: number | null) => (m == null ? null : Math.round(m * rm!.k + rm!.prep));
       const v = Object.values(C as Record<string, number | null>).map(at), n = v.length, w = (h: number) => v.filter((m) => m != null && m <= h * 60).length;
-      el.textContent = `${o.name}에서 출발하면 ${rm.truck ? "화물차로 " : ""}서울시청까지 ${at(C["서울시청"]) ?? "—"}분${tagNow}, 표에 든 수도권 도시 ${n}곳 가운데 1시간 안 ${w(1)}곳 · 2시간 안 ${w(2)}곳.`;
+      el.textContent = `${o.name}에서 ${rm.truck ? "화물차(1.5톤 초과)" : "승용차"}로 출발하면 서울시청까지 ${at(C["서울시청"]) ?? "—"}분${tagNow}, 표에 든 수도권 도시 ${n}곳 가운데 1시간 안 ${w(1)}곳 · 2시간 안 ${w(2)}곳.${rm.truck ? "" : " 1.5톤 넘는 화물차는 아래에서 「화물차」를 고르세요."}`;
     };
     const list = (o: any, k = 1) => {
       const C = (rm?.truck && o.cities_truck) || o.cities;

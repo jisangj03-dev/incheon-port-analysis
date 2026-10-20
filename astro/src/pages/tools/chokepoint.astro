@@ -30,13 +30,13 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
 <Studio title="초크포인트 충격 — 바다 길목이 막히면 어느 교역이 흔들리나" description="IMF PortWatch 길목 통항과 관세청 국가별 수출입으로, 호르무즈·홍해·믈라카·대만해협이 막히면 한국 교역의 어느 몫이 그 길을 지나는지, 우회 거리·일수와 운임 충격까지 본다." current="tools" ogImage="/og/tool-chokepoint.jpg" lateFonts>
   <ToolShell id="choke" who="포워더 · 수출입 담당 · 구매" asOf={F.asof}
     q="바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?"
-    lead={`${F.ko} 통항이 2023년 같은 달보다 ${F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}. 이 길목을 지나는 나라와의 교역은 한국 수입의 ${F.imp_pct}% · 수출의 ${F.exp_pct}%(전국 · 최근 12달). 전국 숫자입니다 — 인천 관문 몫으로 나누지 않았습니다.`}
+    lead={`${F.ko} 통항이 2023년 같은 달보다 ${F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}. 이 길목을 지나는 나라와의 교역은 한국 수입의 ${F.imp_pct}% · 수출의 ${F.exp_pct}%(전국 · ${ym(D.months[0])}~${ym(D.months[1])}). 전국 숫자입니다 — 인천 관문 몫으로 나누지 않았습니다.`}
     updated={D.fetched} source={`${sourceLine("imf-portwatch")} · ${sourceLine("kcs-nation")} · ${sourceLine("kobc-kcci")} · ${sourceLine("searoute-marnet")}`} csv={u("/data/chokepoint.csv")} csvName="chokepoint-shock.csv" note="통항 = 주 평균 · 교역 = 전국 · 최근 12달"
     how={`PortWatch 길목별 일별 통항(AIS 추정)을 주 평균으로 그리고, 원천이 공개한 마지막 28일 평균을 2023년 같은 달 평균(사태 전)과 견줬다. 교역 몫 = 관세청 국가별 수출입(${ym(D.months[0])}~${ym(D.months[1])} 합)에서 그 길목을 보통 지나는 나라(경유 표 — 펼침 안에 나라 목록)의 몫.`}
-    limits={`${D.air_note || ""} 나라 → 길목 경유는 보통 항로의 가정이다(환적·우회는 따지지 않는다). 우회 일수는 해상 경로망의 최단 거리 차를 16노트로 나눈 것이다(기항·혼잡 미반영).`+" 중국·일본·미주는 표에 없다. 「흔들리는 액수」는 통항이 줄어든 비율만큼 교역도 준다는 단순 비례 가정이고 실제 손실이 아니다. 인천 관문만의 몫이 아니라 전국 기준이다(인천×나라 공개 자료가 없다). 통항 급감의 원인은 이 지면이 확인하지 않는다(보도로만 확인)."}>
+    limits={`${D.air_note || ""} 통항 증감 % 는 반올림 전 평균으로 계산했다(화면의 척수는 소수 한 자리). 나라 → 길목 경유는 보통 항로의 가정이다(환적·우회는 따지지 않는다). 우회 일수는 해상 경로망의 최단 거리 차를 16노트로 나눈 것이다(기항·혼잡 미반영).`+" 중국·일본·미주는 표에 없다. 「흔들리는 액수」는 통항이 줄어든 비율만큼 교역도 준다는 단순 비례 가정이고 실제 손실이 아니다. 인천 관문만의 몫이 아니라 전국 기준이다(인천×나라 공개 자료가 없다). 통항 급감의 원인은 이 지면이 확인하지 않는다(보도로만 확인)."}>
     <div slot="answer" class="ck">
       <p class="ck__big"><b id="ck-pct" data-og-num={`${F.ko} 통항 · 2023년 같은 달 대비`} class={F.vs_base_pct != null && F.vs_base_pct < -10 ? "dn" : ""}>{F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}</b>
-        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · PortWatch 공개 마지막 28일 하루 평균 <b id="ck-now">{F.now28}</b>척 <small>({F.asof}까지 · % 는 반올림 전 값으로 계산)</small></span></p>
+        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 공개 마지막 28일 하루 평균 <b id="ck-now">{F.now28}</b>척 <small>({F.asof}까지)</small></span></p>
       <figure class="ck__fig" id="ck-fig">
         <div class="ck__plot">
         <div class="ax" id="ck-axis" data-furniture>{L0.ticks.map(([y, v]) => <span class="ax__y" style={`top:${((Number(y) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{L0.yrs.map(([x, y]) => <span class="ax__x" style={`left:${((Number(x) / VW) * 100).toFixed(2)}%`}>{y}</span>)}</div>
@@ -49,8 +49,8 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
         <figcaption class="s-cap">하루 통항 척수(주 평균) · 점선 = 견주는 기준 하나(2023년 <span id="ck-bm">{Number(F.asof.slice(5, 7))}</span>월 하루 평균 <span id="ck-bv">{F.base_2023_same_month}</span>척 — 지금 달과 같은 달) · 마지막 날 {F.asof}</figcaption>
       </figure>
       <div class="ck__trade">
-        <p class="ck__share"><span>이 길목을 지나는 나라와의 교역(전국 · 12달)</span> 수입 <b id="ck-imp">{F.imp_pct}%</b> · 수출 <b id="ck-exp">{F.exp_pct}%</b> · 월 <b id="ck-month">{F.monthly_musd.toLocaleString("ko-KR")}</b>백만 달러</p>
-        <p class="s-cap ck__bars-h">나라별 교역(수출+수입 · 최근 12달 합 · 단위 백만 달러)</p>
+        <p class="ck__share"><span>이 길목을 지나는 나라와의 교역(전국 · {ym(D.months[0])}~{ym(D.months[1])})</span> 수입 <b id="ck-imp">{F.imp_pct}%</b> · 수출 <b id="ck-exp">{F.exp_pct}%</b> · 월 <b id="ck-month">{F.monthly_musd.toLocaleString("ko-KR")}</b>백만 달러</p>
+        <p class="s-cap ck__bars-h">나라별 교역(수출+수입 · {ym(D.months[0])}~{ym(D.months[1])} 합 · 단위 백만 달러)</p>
         <ol class="ck__bars" id="ck-bars">{F.top.map((t: any) => <li><span>{t.name}</span><i style={`--w:${((t.musd / F.top[0].musd) * 100).toFixed(1)}%`}></i><b>{t.musd.toLocaleString("ko-KR")}</b></li>)}</ol>
       </div>
       <div class="ck__more" id="ck-more" set:html={chokeMore(F)}></div>

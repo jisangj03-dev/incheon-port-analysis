@@ -49,7 +49,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
     <canvas id="fm" class="live__cv" role="img" aria-label={`인천 관문 지도 — 인천공항을 오간 나라별 항공화물(${F.air_cargo?.from}~${F.air_cargo?.through} 월평균)을 점으로, 도착은 주홍 · 출발은 바다색. 바다(인천항)는 나라별 공개 통계가 없어 점이 없다.`}></canvas>
     <div class="live__labels" id="fm-labels" aria-hidden="true"></div>
     <button type="button" class="live__pause" id="fm-play" aria-pressed="false" aria-label="흐름 멈춤"><span aria-hidden="true" class="live__pi"></span><span class="live__pt">멈춤</span></button>
-    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span> · 한 달 = 7초(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길(2015~21 누적)</span> · 원 = 물류창고 개소</p>
+    <p class="live__legend"><span class="k k-in"></span>도착 <span class="k k-out"></span>출발 항공화물 · <span id="fm-unit">점 하나 ≈ 100톤</span> · 한 달 = 7초(인천공항 · {F.air_cargo ? `${F.air_cargo.from}~${F.air_cargo.through.slice(5)} 월평균 · 반기 공표 최신분` : ""})<span id="fm-dens" hidden> · 회녹 결 = 배가 많이 다니는 바닷길(2015~21 누적)</span><span id="fm-wh" hidden> · 원 = 물류창고 개소</span></p>
     <div class="live__ctl" role="group" aria-label="지도 보기">
       <button type="button" class="s-btn s-btn--ghost" data-view="asia">아시아</button>
       <button type="button" class="s-btn s-btn--ghost" data-view="sudo">동북아</button>
@@ -136,6 +136,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const place = (f: FlowMap) => {
     const near = f.cam.zoom > 6.2, W = f.W, H = f.H, detail = f.cam.zoom > (f.views.sudo.zoom + f.views.incheon.zoom) / 2;
     const taken: number[][] = [...(fixed ??= fixedBoxes(H))];
+    const shown = new Set<string>();
+    { const wh = document.getElementById("fm-wh"); if (wh && wh.hidden === near) wh.hidden = !near; } // 창고 원은 가까이 볼 때만 그려진다 — 범례도 그때만(9차 화면 판정: 첫 화면에 없는 원이 범례에 있었다)
     const off: { name: string; q: number[] }[] = [];
     for (const l of [...LBS].sort((a, b) => b.pri - a.pri)) {
       const want = (l.near === null || l.near === near) && (!l.inc || detail);
@@ -159,9 +161,10 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
       }
       const v = ok ? "visible" : "hidden";
       if (l.el.style.visibility !== v) l.el.style.visibility = v;
-      if (ok) { l.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + l.w + 3, y + l.h + 2]); }
+      if (ok) { l.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`; taken.push([x - 3, y - 2, x + l.w + 3, y + l.h + 2]); if (l.route) shown.add(l.el.textContent || ""); }
     }
     edge(off, W, H, taken);
+    f.labeled = shown;
   };
   // 화면 밖 나라 — 길이 들어오는 가장자리(위·오른쪽·아래·왼쪽)별로 이름을 묶어, 그 길들이 들어오는 자리의 가운데에 단다
   // 화면 밖 나라 — 나라마다 이름표 하나를 그 하늘길이 화면에 들어오는 자리에 단다. 화살표 = 인천에서 본 방위(8방).
@@ -170,6 +173,10 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   const AR = ["→", "↘", "↓", "↙", "←", "↖", "↑", "↗"];
   const edge = (off: { name: string; q: number[] }[], W: number, H: number, taken: number[][]) => {
     const D0 = (window as any).__fmdata?.flows, o0 = fm && D0 ? fm.screen(D0.air_gate.lon, D0.air_gate.lat) : [W / 2, H / 2];
+    // 들어오는 자리가 36px 안에 겹치는 하늘길은 한 이름표로 묶고 「겹친 하늘길」이라고 적는다 — 따로 달면 거의 평행한 선 위에 이름표만 몰려 어느 선인지 대응이 안 됐다(9차 화면 판정 · 중대)
+    const groups: { name: string; q: number[] }[] = [];
+    for (const o of off) { const g = groups.find((x) => Math.hypot(x.q[0] - o.q[0], x.q[1] - o.q[1]) < 36); if (g) { if (!g.name.split("·").includes(o.name)) g.name += `·${o.name}`; } else groups.push({ name: o.name, q: o.q }); }
+    off = groups.map((g) => ({ name: g.name.includes("·") ? `${g.name}(겹친 하늘길)` : g.name, q: g.q }));
     const seen = new Set<string>();
     for (const o of off) {
       if (seen.has(o.name)) continue; seen.add(o.name);

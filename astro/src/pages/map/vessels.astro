@@ -38,7 +38,7 @@ const n = V.months.length;
     <details class="vr-more"><summary class="s-cap">왜 · 어떻게 · 한계</summary>
     <dl class="s-maker" data-maker-note>
       <dt>왜</dt><dd data-note="why">「인천항이 바쁘다」를 배가 실제로 들어온 횟수로, 다른 항만과 같은 자로 재 보려고.</dd>
-      <dt>어떻게</dt><dd data-note="how" data-v1>원천 {V.source_rows}행 · {V.source_months[0]}~{V.source_months[1]} · 외항 = 국적선 + 외국선 · 연안선은 따로 뺐다. 해양수산부 항만별 선박입출항실적(공공데이터포털 조회 서비스)을 받아 항만·선종별 월 합계에서 국적선과 외국선을 더해 외항선으로 본다.</dd>
+      <dt>어떻게</dt><dd data-note="how" data-v1>{V.source_months[0].slice(0, 4)}-{V.source_months[0].slice(4)}~{V.source_months[1].slice(0, 4)}-{V.source_months[1].slice(4)} 원천 표 {Number(V.source_rows).toLocaleString("ko-KR")}줄을 모두 받아 셈 · 외항 = 국적선 + 외국선 · 연안선은 따로 뺐다. 해양수산부 항만별 선박입출항실적(공공데이터포털 조회 서비스)을 받아 항만·선종별 월 합계에서 국적선과 외국선을 더해 외항선으로 본다.</dd>
       <dt>한계</dt><dd data-note="limits">개별 선박의 항적이 아니다 — 원천이 월 합계만 준다. 척수는 배의 크기를 보지 않는다(큰 배 한 척 = 작은 배 한 척). 「경인」은 경인항으로, 인천항과 따로 집계된다.</dd>
     </dl>
     </details>

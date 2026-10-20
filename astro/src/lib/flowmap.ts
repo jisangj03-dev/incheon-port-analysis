@@ -177,6 +177,7 @@ export type Opts = { unit: number; monthSec: number; airTons?: boolean; maxDpr: 
 export class FlowMap {
   cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; D: Data; o: Opts;
   cam: Cam; W = 0; H = 0; dpr = 1;
+  /** 이름표가 화면에 뜬 나라(지면이 장면마다 알려 준다) — 없으면 모두 그린다 */ labeled: Set<string> | null = null;
   legsG: Leg[] = []; gMeta: { p: number; g: number; dir: number }[] = [];
   legsL: Leg[] = []; lMeta: { g: number; d: number; dir: number }[] = [];
   wh: any[] = []; // 정지 층 — 실측 창고 개소 원
@@ -430,7 +431,7 @@ export class FlowMap {
       for (const d of this.wh) { if (/[구군]$/.test(d.id) && !det) continue; P(mx(d.lon), my(d.lat), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5 + 9 * Math.sqrt(d.n / nmax), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.55)"; ctx.lineWidth = 1.2; ctx.stroke(); }
     }
     // 나라 점(멀리에서만)
-    if (!near) for (const p of this.D.flows.partners) { const at = this.o.airTons ? p.air : p.sea[0]; /* 나라 점 = 이름표 자리(공항) */ P(mx(at[0]), my(at[1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }
+    if (!near) for (const p of this.D.flows.partners) { if (this.labeled && !this.labeled.has(p.name)) continue; /* 이름표가 안 뜬 나라는 점도 그리지 않는다(이름 없는 표식 0 · 9차 화면 판정 390) */ const at = this.o.airTons ? p.air : p.sea[0]; /* 나라 점 = 이름표 자리(공항) */ P(mx(at[0]), my(at[1]), 0, o); ctx.beginPath(); ctx.arc(o[0], o[1], 2.5, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill(); }
     this.o.overlay?.(ctx, P, near);
     // 먼 곳은 종이로 흐린다(대기 원근 · 위쪽 글자 바림도 겸한다)
     const g = ctx.createLinearGradient(0, 0, 0, H * 0.42);
