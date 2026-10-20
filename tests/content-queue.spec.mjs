@@ -6,7 +6,9 @@ import { join } from "node:path";
 import { check } from "../tools-build/check-data-numbers.mjs";
 
 const Q = "content-queue";
-const drafts = existsSync(Q) ? readdirSync(Q).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).flatMap((d) => readdirSync(join(Q, d)).filter((f) => f.endsWith(".md")).map((f) => join(Q, d, f))) : [];
+// 숫자 대조는 **가장 최근 날짜 폴더**만 — 지난 폴더는 그날 데이터로 만든 기록이라, 데이터가 새로 들어오면 숫자가 어긋나는 것이 맞다(2026-10-20 입찰 레이더 재수집 뒤 10-15 초안의 「8,205건」)
+const DAYS = existsSync(Q) ? readdirSync(Q).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().slice(-1) : [];
+const drafts = existsSync(Q) ? DAYS.flatMap((d) => readdirSync(join(Q, d)).filter((f) => f.endsWith(".md")).map((f) => join(Q, d, f))) : [];
 const DATA = [...readdirSync("data/derived").filter((f) => f.endsWith(".json")).map((f) => `data/derived/${f}`), "data/rooms.json", "data/sources.json"].map((f) => readFileSync(f, "utf-8"));
 const profile = JSON.parse(readFileSync("data/profile.json", "utf-8"));
 
