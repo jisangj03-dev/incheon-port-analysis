@@ -18,6 +18,7 @@ const word = (t: string) => pub(t).replace(/\s*\(.*$/, "").replace(/\s*—.*$/, 
 const unk = (t: string) => /미확인|허락 필요|대기/.test(t);
 const day = (t: string) => (String(t).match(/\d{4}-\d{2}-\d{2}/) || ["—"])[0];
 const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").length };
+import AiMark from "../components/scene/AiMark.astro";
 ---
 <Studio ask={false} title="데이터 출처와 이용허락" description="측심이 쓰는 공공데이터의 출처·이용허락(공공누리 유형)·확인 근거 대장. 확인 못 한 것은 미확인으로 적는다." current="about" path="/data.html" jsonld={jsonld}>
   <article class="s-wrap src">
@@ -54,7 +55,7 @@ const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").len
       <h2>원시 데이터와 재현 코드</h2>
       <p>지면의 숫자는 <a href={REPO}>공개 저장소</a>의 원시 CSV와 코드에서 다시 계산됩니다.</p>
     </section>
-    <p class="s-cap" data-ai-mark>AI 정리</p> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
+    <AiMark /> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>
 </Studio>
 <style>

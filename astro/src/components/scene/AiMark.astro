@@ -1,0 +1,13 @@
+---
+// AI 산출물 표기 한 줄(정체성 §2-4 · 지침 §2.2-4) — 「AI 정리」 낱말만 혼자 떠 있어 무엇을 뜻하는지 안 읽혔다(2026-10-21 채팅 검수 ②).
+// 무엇을 했는지 한 문장 + 표기 기준(소개 #ai). 「〈실명〉 검수」는 검수 기록에 그 지면이 있을 때만(lib/profile.ts aiMark).
+import { aiMark, reviewed } from "../../lib/profile";
+import { u } from "../../lib/site";
+interface Props { k?: string; style?: string }
+const { k, style } = Astro.props;
+---
+<p class="s-cap s-aimark" data-ai-mark style={style}>{aiMark(k)} — {reviewed(k) ? "AI가 공개 데이터로 정리했고, 숫자를 원자료와 대조한 기록이 있습니다." : "글과 그림은 AI가 공개 데이터로 정리했습니다."} <a href={u("/about.html#ai")}>표기 기준</a></p>
+<style>
+  .s-aimark { color: var(--s-ink-3); }
+  .s-aimark a { color: inherit; }
+</style>

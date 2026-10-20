@@ -1,7 +1,7 @@
 ---
 // 맥주 게임(정체성 §3-1) — 디자인 시스템 「해도」 — 로직·규칙은 그대로(assets/js/beer-game.js · data/sim/beer-game.json · lib/beer-ui.ts).
 // 숫자는 규칙 파일에서만(정체성 §2-1).
-import { aiMark } from "../../lib/profile";
+import AiMark from "../../components/scene/AiMark.astro";
 import Studio from "../../layouts/Studio.astro";
 import { u } from "../../lib/site";
 import R from "../../../../data/sim/beer-game.json";
@@ -89,7 +89,7 @@ const S = R.stages.length;
         <dt>어떻게</dt><dd data-note="how">{R.notes.how} 원 규칙: <a href={R.source.doi}>{R.source.cite}</a></dd>
         <dt>한계</dt><dd data-note="limits">{R.notes.limits}</dd>
       </dl>
-      <p class="s-cap" data-ai-mark style="margin-top:16px">{aiMark("sim/beer-game")}</p>
+      <AiMark k="sim/beer-game" style="margin-top:16px" />
     </section>
   </div>
   <script is:inline defer src={u("/assets/js/beer-game.js")}></script>
