@@ -388,14 +388,14 @@
   },
   "202609": {
    "complete": true,
-   "fetched_kst": "2026-10-12 15:56",
+   "fetched_kst": "2026-10-16 13:39",
    "http": "200",
    "pages": 1,
    "resultCode": "00",
    "resultMsg": "정상서비스.",
-   "rows": 0,
-   "rows_raw": 0,
-   "sha256": "b98c8d65d9e898d0fb45b173b70c1c22cea3a866efa81bad8d8c4ddbf5e6e389",
+   "rows": 97,
+   "rows_raw": 97,
+   "sha256": "752749c633cc7fc8879f479762d7674dd3daf2096c2b7857708420fa73a8e6db",
    "totalCount": null
   }
  },
