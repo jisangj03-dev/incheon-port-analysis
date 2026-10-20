@@ -21,21 +21,65 @@
       ]
     },
     {
-      "id": "sim",
-      "kind": "sim",
-      "title": "시뮬레이션",
-      "lead": "손으로 움직여 보는 공급망 — 맥주 게임과 수요예측 실험실.",
-      "href": "/sim/",
+      "id": "tools",
+      "kind": "tools",
+      "title": "도구",
+      "lead": "일하다 다시 찾아오는 인천 실데이터 도구 — 실무 질문 하나에 움직이는 답 하나.",
+      "href": "/tools/",
       "items": [
         {
-          "title": "맥주 게임",
-          "lead": "오는 중인 물건을 잊으면 공장이 얼마나 흔들리는지 직접 움직여 봅니다.",
-          "href": "/sim/beer-game.html"
+          "id": "port-pulse",
+          "title": "인천항 일일 맥박",
+          "q": "지금 인천항에 배가 평소보다 많이 들어오나?",
+          "who": "포워더 · 선사 · 터미널",
+          "lead": "IMF PortWatch 일별 입항으로 최근 7일을 직전 13주와 견주고, 부산·평택과 나란히 봅니다.",
+          "href": "/tools/port-pulse.html",
+          "gate": "port"
         },
         {
-          "title": "수요예측 실험실",
-          "lead": "실제값이 나오기 전에 예측을 먼저 적어 두고, 달마다 기준선과 오차를 겨룹니다.",
-          "href": "/sim/forecast.html"
+          "id": "delivery-reach",
+          "title": "수도권 배송 등시선",
+          "q": "인천 창고에서 수도권 어디까지 1·2·3시간에 닿나?",
+          "who": "풀필먼트 · 셀러 · 3PL",
+          "lead": "인천 물류단지·항만·공항에서 도로로 1·2·3시간 안에 닿는 범위가 번져 나갑니다(OSM 도로 · 혼잡 미반영).",
+          "href": "/tools/delivery-reach.html",
+          "gate": "land"
+        },
+        {
+          "id": "trade-race",
+          "title": "품목 트리맵 레이스",
+          "q": "인천은 무엇을 사고파나 — 해마다 어떻게 바뀌었나?",
+          "who": "수출입 담당 · MD · 영업",
+          "lead": "인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치됩니다(관세청).",
+          "href": "/tools/trade-race.html",
+          "gate": "all"
+        },
+        {
+          "id": "import-cost",
+          "title": "환율 파도 · 수입원가 계산기",
+          "q": "환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?",
+          "who": "수입 담당 · 셀러 · 구매",
+          "lead": "관세청 관세환율(주간)로 같은 물건의 과세가격·관세·부가세를 주마다 다시 계산합니다. 참고용 · 자문 아님.",
+          "href": "/tools/import-cost.html",
+          "gate": "air"
+        },
+        {
+          "id": "chokepoint",
+          "title": "초크포인트 충격",
+          "q": "바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?",
+          "who": "포워더 · 수출입 담당 · 구매",
+          "lead": "호르무즈·홍해·믈라카·대만해협 통항(IMF PortWatch)과 그 길을 지나는 나라와의 교역 몫(관세청 국가별 · 전국)을 같이 봅니다.",
+          "href": "/tools/chokepoint.html",
+          "gate": "port"
+        },
+        {
+          "id": "anchorage",
+          "title": "위성으로 본 묘박지",
+          "q": "인천 앞바다 묘박지에 배가 얼마나 기다리나?",
+          "who": "선사 · 터미널",
+          "lead": "달마다 가장 맑은 Sentinel-2 위성 사진을 넘기며 먼바다에 보인 배를 어림합니다.",
+          "href": "/tools/anchorage.html",
+          "gate": "port"
         }
       ]
     },
@@ -50,6 +94,25 @@
           "title": "AI 운영실 1쪽",
           "lead": "이 작업실을 AI 와 어떻게 돌리는지, 저장소 기록으로 잰 숫자.",
           "href": "/notes/ai-ops.html"
+        }
+      ]
+    },
+    {
+      "id": "sim",
+      "kind": "sim",
+      "title": "연구용 시뮬레이션",
+      "lead": "공급망을 손으로 움직여 보는 연구 노트 — 맥주 게임과 수요예측 실험실(보조 지면).",
+      "href": "/sim/",
+      "items": [
+        {
+          "title": "맥주 게임",
+          "lead": "오는 중인 물건을 잊으면 공장이 얼마나 흔들리는지 직접 움직여 봅니다.",
+          "href": "/sim/beer-game.html"
+        },
+        {
+          "title": "수요예측 실험실",
+          "lead": "실제값이 나오기 전에 예측을 먼저 적어 두고, 달마다 기준선과 오차를 겨룹니다.",
+          "href": "/sim/forecast.html"
         }
       ]
     },

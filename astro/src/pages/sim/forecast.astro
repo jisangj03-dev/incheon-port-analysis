@@ -55,7 +55,7 @@ const fut = rows.filter((r) => r.origin === lastOrigin).sort((a, b) => (a.target
 const chart = { act, m1: fut.map((r) => [r.target, r.M1 ?? null]), b: fut.map((r) => [r.target, r.B ?? null]), unit: L.series.unit };
 const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` : s); // 계열은 「YYYY-MM」이라 그대로 · 6자리만 줄표를 넣는다
 ---
-<Studio current="sim" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
+<Studio current="notes" title="인천항 수요예측 실험실" description="실제값이 나오기 전에 3개월 예측을 먼저 적어 두고, 매달 작년 같은 달을 쓰는 기준선과 오차를 나란히 잰다.">
   <article class="s-wrap fc" data-sim="forecast">
     <p class="s-cap">시뮬레이션 · 수요예측 실험실</p>
     <h1 class="s-prose">인천항 컨테이너, 다음 석 달을 먼저 적어 둡니다.</h1>
