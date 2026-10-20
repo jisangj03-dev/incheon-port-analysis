@@ -4,7 +4,7 @@ import { test, expect } from "@playwright/test";
 import { readFileSync, readdirSync, existsSync, mkdirSync } from "node:fs";
 import { check } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis";
-const PATH = { index: "/index.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
+const PATH = { index: "/index.html", about: "/about.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
 const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
 const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
@@ -215,4 +215,19 @@ test("지도: 클릭 없이 달이 흐른다 · 좁은 화면은 maplibre 0 · �
   await expect.poll(() => page.evaluate(() => window.__mapPlay.frames), { timeout: 15_000, message: "손대지 않았는데 달이 안 흐른다" }).toBeGreaterThan(f0 + 1);
   await page.mouse.move(30, 30);
   await page.waitForSelector("#ds-map[data-ready]", { timeout: 45_000 });
+});
+
+// [2026-10-15 P2 「사업」] 홈·소개 — 「문의 틀로 메일」 = mailto(제목·적을 칸 미리 채움) · 원문 HTML 에 주소 0 · 외부 요청 0(양식 서버 없음)
+test("문의 틀로 메일 — 제목·적을 칸 · 원문에 주소 없음", async ({ page, request }) => {
+  for (const p of ["index", "about"]) {
+    const html = await (await request.get(at(p === "about" ? "about" : "index"))).text();
+    expect(html, `${p} 원문에 메일 주소`).not.toMatch(/[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}/);
+  }
+  await page.goto(at("index"));
+  const a = page.locator('[data-c=mail][data-ask="1"]').first();
+  await expect(a).toBeVisible();
+  await a.dispatchEvent("pointerdown");
+  const href = await a.getAttribute("href");
+  expect(href).toMatch(/^mailto:[^?]+@[^?]+\?subject=/);
+  expect(decodeURIComponent(href.split("subject=")[1])).toContain("[측심 문의]");
 });
