@@ -17,7 +17,8 @@ def jsround(x): return math.floor(x + 0.5)
 def landed(goods, freight, insurance, incoterm, fx, duty_pct, vat_pct=10, inland=0):
     cif = goods + freight + insurance if incoterm == "FOB" else goods
     cv = jsround(cif * fx); duty = math.floor(cv * duty_pct / 100); vat = math.floor((cv + duty) * vat_pct / 100)
-    return {"customs_value": cv, "duty": duty, "vat": vat, "landed": cv + duty + vat + inland}
+    # landed = 통관 때 내는 납부 합계(과세가격 + 관세 + 부가세) · cost = 원가(부가세 제외) — 수입 부가세는 사업자가 매입세액으로 공제받는다(채팅 최종 검수 10/15)
+    return {"customs_value": cv, "duty": duty, "vat": vat, "landed": cv + duty + vat + inland, "cost": cv + duty + inland}
 
 
 def derive(src):
@@ -30,7 +31,8 @@ def derive(src):
             "source": src["source"], "fetched": src["fetched"], "asof": now["from"], "currencies": CUR,
             "weeks": [[w["from"]] + [w.get(c) for c in CUR] for w in W],
             "example": {**EX, "ago_weeks": AGO, "now": {"week": now["from"], "fx": now["USD"], **b}, "ago": {"week": ago["from"], "fx": ago["USD"], **a},
-                        "diff": b["landed"] - a["landed"], "pct": round(100 * (b["landed"] - a["landed"]) / a["landed"], 1)},
+                        "diff": b["cost"] - a["cost"], "pct": round(100 * (b["cost"] - a["cost"]) / a["cost"], 1),  # 원가(부가세 제외) 차이
+                        "diff_paid": b["landed"] - a["landed"]},  # 납부 합계 차이(부가세 포함)
             "usd_hi": {"week": hi["from"], "fx": hi["USD"]}, "usd_lo": {"week": lo["from"], "fx": lo["USD"]}}
 
 
@@ -64,13 +66,13 @@ def main():
     d = derive(json.load(open(IN, encoding="utf-8")))
     d["kcci"] = kcci_part()
     json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
-    e = d["example"]; print(f"{d['asof']} 기준 · 1만 달러 CIF 원가 {e['now']['landed']:,}원 · 52주 전 {e['ago']['landed']:,}원 · {e['diff']:+,}원({e['pct']:+}%) → {OUT}")
+    e = d["example"]; print(f"{d['asof']} 기준 · 1만 달러 CIF 원가(부가세 제외) {e['now']['cost']:,}원 · 52주 전 {e['ago']['cost']:,}원 · {e['diff']:+,}원({e['pct']:+}%) → {OUT}")
     return 0
 
 
 def selftest():
     r = landed(10000, 0, 0, "CIF", 1347.03, 8)
-    assert r["customs_value"] == 13470300 and r["duty"] == 1077624 and r["vat"] == 1454792 and r["landed"] == 16002716, r
+    assert r["customs_value"] == 13470300 and r["duty"] == 1077624 and r["vat"] == 1454792 and r["landed"] == 16002716 and r["cost"] == 14547924, r
     f = landed(9000, 800, 200, "FOB", 1300, 0)
     assert f["customs_value"] == 13000000 and f["vat"] == 1300000, f
     print("selftest 2/2 ok"); return 0
