@@ -9,11 +9,6 @@
       "href": "/map.html",
       "items": [
         {
-          "title": "공급망 따라가기",
-          "lead": "전기기기 하나가 해외에서 인천을 거쳐 수도권으로 오는 길을 구간마다 숫자로.",
-          "href": "/map/follow.html"
-        },
-        {
           "title": "선박 리플레이",
           "lead": "2015년부터 지금까지 항만별 외항선 입항을 달마다 다시 돌려 봅니다.",
           "href": "/map/vessels.html"

@@ -24,7 +24,7 @@ const RT = route();
 const CT = JSON.parse(readFileSync(join(repoRoot(), "data/derived/supply_hs85.json"), "utf-8")).counter;
 // 첫 화면 = 해도 그림(빌드 때 SVG) 위에서 달이 흐른다 — maplibre 는 넓은 화면이면 한가할 때, 좁은 화면이면 사람이 움직이면 띄운다(2026-10-14 출고 검사: 모바일 성능 56 · maplibre 실행이 주범 · 10-15 P0 자동 재생).
 const pvmax = Math.max(1, ...places.map((p) => p.v || 0));
-const ppts = places.map((p) => ({ id: p.id, lon: p.lon, lat: p.lat, v: p.v, cls: p.v === pvmax ? "top" : "" })).concat([{ id: "to", label: RT.to.label, lon: RT.to.lon, lat: RT.to.lat, v: null, cls: "to" }] as any);
+const ppts = places.map((p) => ({ id: p.id, lon: p.lon, lat: p.lat, v: p.v, cls: p.v === pvmax ? "top" : "" }));
 const pfit: [number, number][] = ppts.map((p: any) => [p.lon, p.lat]);
 const MORE = (rooms().find((r) => r.id === "map")?.items || []);
 // 내장 타일 범위(캡션용) — 손으로 적지 않고 설정 파일에서
@@ -39,7 +39,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
       <h1 class="s-prose">바다 문 {sea}곳, 하늘 문 {air}곳.</h1>
       <p class="s-lead s-prose">점 크기는 그 달 컨테이너 처리량입니다. {lastYm} 가장 큰 문은 <span class="s-signal">{top.id}</span>({top.v}천TEU). 달이 흐르면 점이 숨 쉬듯 커졌다 작아집니다.</p>
       <p class="counter s-prose"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(통관 관문 기준).</p>
-      <p class="s-cap s-prose">반대 지표 출처 {sourceLine("kcs-porttrade")} · 계산 <a href={u("/map/follow.html")}>공급망 따라가기</a>의 통관 구간과 같다.</p>
+      <p class="s-cap s-prose">반대 지표 출처 {sourceLine("kcs-porttrade")} · 계산 tools-build/supply_derive.py(<a href={u("/data/supply-hs85.csv")}>CSV</a>).</p>
     </section>
   </div>
   <div class="ds-map-wrap">
@@ -53,7 +53,7 @@ const sea = places.filter((p) => p.kind === "port").length, air = places.filter(
     </div>
   </div>
   <div class="s-wrap" data-content="ds-map-foot">
-    <p class="s-cap">흐름선은 신항·남항·국제여객부두에서 {RT.to.label} 쪽으로 긋는 <b>개념선</b>입니다 — 굵기만 그 달 처리량이고, 길은 실제 운송 경로가 아닙니다. 공항은 컨테이너 통계가 없어 선이 없습니다. 내장 지도 타일은 동경 {TB[0]}°~{TB[2]}° 라, 그 서쪽은 바다색으로만 칠했고(작은 섬은 안 보임) 동쪽(서울 쪽)은 땅색 종이입니다.</p>
+    <p class="s-cap">점 넓이는 그 달 부두군별 컨테이너 처리량(천TEU)이고, 공항은 컨테이너 통계가 없어 크기 없는 자리 표시입니다. 내장 지도 타일은 동경 {TB[0]}°~{TB[2]}° 라, 그 서쪽은 바다색으로만 칠했고(작은 섬은 안 보임) 동쪽(서울 쪽)은 땅색 종이입니다.</p>
     <p class="s-cap">바탕 © OpenStreetMap 기여자 · Protomaps(저장소 내장 타일){bathy && bmeta ? ` · 등심선 ${bmeta.institution || ""} ${(String(bmeta.title || "").match(/(ETOPO\w*|GEBCO_?\d+|SRTM\w*)/) || [bmeta.source])[0].replace(/_/g, " ")}(격자 ${bmeta.resolution_arcsec}″ · ${bmeta.retrieved} 받음 · 선을 부드럽게 다듬음 · 항해용 아님)` : " · 등심선 없음(수심 자료 라이선스 확인 전)"} · 처리량 {D.source} · 자리 OpenStreetMap 시설 면 중심{places.some((p) => p.approx) ? " · 「개략 위치」는 ±2km" : ""}</p>
     <Trust updated={D.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/map-places.csv")} csvName="incheon-map-places.csv" note={`${lastYm} · 천TEU`} />
     {MORE.length > 0 && <section class="more"><h2 class="s-cap">이 지도에서 더</h2><ol class="s-index">{MORE.map((r) => <li><div><h3><a href={u(r.href)}>{r.title}</a></h3><p>{r.lead}</p></div></li>)}</ol></section>}

@@ -9,7 +9,7 @@ export const PW = 1600, PH = 900;
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 
 /** view = 첫 장면 카메라. [2026-10-15 공개 전 개편 P0] 홈 첫 화면이 수도권(VIEWS.sudo)이 됐다 — 가까이면 인천·수도권 상세 땅과 고속도로를 같이 그린다.
- *  따라가기는 아시아에서 시작하므로 그 그림(home-poster-asia.svg)을 따로 낸다. */
+ */
 export function poster(view: Cam = VIEWS.sudo) {
   const F = J("data/derived/home_flows.json"), WL = J("data/derived/world_land.json");
   const PJ = projector(view, PW, PH).fn, o = [0, 0, 0];

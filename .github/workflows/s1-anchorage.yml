@@ -32,6 +32,9 @@ jobs:
         env:
           S1_DIAG: ${{ inputs.diag || '0' }}
         run: python tools-build/s1_anchorage.py --months 12 2>&1 | tee /tmp/log.txt; { echo "## S1"; echo '```'; tail -40 /tmp/log.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: 땅·해안 반사 빼기(2026-10-20 · docs/품질기준.md Q2 — 섬·방파제 위 「배」 21.5%)
+        if: inputs.diag != '1'
+        run: python tools-build/anchorage_landmask.py --selftest && python tools-build/anchorage_landmask.py
       - name: 결과 커밋(그 브랜치에)
         if: always()
         run: |

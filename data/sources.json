@@ -116,7 +116,6 @@
       "used_by": [
         "map",
         "home",
-        "follow",
         "수도권 배송 등시선"
       ]
     },
@@ -145,7 +144,6 @@
       "modify": "허용(이용허락범위 「제한 없음」)",
       "checked": "2026-10-14 kogl-check 워크플로 — 데이터 상세 15100475 「관세청_품목별 국가별 수출입실적(GW)」 화면: 이용허락범위 제한 없음 · 공공누리 마크 없음(data/collected/kogl_check.json)",
       "used_by": [
-        "follow",
         "홈 살아 있는 지도"
       ]
     },
@@ -175,8 +173,7 @@
       "checked": "2026-10-14 bathy.yml 이 license 속성을 읽어 확인",
       "used_by": [
         "home",
-        "map",
-        "follow"
+        "map"
       ]
     },
     {

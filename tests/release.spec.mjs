@@ -82,7 +82,7 @@ test("③ 개인정보 — 메일 원문 · 전화번호 · 학번 · 집 주소
 
 test("④ AI 표기 — AI 산출물 지면마다 「AI 정리 · 실명 검수」 · 검수 전 표기 0", () => {
   const MARK = `AI 정리 · ${P.name} 검수`;
-  for (const f of ["map.html", "map/follow.html", "map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html", "notes/ai-ops.html"]) {
+  for (const f of ["map.html", "map/vessels.html", "sim/beer-game.html", "sim/forecast.html", "notes/port-yoy.html", "notes/ai-ops.html"]) {
     const html = read(f);
     expect(html, `${f} 표기`).toMatch(new RegExp(`data-ai-mark[^>]*>\\s*${MARK.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`));
   }
@@ -98,7 +98,7 @@ test("⑤ 자문 아님 고지 · 실명 — 모든 지면 바닥글", () => {
 });
 
 test("⑥ 공공 데이터 차트의 출처 줄 = 출처 대장 그대로(공공누리 유형 포함)", () => {
-  const DATAPAGES = ["index.html", "map.html", "map/follow.html", "map/vessels.html", "notes/port-yoy.html"];
+  const DATAPAGES = ["index.html", "map.html", "map/vessels.html", "notes/port-yoy.html"];
   for (const f of DATAPAGES) {
     const trust = [...read(f).matchAll(/<p class="s-trust[^"]*"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => m[1]);
     expect(trust.length, `${f} 신뢰 꼬리`).toBeGreaterThan(0);

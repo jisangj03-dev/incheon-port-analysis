@@ -52,22 +52,6 @@ test("홈: 동작 줄이기면 돌지 않는다", async ({ page }) => {
   await expect(page.locator("#fm-tour")).toHaveAttribute("aria-pressed", "false");
 });
 
-test("공급망 따라가기: 맨 위에서 손대지 않으면 단계가 스스로 넘어간다 · 내리면 스크롤이 카메라", async ({ page }) => {
-  await page.goto(`${B}/map/follow.html`, { waitUntil: "load" });
-  await page.waitForSelector("#trip-stage[data-ready='1']", { timeout: 30_000 });
-  const seen = new Set();
-  await expect.poll(async () => { seen.add(await page.getAttribute(".story", "data-step")); return seen.size; },
-    { timeout: 30_000, intervals: [500], message: "손대지 않았는데 단계가 안 넘어간다" }).toBeGreaterThan(1);
-  await expect(page.locator("#trip-stage")).toHaveAttribute("data-auto", "1");
-  // 내리면 자동 미리보기가 멈추고 스크롤 자리 단계가 된다
-  await page.evaluate(() => { const el = document.querySelector('[data-s="customs"]'); scrollTo(0, el.getBoundingClientRect().top + scrollY - innerHeight * 0.3); });
-  await expect.poll(async () => { await page.evaluate(() => window.__followPick?.()); return page.getAttribute(".story", "data-step"); }, { timeout: 15_000 }).toBe("customs");
-  // 내린 자리에서는 자동 미리보기가 꺼져 있다(6초 뒤 다시 켜져도 맨 위가 아니면 돌지 않는다)
-  await expect(page.locator("#trip-stage")).toHaveAttribute("data-auto", "0");
-  await page.waitForTimeout(7000); await page.evaluate(() => window.__followPick?.());
-  expect(await page.getAttribute(".story", "data-step")).toBe("customs");
-});
-
 test("선박 리플레이: 클릭 없이 달이 흐른다 · 동작 줄이기면 그대로", async ({ page, browser }) => {
   await page.goto(`${B}/map/vessels.html`, { waitUntil: "load" });
   const m0 = await page.getAttribute("#vr-chart", "data-month");

@@ -6,7 +6,7 @@ const B = "/incheon-port-analysis";
 import { readdirSync } from "node:fs";
 // 공개 면 전부 + 노트가 링크하는 보고서 전 편. 옛 도구 둘(계산기·창고 배치도 — 메뉴에서 뺐다)은 입력 칸·지도 칸이 곧 생김새라 상자 검사에서 뺀다.
 const REPORTS = readdirSync("astro/dist/reports").filter((f) => f.endsWith(".html") && f !== "index.html").map((f) => `/reports/${f}`);
-const PAGES = ["/", "/map.html", "/map/follow.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/data.html", ...REPORTS];
+const PAGES = ["/", "/map.html", "/map/vessels.html", "/sim/", "/sim/beer-game.html", "/sim/forecast.html", "/notes.html", "/notes/port-yoy.html", "/notes/ai-ops.html", "/about.html", "/data.html", ...REPORTS];
 // 주 계열 차트(주인공 = 주홍) — 지면 · 기다릴 것
 const MAIN = { "/map/vessels.html": "#vr-chart svg", "/sim/forecast.html": "#fc-chart[data-ready] svg", "/sim/beer-game.html": "#wave[data-ready] svg" };
 
