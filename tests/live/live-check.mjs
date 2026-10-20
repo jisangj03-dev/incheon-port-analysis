@@ -1,4 +1,5 @@
 // 공개 사이트 실물 점검(A-7) — Actions 에서만 돈다. 결과는 마크다운 한 장(표준 출력)으로.
+//  ⑤ [2026-10-20 공개] 실제 브라우저로 열기 — 상태 · 화면 오류 · 외부 요청 0(Cloudflare 비컨 예외)
 //  ① 지면 응답(200/404) ② PMTiles range 요청 206(판정 v2 주의 ③) ③ Cloudflare 비컨 스니펫 존재 ④ Lighthouse 모바일(실물)
 //  Lighthouse 「권장」이 왜 96 이었는지(로컬 서버 비컨 오류 추정)를 실물에서 가른다 — 감점 항목 이름을 같이 적는다.
 import { readFileSync, mkdirSync, existsSync } from "node:fs";
@@ -35,5 +36,23 @@ for (const p of cfg.lighthouse) {
   L.push(`| \`${p}\` | ${s("performance")} | ${s("accessibility")} | ${s("best-practices")} | ${s("seo")} | ${bp.join(", ") || "—"} |`);
   const con = rep.audits["errors-in-console"]?.details?.items || [];
   if (con.length) L.push(`|  | 콘솔 오류: ${con.map((c) => String(c.description || c.source || "").slice(0, 80).replace(/\|/g, "/")).join(" · ")} | | | | |`);
+}
+// ⑤ 실제 브라우저로 열기 — 지면마다 상태 · 화면 오류 · 외부 요청(자기 호스트 밖 · Cloudflare 비컨 한 곳만 예외)
+if (cfg.open?.length) {
+  const { chromium } = await import("playwright");
+  const br = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+  const own = new URL(cfg.base).host, okHost = (h) => h === own || /(^|\.)cloudflareinsights\.com$/.test(h);
+  L.push("", "## ⑤ 실제 브라우저로 열기(외부 요청 0 · Cloudflare 비컨 예외)", "", "| 지면 | 상태 | 화면 오류 | 외부 요청(예외 밖) | Cloudflare |", "|---|---|---|---|---|");
+  for (const p of cfg.open) {
+    const pg = await br.newPage({ viewport: { width: 1440, height: 900 } });
+    const ext = new Set(), errs = []; let cf = 0;
+    pg.on("request", (r) => { try { const h = new URL(r.url()).host; if (!h) return; if (/cloudflareinsights\.com$/.test(h)) cf++; else if (!okHost(h)) ext.add(h); } catch {} });
+    pg.on("pageerror", (e) => errs.push(String(e.message || e).slice(0, 80)));
+    let st = "—";
+    try { const r = await pg.goto(encodeURI(cfg.base + p), { waitUntil: "load", timeout: 60000 }); st = r ? r.status() : "—"; await pg.waitForTimeout(4000); } catch (e) { st = "열기 실패: " + String(e.message).slice(0, 60); }
+    L.push(`| \`${p}\` | ${st} | ${errs.length ? errs.join(" / ").replace(/\|/g, "/") : "0"} | ${ext.size ? [...ext].join(", ") : "0"} | ${cf ? "있음" : "없음"} |`);
+    await pg.close();
+  }
+  await br.close();
 }
 console.log(L.join("\n"));
