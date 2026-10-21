@@ -20,6 +20,11 @@ on:
         description: "받기 단계 몇 개만(쉼표 · 비우면 전부) — collect,kr-apis,kcci,portwatch,iiac,vessel,teu,derive"
         required: false
         default: ""
+      deploy:
+        description: "새 공표가 없어도 시험을 돌리고 main 이면 배포까지 부른다(배포 구간 증명·수동 재배포)"
+        type: boolean
+        required: false
+        default: false
   push:
     branches: ["claude/**"]
     paths: ["tools-build/refresh.py", ".github/workflows/refresh.yml"]
@@ -89,6 +94,7 @@ jobs:
           AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))
           if [ -n "$CH" ]; then echo "go=data" >> "$GITHUB_OUTPUT";
           elif [ "$AGE" -ge 7 ] && ! git diff --cached --quiet; then echo "go=heartbeat" >> "$GITHUB_OUTPUT";
+          elif [ "${{ inputs.deploy }}" = "true" ]; then echo "go=force" >> "$GITHUB_OUTPUT"; echo "새 공표 없음 — 수동 실행 deploy 로 시험·배포만" >> "$GITHUB_STEP_SUMMARY";
           else echo "go=no" >> "$GITHUB_OUTPUT"; echo "원천이 새로 낸 것 없음 — 커밋·배포 없음" >> "$GITHUB_STEP_SUMMARY"; fi
 
       # ── 시험(PR QA 와 같은 판정 — 데이터가 바뀌면 지면 숫자·문장·신선도가 다 맞는지) ──
@@ -143,9 +149,11 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           M="자동 갱신 $(date -u +%F) — 원천 공표분 반영(refresh 워크플로 · 시험 통과)"
           [ "${{ steps.diff.outputs.go }}" = "heartbeat" ] && M="자동 갱신 $(date -u +%F) — 확인일만(원천 새 공표 없음 · 7일 주기)"
-          git commit -q -m "$M" -m "실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          git pull -q --rebase origin "${GITHUB_REF_NAME}"
-          git push origin "HEAD:${GITHUB_REF_NAME}"
+          if ! git diff --cached --quiet; then
+            git commit -q -m "$M" -m "실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            git pull -q --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
             gh workflow run pages.yml --ref main
             echo "배포 부름(pages · workflow_dispatch)" >> "$GITHUB_STEP_SUMMARY"
@@ -160,7 +168,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           b="bot/refresh-fail-$(date -u +%Y%m%d-%H%M)"
-          git switch -c "$b"; git commit -q -m "자동 갱신 실패분 $(date -u +%F) — 시험 빨강(배포 안 함)"; git push -q -u origin "$b"
+          git switch -c "$b"; git commit -q --allow-empty -m "자동 갱신 실패분 $(date -u +%F) — 시험 빨강(배포 안 함)"; git push -q -u origin "$b"
           T="자동 갱신 시험 실패 — 공개판은 지난 숫자 그대로"
           B=$(printf '원천 갱신분이 시험을 통과하지 못해 **배포하지 않았다**(공개판은 지난 숫자 그대로).\n\n- 실행: %s\n- 받은 결과: 브랜치 `%s`\n- 시험 끝 줄:\n\n```\n%s\n```\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" "$b" "$(tail -25 /tmp/qa.txt 2>/dev/null)")
           n=$(gh issue list --state open --search "in:title \"$T\"" --json number --jq '.[0].number' || true)
