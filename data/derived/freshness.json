@@ -134,6 +134,22 @@
    "next_expected": "2026-10-30",
    "behind": false
   },
+  "kcs-sido-sudo": {
+   "label": "관세청 시도별 품목별 수출입실적(수도권 · 전국)",
+   "pages": [
+    "홈 무역·유통 축"
+   ],
+   "cadence": [
+    "monthly",
+    15
+   ],
+   "ours": "2026-09",
+   "source_latest": "2026-09",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-15",
+   "behind": false
+  },
   "iiac-route-cargo": {
    "label": "인천국제공항공사 항공사별 노선별 운송실적(반기 파일)",
    "pages": [
