@@ -13,13 +13,14 @@ import csv, difflib, hashlib, io, json, os, re, shutil, subprocess, sys
 
 AUTO = ["analysis/terminal_monthly_long.csv", "data/forecast/incheon_container_teu.csv",
         "data/derived/home_flows.json", "data/derived/air_cargo.json", "data/derived/vessel_replay.json", "data/derived/supply_hs85.json",
-        "data/derived/chokepoints.json", "data/derived/trade_race.json", "data/derived/import_cost.json", "data/derived/freshness.json", "data/collected"]
+        "data/derived/chokepoints.json", "data/derived/home_axes.json", "data/derived/trade_race.json", "data/derived/import_cost.json", "data/derived/freshness.json", "data/collected",
+        # [2026-10-21 ③→①] refresh 의 월 1회 층(tools-build/periodic.py)
+        "data/derived/isochrones.json", "data/derived/navi_check.json", "data/derived/reach_slots.json", "data/derived/tariff_codes.json"]
 RECORD = {"data/sim/beer-game.json": "모형 상수(Sterman 1989)", "data/derived/choke_detour.json": "해상 우회 거리(경로망 · 지리)",
           "data/derived/ship_density.json": "선박 밀도 2015-01~2021-02(고정 기간)", "data/forecast/lab.json": "수요예측 실험실 방법(선커밋)",
-          "data/hs2_short.json": "HS 이름", "data/questions.json": "질문 목록", "data/rooms.json": "노트 날짜·단계"}
-MANUAL = {"data/derived/isochrones.json": "OSM 도로망 등시선(data-v3 osm 수동)", "data/derived/navi_check.json": "카카오 내비 대조(navi-check 수동)",
-          "data/derived/reach_slots.json": "시간대 배율(내비 대조에서 수동 파생)", "data/derived/tariff_codes.json": "관세율표(tariff-probe 수동)",
-          "data/derived/places.json": "OSM 자리표(places-fetch 수동)", "data/derived/ops_stats.json": "운영 통계(ops_stats.py 수동)",
+          "data/hs2_short.json": "HS 이름", "data/questions.json": "질문 목록", "data/rooms.json": "노트 날짜·단계",
+          "analysis/warehouse_by_gu.csv": "물류창고 개소(받은 날을 박은 기록)", "analysis/warehouse_stats_by_sido.csv": "물류창고 개소(받은 날을 박은 기록)"}
+MANUAL = {"data/derived/places.json": "OSM 자리표(places-fetch 수동)", "data/derived/ops_stats.json": "운영 통계(ops_stats.py 수동)",
           "data/sources.json": "출처 대장(사람이 적음)", "data/profile.json": "소개(사람이 적음)"}
 
 YEARISH = re.compile(r"^(19|20)\d{2}(\d{2})?(\d{2})?$")

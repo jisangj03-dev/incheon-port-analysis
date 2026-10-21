@@ -11,6 +11,9 @@ test("홈: 손대지 않아도 지도가 받아져 돌고(동북아 첫 화면) 
   await page.goto(`${B}/`, { waitUntil: "load" });
   // 아무 입력 없이 — 좁은 화면 포함
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
+  // [2026-10-21 세 축 첫 화면] 좁은 화면(390×664)은 글(세 축 줄)이 길어져 지도가 접힘선 밑에서 시작한다 — 안 보이는 지도는 쉰다(설계 · IntersectionObserver).
+  //   손대지 않은 채 지도 칸까지 내려 놓고 본다(스크롤은 카메라를 멈추는 입력이 아니다)
+  await page.evaluate(() => document.getElementById("live-stage").scrollIntoView({ block: "center" }));
   const st = () => page.evaluate(() => ({ run: window.__fm.running, tour: window.__fm.touring, zoom: window.__fm.cam.zoom }));
   await expect.poll(async () => (await st()).run, { timeout: 10_000, message: "손대지 않았는데 지도가 안 돈다" }).toBe(true);
   const s0 = await st();
@@ -49,10 +52,11 @@ test("홈: 동작 줄이기에서도 흐름이 움직인다(프레임 차이) ·
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(`${B}/`, { waitUntil: "load" });
   await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
+  await page.evaluate(() => document.getElementById("live-stage").scrollIntoView({ block: "center" })); // 좁은 화면 = 지도가 접힘선 밑(위 시험과 같은 까닭)
   const st = () => page.evaluate(() => ({ run: window.__fm.running, tour: window.__fm.touring, cam: JSON.stringify(window.__fm.cam), t: window.__fm.t }));
   const snap = () => page.evaluate(() => { const c = document.getElementById("fm"), o = document.createElement("canvas"); o.width = 96; o.height = 64; o.getContext("2d").drawImage(c, 0, 0, 96, 64); return o.toDataURL(); });
+  await expect.poll(async () => (await st()).run, { timeout: 10_000, message: "동작 줄이기인데 흐름이 멈췄다" }).toBe(true); // 보이게 된 뒤 깨어나는 것은 비동기(IntersectionObserver)
   const a = await st();
-  expect(a.run, "동작 줄이기인데 흐름이 멈췄다").toBe(true);
   expect(a.tour, "동작 줄이기인데 카메라가 둘러본다").toBe(false);
   const f0 = await snap();
   await expect.poll(async () => (await snap()) !== f0, { timeout: 15_000, message: "동작 줄이기에서 화면(점)이 안 바뀐다" }).toBe(true);
