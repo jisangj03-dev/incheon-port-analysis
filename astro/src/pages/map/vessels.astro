@@ -19,20 +19,20 @@ const n = V.months.length;
   <article class="s-wrap vr" data-content="ds-vessels">
     <p class="s-cap">도구 · 외항선 입항 추이 · 항만별 월 집계</p>
     <h1 class="s-prose">인천항에 외항선이 한 달 {L.incheon}척 들어왔습니다.</h1>
-    <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct}%</b>.</p>
+    <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct < 0 ? "−" : L.incheon_yoy_pct > 0 ? "+" : ""}{Math.abs(L.incheon_yoy_pct)}%</b>.</p>
 
     <figure class="replay" id="replay" aria-label={`${V.months[0]}부터 ${V.months[n - 1]}까지 항만별 외항선 입항 척수`}>
       {/* [2026-10-20 화면 판정] 큰 숫자가 재생 중인 옛 달(599척 · 2016-02)을 따라가 머리 문장(523척)과 어긋났다 →
            큰 숫자는 최신 달에 고정 · 흐르는 달은 차트 안 커서(달·척수)가 든다 */}
-      <div class="replay__now"><span class="vr-ym">{L.ym}</span><span class="vr-v"><i>{L.incheon}</i><small>척 · 인천</small></span><span class="vr-b">부산 <i>{L.busan}</i>척</span></div>
+      <div class="replay__now"><span class="vr-ym">{L.ym}</span><span class="vr-v"><i>{L.incheon}</i><small>척 · 인천</small></span><span class="vr-b">부산 <i>{L.busan.toLocaleString("ko-KR")}</i>척</span></div>
       <div id="vr-chart" class="replay__chart"></div>
       <div class="replay__ctl">
         <button type="button" id="vr-play" class="s-btn s-btn--ghost" aria-pressed="false">재생</button>
         <input id="vr-m" type="range" min="0" max={n - 1} value={n - 1} step="1" aria-label="달 고르기" />
       </div>
-      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" note="월 집계 · 입항 척수" />
+      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" fresh={["mof-vessel"]} note="월 집계 · 입항 척수" />
     </figure>
-    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
+    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan.toLocaleString("ko-KR")}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
     <script type="application/json" id="vr-data" set:html={JSON.stringify({ months: V.months, s: V.ocean_arrivals })}></script>
 
     <details class="vr-more"><summary class="s-cap">왜 · 어떻게 · 한계</summary>

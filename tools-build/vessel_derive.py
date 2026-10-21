@@ -15,6 +15,15 @@ PORTS = ["인천", "부산", "평택.당진", "경인"]
 OCEAN = ("국적선", "외국선")
 
 
+def counter_text(bus, inc):
+    """비교 문장은 숫자에서 고른다(2026-10-21 자동 갱신 — 고정 문장 「부산이 인천보다 훨씬 많다」는 숫자가 바뀌면 거짓이 될 수 있다)."""
+    if not inc or not bus: return "외항선 입항 척수 비교 — 같은 달 자료가 없다"
+    if bus >= 2 * inc: return "외항선 입항 척수로는 부산이 인천보다 훨씬 많다"
+    if bus > inc: return "외항선 입항 척수로는 부산이 인천보다 많다"
+    if inc > bus: return "외항선 입항 척수로는 인천이 부산보다 많다"
+    return "외항선 입항 척수는 부산과 인천이 같다"
+
+
 def derive(rows):
     months = sorted({r["ym"] for r in rows})
     ocean = {p: {m: 0 for m in months} for p in PORTS}
@@ -41,7 +50,7 @@ def derive(rows):
                    "incheon_share_pct": round(100 * inc / all_ocean[last], 1) if all_ocean[last] else None,
                    "busan_to_incheon": round(bus / inc, 1) if inc else None,
                    "incheon_yoy_pct": round(100 * (inc / ocean["인천"][prev_y] - 1), 1) if ocean["인천"].get(prev_y) else None},
-        "counter": "외항선 입항 척수로는 부산이 인천보다 훨씬 많다",
+        "counter": counter_text(bus, inc),
         "source_rows": len(rows), "source_months": [months[0], months[-1]] if months else [],
         "computed": datetime.date.today().isoformat(), "command": "python tools-build/vessel_derive.py",
         "granularity": "월 · 항만 · 선종 합계 — 개별 선박 아님",

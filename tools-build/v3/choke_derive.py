@@ -124,8 +124,10 @@ def extras(d):
                     top = max(k, key=lambda w: w[r]); bv = sum(b) / len(b)
                     out.append({"route": r, "ko": ROUTE_KO.get(r, r), "base": round(bv), "peak": round(top[r]), "peak_week": top["date"], "pct": round(100 * (top[r] / bv - 1), 1)})
             p["shock"] = {"event": sh["event"], "base_window": list(sh["base"]), "routes": out} if out else None
+            p["shock_reason"] = None if out else "no_overlap"
         else:
             p["shock"] = None
+            p["shock_reason"] = "no_kcci" if sh else "no_event"  # 지면이 칸이 빈 이유를 고른다(2026-10-21)
         if rows and last_ym:
             agg = {}
             for r in rows:

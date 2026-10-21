@@ -4,15 +4,14 @@
  "granularity": "월 · 항만 · 선종(국적선·외국선·연안선) 합계 — 개별 선박 아님",
  "months": [
   "201501",
-  "202608"
+  "202609"
  ],
- "months_n": 140,
+ "months_n": 141,
  "empty_months": [
-  "202609",
   "202610"
  ],
  "failed_months": [],
- "rows": 12867,
- "fetched": "2026-10-14",
- "command": "python tools-build/vessel.py --from 201501"
+ "rows": 12957,
+ "fetched": "2026-10-21",
+ "command": "python tools-build/vessel.py --recent 3"
 }

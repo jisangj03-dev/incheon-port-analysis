@@ -1,0 +1,154 @@
+{
+ "_설명": "원천별 신선도 — tools-build/refresh.py 가 쓴다. ours = 지면 기준기 · source_latest = 원천이 낸 마지막 기준기(마지막 확인 때) · next_expected = 다음 공표 예정(관측 주기 규칙 · 추정). 시험 tests/freshness.spec.mjs.",
+ "made": "2026-10-21",
+ "sources": {
+  "kcs-porttrade": {
+   "label": "관세청 항구·공항별 수출입실적",
+   "pages": [
+    "홈"
+   ],
+   "cadence": [
+    "monthly",
+    15
+   ],
+   "ours": "2026-09",
+   "source_latest": "2026-09",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-15",
+   "behind": false
+  },
+  "kcs-nation": {
+   "label": "관세청 국가별 수출입실적",
+   "pages": [
+    "홈 나라별 몫",
+    "초크포인트"
+   ],
+   "cadence": [
+    "monthly",
+    15
+   ],
+   "ours": "2026-09",
+   "source_latest": "2026-09",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-15",
+   "behind": false
+  },
+  "kcs-sido-item": {
+   "label": "관세청 시도별 품목별 수출입실적(인천)",
+   "pages": [
+    "품목 트리맵"
+   ],
+   "cadence": [
+    "monthly",
+    15
+   ],
+   "ours": "2026-09",
+   "source_latest": "2026-09",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-15",
+   "behind": false
+  },
+  "kcs-fx": {
+   "label": "관세청 관세환율(수입 · 주간)",
+   "pages": [
+    "수입원가"
+   ],
+   "cadence": [
+    "weekly",
+    0
+   ],
+   "ours": "2026-10-18",
+   "source_latest": "2026-10-18",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-10-25",
+   "behind": false
+  },
+  "kobc-kcci": {
+   "label": "한국해양진흥공사 KCCI(주간)",
+   "pages": [
+    "수입원가 운임 칸"
+   ],
+   "cadence": [
+    "weekly",
+    1
+   ],
+   "ours": "2026-10-19",
+   "source_latest": "2026-10-19",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-10-27",
+   "behind": false
+  },
+  "imf-portwatch": {
+   "label": "IMF PortWatch 길목 통항",
+   "pages": [
+    "초크포인트"
+   ],
+   "cadence": [
+    "weekly",
+    3
+   ],
+   "ours": "2026-10-18",
+   "source_latest": "2026-10-18",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-10-28",
+   "behind": false
+  },
+  "mof-vessel": {
+   "label": "해양수산부 항만별 선박입출항실적",
+   "pages": [
+    "외항선 입항 추이",
+    "노트 전년비"
+   ],
+   "cadence": [
+    "monthly",
+    20
+   ],
+   "ours": "2026-09",
+   "source_latest": "2026-09",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-20",
+   "behind": false
+  },
+  "mof-incheon-port-stats": {
+   "label": "인천지방해양수산청 월별 항만운영통계(컨테이너)",
+   "pages": [
+    "홈 컨테이너",
+    "노트 전년비",
+    "수요예측"
+   ],
+   "cadence": [
+    "monthly",
+    30
+   ],
+   "ours": "2026-08",
+   "source_latest": "2026-08",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-10-30",
+   "behind": false
+  },
+  "iiac-route-cargo": {
+   "label": "인천국제공항공사 항공사별 노선별 운송실적(반기 파일)",
+   "pages": [
+    "홈 지도"
+   ],
+   "cadence": [
+    "semiannual",
+    31
+   ],
+   "ours": "2026-06",
+   "source_latest": "2026-06",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2027-01-31",
+   "behind": false
+  }
+ }
+}

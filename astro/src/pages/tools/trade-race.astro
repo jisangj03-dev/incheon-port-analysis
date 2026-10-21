@@ -27,7 +27,7 @@ const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? null : (L.items.find((
 ---
 <Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
   <ToolShell id="race" who="수출입 담당 · MD · 영업" q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${Number(L.top_exp.pct).toFixed(1)}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
-    updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" note="HS 2단위 · 백만 달러 · 관세청 시도(인천) 집계"
+    updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" fresh={["kcs-sido-item"]} note="HS 2단위 · 백만 달러 · 관세청 시도(인천) 집계"
     how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천 소재 기업 수출(또는 수입)에서 그 품목의 몫. 그 해 금액이 큰 품목부터 열 개까지 칸을 따로 두고(칸이 좁아 이름이 안 들어가면 그보다 적게) 나머지는 「그 밖 N개 류」로 묶었다. 칸 자리 순서는 전 기간 몫 순으로 고정해 해가 바뀌어도 칸이 제자리에서 커지고 줄어든다."
     limits="인천항·인천공항(입·출항 관문)을 지난 화물이 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 확인하지 못했다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
     <div slot="answer" class="race">

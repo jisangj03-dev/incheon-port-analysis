@@ -1,6 +1,7 @@
 # 실무 도구 v3 데이터(2026-10-14 선장님 최종 위임) — 이 클라우드 세션은 PortWatch·세계은행·Geofabrik 이 막혀 Actions 에서 받고 가공한다.
 # 일마다 하나씩(병렬) → 결과 파일을 산출물로 넘기고 → 마지막 일이 그 브랜치에 한 번 커밋한다. 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
-# 자동 갱신: 매주 월(PortWatch 일별 · 입찰 레이더 스냅샷) · 매월 17일(나머지) — 예약 실행은 기본 브랜치에서 돌고 PR 을 연다(공개 전환 뒤).
+# [2026-10-21] 예약 실행은 걷었다 — 지면 숫자를 내는 일(apis·kcci·portwatch·iiac)은 매일 도는 refresh 워크플로가 받고 시험·배포까지 한다.
+#   나머지(terms·density·osm·s2 = 거의 안 바뀌는 바탕 층 · radar = 내린 지면)는 필요할 때 수동 실행.
 name: data-v3
 on:
   workflow_dispatch:
@@ -12,9 +13,6 @@ on:
   push:
     branches: ["claude/**"]
     paths: ["tools-build/v3/**", ".github/workflows/data-v3.yml", "tools-build/requirements-geo.txt"]
-  schedule:
-    - cron: "17 1 * * 1"
-    - cron: "41 2 17 * *"
 permissions:
   contents: write
   pull-requests: write
