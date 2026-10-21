@@ -31,7 +31,7 @@
    "ours": "2026-09",
    "source_latest": "2026-09",
    "checked": "2026-10-21",
-   "last_error": null,
+   "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-11-15",
    "behind": false
   },
@@ -47,7 +47,7 @@
    "ours": "2026-09",
    "source_latest": "2026-09",
    "checked": "2026-10-21",
-   "last_error": null,
+   "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-11-15",
    "behind": false
   },
@@ -63,7 +63,7 @@
    "ours": "2026-10-18",
    "source_latest": "2026-10-18",
    "checked": "2026-10-21",
-   "last_error": null,
+   "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-10-25",
    "behind": false
   },
