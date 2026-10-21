@@ -44,7 +44,7 @@
     "pct": 11.1
    }
   ],
-  "n_sido": 15,
+  "n_sido": 16,
   "denom": "nation"
  },
  "retail": {
@@ -178,7 +178,7 @@
   }
  ],
  "checks": {
-  "sido_sum_vs_nation_pct": -6.63,
+  "sido_sum_vs_nation_pct": -0.02,
   "nat_vs_nosido_pct": null
  },
  "sources": [

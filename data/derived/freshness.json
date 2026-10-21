@@ -16,6 +16,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-15",
+   "max_age": 10,
    "behind": false
   },
   "kcs-nation": {
@@ -33,6 +34,7 @@
    "checked": "2026-10-21",
    "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-11-15",
+   "max_age": 10,
    "behind": false
   },
   "kcs-sido-item": {
@@ -49,6 +51,7 @@
    "checked": "2026-10-21",
    "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-11-15",
+   "max_age": 10,
    "behind": false
   },
   "kcs-fx": {
@@ -65,6 +68,7 @@
    "checked": "2026-10-21",
    "last_error": "kr-apis rc=124 900초 넘음",
    "next_expected": "2026-10-25",
+   "max_age": 10,
    "behind": false
   },
   "kobc-kcci": {
@@ -81,6 +85,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-27",
+   "max_age": 10,
    "behind": false
   },
   "imf-portwatch": {
@@ -97,6 +102,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-28",
+   "max_age": 10,
    "behind": false
   },
   "mof-vessel": {
@@ -114,6 +120,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-20",
+   "max_age": 10,
    "behind": false
   },
   "mof-incheon-port-stats": {
@@ -132,6 +139,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-30",
+   "max_age": 10,
    "behind": false
   },
   "kcs-sido-sudo": {
@@ -148,6 +156,42 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-15",
+   "max_age": 10,
+   "behind": false
+  },
+  "osm-reach": {
+   "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)",
+   "pages": [
+    "배송 등시선",
+    "도구 목록"
+   ],
+   "cadence": [
+    "recompute",
+    28
+   ],
+   "ours": "2026-10-21",
+   "source_latest": "2026-10-21",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-18",
+   "max_age": 38,
+   "behind": false
+  },
+  "kcs-tariff": {
+   "label": "관세청 품목번호별 관세율표(파일 · 우리 확인)",
+   "pages": [
+    "수입원가"
+   ],
+   "cadence": [
+    "recompute",
+    28
+   ],
+   "ours": "2026-10-21",
+   "source_latest": "2026-10-21",
+   "checked": "2026-10-21",
+   "last_error": null,
+   "next_expected": "2026-11-18",
+   "max_age": 38,
    "behind": false
   },
   "iiac-route-cargo": {
@@ -164,6 +208,7 @@
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2027-01-31",
+   "max_age": 10,
    "behind": false
   }
  }
