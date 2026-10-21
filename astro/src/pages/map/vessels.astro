@@ -68,12 +68,12 @@ const n = V.months.length;
         g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-opacity="0.25" points="${v.map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
         g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"${p === "인천" ? ' data-main="인천"' : ""} points="${v.slice(0, i + 1).map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
         g += `<circle cx="${x(i)}" cy="${y(v[i])}" r="${p === "인천" ? 4 : 3}" fill="${c}"/>`;
-        ends.push({ y: y(v[i]), t: `${p === "평택.당진" ? "평택·당진" : p} ${v[i]}`, c, b: p === "인천" });
+        ends.push({ y: y(v[i]), t: `${p === "평택.당진" ? "평택·당진" : p} ${v[i].toLocaleString("ko-KR")}`, c, b: p === "인천" });
       }
       ends.sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
       for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${e.t}</text>`;
-      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i]}척 · 부산 ${D.s["부산"][i]}척">${g}</svg>`;
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i].toLocaleString("ko-KR")}척 · 부산 ${D.s["부산"][i].toLocaleString("ko-KR")}척">${g}</svg>`;
       host.dataset.month = D.months[i];
     };
     // [2026-10-15 공개 전 개편 P0] 들어오자마자 돈다 — 끝 달에서 2.5초 쉬고 처음부터 다시. 만지면(달 막대) 멈췄다가 6초 뒤 다시 ·
@@ -95,7 +95,8 @@ const n = V.months.length;
     const touch = () => { stop(); clearTimeout(rt); if (!held) rt = setTimeout(() => { if (!timer && !held) start(); }, 6000); };
     play.addEventListener("click", () => { clearTimeout(rt); if (timer) { held = true; setPaused(true); stop(); } else { held = false; setPaused(false); start(); } });
     slider.addEventListener("input", () => { touch(); draw(Number(slider.value)); });
-    if (!held) setTimeout(() => { if (!timer && !held) start(); }, 900);
+    // [2026-10-21 전수조사] 첫 3초는 머리 숫자와 같은 마지막 달에 머문다 — 0.9초 만에 2015년으로 돌아가 「인천 599」가 머리의 502 옆에 떴다(12·16차 화면 판정 경미)
+    if (!held) setTimeout(() => { if (!timer && !held) start(); }, 3200);
     new ResizeObserver(() => draw(Number(slider.value))).observe(host);
     draw(Number(slider.value));
   </script>

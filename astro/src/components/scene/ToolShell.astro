@@ -14,7 +14,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
 ---
 <article class="s-wrap tool" data-content={`tool-${id}`} data-tool={id}>
   <header class="tool__head">
-    <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof">{asOf} 기준</b></>}</p>
+    <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof nb">{asOf} 기준</b></>}</p>
     <h1 class="s-prose tool__q">{q.replace(/·/g, "\u2060·\u2060")}</h1>
     {lead && <p class="s-lead s-prose tool__lead">{lead}</p>}
   </header>
