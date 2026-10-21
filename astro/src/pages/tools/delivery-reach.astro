@@ -18,6 +18,8 @@ const O = I.origins[first < 0 ? 0 : first];
 const RSP = join(repoRoot(), "data/derived/reach_slots.json");
 const RS = existsSync(RSP) ? JSON.parse(readFileSync(RSP, "utf-8")) : null;
 const SL = RS?.slots ?? [{ id: "자유 흐름", k: 1 }];
+// 자유 흐름이 실제보다 짧은지 긴지 = 내비 대조 중앙값의 부호(2026-10-21 자동 갱신 — 대조가 다시 돌면 방향도 데이터에서)
+const SHORT = (SL.find((t: any) => t.median_pct != null)?.median_pct ?? -1) < 0;
 const DEF = SL.find((t: any) => t.id === RS?.default) ?? SL[0];
 const TB = RS?.table?.[first < 0 ? 0 : first]?.[DEF.id];
 const C0 = (TB?.car ?? O.cities) as Record<string, number | null>;
@@ -38,9 +40,9 @@ const navi = NV?.status === "ok"
 ---
 <Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 기본은 낮 시간대(카카오 내비 대조 보정) · 출근·화물차 판 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
   <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 승용차로 출발하면 서울시청까지 ${seoul ?? "—"}분${tag(DEF)}, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳. 1.5톤 넘는 화물차는 아래에서 「화물차」를 고르세요.`}
-    updated={I.made} source={sourceLine("osm-protomaps")} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="기본 = 낮 시간대(카카오 내비 대조 보정 · 실측 소통 속도 아님)"
+    updated={I.made} source={`${sourceLine("osm-protomaps")} · ${sourceLine("kakaomobility-navi")}`} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" note="기본 = 낮 시간대(카카오 내비 대조 보정 · 실측 소통 속도 아님)"
     how={`OpenStreetMap 대한민국 자료에서 수도권 도로만 읽어 도로 등급별 속도(km/h — ${Object.entries(I.speeds_kmh).filter(([k]) => RK[k]).map(([k, v]) => `${RK[k]} ${v}`).join(" · ")})로 엮고, 출발지에서 가장 빠른 길(최단 시간 경로)을 풀었다. 칸 크기 ${I.step}°.`}
-    limits={`기본으로 보이는 「낮」·「출근」은 자유 흐름 분에 카카오 내비 대조 오차 중앙값의 배율을 곱한 것이다 — 모든 길에 같은 비율이라 길마다 다른 막힘은 반영하지 않는다. 「자유 흐름」은 혼잡·신호를 반영하지 않아 실제보다 짧게 나온다. 「화물차」는 고속도로 최고속도 80km/h(도로교통법 시행규칙 — 적재 1.5톤 초과)와 OSM 의 화물차 통행 금지 길만 반영했다 — 도심 시간제 통행 제한은 빠졌다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
+    limits={`기본으로 보이는 「낮」·「출근」은 자유 흐름 분에 카카오 내비 대조 오차 중앙값의 배율을 곱한 것이다 — 모든 길에 같은 비율이라 길마다 다른 막힘은 반영하지 않는다. 「자유 흐름」은 혼잡·신호를 반영하지 않아 실제보다 ${SHORT ? "짧게" : "길게"} 나온다(카카오 내비 대조 중앙값 기준). 「화물차」는 고속도로 최고속도 80km/h(도로교통법 시행규칙 — 적재 1.5톤 초과)와 OSM 의 화물차 통행 금지 길만 반영했다 — 도심 시간제 통행 제한은 빠졌다. 출발지는 OSM 에 「물류단지」로 이름이 붙은 시설과 관문 셋이다 — 빠진 단지가 있을 수 있다. ${navi}`}>
     <div slot="answer" class="reach">
       <div class="reach__map"><canvas id="reach-cv" role="img" aria-label={`${O.name}에서 1·2·3시간 도달권 지도`}></canvas>
         <p class="reach__t" data-furniture><span>칠한 범위</span> <b id="reach-min">180</b><span>분 안</span></p>

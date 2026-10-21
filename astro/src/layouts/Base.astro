@@ -89,7 +89,7 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
 <body data-surface={surface} class:list={[{ studio }]}>
   <a class="skip" href="#main">본문으로 건너뛰기</a>
   <header class="s-wrap s-mast">
-    <a class="s-mark" href={u("/")} aria-label={`${BRAND.name} 첫 화면`}>{BRAND.name}<small>{BRAND.tagline}</small></a>
+    <a class="s-mark" href={u("/")} aria-label={`${BRAND.name} ${BRAND.tagline} — 첫 화면`}>{BRAND.name} <small>{BRAND.tagline}</small></a>
     <nav class="s-nav" aria-label="주 메뉴">
       {NAV.map((n) => <a href={u(n.href)} aria-current={cur(n) ? "page" : undefined}>{n.label}</a>)}
     </nav>

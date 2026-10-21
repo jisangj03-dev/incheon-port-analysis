@@ -5,8 +5,8 @@
 import Trust from "./Trust.astro";
 import AiMark from "./AiMark.astro";
 import { abs } from "../../lib/site";
-interface Props { id: string; who: string; q: string; lead?: string; updated: string; asOf?: string; source: string; csv: string; csvName: string; note?: string; advice?: boolean; limits: string; how: string }
-const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how } = Astro.props;
+interface Props { id: string; who: string; q: string; lead?: string; updated: string; asOf?: string; source: string; csv: string; csvName: string; note?: string; advice?: boolean; limits: string; how: string; fresh?: string[] }
+const { id, who, q, lead, updated, asOf, source, csv, csvName, note, advice = false, limits, how, fresh } = Astro.props;
 // 퍼가기(B7) — 이 지면 주소의 끝 이름 = 퍼가기 지면 이름(og-cards.mjs 가 도구 목록 rooms.json 의 id 로 쓴다)
 const slug = Astro.url.pathname.replace(/\/$/, "").split("/").pop()!.replace(/\.html$/, "");
 // 제목의 「물류·무역」 같은 가운뎃점 묶음이 「·」 앞에서 갈리지 않게 낱말 잇개(U+2060)로 붙인다 — keep-all 만으로는 크롬이 「·」 앞에서 끊었다(채팅 최종 검수 10/15)
@@ -14,7 +14,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
 ---
 <article class="s-wrap tool" data-content={`tool-${id}`} data-tool={id}>
   <header class="tool__head">
-    <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof">{asOf} 기준</b></>}</p>
+    <p class="s-cap">도구 · {who}{asOf && <> · <b class="tool__asof nb">{asOf} 기준</b></>}</p>
     <h1 class="s-prose tool__q">{q.replace(/·/g, "\u2060·\u2060")}</h1>
     {lead && <p class="s-lead s-prose tool__lead">{lead}</p>}
   </header>
@@ -22,7 +22,7 @@ const embedCode = `<iframe src="${abs(`/embed/tool-${slug}.html`)}" title="측�
   <div class="tool__controls"><slot name="controls" /></div>
   <slot />
   <footer class="tool__foot">
-    <Trust updated={updated} source={source} csv={csv} csvName={csvName} note={note} />
+    <Trust updated={updated} source={source} csv={csv} csvName={csvName} note={note} fresh={fresh} />
     {advice && <p class="tool__advice"><b>참고용입니다.</b> 이 계산은 공개 자료로 만든 어림이며 법률·세무·관세 자문이 아닙니다. 실제 거래는 관세사·세무사 등 자격자에게 확인하세요.</p>}
     <details class="tool__more">
       <summary>방법 · 한계{Astro.slots.has("more") ? " · 원천 점검" : ""} · 퍼가기</summary>

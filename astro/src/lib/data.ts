@@ -14,6 +14,11 @@ function csv(rel: string): Record<string, string>[] {
 }
 
 /** 인천항 컨테이너 월별 처리량(천TEU) — 인천지방해양수산청 월별 항만운영통계 「컨테이너 합계」 행. */
+/** 공표 전년비와 처리량으로 잰 전년비의 차이 최댓값(%p) — tools-build/flows_derive.py 가 home_flows.json checks 에 계산해 둔다(2026-10-21 · 손으로 적은 「최대 0.8%p」를 걷음). */
+export function teuYoyGap(): number | null {
+  try { return JSON.parse(readFileSync(join(repoRoot(), "data/derived/home_flows.json"), "utf-8")).checks?.teu_yoy_gap_pp ?? null; } catch { return null; }
+}
+
 export function portMonthly() {
   const rel = "analysis/terminal_monthly_long.csv";
   const rows = csv(rel).filter((r) => r["계층"] === "합계" && r["당월_천TEU"]);

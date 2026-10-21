@@ -40,7 +40,7 @@ export const GROUPS: { id: string; label: string; from: number; to: number; c: s
   { id: "metal", label: "철강·금속", from: 72, to: 83, c: "#7a6f62" },
   { id: "mach", label: "기계류(84)", from: 84, to: 84, c: "#4f6a78" },
   { id: "elec", label: "전기기기(85)", from: 85, to: 85, c: "#b3361e" },
-  { id: "trans", label: "수송기기", from: 86, to: 89, c: "#3e8a8c" },
+  { id: "trans", label: "수송기기", from: 86, to: 89, c: "#2f7577" },
   { id: "prec", label: "정밀·광학·기타", from: 90, to: 99, c: "#a08c7a" },
 ];
 /** 칸 색 위 글자 — 밝기로 고른다(어두운 칸에 검은 글자가 명암비 4.5 를 못 넘었다 · 2026-10-14 Lighthouse) */
@@ -119,7 +119,8 @@ export class TreemapRace {
       // 보이는 글자 = 낭독 이름(이름이 안 보이는 칸만 aria-label) · 아주 작은 칸은 누르지 않는다(누름 자리 24px 미만 · 값은 CSV 에)
       const nm = tileLabel(it, r);
       el.innerHTML = nm ? `<b>${nm}</b>${pctFits(r) ? ` <i>${share.toFixed(1)}%</i>` : ""}` : "";
-      if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", `${it.name} ${share.toFixed(1)}%`);
+      // 줄인 이름(「광학」)을 보이는 칸은 낭독 이름이 보이는 글자로 시작해야 한다(WCAG 2.5.3 · 전수조사 axe) — 「광학 2.1% — 광학·정밀·의료기기」
+      if (nm === it.name) el.removeAttribute("aria-label"); else el.setAttribute("aria-label", nm ? `${el.textContent} — ${it.name}${pctFits(r) ? "" : ` ${share.toFixed(1)}%`}` : `${it.name} ${share.toFixed(1)}%`);
       el.title = `${it.name} ${share.toFixed(1)}%`;
       el.disabled = tiny;
       el.style.color = inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c);

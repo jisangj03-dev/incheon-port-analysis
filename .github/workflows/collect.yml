@@ -5,9 +5,9 @@
 # claude/ 브랜치에서 collect.json·collect.py·이 파일이 바뀌면 그 브랜치에서 한 번 돌고 결과를 그 브랜치에 커밋한다(실행 증명).
 name: collect
 
+# [2026-10-21] 예약 실행은 걷었다 — 매일 도는 refresh 워크플로(refresh.yml)가 같은 수집을 받고 파생·시험·배포까지 한다(머지 대기 PR 0).
+#   이 파일은 수동 실행·수집 설정 변경 증명용으로 남는다.
 on:
-  schedule:
-    - cron: "23 0 16,24 * *"   # 매월 16·24일 09:23 KST — 원천 월 공표 뒤 · 지수 발표일(25일) 전
   workflow_dispatch:
   push:
     branches: ["claude/**"]

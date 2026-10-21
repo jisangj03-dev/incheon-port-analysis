@@ -138,6 +138,21 @@ def derive():
     dests = [{"id": k, "n": (gu.get(k) if k in gu else sido.get(k)), "lon": v[0], "lat": v[1], "scope": "인천 구·군" if k in gu else "시·도 전체"} for k, v in DEST_AT.items()]
     dests = [d for d in dests if d["n"]]
     last = M[-1]
+    # [2026-10-21 자동 갱신] 지면 설명 문장의 「차이」 숫자도 데이터에서 — 손으로 적은 「2억 달러 안팎」「최대 0.8%p」는 달이 바뀌면 틀린다
+    #   nat_gap_eok = 같은 원천 「전국」 줄과 관세청 국가별 전 국가 합의 차이 최댓값(억 달러 · 두 원천이 다 있는 달)
+    #   teu_yoy_gap_pp = 공표 전년비(%)와 공표 처리량으로 잰 전년비의 차이 최댓값(%p · 수정된 전년 기준 때문에 생긴다)
+    gaps = []
+    for m in M:
+        k = m["ym"].replace("-", "")
+        if k in NM:
+            gaps += [abs(m["nat_imp"] - eok(sum(x["imp"] for x in NM[k]))), abs(m["nat_exp"] - eok(sum(x["exp"] for x in NM[k])))]
+    tl = [r for r in rows("analysis/terminal_monthly_long.csv") if r["계층"] == "합계" and r["당월_천TEU"]]
+    tv = {r["기준연월"]: num(r["당월_천TEU"]) for r in tl}
+    tg = []
+    for r in tl:
+        y, mo = int(r["기준연월"][:4]), int(r["기준연월"][5:7]); pv = tv.get(f"{y - 1}-{mo:02d}")
+        if pv and r["전년대비_당월_%"]: tg.append(abs(num(r["전년대비_당월_%"]) - (tv[r["기준연월"]] / pv - 1) * 100))
+    checks = {"nat_gap_eok": round(max(gaps), 1) if gaps else None, "teu_yoy_gap_pp": round(max(tg), 1) if tg else None}
     return {
         "_설명": "홈 살아 있는 지도 — tools-build/flows_derive.py 가 원천에서 계산한다. 흐름은 월 통계를 그린 것이지 실시간 위치가 아니다.",
         "made": datetime.date.today().isoformat(),
@@ -150,6 +165,7 @@ def derive():
         "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"], "total_t": air["total_in_t"] + air["total_out_t"],
                       "shown_pct": round(100 * sum((p.get("air_in_t") or 0) + (p.get("air_out_t") or 0) for p in partners) / (air["total_in_t"] + air["total_out_t"]), 1)} if air else None,
         "dests": dests,
+        "checks": checks,
         "assume": [
             "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",
             "관문을 지난 화물이 수도권 어디로 가는지는 통계가 없어, 물류창고 등록 개소 비례로 흩었다(인천 구·군 · 서울 · 경기).",

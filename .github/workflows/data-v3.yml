@@ -1,6 +1,7 @@
 # 실무 도구 v3 데이터(2026-10-14 선장님 최종 위임) — 이 클라우드 세션은 PortWatch·세계은행·Geofabrik 이 막혀 Actions 에서 받고 가공한다.
 # 일마다 하나씩(병렬) → 결과 파일을 산출물로 넘기고 → 마지막 일이 그 브랜치에 한 번 커밋한다. 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
-# 자동 갱신: 매주 월(PortWatch 일별 · 입찰 레이더 스냅샷) · 매월 17일(나머지) — 예약 실행은 기본 브랜치에서 돌고 PR 을 연다(공개 전환 뒤).
+# [2026-10-21] 예약 실행은 걷었다 — 지면 숫자를 내는 일(apis·kcci·portwatch·iiac)은 매일 도는 refresh 워크플로가 받고 시험·배포까지 한다.
+#   나머지(terms·density·osm·s2 = 거의 안 바뀌는 바탕 층 · radar = 내린 지면)는 필요할 때 수동 실행.
 name: data-v3
 on:
   workflow_dispatch:
@@ -12,9 +13,6 @@ on:
   push:
     branches: ["claude/**"]
     paths: ["tools-build/v3/**", ".github/workflows/data-v3.yml", "tools-build/requirements-geo.txt"]
-  schedule:
-    - cron: "17 1 * * 1"
-    - cron: "41 2 17 * *"
 permissions:
   contents: write
   pull-requests: write
@@ -22,7 +20,28 @@ concurrency:
   group: data-v3-${{ github.ref }}
   cancel-in-progress: false
 jobs:
+  gate:
+    # 사고 131 — 경로 거르개는 「이 push 가 들여온 커밋」을 보므로 main 병합 push·새 브랜치 첫 push 에도 깨어난다.
+    # push 로 깨어났으면 이 브랜치의 스크립트가 main 과 실제로 다를 때만 돈다(워크플로 파일 자체는 안 센다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q --depth=1 origin main
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/v3/' 'tools-build/requirements-geo.txt'; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
   fetch:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
     strategy:
       fail-fast: false
       matrix:
@@ -83,7 +102,7 @@ jobs:
           retention-days: 7
   commit:
     needs: fetch
-    if: always()
+    if: always() && needs.fetch.result != 'skipped'   # 문지기가 건너뛰면 커밋도 없다(사고 131)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

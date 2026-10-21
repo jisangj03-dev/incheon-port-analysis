@@ -19,20 +19,20 @@ const n = V.months.length;
   <article class="s-wrap vr" data-content="ds-vessels">
     <p class="s-cap">도구 · 외항선 입항 추이 · 항만별 월 집계</p>
     <h1 class="s-prose">인천항에 외항선이 한 달 {L.incheon}척 들어왔습니다.</h1>
-    <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct}%</b>.</p>
+    <p class="s-lead s-prose">{L.ym} 기준, 전국 외항선 입항의 <b>{L.incheon_share_pct}%</b>. 작년 같은 달보다 <b class={L.incheon_yoy_pct < 0 ? "s-signal" : ""}>{L.incheon_yoy_pct < 0 ? "−" : L.incheon_yoy_pct > 0 ? "+" : ""}{Math.abs(L.incheon_yoy_pct)}%</b>.</p>
 
     <figure class="replay" id="replay" aria-label={`${V.months[0]}부터 ${V.months[n - 1]}까지 항만별 외항선 입항 척수`}>
       {/* [2026-10-20 화면 판정] 큰 숫자가 재생 중인 옛 달(599척 · 2016-02)을 따라가 머리 문장(523척)과 어긋났다 →
            큰 숫자는 최신 달에 고정 · 흐르는 달은 차트 안 커서(달·척수)가 든다 */}
-      <div class="replay__now"><span class="vr-ym">{L.ym}</span><span class="vr-v"><i>{L.incheon}</i><small>척 · 인천</small></span><span class="vr-b">부산 <i>{L.busan}</i>척</span></div>
+      <div class="replay__now"><span class="vr-ym">{L.ym}</span><span class="vr-v"><i>{L.incheon}</i><small>척 · 인천</small></span><span class="vr-b">부산 <i>{L.busan.toLocaleString("ko-KR")}</i>척</span></div>
       <div id="vr-chart" class="replay__chart"></div>
       <div class="replay__ctl">
         <button type="button" id="vr-play" class="s-btn s-btn--ghost" aria-pressed="false">재생</button>
         <input id="vr-m" type="range" min="0" max={n - 1} value={n - 1} step="1" aria-label="달 고르기" />
       </div>
-      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" note="월 집계 · 입항 척수" />
+      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" fresh={["mof-vessel"]} note="월 집계 · 입항 척수" />
     </figure>
-    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
+    <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan.toLocaleString("ko-KR")}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
     <script type="application/json" id="vr-data" set:html={JSON.stringify({ months: V.months, s: V.ocean_arrivals })}></script>
 
     <details class="vr-more"><summary class="s-cap">왜 · 어떻게 · 한계</summary>
@@ -68,12 +68,12 @@ const n = V.months.length;
         g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-opacity="0.25" points="${v.map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
         g += `<polyline fill="none" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"${p === "인천" ? ' data-main="인천"' : ""} points="${v.slice(0, i + 1).map((a, k) => `${x(k).toFixed(1)},${y(a).toFixed(1)}`).join(" ")}"/>`;
         g += `<circle cx="${x(i)}" cy="${y(v[i])}" r="${p === "인천" ? 4 : 3}" fill="${c}"/>`;
-        ends.push({ y: y(v[i]), t: `${p === "평택.당진" ? "평택·당진" : p} ${v[i]}`, c, b: p === "인천" });
+        ends.push({ y: y(v[i]), t: `${p === "평택.당진" ? "평택·당진" : p} ${v[i].toLocaleString("ko-KR")}`, c, b: p === "인천" });
       }
       ends.sort((a, b) => a.y - b.y);
       for (let k = 1; k < ends.length; k++) if (ends[k].y - ends[k - 1].y < 15) ends[k].y = ends[k - 1].y + 15;
       for (const e of ends) g += `<text x="${x(i) + 8}" y="${(e.y + 4).toFixed(1)}" font-size="13" font-weight="${e.b ? 700 : 500}" fill="${e.c === "var(--s-sea-2)" ? "var(--s-sea-2-t)" : e.c === "var(--s-sea)" ? "var(--s-sea-t)" : e.c}" style="paint-order:stroke;stroke:var(--s-paper);stroke-width:7px;stroke-linejoin:round">${e.t}</text>`;
-      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i]}척 · 부산 ${D.s["부산"][i]}척">${g}</svg>`;
+      host.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${D.months[0]}부터 ${D.months[i]}까지 항만별 외항선 입항 척수 — 인천 ${D.s["인천"][i].toLocaleString("ko-KR")}척 · 부산 ${D.s["부산"][i].toLocaleString("ko-KR")}척">${g}</svg>`;
       host.dataset.month = D.months[i];
     };
     // [2026-10-15 공개 전 개편 P0] 들어오자마자 돈다 — 끝 달에서 2.5초 쉬고 처음부터 다시. 만지면(달 막대) 멈췄다가 6초 뒤 다시 ·
@@ -95,7 +95,8 @@ const n = V.months.length;
     const touch = () => { stop(); clearTimeout(rt); if (!held) rt = setTimeout(() => { if (!timer && !held) start(); }, 6000); };
     play.addEventListener("click", () => { clearTimeout(rt); if (timer) { held = true; setPaused(true); stop(); } else { held = false; setPaused(false); start(); } });
     slider.addEventListener("input", () => { touch(); draw(Number(slider.value)); });
-    if (!held) setTimeout(() => { if (!timer && !held) start(); }, 900);
+    // [2026-10-21 전수조사] 첫 3초는 머리 숫자와 같은 마지막 달에 머문다 — 0.9초 만에 2015년으로 돌아가 「인천 599」가 머리의 502 옆에 떴다(12·16차 화면 판정 경미)
+    if (!held) setTimeout(() => { if (!timer && !held) start(); }, 3200);
     new ResizeObserver(() => draw(Number(slider.value))).observe(host);
     draw(Number(slider.value));
   </script>

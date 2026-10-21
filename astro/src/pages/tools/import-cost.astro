@@ -34,8 +34,8 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
 <Studio title="환율 파도와 수입원가 — 환율이 바뀌면 원가가 얼마나 바뀌나" description="관세청 과세환율(주간)과 품목번호별 관세율표로 같은 물건의 수입 원가(과세가격·관세·내국세·부가세)를 주마다 다시 계산한다 — HS 코드를 넣으면 관세율이 채워진다. 참고용 · 자문 아님." current="tools" ogImage="/og/tool-import-cost.jpg" lateFonts>
   <ToolShell id="cost" who="수입 담당 · 셀러 · 구매" asOf={day(D.asof)} advice
     q="환율이 바뀌면 내 수입 원가가 얼마나 바뀌나?"
-    lead={`같은 1만 달러(CIF) 물건을 가장 최근 주(${day(E.now.week)}) 과세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : ""}${E.pct}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
-    updated={D.fetched} source={[sourceLine("kcs-exchange"), K && sourceLine("kobc-kcci"), TC && sourceLine("kcs-tariff")].filter(Boolean).join(" · ")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
+    lead={`같은 1만 달러(CIF) 물건을 가장 최근 주(${day(E.now.week)}) 과세환율로 들이면 원가(부가세 제외) ${won(E.now.cost)}원 — ${E.ago_weeks}주 전 주보다 ${sign(E.diff)}${won(Math.abs(E.diff))}원(${E.pct > 0 ? "+" : E.pct < 0 ? "−" : ""}${Math.abs(E.pct)}%). 관세 ${E.duty_pct}% · 부가세 ${E.vat_pct}% 예시.`}
+    updated={D.fetched} source={[sourceLine("kcs-exchange"), K && sourceLine("kobc-kcci"), TC && sourceLine("kcs-tariff")].filter(Boolean).join(" · ")} csv={u("/data/import-cost.csv")} csvName="kcs-customs-fx-weekly.csv" fresh={["kcs-fx", "kobc-kcci"]} note="수입 · 주간 · 원/통화 1단위(JPY 1엔)"
     how="적용 환율 = 수입신고일이 속한 주의 관세청이 매주 정해 알리는 과세환율(관세법 제18조 · 전주의 기준환율 또는 재정환율을 평균해 관세청장이 정한다). 과세가격 = CIF 가격 × 과세환율(원 미만 버림) · 관세 = 과세가격 × 관세율 · 개별소비세·주세 = (과세가격 + 관세) × 세율 · 교육세 = 개별소비세 × 30%(일부 15%) + 주세 × 10%(주세율 70% 초과 30%) · 농어촌특별세 = 개별소비세 × 세율 · 부가가치세 = (과세가격 + 관세 + 개별소비세 + 주세 + 교육세 + 농특세) × 10%. 세액마다 10원 미만 버림(국고금 관리법 제47조). FOB 를 고르면 넣은 운임·보험료를 더해 CIF 로 바꾼다."
     limits={`원가는 부가세를 뺀 값이다 — 수입 부가세는 사업자가 매입세액으로 공제받는다(간이과세·면세 사업자·개인 수입은 다르다). 세관에 내는 돈은 「세관 납부세액」 줄이고, 「총 지급액」은 물건값(과세가격)·세금·국내 운송·통관비를 다 더한 값이다. 내국세(개별소비세·주세·교육세·농특세)는 대상 품목일 때만 세율을 넣는다 — 기본값 0(일반 공산품) · 맥주·탁주 같은 종량세 주류는 이 식 밖이다. ${TC ? "HS 코드를 넣으면 관세청 품목번호별 관세율표(유효분)에서 세율을 찾아 기본·WTO 협정세율 가운데 낮은 쪽을 넣는다. 시장접근물량(TRQ) 품목은 물량 밖 양허세율을, 기본세율보다 높은 양허세율이 있는 농림축산물(쇠고기 등)은 그 양허세율을 넣는다(관세법 제50조③ 단서 — 대상 품목 여부는 원문 대조 전이라 화면에 확인 안내를 단다) · FTA 협정세율은 원산지증명이 있을 때 원산지 나라의 협정을 사람이 고른다. 할당·조정·덤핑방지관세·감면은 넣지 않았다. " : "FTA 협정세율·감면·할당관세는 넣지 않았다. 관세율은 품목(HS)마다 다르므로 직접 넣어야 한다 — 8% 는 예시다. "}운임·보험료·국내 운송·통관비의 기본값은 0 이다 — 공공 기준값을 확인하지 못해 임의 값을 넣지 않았다(보험료는 보험증권, 통관 수수료는 관세사 견적을 넣는다). 끝수 규칙(과세가격 원 미만 · 세액 10원 미만 버림)은 법령 원문과 아직 대조하지 못했다(관세청·국고금 관리법 해설 기준). 관세사 실제 신고 건과 원 단위 대조는 아직 하지 않았다. ${K ? "운임 파도(KCCI)는 지수(포인트)라 달러 운임이 아니고, 부산발 수출 항로 지수라 수입 원가 계산에는 쓰지 않는다(참고 그림). 마지막 반영 주는 원천의 마지막 주 그대로다. " : "운임지수는 아직 싣지 않았다(운임은 직접 넣는다). "}실제 납부액은 수입신고 때 세관이 정한다.`}>
     <div slot="answer" class="cost">
@@ -59,7 +59,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
         <span class="mklb mklb--now" style={`left:${((X(iNow) / VW) * 100).toFixed(2)}%;top:${((Y(us[iNow]) / VH) * 100).toFixed(2)}%`}>가장 최근 주 <b>{E.now.fx.toLocaleString("ko-KR")}</b></span>
         <span class="mklb mklb--ago" id="cs-ago-lb" style={`left:${((X(iAgo) / VW) * 100).toFixed(2)}%;top:${((Y(us[iAgo]) / VH) * 100).toFixed(2)}%`}>견줄 주 <b id="cs-ago-v">{E.ago.fx.toLocaleString("ko-KR")}</b></span>
         </div>
-        <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 가장 최근 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
+        <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 가장 최근 주 {day(D.asof)} {E.now.fx.toLocaleString("ko-KR")}원 · {E.ago_weeks}주 전 {E.ago.fx.toLocaleString("ko-KR")}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx.toLocaleString("ko-KR")}원</figcaption>
       </figure>
     </div>
     <div slot="controls" class="cost__ctl">
@@ -130,7 +130,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       $("cs-wk").textContent = day(W[i][0]); $("cs-h-a").textContent = `${day(W[i][0])} 주`; $("cs-h-b").textContent = `${day(W[last][0])} 주`;
       const inner: [string, number, number][] = ([["개별소비세", a.excise, b.excise], ["주세", a.liquor, b.liquor], ["교육세", a.edu, b.edu], ["농어촌특별세", a.rural, b.rural]] as [string, number, number][]).filter((r) => r[1] || r[2]);
       const rows: [string, number, number][] = [["과세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ...inner, ["부가가치세", a.vat, b.vat], ["세관 납부세액(관세·내국세·부가세)", a.duty + a.excise + a.liquor + a.edu + a.rural + a.vat, b.duty + b.excise + b.liquor + b.edu + b.rural + b.vat], ["총 지급액(과세가격 + 세금 + 국내 운송·통관비)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
-      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("총 지급") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x : won(x)}</td><td>${k === "과세환율" ? y : won(y)}</td></tr>`).join("");
+      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("총 지급") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x.toLocaleString("ko-KR") : won(x)}</td><td>${k === "과세환율" ? y.toLocaleString("ko-KR") : won(y)}</td></tr>`).join("");
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
       const lb = $("cs-ago-lb"); lb.style.left = `${((X(i) / B.VW) * 100).toFixed(2)}%`; lb.style.top = `${((Y(usd) / B.VH) * 100).toFixed(2)}%`; $("cs-ago-v").textContent = usd.toLocaleString("ko-KR");

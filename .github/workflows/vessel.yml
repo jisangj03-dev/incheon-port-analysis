@@ -9,8 +9,28 @@ on:
 permissions:
   contents: write
 jobs:
+  gate:
+    # 사고 131 — 경로 거르개는 「이 push 가 들여온 커밋」을 보므로 main 병합 push·새 브랜치 첫 push 에도 깨어난다.
+    # push 로 깨어났으면 이 브랜치의 스크립트가 main 과 실제로 다를 때만 돈다(워크플로 파일 자체는 안 센다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q --depth=1 origin main
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/vessel.py'; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
   vessel:
-    if: startsWith(github.ref_name, 'claude/')
+    needs: gate
+    if: needs.gate.outputs.run == 'yes' && startsWith(github.ref_name, 'claude/')
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:

@@ -67,7 +67,7 @@ const ym = (s: string) => (/^\d{6}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4)}` 
     </ol>
     <figure class="fc-fig" data-chart="forecast" aria-label={`${ym(act[0][0] as string)}부터 ${ym(lastYm)}까지 실제 처리량과 그 뒤 석 달 예측`}>
       <div id="fc-chart" class="fc-chart"></div>
-      <Trust updated={updated} source={`측심 예측 원장 · ${sourceLine("mof-incheon-port-stats")}`} csv={u("/data/forecast-ledger.csv")} csvName="incheon-forecast-ledger.csv" note={`단위 ${L.series.unit} · 예측은 고치지 않는다`} />
+      <Trust updated={updated} source={`측심 예측 원장 · ${sourceLine("mof-incheon-port-stats")}`} csv={u("/data/forecast-ledger.csv")} csvName="incheon-forecast-ledger.csv" fresh={["mof-incheon-port-stats"]} note={`단위 ${L.series.unit} · 예측은 고치지 않는다`} />
     </figure>
     <script type="application/json" id="fc-data" set:html={JSON.stringify(chart)}></script>
 

@@ -1,0 +1,198 @@
+# 자동 갱신(2026-10-21 선장님 질문 「사이트 숫자는 매번 최신이어야 하지 않나?」) — 원천 받기 → 파생 → 신선도 → 빌드 → 전체 시험 → main 에 커밋 → 배포.
+# 사람 손 0 · Claude 토큰 0 · 무료 연산. 키 = 저장소 시크릿 DATA_GO_KR_KEY(로그·산출물에 안 찍는다 — 끝에 흔적 검사).
+#
+# 왜 한 워크플로인가: 종전 collect(월 2회)·data-v3(주 1회)는 예약 실행 결과를 PR 로만 냈고(머지 = 사람), collect 는 파생을 안 돌렸다.
+#   또 GITHUB_TOKEN 으로 만든 push 는 다른 워크플로(pages)를 깨우지 않는다 — 그래서 여기서 시험까지 돌고, 통과하면 main 에 직접 커밋한 뒤
+#   pages 를 workflow_dispatch 로 부른다(GITHUB_TOKEN 이 허용하는 유일한 길).
+# 시험이 깨지면 main 에 쓰지 않고 배포하지 않는다 — 결과를 bot/refresh-fail-* 브랜치에 밀고 이슈를 연다(같은 제목이 열려 있으면 댓글).
+# 바뀐 것이 없으면(원천이 새로 낸 것이 없으면) 아무것도 커밋하지 않는다. 확인일만 바뀐 날은 7일에 한 번만 커밋한다(지면의 「마지막 확인」).
+#
+# 매일 07:37 KST — 원천 대부분이 월·주 단위라 하루 한 번이면 공표 뒤 하루 안에 지면이 바뀐다.
+# claude/ 브랜치에서 이 파일·refresh.py 가 바뀌면 그 브랜치에서 한 번 돌고 결과를 그 브랜치에 커밋한다(실행 증명 · main·배포 0).
+name: refresh
+
+on:
+  schedule:
+    - cron: "37 22 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "받기 단계 몇 개만(쉼표 · 비우면 전부) — collect,kr-apis,kcci,portwatch,iiac,vessel,teu,derive"
+        required: false
+        default: ""
+      deploy:
+        description: "새 공표가 없어도 시험을 돌리고 main 이면 배포까지 부른다(배포 구간 증명·수동 재배포)"
+        type: boolean
+        required: false
+        default: false
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/refresh.py", ".github/workflows/refresh.yml"]
+
+permissions:
+  contents: write
+  issues: write
+  actions: write
+
+concurrency:
+  group: refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ASTRO_TELEMETRY_DISABLED: "1"
+  COST_ADAPTER: v2
+
+jobs:
+  gate:
+    # 사고 131 — 경로 거르개는 「이 push 가 들여온 커밋」을 보므로 main 병합 push·새 브랜치 첫 push 에도 깨어난다.
+    # push 로 깨어났으면 이 브랜치의 스크립트가 main 과 실제로 다를 때만 돈다(워크플로 파일 자체는 안 센다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q --depth=1 origin main
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/refresh.py'; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+  refresh:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # 「마지막 갱신일」 = 파일의 마지막 커밋 날짜
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 키 가리기(인코딩 꼴) · 파이썬 의존(xlrd 하나 · 고정판)
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          python - <<'PY'
+          import os, urllib.parse
+          k = os.environ.get("DATA_GO_KR_KEY", "").strip()
+          for s in {urllib.parse.quote(k, safe=""), urllib.parse.quote_plus(k)}:
+              if s: print(f"::add-mask::{s}")
+          print("키 있음" if k else "키 없음")
+          PY
+          pip install -q xlrd==2.0.2
+      - name: 자체 시험(받기·파생 스크립트)
+        run: |
+          python tools-build/refresh.py --selftest
+          python tools-build/collect.py --selftest
+          python tools-build/vessel.py --selftest
+          python analysis/collect_terminal_monthly.py --selftest
+          (cd tools-build/v3 && python fx_derive.py --selftest && python race_derive.py --selftest && python choke_derive.py --selftest && python iiac_cargo.py --selftest)
+          python tools-build/flows_derive.py --selftest
+      - name: 받기 → 파생 → 신선도
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: |
+          if [ -n "${{ inputs.only }}" ]; then python tools-build/refresh.py --only "${{ inputs.only }},derive"; else python tools-build/refresh.py; fi
+      - name: 키 흔적 검사(산출물에 키가 있으면 커밋하지 않는다)
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}   # collect.py --guard 가 이 이름으로 읽는다(10-21 첫 실행: 다른 이름으로 넘겨 「키 없음」 실패)
+        run: |
+          python tools-build/collect.py --guard
+          if grep -rqF "$DATA_GO_KR_KEY" data/ analysis/ 2>/dev/null; then echo "::error::키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
+      - name: 바뀐 것
+        id: diff
+        run: |
+          git add -A data/collected data/derived analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
+          # 시각 키(fetched·checked·made …)만 바뀐 파일은 빼고 센다 — 원천이 새로 낸 것이 없는 날 커밋·배포하지 않게
+          CH=$(python tools-build/refresh.py --changed | grep -v '^data/derived/freshness.json$' || true)
+          echo "$CH" | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
+          # 확인일만 바뀐 날 — 마지막 freshness 커밋이 7일 넘었으면 그것만이라도 싣는다(지면의 「마지막 확인」이 낡지 않게)
+          AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))
+          if [ -n "$CH" ]; then echo "go=data" >> "$GITHUB_OUTPUT";
+          elif [ "$AGE" -ge 7 ] && ! git diff --cached --quiet; then echo "go=heartbeat" >> "$GITHUB_OUTPUT";
+          elif [ "${{ inputs.deploy }}" = "true" ]; then echo "go=force" >> "$GITHUB_OUTPUT"; echo "새 공표 없음 — 수동 실행 deploy 로 시험·배포만" >> "$GITHUB_STEP_SUMMARY";
+          else echo "go=no" >> "$GITHUB_OUTPUT"; echo "원천이 새로 낸 것 없음 — 커밋·배포 없음" >> "$GITHUB_STEP_SUMMARY"; fi
+
+      # ── 시험(PR QA 와 같은 판정 — 데이터가 바뀌면 지면 숫자·문장·신선도가 다 맞는지) ──
+      - uses: actions/setup-node@v5
+        if: steps.diff.outputs.go != 'no'
+        with:
+          node-version: 22
+          cache: npm
+      - if: steps.diff.outputs.go != 'no'
+        run: npm ci --no-audit --no-fund
+      - name: 지도 타일 캐시
+        if: steps.diff.outputs.go != 'no'
+        uses: actions/cache@v4
+        with:
+          path: astro/public/tiles
+          key: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-${{ github.run_id }}
+          restore-keys: pmtiles-incheon-${{ hashFiles('tools-build/pmtiles.json') }}-
+      - name: 지도 타일 추출(없을 때만)
+        if: steps.diff.outputs.go != 'no'
+        run: bash tools-build/pmtiles.sh || echo "::warning::지도 타일 추출 실패 — 지도는 정지 이미지로 남는다"
+      - name: 빌드 · 타입 검사 · 공유 카드 · 전체 시험
+        id: qa
+        if: steps.diff.outputs.go != 'no'
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          SOUNDING_LAB=1 npm run site:build
+          npm run astro:check
+          npx playwright install --with-deps chromium
+          npm run site:og
+          npx playwright test --reporter=line 2>&1 | tail -60 | tee /tmp/qa.txt
+          git fetch -q origin main && python tools-build/check_ledger.py
+      - name: 시험 결과 보관
+        if: always() && steps.diff.outputs.go != 'no'
+        uses: actions/upload-artifact@v4
+        with:
+          name: refresh-qa-${{ github.run_number }}
+          retention-days: 14
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+
+      # ── 커밋 · 배포 ──
+      - name: 커밋(시험 통과) · 배포 부르기
+        if: steps.diff.outputs.go != 'no' && steps.qa.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          M="자동 갱신 $(date -u +%F) — 원천 공표분 반영(refresh 워크플로 · 시험 통과)"
+          [ "${{ steps.diff.outputs.go }}" = "heartbeat" ] && M="자동 갱신 $(date -u +%F) — 확인일만(원천 새 공표 없음 · 7일 주기)"
+          if ! git diff --cached --quiet; then
+            git commit -q -m "$M" -m "실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            git pull -q --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            gh workflow run pages.yml --ref main
+            echo "배포 부름(pages · workflow_dispatch)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "브랜치 실행 — 그 브랜치에 커밋만(배포 없음)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: 시험 실패 — main 에 안 쓰고 배포 안 함 · 이슈
+        if: steps.diff.outputs.go != 'no' && steps.qa.outcome != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          b="bot/refresh-fail-$(date -u +%Y%m%d-%H%M)"
+          git switch -c "$b"; git commit -q --allow-empty -m "자동 갱신 실패분 $(date -u +%F) — 시험 빨강(배포 안 함)"; git push -q -u origin "$b"
+          T="자동 갱신 시험 실패 — 공개판은 지난 숫자 그대로"
+          B=$(printf '원천 갱신분이 시험을 통과하지 못해 **배포하지 않았다**(공개판은 지난 숫자 그대로).\n\n- 실행: %s\n- 받은 결과: 브랜치 `%s`\n- 시험 끝 줄:\n\n```\n%s\n```\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" "$b" "$(tail -25 /tmp/qa.txt 2>/dev/null)")
+          n=$(gh issue list --state open --search "in:title \"$T\"" --json number --jq '.[0].number' || true)
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$B"; else gh issue create --title "$T" --body "$B"; fi
+          exit 1
