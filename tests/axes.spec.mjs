@@ -19,14 +19,14 @@ test("세 축 — 축 줄 숫자 = 데이터 파일 · 줄 → 그 축 질문 �
   const h = long[0], tot = long.filter((r) => r[h.indexOf("계층")] === "합계" && r[h.indexOf("당월_천TEU")]);
   const last = tot[tot.length - 1];
   const logi = await page.locator('.ax__row a[href="#ax-logi"]').innerText();
-  expect(logi).toContain(fmt(Number(last[h.indexOf("당월_천TEU")])));
+  expect(logi).toContain(Number(last[h.indexOf("당월_천TEU")]).toLocaleString("ko-KR")); // 원천 정밀도 그대로(20차 사실 대조 — 281.0 은 없는 정밀도)
   expect(logi).toContain(last[h.indexOf("기준연월")]);
   const V = J("data/derived/vessel_replay.json").latest;
   expect(logi).toContain(`외항선 ${V.incheon.toLocaleString("ko-KR")}척(${V.ym})`);
   if (AX) {
     const t = await page.locator('.ax__row a[href="#ax-trade"]').innerText();
     expect(t).toContain(fmt(AX.trade.sudo_imp));
-    expect(t).toContain(`전국의 ${AX.trade.exp_pct}%`);
+    expect(await page.locator('.ax__row a[href="#ax-trade"]').textContent()).toContain(`같은 달 수출 ${fmt(AX.trade.sudo_exp)}억`); // 낮은 창에서는 감춘다 — 글은 늘 있다
     await expect(page.locator("#live-h")).toContainText(`${AX.trade.imp_pct}%`);
     const r = await page.locator('.ax__row a[href="#ax-retail"]').innerText();
     expect(r).toContain(fmt(AX.retail.cons_imp));
