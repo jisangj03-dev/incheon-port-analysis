@@ -31,7 +31,7 @@ const ty = (t: number) => y0 - (t / ymax) * (H / 2 - pad);
 const bars = S.map((s, i) => { const v = s.yoy as number, h = (Math.abs(v) / ymax) * (H / 2 - pad); return { x: pad + i * bw + 1, y: v >= 0 ? y0 - h : y0, h, neg: v < 0, ym: s.ym, v }; });
 const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 차이 최댓값(%p · 데이터 파일에서)
 ---
-<Studio ask={false} title={`${me.title} — 측심`} description="인천항 컨테이너 처리량을 작년 같은 달과 달마다 다시 견주는 노트. 숫자는 해양수산부 공표 계열에서." current="notes">
+<Studio ask={false} title={`${me.title} — 측심`} description="인천항 컨테이너 처리량을 작년 같은 달과 달마다 다시 견주는 노트. 숫자는 인천지방해양수산청 월별 항만운영통계에서." current="notes">
   <article class="s-wrap note" data-content="ds-note">
     <p class="s-cap stage-line"><i class="st-dot" data-s={me.stage} aria-hidden="true"></i> {me.stage} · 심은 날 {me.planted} · 고친 날 {me.tended}</p>
     <h1 class="s-prose">{me.title}</h1>
@@ -54,7 +54,7 @@ const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 �
       <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" fresh={["mof-incheon-port-stats"]} note={`전년 같은 달 대비 % · 공표값(수정된 전년 기준이라 선에서 잰 값과 ${GAP != null ? `최대 ${GAP}%p ` : ""}다르다)`} />
     </figure>
 
-    <p class="counter s-prose"><b>같이 볼 숫자</b> — 배로 세면: {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan}</b>척(부산이 인천의 <b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>외항선 입항 추이</a>.</p>
+    <p class="counter s-prose"><b>같이 볼 숫자</b> — 배로 세면: {V.ym} 외항선 입항 인천 <b>{V.incheon}</b>척, 부산 <b>{V.busan.toLocaleString("ko-KR")}</b>척(부산이 인천의 <b class="s-signal">{V.busan_to_incheon}</b>배) — <a href={u("/map/vessels.html")}>외항선 입항 추이</a>.</p>
     <Trust updated={lastUpdated("data/derived/vessel_replay.json")} source={sourceLine("mof-vessel")} fresh={["mof-vessel"]} note="외항선 입항 척수 · 월 집계(개별 선박 아님)" />
 
 

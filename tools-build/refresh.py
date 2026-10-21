@@ -9,7 +9,7 @@
   ③ 신선도 — data/derived/freshness.json: 원천마다 「지면이 쓰는 기준기(ours)」·「원천이 낸 마지막 기준기(source_latest)」·
             마지막 확인일·다음 공표 예정. 시험(tests/freshness.spec.mjs)이 ours < source_latest 를 빨강으로 잡는다.
 한 단계가 실패해도 지난 파일을 지키고 다음 단계로 간다(각 스크립트가 「덜 오면 지난 파일을 지킨다」). 실패는 freshness.json 과 요약에 남는다.
-  python tools-build/refresh.py [--only id,id] [--skip-fetch] [--freshness-only] [--selftest]
+  python tools-build/refresh.py [--only id,id] [--skip-fetch] [--freshness-only] [--selftest] [--changed]
 """
 import csv, datetime, json, os, subprocess, sys, time
 
@@ -92,6 +92,19 @@ def merge_long(new_rel):
     with open(old_p, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.DictWriter(f, cols); w.writeheader(); w.writerows(old)
     return added, max(r["기준연월"] for r in new)
+
+
+def merge_sources(new_rel):
+    """받은 달의 출처 대장(첨부 URL · 바이트 · SHA256)을 long 파일의 대장에 합친다 — 같은 기준연월은 새 줄."""
+    old_p, new_p = os.path.join(ROOT, LONG.replace(".csv", "_sources.csv")), os.path.join(ROOT, new_rel)
+    if not os.path.exists(new_p): return
+    old = list(csv.DictReader(open(old_p, encoding="utf-8-sig")))
+    new = list(csv.DictReader(open(new_p, encoding="utf-8-sig")))
+    by = {r["기준연월"]: r for r in old}
+    for r in new: by[r["기준연월"]] = r
+    with open(old_p, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, list(old[0].keys())); w.writeheader(); w.writerows(sorted(by.values(), key=lambda r: r["기준연월"]))
+    os.remove(new_p)
 
 
 def run(cmd, cwd, limit):
@@ -213,6 +226,7 @@ def main():
                 except Exception as ex:
                     rc, out = 1, f"병합 실패: {ex}"
                 os.remove(os.path.join(ROOT, tmp))
+                merge_sources(tmp.replace(".csv", "_sources.csv"))
             results[sid] = (rc, out)
         elif sid == "derive":
             bad = []
@@ -234,6 +248,36 @@ def main():
     return 0
 
 
+# 받은 시각·확인 시각만 바뀐 파일은 「원천이 새로 낸 것」이 아니다 — 그런 날은 커밋·배포하지 않는다(10-21 브랜치 실행에서 시각 줄만 바뀐 커밋이 났다).
+STAMP_KEYS = {"fetched", "fetched_at", "checked", "made", "computed", "generated", "run_at"}
+
+
+def strip_stamps(o):
+    if isinstance(o, dict): return {k: strip_stamps(v) for k, v in o.items() if k not in STAMP_KEYS}
+    if isinstance(o, list): return [strip_stamps(v) for v in o]
+    return o
+
+
+def substantive(old_text, new_text, name):
+    """두 판이 시각 키를 빼고도 다른가. JSON 이 아니면 글 그대로 견준다."""
+    if old_text == new_text: return False
+    if name.endswith(".json"):
+        try: return strip_stamps(json.loads(old_text)) != strip_stamps(json.loads(new_text))
+        except ValueError: return True
+    return True
+
+
+def changed_files():
+    """git 색인에 올린 파일 중 시각 밖이 바뀐 것만(새 파일은 늘 바뀐 것). refresh.yml 「바뀐 것」 단계가 부른다."""
+    names = subprocess.run(["git", "diff", "--cached", "--name-only"], cwd=ROOT, capture_output=True, text=True).stdout.split()
+    out = []
+    for n in names:
+        old = subprocess.run(["git", "show", f"HEAD:{n}"], cwd=ROOT, capture_output=True, text=True)
+        new = subprocess.run(["git", "show", f":{n}"], cwd=ROOT, capture_output=True, text=True)
+        if old.returncode != 0 or new.returncode != 0 or substantive(old.stdout, new.stdout, n): out.append(n)
+    return out
+
+
 def selftest():
     assert ym("202609") == "2026-09" and ym("20261018") == "2026-10-18" and ym("2026-09") == "2026-09"
     assert next_expected(["monthly", 15], "2026-09") == "2026-11-15"
@@ -241,8 +285,12 @@ def selftest():
     assert next_expected(["weekly", 0], "2026-10-18") == "2026-10-25"
     assert next_expected(["semiannual", 31], "2026-06") == "2027-01-31"
     assert next_expected(["monthly", 15], "2026-12") == "2027-02-15"
-    print("selftest 6/6 ok"); return 0
+    assert not substantive('{"fetched": "2026-10-20", "a": [1, {"checked": "x"}]}', '{"fetched": "2026-10-21", "a": [1, {"checked": "y"}]}', "x.json")
+    assert substantive('{"fetched": "2026-10-20", "to": "2026-10-09"}', '{"fetched": "2026-10-21", "to": "2026-10-16"}', "x.json")
+    print("selftest 8/8 ok"); return 0
 
 
 if __name__ == "__main__":
+    if "--changed" in sys.argv:
+        print("\n".join(changed_files())); sys.exit(0)
     sys.exit(selftest() if "--selftest" in sys.argv else main())

@@ -87,8 +87,9 @@ jobs:
       - name: 바뀐 것
         id: diff
         run: |
-          git add -A data/collected data/derived analysis/terminal_monthly_long.csv
-          CH=$(git diff --cached --name-only | grep -v '^data/derived/freshness.json$' || true)
+          git add -A data/collected data/derived analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
+          # 시각 키(fetched·checked·made …)만 바뀐 파일은 빼고 센다 — 원천이 새로 낸 것이 없는 날 커밋·배포하지 않게
+          CH=$(python tools-build/refresh.py --changed | grep -v '^data/derived/freshness.json$' || true)
           echo "$CH" | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
           # 확인일만 바뀐 날 — 마지막 freshness 커밋이 7일 넘었으면 그것만이라도 싣는다(지면의 「마지막 확인」이 낡지 않게)
           AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))

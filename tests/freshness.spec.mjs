@@ -1,7 +1,7 @@
 // 자동 갱신 신선도(2026-10-21 선장님 질문 「사이트 숫자는 매번 최신이어야 하지 않나?」) — data/derived/freshness.json(tools-build/refresh.py 가 쓴다).
 //  ① 지면 기준기가 원천이 낸 마지막 기준기보다 뒤처지면 빨강(원천이 냈는데 지면이 안 바뀌었다).
 //  ② 마지막 확인이 없거나 오래면 빨강(갱신 사슬이 멈췄다 — 「지난 숫자가 새것처럼」의 다른 얼굴).
-//  ③ 신선도를 다는 지면은 출처 줄에 「마지막 확인 · 다음 공표 예정」이 실제로 보인다.
+//  ③ 신선도를 다는 지면은 출처 줄에 「원천 확인 · 다음 공표 예정」이 실제로 보인다.
 // 빨강이면 refresh 워크플로가 main 에 쓰지 않고 배포하지 않는다 — 이슈가 열린다.
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
@@ -36,7 +36,7 @@ test.describe("신선도 — 지면 출처 줄", () => {
       await page.goto(BASE + p, { waitUntil: "domcontentloaded" });
       const t = (await page.locator("[data-fresh]").allTextContents()).join(" | ");
       expect(t, "출처 줄의 신선도 토막").toContain("다음 공표 예정");
-      expect(t, "마지막 확인").toMatch(/마지막 확인 \d{4}-\d{2}-\d{2}/);
+      expect(t, "원천 확인").toMatch(/원천 확인 \d{4}-\d{2}-\d{2}/);
     });
   }
 });
