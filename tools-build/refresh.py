@@ -59,6 +59,9 @@ STEPS = [
     ("sudo-trade", "관세청 시도별 품목별(수도권 세 시도 + 전국 분모)", [sys.executable, "tools-build/sudo_trade.py"], ".", 1500),
     # 유통 축 KOSIS — 시크릿 KOSIS_KEY 가 없으면 아무것도 안 쓰고 0(키 발급 = 선장님)
     ("kosis", "통계청 KOSIS 유통·소비(키 있을 때만)", [sys.executable, "tools-build/kosis.py"], ".", 600),
+    # [2026-10-21 숫자 전수 ③→①] 달마다 다시 계산하는 바탕 층 — 때가 된 날만 돈다(periodic.py · 종료 75 = 건너뜀). --only 로 부르면 때와 상관없이 돈다
+    ("iso", "배송 등시선 — OSM 도로망 · 카카오 내비 대조 · 시간대 배율(월 1회)", [sys.executable, "tools-build/periodic.py", "iso"], ".", 3000),
+    ("tariff", "관세율표 — 공공데이터포털 파일 15051179(월 1회 확인)", [sys.executable, "tools-build/periodic.py", "tariff"], ".", 900),
     ("derive", "파생 일곱 + 예측 원장", None, ".", 900),
 ]
 DERIVE = [
@@ -73,6 +76,8 @@ DERIVE = [
     # 예측이 그 달 실제값보다 먼저 main 에 — 이 커밋의 예측은 아직 안 나온 달만 겨눈다 · 검사 tools-build/check_ledger.py)
     ([sys.executable, "analysis/forecast_teu.py", "--issue"], "."),
 ]
+
+PERIODIC = {"iso", "tariff"}  # periodic.py 층
 
 LONG = "analysis/terminal_monthly_long.csv"
 LONG_KEY = ("기준연월", "계층", "터미널")
@@ -157,6 +162,13 @@ SOURCES = [
      "when": lambda: os.path.exists(os.path.join(ROOT, "data/collected/v3/kosis_retail.json")),  # 키가 들어와 한 번이라도 받은 뒤부터 잰다
      "ours": lambda: ym(((J("data/derived/home_axes.json") or {}).get("retail") or {}).get("kosis", {}).get("ym")),
      "latest": lambda: ym(max((r["ym"] for t in ((J("data/collected/v3/kosis_retail.json") or {}).get("tables") or {}).values() for r in (t.get("rows") or [])), default=None))},
+    # 우리가 다시 계산하는 층 — 원천(OSM 은 매일 · 관세율표는 개정 때) 대신 우리 재계산 주기로 잰다(recompute · 다음 = 마지막 확인 + 주기)
+    {"id": "osm-reach", "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)", "pages": ["배송 등시선", "도구 목록"], "step": "iso", "cadence": ["recompute", 28],
+     "ours": lambda: (J("data/derived/isochrones.json") or {}).get("made"),
+     "latest": lambda: (J("data/derived/isochrones.json") or {}).get("made")},
+    {"id": "kcs-tariff", "label": "관세청 품목번호별 관세율표(파일 · 우리 확인)", "pages": ["수입원가"], "step": "tariff", "cadence": ["recompute", 28],
+     "ours": lambda: ym((J("data/derived/tariff_codes.json") or {}).get("asof")),
+     "latest": lambda: ym((J("data/derived/tariff_codes.json") or {}).get("asof"))},
     {"id": "iiac-route-cargo", "label": "인천국제공항공사 항공사별 노선별 운송실적(반기 파일)", "pages": ["홈 지도"], "step": "iiac", "cadence": ["semiannual", 31],
      "ours": lambda: ((J("data/derived/home_flows.json") or {}).get("air_cargo") or {}).get("through"),
      "latest": lambda: (J("data/derived/air_cargo.json") or {}).get("through")},
@@ -174,6 +186,8 @@ def next_expected(cad, latest):
     """원천이 다음 기준기를 낼 날(추정). latest 가 없으면 None."""
     if not latest: return None
     kind, lag = cad
+    if kind == "recompute":  # 우리 재계산 — 마지막 확인일 + 주기
+        return (datetime.date.fromisoformat(latest[:10]) + datetime.timedelta(days=lag)).isoformat()
     if kind == "weekly":
         d = datetime.date.fromisoformat(latest[:10]) if len(latest) >= 10 else None
         return (d + datetime.timedelta(days=7 + lag)).isoformat() if d else None
@@ -188,8 +202,8 @@ def next_expected(cad, latest):
 
 
 def max_age_days(cad):
-    """마지막 확인이 이보다 오래면 갱신 사슬이 멈춘 것 — 시험이 빨강."""
-    return {"weekly": 10, "monthly": 10, "semiannual": 10}[cad[0]]
+    """마지막 확인이 이보다 오래면 갱신 사슬이 멈춘 것 — 시험이 빨강(freshness.json max_age). 재계산 층은 주기 + 10일."""
+    return cad[1] + 10 if cad[0] == "recompute" else 10
 
 
 def freshness(results, teu_latest, today):
@@ -209,7 +223,8 @@ def freshness(results, teu_latest, today):
             "checked": today if ok else prev.get("checked"),
             "last_error": None if ok else (prev.get("last_error") if ran is None else f"{s['step']} rc={ran[0]} {ran[1][-300:]}"),
         }
-        rec["next_expected"] = next_expected(s["cadence"], rec["source_latest"])
+        rec["next_expected"] = next_expected(s["cadence"], rec["checked"] if s["cadence"][0] == "recompute" else rec["source_latest"])
+        rec["max_age"] = max_age_days(s["cadence"])
         rec["behind"] = bool(rec["ours"] and rec["source_latest"] and str(rec["ours"]) < str(rec["source_latest"]))
         out[s["id"]] = rec
     data = {"_설명": "원천별 신선도 — tools-build/refresh.py 가 쓴다. ours = 지면 기준기 · source_latest = 원천이 낸 마지막 기준기(마지막 확인 때) · next_expected = 다음 공표 예정(관측 주기 규칙 · 추정). 시험 tests/freshness.spec.mjs.",
@@ -249,7 +264,9 @@ def main():
             results[sid] = (1 if bad else 0, "; ".join(bad) or "파생 통과")
             rc, out = results[sid]
         else:
-            rc, out, sec = run(cmd, cwd, limit)
+            rc, out, sec = run(cmd + (["--force"] if only and sid in PERIODIC else []), cwd, limit)
+            if rc == 75 and sid in PERIODIC:  # 때가 아님 — 「안 돌림」으로 센다(확인일·오류를 바꾸지 않는다)
+                say(f"- · {sid} — {what}: {out.strip().splitlines()[-1][:200] if out.strip() else '건너뜀'}"); continue
             results[sid] = (rc, out)
         say(f"- {'✓' if results[sid][0] == 0 else '✗'} {sid} — {what}: {results[sid][1].strip().splitlines()[-1][:200] if results[sid][1].strip() else ''}")
     data = freshness(results, teu_latest, today)
@@ -300,7 +317,8 @@ def selftest():
     assert next_expected(["monthly", 15], "2026-12") == "2027-02-15"
     assert not substantive('{"fetched": "2026-10-20", "a": [1, {"checked": "x"}]}', '{"fetched": "2026-10-21", "a": [1, {"checked": "y"}]}', "x.json")
     assert substantive('{"fetched": "2026-10-20", "to": "2026-10-09"}', '{"fetched": "2026-10-21", "to": "2026-10-16"}', "x.json")
-    print("selftest 8/8 ok"); return 0
+    assert next_expected(["recompute", 28], "2026-10-21") == "2026-11-18" and max_age_days(["recompute", 28]) == 38 and max_age_days(["monthly", 15]) == 10
+    print("selftest 9/9 ok"); return 0
 
 
 if __name__ == "__main__":

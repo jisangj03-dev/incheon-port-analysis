@@ -8,7 +8,7 @@
   무역 = 수도권(서울·인천·경기) 신고 화주의 수출입이 전국에서 차지하는 몫 · 수도권 수입 상위 품목(HS 2단위).
   유통 = 수도권 화주가 들여온 소비재(아래 CONSUMER 묶음 · 이 사이트가 고른 HS 2단위 목록 — 관세청 분류가 아니다) 금액 · 전년 같은 달 대비.
          KOSIS 키가 들어오면 온라인쇼핑 거래액(전국 · 월)을 같이 싣는다.
-분모(전국) = 같은 API 의 시도 합. 시도 코드 없이 물은 판(nosido)이 있으면 그것과 견줘 차이를 checks 에 남긴다.
+분모(전국) = 관세청 국가별 수출입실적의 전 국가 합(같은 달) — 없으면 시도 합. 시도 합과의 차이를 checks 에 남긴다(행정 개편으로 빠진 시도 코드를 드러낸다).
   python tools-build/axes_derive.py [--selftest]
 """
 import datetime, json, os, sys
@@ -47,12 +47,15 @@ def ym_dash(s):
     return f"{s[:4]}-{s[4:]}"
 
 
-def month_view(rec):
+def month_view(rec, nat=None):
+    """nat = 관세청 국가별 수출입실적 전국 합(천 달러 · 있으면 분모). 시도 코드가 행정 개편으로 바뀌면(2026-07 전남광주 통합 — 29·46 이 빈 응답)
+    시도 합이 전국보다 작아진다 — 모든 시도가 답한 달(2025-10~2026-06)에는 두 합이 0.1% 안에서 같았다(2026-10-21 실측)."""
     sudo_imp = sum(rec[c]["tot"]["imp"] for c in SUDO)
     sudo_exp = sum(rec[c]["tot"]["exp"] for c in SUDO)
     sidos = [c for c in rec if c != "nosido" and rec[c].get("tot")]
-    nat_imp = sum(rec[c]["tot"]["imp"] for c in sidos)
-    nat_exp = sum(rec[c]["tot"]["exp"] for c in sidos)
+    sido_imp = sum(rec[c]["tot"]["imp"] for c in sidos)
+    sido_exp = sum(rec[c]["tot"]["exp"] for c in sidos)
+    nat_imp, nat_exp = (nat if nat else (sido_imp, sido_exp))
     hs = {}
     for c in SUDO:
         for h, v in (rec[c].get("hs") or {}).items():
@@ -60,25 +63,30 @@ def month_view(rec):
             x["imp"] += v["imp"]; x["exp"] += v["exp"]
     cons = {g: sum(hs.get(h, {}).get("imp", 0.0) for h in L) for g, L in CONSUMER.items()}
     return {"sudo_imp": sudo_imp, "sudo_exp": sudo_exp, "nat_imp": nat_imp, "nat_exp": nat_exp, "n_sido": len(sidos), "hs": hs, "cons": cons,
-            "nosido_imp": (rec.get("nosido") or {}).get("tot", {}).get("imp")}
+            "sido_imp": sido_imp, "denom": "nation" if nat else "sido", "nosido_imp": (rec.get("nosido") or {}).get("tot", {}).get("imp")}
+
+
+def nation_tot(nation, ym):
+    """관세청 국가별 수출입실적 전 국가 합 → (수입, 수출) 천 달러."""
+    rows = ((nation or {}).get("months") or {}).get(ym)
+    if not rows: return None
+    return (sum(r["imp"] for r in rows) / 1000, sum(r["exp"] for r in rows) / 1000)
 
 
 def derive(st, nation=None, kosis=None):
     months = sorted(st["months"])
     last = months[-1]
-    V = {m: month_view(st["months"][m]) for m in months}
+    V = {m: month_view(st["months"][m], nation_tot(nation, m)) for m in months}
     L = V[last]
     ly = f"{int(last[:4]) - 1}{last[4:]}"
     P = V.get(ly)
     top = sorted(L["hs"].items(), key=lambda kv: -kv[1]["imp"])[:3]
     cons_now = sum(L["cons"].values())
     cons_ly = sum(P["cons"].values()) if P else None
-    nat_check = None
-    if nation and nation.get("months", {}).get(last):
-        n_imp = sum(r["imp"] for r in nation["months"][last]) / 1000  # 달러 → 천 달러
-        nat_check = round((L["nat_imp"] / n_imp - 1) * 100, 2) if n_imp else None
+    # 분모 대조 — 시도 합 ÷ 전국(국가별) − 1 · 모든 시도가 답한 달이면 0 근처, 개편으로 빠진 시도가 있으면 음수
+    nat_check = round((L["sido_imp"] / L["nat_imp"] - 1) * 100, 2) if L["denom"] == "nation" and L["nat_imp"] else None
     out = {
-        "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 신고 화주 소재지(관세청 시도별 품목별). 전국 = 같은 API 의 시도 합.",
+        "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 신고 화주 소재지(관세청 시도별 품목별). 전국 = 관세청 국가별 수출입실적 전 국가 합(없는 달은 시도 합) · denom 에 적는다.",
         "made": datetime.date.today().isoformat(),
         "trade": {
             "ym": ym_dash(last),
@@ -88,7 +96,7 @@ def derive(st, nation=None, kosis=None):
             "imp_yoy": yoy(L["sudo_imp"], P["sudo_imp"]) if P else None,
             "by_sido": {st["sudo"][c]: {"imp": eok(st["months"][last][c]["tot"]["imp"]), "exp": eok(st["months"][last][c]["tot"]["exp"])} for c in SUDO},
             "top_imp": [{"hs": h, "name": v["name"], "imp": eok(v["imp"]), "pct": pct(v["imp"], L["sudo_imp"])} for h, v in top],
-            "n_sido": L["n_sido"],
+            "n_sido": L["n_sido"], "denom": L["denom"],
         },
         "retail": {
             "ym": ym_dash(last),
@@ -98,7 +106,7 @@ def derive(st, nation=None, kosis=None):
             "basket": CONSUMER,
         },
         "months": [{"ym": ym_dash(m), "imp_pct": pct(V[m]["sudo_imp"], V[m]["nat_imp"]), "cons_imp": eok(sum(V[m]["cons"].values()))} for m in months],
-        "checks": {"nat_vs_nation_api_pct": nat_check,
+        "checks": {"sido_sum_vs_nation_pct": nat_check,
                    "nat_vs_nosido_pct": round((L["nat_imp"] / L["nosido_imp"] - 1) * 100, 2) if L.get("nosido_imp") else None},
         "sources": [st.get("source", "")],
     }
@@ -140,9 +148,12 @@ def selftest():
     assert o["trade"]["imp_pct"] == round(1100 / 2100 * 100, 1) and o["trade"]["exp_pct"] == 30.0, o["trade"]
     assert o["trade"]["top_imp"][0]["hs"] == "85" and o["retail"]["cons_imp"] == eok(100) and o["retail"]["cons_yoy"] == 0.0
     assert o["trade"]["imp_yoy"] == 10.0 and o["trade"]["n_sido"] == 4
+    N = {"months": {"202609": [{"imp": 1100_000.0 * 2, "exp": 100_000.0}]}}  # 달러 — 전국 수입 2,200(천 달러)
+    o2 = derive(st, N)
+    assert o2["trade"]["imp_pct"] == 50.0 and o2["trade"]["denom"] == "nation" and o2["checks"]["sido_sum_vs_nation_pct"] == round((2100 / 2200 - 1) * 100, 2), o2["checks"]
     K = {"tables": {"online": {"rows": [{"ym": "202608", "c": "합계", "v": 22.0, "unit": "백만원"}, {"ym": "202508", "c": "합계", "v": 20.0, "unit": "백만원"}]}}}
     assert kosis_view(K)["yoy"] == 10.0 and kosis_view(None) is None
-    print("selftest 4/4 ok"); return 0
+    print("selftest 5/5 ok"); return 0
 
 
 if __name__ == "__main__":

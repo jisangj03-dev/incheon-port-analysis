@@ -66,11 +66,13 @@ def run(n):
     want = months_upto(last, n)
     redo = set(want[-2:])  # 마지막 두 달은 다시(수정 공표)
     seen = old.get("codes_seen", {})
+    extra = old.get("extra_codes", [])  # 찾아낸 새 시도 코드(행정 개편) — 다음 실행부터 같이 묻는다
+    others = OTHERS + [c for c in extra if c not in OTHERS]
     got, dead = 0, set()
     for ym in want:
         if ym in M and ym not in redo and all(c in M[ym] for c in SUDO): continue
         rec = {}
-        for c in list(SUDO) + OTHERS:
+        for c in list(SUDO) + others:
             if c in dead: continue  # 이번 실행에서 이미 빈 코드(개편으로 없어진 코드) — 달마다 다시 기다리지 않는다
             st, rc, rows = fetch(ym, c, 4 if c in SUDO else 2)
             seen[c] = {"last_try": ym, "rows": len(rows), "resultCode": rc}
@@ -83,11 +85,22 @@ def run(n):
             say(ym, "시도", len([c for c in rec if c != "nosido"]), "· 수도권 수입(천 달러)", int(sum(rec[c]["tot"]["imp"] for c in SUDO)))
         else:
             say(ym, "수도권 시도 빈 응답 — 이 달은 지난 기록 유지")
+    # 개편으로 사라진 코드가 있으면(앞 달에는 답했는데 마지막 달에 빈 응답) 마지막 달 하나로 10~99 를 훑어 새 코드를 찾는다 — 2026-07 전남광주 통합(29·46 빈 응답)
+    lm = want[-1]
+    lost = [c for c in others if lm in M and c not in M[lm] and any(c in M[m] for m in M if m < lm)]
+    if lost and lm in M:
+        tried = set(SUDO) | set(others)
+        for c in (f"{i:02d}" for i in range(10, 100)):
+            if c in tried: continue
+            st, rc, rows = fetch(lm, c, 1)
+            if rows:
+                M[lm][c] = fold(rows, False); extra.append(c); seen[c] = {"last_try": lm, "rows": len(rows), "resultCode": rc, "found": "개편 뒤 새 코드"}
+        say("사라진 시도 코드", lost, "· 새로 찾은 코드", [c for c in extra if c not in OTHERS])
     keep = {ym: M[ym] for ym in sorted(M) if ym >= want[0]}
     if not keep or not all(ym in keep for ym in want[-1:]):
         say("마지막 달", want[-1], "을 못 받았다 — 덮어쓰지 않는다"); return 1
     write(OUT, {"source": "관세청 시도별 품목별 수출입실적(공공데이터포털 15101641 · 1220000/sidoitemtrade) · 시도 = 신고인(화주) 소재지 · 금액 = 천 달러",
-                "fetched": datetime.date.today().isoformat(), "sudo": SUDO, "codes_seen": seen, "months": keep})
+                "fetched": datetime.date.today().isoformat(), "sudo": SUDO, "codes_seen": seen, "extra_codes": sorted(set(extra)), "months": keep})
     say("수도권 시도별", len(keep), "달 · 새로 받음", got)
     return 0
 

@@ -1,14 +1,14 @@
 {
- "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 신고 화주 소재지(관세청 시도별 품목별). 전국 = 같은 API 의 시도 합.",
+ "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 신고 화주 소재지(관세청 시도별 품목별). 전국 = 관세청 국가별 수출입실적 전 국가 합(없는 달은 시도 합) · denom 에 적는다.",
  "made": "2026-10-21",
  "trade": {
   "ym": "2026-09",
   "sudo_imp": 484.4,
   "sudo_exp": 584.2,
-  "nat_imp": 663.6,
-  "nat_exp": 1144.6,
-  "imp_pct": 73.0,
-  "exp_pct": 51.0,
+  "nat_imp": 710.8,
+  "nat_exp": 1210.5,
+  "imp_pct": 68.1,
+  "exp_pct": 48.3,
   "imp_yoy": 28.4,
   "by_sido": {
    "서울": {
@@ -44,7 +44,8 @@
     "pct": 11.1
    }
   ],
-  "n_sido": 15
+  "n_sido": 15,
+  "denom": "nation"
  },
  "retail": {
   "ym": "2026-09",
@@ -137,7 +138,7 @@
   },
   {
    "ym": "2026-02",
-   "imp_pct": 68.0,
+   "imp_pct": 67.9,
    "cons_imp": 38.7
   },
   {
@@ -147,7 +148,7 @@
   },
   {
    "ym": "2026-04",
-   "imp_pct": 66.1,
+   "imp_pct": 66.0,
    "cons_imp": 44.9
   },
   {
@@ -162,22 +163,22 @@
   },
   {
    "ym": "2026-07",
-   "imp_pct": 71.5,
+   "imp_pct": 65.9,
    "cons_imp": 42.5
   },
   {
    "ym": "2026-08",
-   "imp_pct": 74.0,
+   "imp_pct": 68.2,
    "cons_imp": 43.1
   },
   {
    "ym": "2026-09",
-   "imp_pct": 73.0,
+   "imp_pct": 68.1,
    "cons_imp": 48.2
   }
  ],
  "checks": {
-  "nat_vs_nation_api_pct": -6.63,
+  "sido_sum_vs_nation_pct": -6.63,
   "nat_vs_nosido_pct": null
  },
  "sources": [

@@ -12,7 +12,7 @@
       계산한 길이지 실제 항적·궤적이 아니다(2026-10-20 · 종전 손으로 찍은 경유점 = 개념선을 걷었다)
   python tools-build/flows_derive.py [--selftest]
 """
-import csv, datetime, glob, json, os, sys
+import csv, datetime, glob, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "data/derived/home_flows.json")
@@ -130,9 +130,13 @@ def derive():
             if c: p["air_in_pct"], p["air_out_pct"], p["air_in_t"], p["air_out_t"] = c["in_pct"], c["out_pct"], c["in_t"], c["out_t"]
     # ④ 목적지 — 물류창고 등록 개소
     gu = {r["이름"]: int(r["개소"]) for r in rows("analysis/warehouse_by_gu.csv")}
-    sido = {}
+    sido, wh_asof = {}, None
     for line in open(os.path.join(ROOT, "analysis/warehouse_stats_by_sido.csv"), encoding="utf-8-sig"):
-        if line.startswith("#"): continue
+        if line.startswith("#"):
+            # [2026-10-21 숫자 전수] 창고 개소는 받은 날을 박은 기록(②)으로 싣는다 — 원본 머리줄 「내려받은 날: YYYY-MM-DD」
+            m = re.search(r"내려받은 날:\s*(\d{4}-\d{2}-\d{2})", line)
+            if m: wh_asof = m.group(1)
+            continue
         f = line.strip().split(",")
         if f[0] in ("서울특별시", "경기도"): sido[f[0]] = int(f[1])
     dests = [{"id": k, "n": (gu.get(k) if k in gu else sido.get(k)), "lon": v[0], "lat": v[1], "scope": "인천 구·군" if k in gu else "시·도 전체"} for k, v in DEST_AT.items()]
@@ -164,7 +168,7 @@ def derive():
         "air_gate": {"id": AIR_GATE["id"], "lon": AIR_GATE["at"][0], "lat": AIR_GATE["at"][1]},
         "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"], "total_t": air["total_in_t"] + air["total_out_t"],
                       "shown_pct": round(100 * sum((p.get("air_in_t") or 0) + (p.get("air_out_t") or 0) for p in partners) / (air["total_in_t"] + air["total_out_t"]), 1)} if air else None,
-        "dests": dests,
+        "dests": dests, "warehouse_asof": wh_asof,
         "checks": checks,
         "assume": [
             "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",

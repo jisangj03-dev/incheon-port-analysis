@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "받기 단계 몇 개만(쉼표 · 비우면 전부) — collect,kr-apis,kcci,portwatch,iiac,vessel,teu,sudo-trade,kosis,derive"
+        description: "받기 단계 몇 개만(쉼표 · 비우면 전부) — collect,kr-apis,kcci,portwatch,iiac,vessel,teu,sudo-trade,kosis,iso,tariff,derive"
         required: false
         default: ""
       deploy:
@@ -95,20 +95,29 @@ jobs:
           (cd tools-build/v3 && python fx_derive.py --selftest && python race_derive.py --selftest && python choke_derive.py --selftest && python iiac_cargo.py --selftest)
           python tools-build/flows_derive.py --selftest
           python tools-build/sudo_trade.py --selftest && python tools-build/kosis.py --selftest && python tools-build/axes_derive.py --selftest
+          python tools-build/periodic.py --selftest && python tools-build/navi_check.py --selftest && python tools-build/reach_slots.py --selftest
+      - name: 월 1회 층 의존(때가 됐을 때만 · 등시선 = 지리 도구 고정판 · 관세율표 = openpyxl)
+        run: |
+          if python tools-build/periodic.py --due iso || echo "${{ inputs.only }}" | grep -qw iso; then pip install -q -r tools-build/requirements-geo.txt && echo "등시선 의존 설치" >> "$GITHUB_STEP_SUMMARY"; fi
+          if python tools-build/periodic.py --due tariff || echo "${{ inputs.only }}" | grep -qw tariff; then pip install -q openpyxl==3.1.5; fi
       - name: 받기 → 파생 → 신선도
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           KOSIS_KEY: ${{ secrets.KOSIS_KEY }}   # 없으면 KOSIS 단계는 건너뛴다(유통 축 · 키 발급 = 선장님)
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}   # 등시선 내비 대조(월 1회 · 60회 상한 · 쌍별 값 저장 0)
         run: |
           if [ -n "${{ inputs.only }}" ]; then python tools-build/refresh.py --only "${{ inputs.only }},derive"; else python tools-build/refresh.py; fi
       - name: 키 흔적 검사(산출물에 키가 있으면 커밋하지 않는다)
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}   # collect.py --guard 가 이 이름으로 읽는다(10-21 첫 실행: 다른 이름으로 넘겨 「키 없음」 실패)
           KOSIS_KEY: ${{ secrets.KOSIS_KEY }}
+          KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}
         run: |
           python tools-build/collect.py --guard
           if grep -rqF "$DATA_GO_KR_KEY" data/ analysis/ 2>/dev/null; then echo "::error::키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
-          if [ -n "$KOSIS_KEY" ] && grep -rqF "$KOSIS_KEY" data/ analysis/ 2>/dev/null; then echo "::error::KOSIS 키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
+          for k in "$KOSIS_KEY" "$KAKAO_REST_KEY"; do
+            if [ -n "$k" ] && grep -rqF "$k" data/ analysis/ 2>/dev/null; then echo "::error::키 원문이 산출물에 있다 — 커밋하지 않는다"; exit 1; fi
+          done
       - name: 바뀐 것
         id: diff
         run: |
