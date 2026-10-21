@@ -37,7 +37,8 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
         큰 숫자는 답의 50.5% 하나 — 1,165.0억(수출입 합)이 같은 크기로 경쟁했다(12차 화면 판정 경미 2). 시안의 방위 도법 지도·「관문 원」(공항·항만 합침)은 안 받았다(작업기록 10-21). */}
     <p class="s-cap live__who">{PF.name} · SCM 작업실 · 관세청 항구·공항별 수출입 {L.ym}</p>
     <p class="live__ask">한국으로 들어오는 수입품은 어느 관문을 지날까?</p>
-    <h1 id="live-h" class="s-prose">한국 수입의 <span class="s-signal">{L.imp_share_pct}%</span>가 인천으로 들어옵니다.</h1>
+    <h1 id="live-h" class="s-prose">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>가</span> 인천으로 들어옵니다.</h1>
+    {/* [2026-10-21 채팅 공개판 검수] 「%」와 조사 「가」 사이가 줄바꿈 자리라 데스크톱에서 「가」가 둘째 줄 맨 앞에 혼자 갔다(text-wrap: balance) → 숫자와 조사를 한 덩어리로 */}
     <p class="live__one">{L.ym} 금액 · 입·출항지 기준 · 인천공항 + 인천항 ÷ 같은 달 전국(수입 {fmt(L.nat_imp)} · 수출 {fmt(L.nat_exp)}억 달러)</p>
     <div class="live__stat" id="fm-hud" aria-live="off">
       <dl class="live__kpi">
@@ -363,6 +364,7 @@ const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1,
   .live__text h1 { font-size: clamp(30px, 3.3vw, 58px); line-height: 1.16; margin: var(--s-2) 0 var(--s-3); text-wrap: balance; }
   .live__one { margin: 0; max-width: 40em; font-size: 14px; color: var(--s-ink-3); }
   .live__ask { margin: var(--s-2) 0 0; font-size: 16px; color: var(--s-ink-2); }
+  .live__nb { white-space: nowrap; }
   .live__stat { margin: var(--s-4) 0 0; font-variant-numeric: tabular-nums; }
   .live__stat p { margin: 0; }
   .live__kpi { display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-6); margin: 0 0 var(--s-3); padding-top: var(--s-3); border-top: 1px solid var(--s-rule); }
