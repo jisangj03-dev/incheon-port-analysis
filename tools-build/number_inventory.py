@@ -13,7 +13,7 @@ import csv, difflib, hashlib, io, json, os, re, shutil, subprocess, sys
 
 AUTO = ["analysis/terminal_monthly_long.csv", "data/forecast/incheon_container_teu.csv",
         "data/derived/home_flows.json", "data/derived/air_cargo.json", "data/derived/vessel_replay.json", "data/derived/supply_hs85.json",
-        "data/derived/chokepoints.json", "data/derived/trade_race.json", "data/derived/import_cost.json", "data/derived/freshness.json", "data/collected"]
+        "data/derived/chokepoints.json", "data/derived/home_axes.json", "data/derived/trade_race.json", "data/derived/import_cost.json", "data/derived/freshness.json", "data/collected"]
 RECORD = {"data/sim/beer-game.json": "모형 상수(Sterman 1989)", "data/derived/choke_detour.json": "해상 우회 거리(경로망 · 지리)",
           "data/derived/ship_density.json": "선박 밀도 2015-01~2021-02(고정 기간)", "data/forecast/lab.json": "수요예측 실험실 방법(선커밋)",
           "data/hs2_short.json": "HS 이름", "data/questions.json": "질문 목록", "data/rooms.json": "노트 날짜·단계"}

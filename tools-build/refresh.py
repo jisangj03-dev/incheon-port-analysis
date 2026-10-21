@@ -55,7 +55,11 @@ STEPS = [
     ("iiac", "인천공항 항공화물(반기 파일)", [sys.executable, "iiac_cargo.py"], "tools-build/v3", 600),
     ("vessel", "항만별 선박입출항(최근 3달)", [sys.executable, "tools-build/vessel.py", "--recent", "3"], ".", 900),
     ("teu", "인천해수청 컨테이너(최근 3달 → long 병합)", None, ".", 900),
-    ("derive", "파생 여섯 + 예측 원장", None, ".", 900),
+    # [2026-10-21 과제 1 · 홈 세 축] 수도권(서울·인천·경기) 시도별 수출입 — 13달 쌓기(이미 받은 달은 건너뜀 · 마지막 두 달만 다시)
+    ("sudo-trade", "관세청 시도별 품목별(수도권 세 시도 + 전국 분모)", [sys.executable, "tools-build/sudo_trade.py"], ".", 1500),
+    # 유통 축 KOSIS — 시크릿 KOSIS_KEY 가 없으면 아무것도 안 쓰고 0(키 발급 = 선장님)
+    ("kosis", "통계청 KOSIS 유통·소비(키 있을 때만)", [sys.executable, "tools-build/kosis.py"], ".", 600),
+    ("derive", "파생 일곱 + 예측 원장", None, ".", 900),
 ]
 DERIVE = [
     ([sys.executable, "race_derive.py"], "tools-build/v3"),
@@ -64,6 +68,7 @@ DERIVE = [
     ([sys.executable, "tools-build/flows_derive.py"], "."),
     ([sys.executable, "tools-build/supply_derive.py"], "."),
     ([sys.executable, "choke_derive.py"], "tools-build/v3"),
+    ([sys.executable, "tools-build/axes_derive.py"], "."),  # 홈 세 축(물류·무역·유통) — home_flows · 컨테이너 · 외항선 · 수도권 시도별 · KOSIS 를 읽는다
     # 수요예측 원장 — 새 실제값 달 T 가 들어오면 T+1~T+3 예측을 같은 커밋에 덧붙인다(이미 낸 기준월이면 아무것도 안 함 · 발행 창 F2 =
     # 예측이 그 달 실제값보다 먼저 main 에 — 이 커밋의 예측은 아직 안 나온 달만 겨눈다 · 검사 tools-build/check_ledger.py)
     ([sys.executable, "analysis/forecast_teu.py", "--issue"], "."),
@@ -145,6 +150,13 @@ SOURCES = [
     {"id": "mof-incheon-port-stats", "label": "인천지방해양수산청 월별 항만운영통계(컨테이너)", "pages": ["홈 컨테이너", "노트 전년비", "수요예측"], "step": "teu", "cadence": ["monthly", 30],
      "ours": lambda: last_csv(LONG, "기준연월"),
      "latest": None},  # 원천 게시판의 마지막 달 = 받기 단계가 적는다(teu_latest)
+    {"id": "kcs-sido-sudo", "label": "관세청 시도별 품목별 수출입실적(수도권 · 전국)", "pages": ["홈 무역·유통 축"], "step": "sudo-trade", "cadence": ["monthly", 15],
+     "ours": lambda: ym((J("data/derived/home_axes.json") or {}).get("trade", {}).get("ym")),
+     "latest": lambda: ym(max(((J("data/collected/v3/sudo_trade.json") or {}).get("months") or {}).keys(), default=None))},
+    {"id": "kosis-retail", "label": "통계청 KOSIS 온라인쇼핑·소매판매", "pages": ["홈 유통 축"], "step": "kosis", "cadence": ["monthly", 35],
+     "when": lambda: os.path.exists(os.path.join(ROOT, "data/collected/v3/kosis_retail.json")),  # 키가 들어와 한 번이라도 받은 뒤부터 잰다
+     "ours": lambda: ym(((J("data/derived/home_axes.json") or {}).get("retail") or {}).get("kosis", {}).get("ym")),
+     "latest": lambda: ym(max((r["ym"] for t in ((J("data/collected/v3/kosis_retail.json") or {}).get("tables") or {}).values() for r in (t.get("rows") or [])), default=None))},
     {"id": "iiac-route-cargo", "label": "인천국제공항공사 항공사별 노선별 운송실적(반기 파일)", "pages": ["홈 지도"], "step": "iiac", "cadence": ["semiannual", 31],
      "ours": lambda: ((J("data/derived/home_flows.json") or {}).get("air_cargo") or {}).get("through"),
      "latest": lambda: (J("data/derived/air_cargo.json") or {}).get("through")},
@@ -184,6 +196,7 @@ def freshness(results, teu_latest, today):
     old = (J("data/derived/freshness.json") or {}).get("sources") or {}
     out = {}
     for s in SOURCES:
+        if s.get("when") and not s["when"](): continue
         prev = old.get(s["id"], {})
         ran = results.get(s["step"])  # None = 이번에 안 돌림(--only · --skip-fetch)
         latest = teu_latest if s["id"] == "mof-incheon-port-stats" else (s["latest"]() if s["latest"] else None)
