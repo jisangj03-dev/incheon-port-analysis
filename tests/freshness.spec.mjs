@@ -20,9 +20,9 @@ test.describe("신선도 — 원천 대비", () => {
       expect(r.source_latest, "원천 마지막 기준기(확인한 적 없음)").toBeTruthy();
       expect(String(r.ours) >= String(r.source_latest), `${r.label}: 원천은 ${r.source_latest} 까지 냈는데 지면은 ${r.ours}`).toBe(true);
     });
-    test(`${id} — 마지막 확인 ${MAX_AGE}일 이내`, () => {
+    test(`${id} — 마지막 확인 ${r.max_age ?? MAX_AGE}일 이내`, () => {
       expect(r.checked, `${r.label}: 원천에 닿은 적이 없다${r.last_error ? ` — ${r.last_error}` : ""}`).toBeTruthy();
-      expect(days(r.checked, today), `${r.label}: 마지막 확인 ${r.checked}${r.last_error ? ` — 마지막 오류 ${r.last_error}` : ""}`).toBeLessThanOrEqual(MAX_AGE);
+      expect(days(r.checked, today), `${r.label}: 마지막 확인 ${r.checked}${r.last_error ? ` — 마지막 오류 ${r.last_error}` : ""}`).toBeLessThanOrEqual(r.max_age ?? MAX_AGE); // 재계산 층(월 1회)은 주기 + 10일
       expect(r.next_expected, "다음 공표 예정").toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   }

@@ -23,7 +23,9 @@ const R = rooms();
 const PF = profile();
 
 // ── 같이 푸는 질문(data/questions.json) — 실무 질문 하나 = 보여 주는 지면 하나
-const QS = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8")).questions.filter((q: any) => q.biz !== false) as { id: string; q: string; how: string; href: string; see: string }[]; // biz=false = 상업 재사용 허락이 필요한 원천을 쓰는 지면 — 「귀사 숫자로 연락」 목록에서 뺀다(2026-10-21 PortWatch 결정 · tests/license.spec.mjs)
+const QJ = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8"));
+const QS = QJ.questions.filter((q: any) => q.biz !== false) as { id: string; axis: string; q: string; how: string; href: string; see: string }[];
+const AXES = QJ.axes as { id: string; name: string; verb: string; lead: string }[]; // 세 축(첫 화면 축 줄 → #ax-<id>) // biz=false = 상업 재사용 허락이 필요한 원천을 쓰는 지면 — 「귀사 숫자로 연락」 목록에서 뺀다(2026-10-21 PortWatch 결정 · tests/license.spec.mjs)
 
 // ── 숫자 장면(달 막대로 앞뒤로 움직인다) ──
 const W = 1000, H = 220, pad = 10;
@@ -50,10 +52,18 @@ const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 �
   <LiveMap />
 
   <div class="s-wrap" data-content="ds-home">
-    <Scene kind="text" id="questions" cap="같이 푸는 질문" title="이런 질문을 같이 풉니다" lead="실무에서 자주 막히는 질문마다, 그 답을 숫자로 보여 주는 지면을 하나씩 만들어 두었습니다. 귀사 숫자로 다시 돌려 보고 싶다면 연락 주세요.">
-      <ol class="qs">
-        {QS.map((q) => <li data-q={q.id}><h3 class="s-prose">{q.q}</h3><p class="s-prose">{q.how}</p><a href={u(q.href)}>{q.see} 보기 →</a></li>)}
-      </ol>
+    <Scene kind="text" id="questions" cap="같이 푸는 질문" title="이런 질문을 같이 풉니다" lead="물류·무역·유통 세 축으로 나눠, 실무에서 자주 막히는 질문마다 그 답을 숫자로 보여 주는 지면을 하나씩 만들어 두었습니다. 귀사 숫자로 다시 돌려 보고 싶다면 연락 주세요.">
+      <div class="qax">
+        {AXES.map((a) => (
+          <section class="qax__col" id={`ax-${a.id}`} aria-labelledby={`ax-${a.id}-h`}>
+            <h3 class="qax__h" id={`ax-${a.id}-h`}>{a.name}<small>{a.verb}</small></h3>
+            <p class="qax__lead s-prose">{a.lead}</p>
+            <ol class="qs">
+              {QS.filter((q) => q.axis === a.id).map((q) => <li data-q={q.id}><h4 class="s-prose">{q.q}</h4><p class="s-prose">{q.how}</p><a href={u(q.href)}>{q.see} 보기 →</a></li>)}
+            </ol>
+          </section>
+        ))}
+      </div>
     </Scene>
     <Scene kind="num" id="now">
       <h2 class="s-cap now-h"><span id="now-ym">{last.ym}</span> 한 달 동안 인천항으로 드나든 컨테이너</h2>
@@ -110,10 +120,16 @@ const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 �
   </script>
 </Studio>
 <style>
-  .qs { list-style: none; padding: 0; margin: var(--s-5) 0 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 330px), 1fr)); gap: var(--s-6) var(--s-6); counter-reset: q; }
+  .qax { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--s-6); margin: var(--s-5) 0 0; counter-reset: q; }
+  .qax__col { scroll-margin-top: 80px; }
+  .qax__col:target .qax__h { color: var(--s-signal); }
+  .qax__h { font-size: 15px; font-weight: 650; margin: 0; padding-bottom: var(--s-2); border-bottom: 2px solid var(--s-ink); display: flex; gap: 8px; align-items: baseline; }
+  .qax__h small { font-weight: 400; color: var(--s-ink-3); font-size: 13px; }
+  .qax__lead { color: var(--s-ink-2); font-size: 14.5px; margin: var(--s-2) 0 0; }
+  .qs { list-style: none; padding: 0; margin: var(--s-3) 0 0; display: grid; gap: var(--s-5); }
   .qs li { border-top: 1px solid var(--s-rule); padding-top: var(--s-4); counter-increment: q; }
   .qs li::before { content: counter(q, decimal-leading-zero); font: italic 500 13px/1 var(--s-font); color: var(--s-signal); display: block; margin-bottom: var(--s-2); }
-  .qs h3 { font-size: clamp(19px, 1.7vw, 22px); line-height: 1.4; margin: 0 0 var(--s-2); }
+  .qs h4 { font-size: clamp(18px, 1.5vw, 21px); line-height: 1.4; margin: 0 0 var(--s-2); }
   .qs p { color: var(--s-ink-2); margin: 0 0 var(--s-3); }
   .qs a { min-height: 44px; display: inline-flex; align-items: center; }
   .room-items { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--s-2) var(--s-5); }

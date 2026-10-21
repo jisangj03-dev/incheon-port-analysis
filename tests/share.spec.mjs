@@ -27,7 +27,7 @@ test("B6 홈 — 기본 카드 og/home.jpg · assets/og.jpg = 같은 그림 · �
   }
   const F = JSON.parse(readFileSync("data/derived/home_flows.json", "utf-8")), M = F.months[F.months.length - 1];
   const html = await (await request.get("/incheon-port-analysis/")).text();
-  expect(html, "홈 첫 문장 숫자 = 카드 숫자(home_flows 마지막 달)").toContain(`${M.imp_share_pct}%</span>가</span> 인천으로 들어옵니다`); // 숫자+조사 한 덩어리(live__nb)
+  expect(html, "홈 첫 문장 숫자 = 카드 숫자(home_flows 마지막 달)").toContain(`${M.imp_share_pct}%</span>는</span> 인천 관문으로`); // 숫자+조사 한 덩어리(live__nb) · 2026-10-21 세 축 첫 화면(카드는 관문 몫 그대로)
 });
 
 // 도구 일곱(전권 위임 ④) — 카드가 있고, og:image 가 그 카드이고, 카드에 찍힌 숫자 = 지면 큰 숫자(cards.json 은 찍는 순간 지면에서 읽은 값)

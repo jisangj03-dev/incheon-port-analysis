@@ -13,7 +13,7 @@ export function freshRec(id: string): Rec | null { return all()[id] ?? null; }
 
 // 출처 줄에 쓰는 짧은 이름 — 원천이 여럿인 지면에서 「다음 공표 예정」이 어느 자료의 것인지 갈라 적는다(16차 판정 경미 3·8).
 const SHORT: Record<string, string> = {
-  "kcs-porttrade": "관세청", "kcs-nation": "관세청", "kcs-sido-item": "관세청", "kcs-fx": "관세환율",
+  "kcs-porttrade": "관세청", "kcs-nation": "관세청", "kcs-sido-item": "관세청", "kcs-sido-sudo": "관세청", "kcs-fx": "관세환율", "kosis-retail": "KOSIS",
   "kobc-kcci": "KCCI", "imf-portwatch": "PortWatch", "mof-vessel": "해양수산부", "mof-incheon-port-stats": "인천해수청", "iiac-route-cargo": "인천공항공사",
 };
 

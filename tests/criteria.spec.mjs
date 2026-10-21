@@ -108,7 +108,7 @@ test("기준 9 — sitemap.xml · robots.txt 200 · 옛 블로그 이동 주소 
   // [2026-10-15 P1 ⑤] 「차단됨」 — 구독 링크는 새 창(틀 안에서 beehiiv 로 넘어가지 않게) · 이동 지면 손 링크는 최상위 창 · 이동 지면 200
   expect(nl).toMatch(/href="https:\/\/logisticslog\.beehiiv\.com\/subscribe[^"]*"[^>]*target="_top"/);
   expect((await page.request.get(`${BASE}/go/newsletter.html`)).status()).toBe(200);
-  await page.goto(`${BASE}/`);
+  await page.goto(`${BASE}/`, { waitUntil: "domcontentloaded" }); // 바닥글 속성만 본다 — 홈 지도 자원까지 기다린 「load」가 CI 에서 90초를 넘었다(QA 329)
   const a = page.locator("footer a[data-newsletter]");
   await expect(a).toHaveAttribute("target", "_blank");
   await expect(a).toHaveAttribute("rel", /noopener/);

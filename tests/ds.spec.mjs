@@ -7,7 +7,7 @@ const B = "/incheon-port-analysis";
 const PATH = { index: "/index.html", about: "/about.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
 const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/derived/home_axes.json", "data/hs2_short.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
 for (const f of ["index", "beer", "note", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
@@ -75,10 +75,11 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   const tick = (sec) => page.evaluate((s) => { const f = window.__fm; f.step(s); f.o.camStep ? f.o.camStep(f, s) : f.camStep(s); f.draw(); }, sec);
   const s1 = await px(); await tick(0.4); const s2 = await px();
   expect(s1 === s2, "캔버스가 움직이지 않는다").toBe(false);
-  // [2026-10-20 4차 화면 판정 Q3] 점 = 인천공항 항공화물(반기 자료 월평균)이라 달이 넘어가지 않는다 — 머리 숫자는 마지막 달에 머문다(시계를 밀어도 그대로)
-  const ym = await page.locator("#fm-ym").innerText();
+  // [2026-10-20 4차 화면 판정 Q3] 점 = 인천공항 항공화물(반기 자료 월평균)이라 달이 넘어가지 않는다 — 관문 숫자 판의 달은 마지막 달에 머문다(시계를 밀어도 그대로)
+  // [2026-10-21 세 축 첫 화면] 글 기둥의 달 따라 도는 숫자(#fm-ym)를 걷었다 — 축마다 기준월이 달라 마지막 달 고정 · 관문 숫자 판(#fm-p-h)으로 본다
+  const ym = await page.locator("#fm-p-h").textContent();
   await page.evaluate(() => { window.__fm.t += 7; }); await tick(0.05);
-  await expect(page.locator("#fm-ym")).toHaveText(ym);
+  await expect(page.locator("#fm-p-h")).toHaveText(ym);
   expect(await page.evaluate(() => window.__fm.routes.length)).toBeGreaterThan(0);
   // [2026-10-15 P0] 첫 화면 = 수도권(가까이) · 「아시아」 → 멀리 · 「인천 관문」 → 더 가까이(비행 3.2초를 지도 시계로 넘긴다) · 관문 숫자 판이 열린다
   // [2026-10-20] 첫 화면 = 동북아(관측된 흐름 — 교역국 ↔ 인천 관문 — 이 보이는 넓이 · 내륙 배분 흐름을 걷은 뒤) · 인천 관문 가까이보다 멀다
