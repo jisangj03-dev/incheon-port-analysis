@@ -9,7 +9,7 @@ interface Props { updated: string; source: string; csv?: string; csvName?: strin
 const { updated, source, csv, csvName = "data.csv", note, fresh } = Astro.props;
 // [2026-10-21 자동 갱신] 원천 id 를 주면 「원천 확인 · 다음 공표 예정(원천별 · 주기 추정)」(data/derived/freshness.json)
 const FL = fresh?.length ? freshLine(fresh) : null;
-const TERMS = /공공누리|이용허락|CC BY|CC0|ODbL|퍼블릭 도메인|Public Domain|라이선스|license|Apache|Contains modified|저작권|허락|출처 대장에 없음/i;
+const TERMS = /공공누리|이용허락|운영정책|약관|CC BY|CC0|ODbL|퍼블릭 도메인|Public Domain|라이선스|license|Apache|Contains modified|저작권|허락|출처 대장에 없음/i;
 // 괄호·낫표 안의 「 · 」는 가르지 않는다(이용허락 문구가 괄호 안에서 잘려 「…확인)」만 남던 것 · 2026-10-20 사실 대조 C1)
 const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts = source.split(" · ");
   for (const p of parts) { cur = cur ? `${cur} · ${p}` : p; d += (p.match(/[(「（]/g) || []).length - (p.match(/[)」）]/g) || []).length; if (d <= 0) { out.push(cur.trim()); cur = ""; d = 0; } }
