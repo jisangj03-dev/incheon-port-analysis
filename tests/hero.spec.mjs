@@ -62,3 +62,19 @@ test("히어로 — 지도 이름표 × 글·단추 겹침 0(너비 1280·1440·
   expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);
 });
 // 1568×709 움직이는 지도 시험은 tests/autoplay.spec.mjs 에 있다 — 움직이는 지도 시험끼리 한 파일(한 작업자)에서 차례로 돌게(QA 288)
+
+// [2026-10-21 채팅 공개판 검수] 제목의 「50.5%」와 조사 「가」가 다른 줄로 갈리지 않는다 — 데스크톱에서 「가」가 둘째 줄 맨 앞에 혼자 갔다.
+// 헤드리스 글꼴 폭으로는 768 에서만 재현됐다(실제 브라우저는 창·확대·글꼴에 따라 1520 에서도) — 크기 열둘 모두에서 덩어리가 한 줄인지 본다.
+test("히어로 — 제목의 숫자와 조사 「가」가 한 줄(크기 열둘)", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
+  test.setTimeout(180_000);
+  await still(page);
+  const bad = [];
+  for (const [width, height] of [[1280, 720], [1280, 800], [1366, 768], [1440, 900], [1520, 730], [1520, 860], [1536, 864], [1680, 1050], [1920, 1080], [2560, 1440], [390, 844], [768, 1024]]) {
+    await page.setViewportSize({ width, height });
+    await page.goto(`${B}/`, { waitUntil: "load" });
+    const r = await page.evaluate(() => { const nb = document.querySelector("#live-h .live__nb"); return nb ? new Set([...nb.getClientRects()].map((x) => Math.round(x.top))).size : -1; });
+    if (r !== 1) bad.push(`${width}×${height} 숫자·조사 덩어리 줄 수 ${r}`);
+  }
+  expect(bad, bad.join("\n")).toEqual([]);
+});
