@@ -15,7 +15,7 @@ const updated = lastUpdated("data/sources.json");
 const jsonld = S.filter((s: any) => s.kogl !== "해당 없음" || s.id === "osm-protomaps").map((s: any) => ({ "@context": "https://schema.org", "@type": "Dataset", name: s.name, creator: { "@type": "Organization", name: s.owner }, license: pub(s.license), description: `${s.name} — ${pub(s.where)}` }));
 // 칸 한 낱말 — 「허용(…)」의 괄호 풀이는 접기 안으로
 const word = (t: string) => pub(t).replace(/\s*\(.*$/, "").replace(/\s*—.*$/, "").trim() || "—";
-const unk = (t: string) => /미확인|허락 필요|대기/.test(t);
+const unk = (t: string) => { const w = word(t); return /미확인|대기/.test(w) || (/허락 필요/.test(w) && !/→/.test(w)); }; // 칸에 보이는 말로 가린다 — 「비상업 지면에만 씀(상업 재사용은 허락 필요)」은 처리된 상태(18차 화면 판정)
 const day = (t: string) => (String(t).match(/\d{4}-\d{2}-\d{2}/) || ["—"])[0];
 const n = { all: S.length, unk: S.filter((s: any) => s.kogl === "미확인").length };
 import AiMark from "../components/scene/AiMark.astro";

@@ -26,10 +26,12 @@ interface Props {
   current?: "map" | "tools" | "sim" | "notes" | "about" | "home";
   /** 지면 끝 「이 분석을 우리 회사 숫자로」 연락 꼬리(기본 켬 · 리디렉트·틀 지면은 끈다) */
   ask?: boolean;
+  /** 사업 문의 동선 전체(지면 끝 꼬리 + 바닥글 「문의를 받습니다」) — 상업 재사용 허락이 필요한 원천을 쓰는 지면은 끈다(2026-10-21 PortWatch 결정 · tests/license.spec.mjs) */
+  biz?: boolean;
   /** 좁은 화면에서 글꼴 CSS 를 사람이 만진 뒤에 붙인다(홈 · 2026-10-14 실측: 글꼴 규칙 216개를 붙이는 배치 계산이 모바일 TBT 의 2/3) */
   lateFonts?: boolean;
 }
-const { title, description = BRAND.description, path, ogImage = "/og/home.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true } = Astro.props;
+const { title, description = BRAND.description, path, ogImage = "/og/home.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true, biz = true } = Astro.props;
 const P = profile();
 const fullTitle = title ? `${title} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 const canonical = abs(path);
@@ -97,11 +99,11 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
   <main id="main" tabindex="-1">
     <slot />
   </main>
-  {ask && !noindex && <AskTail />}
+  {ask && biz && !noindex && <AskTail />}
   <footer class="s-wrap s-foot foot">
     <hr class="s-rule" />
     <div class="foot__grid">
-      <p class="foot__who"><b>{BRAND.name}</b> — {P.name}의 {BRAND.tagline}. 수도권 물류·무역·유통을 그 관문 인천에서부터 공공 1차 데이터로 잽니다. 중소기업·셀러의 「우리 회사 숫자로」 문의를 받습니다.</p>
+      <p class="foot__who"><b>{BRAND.name}</b> — {P.name}의 {BRAND.tagline}. 수도권 물류·무역·유통을 그 관문 인천에서부터 공공 1차 데이터로 잽니다.{biz && " 중소기업·셀러의 「우리 회사 숫자로」 문의를 받습니다."}</p>
       <ul class="foot__links">
         <li><a href={u("/about.html")} data-trust>소개 · 연락</a></li>
         <li><a href={u("/data.html")}>데이터 출처와 이용허락</a></li>

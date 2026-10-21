@@ -99,7 +99,7 @@ test("홈: 살아 있는 지도 · 달 막대 · 콘텐츠 목록 자동 배치"
   await expect(page.locator(".live__legend")).toContainText("월평균");
   await expect(page.locator(".live__legend")).toContainText("항공화물");
   // 같이 푸는 질문 — 질문마다 지면 하나
-  const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions;
+  const Q = JSON.parse(readFileSync("data/questions.json", "utf-8")).questions.filter((q) => q.biz !== false); // biz=false = 「귀사 숫자로」 목록에서 뺀 지면(tests/license.spec.mjs)
   await expect(page.locator(".qs > li")).toHaveCount(Q.length);
   const v = await page.locator("#now-v").innerText();
   await page.locator("#now-m").fill("0");

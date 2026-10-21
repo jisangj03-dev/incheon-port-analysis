@@ -23,7 +23,7 @@ const R = rooms();
 const PF = profile();
 
 // ── 같이 푸는 질문(data/questions.json) — 실무 질문 하나 = 보여 주는 지면 하나
-const QS = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8")).questions as { id: string; q: string; how: string; href: string; see: string }[];
+const QS = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8")).questions.filter((q: any) => q.biz !== false) as { id: string; q: string; how: string; href: string; see: string }[]; // biz=false = 상업 재사용 허락이 필요한 원천을 쓰는 지면 — 「귀사 숫자로 연락」 목록에서 뺀다(2026-10-21 PortWatch 결정 · tests/license.spec.mjs)
 
 // ── 숫자 장면(달 막대로 앞뒤로 움직인다) ──
 const W = 1000, H = 220, pad = 10;
