@@ -19,7 +19,7 @@ const names = segs.filter((x) => !TERMS.test(x));
 const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
 const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
-<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && <> · <span data-fresh>{FL}</span></>}{csv && (csv === "client"
+<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
 {terms.length > 0 && <details class="s-terms"><summary>{names.length > 2 ? "출처 전부 · 이용 조건" : "이용 조건"}</summary><p>{[...new Set(terms)].join(" · ")}</p></details>}

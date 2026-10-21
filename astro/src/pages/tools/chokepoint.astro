@@ -36,7 +36,7 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
     limits={`${D.air_note || ""} 통항 증감 % 는 반올림 전 평균으로 계산했다(화면의 척수는 소수 한 자리). 나라 → 길목 경유는 보통 항로의 가정이다(환적·우회는 따지지 않는다). 우회 일수는 해상 경로망의 최단 거리 차를 16노트로 나눈 것이다(기항·혼잡 미반영).`+" 중국·일본·미주는 표에 없다. 「흔들리는 액수」는 통항이 줄어든 비율만큼 교역도 준다는 단순 비례 가정이고 실제 손실이 아니다. 인천 관문만의 몫이 아니라 전국 기준이다(인천×나라 공개 자료가 없다). 통항 증감의 원인은 이 지면이 확인하지 않는다(보도로만 확인)."}>
     <div slot="answer" class="ck">
       <p class="ck__big"><b id="ck-pct" data-og-num={`${F.ko} 통항 · 2023년 같은 달 대비`} class={F.vs_base_pct != null && F.vs_base_pct < -10 ? "dn" : ""}>{F.vs_base_pct != null ? `${sign(F.vs_base_pct)}%` : "—"}</b>
-        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 공개 마지막 28일 하루 평균 <b id="ck-now">{F.now28}</b>척 <small>({F.asof}까지)</small></span></p>
+        <span><b id="ck-name">{F.ko}</b> 통항 · 2023년 같은 달 대비 · 공개 마지막 28일 하루 평균 <b id="ck-now">{F.now28}</b>척 <small class="nb">({F.asof}까지)</small></span></p>
       <figure class="ck__fig" id="ck-fig">
         <div class="ck__plot">
         <div class="ax" id="ck-axis" data-furniture>{L0.ticks.map(([y, v]) => <span class="ax__y" style={`top:${((Number(y) / VH) * 100).toFixed(2)}%`}>{v}</span>)}{L0.yrs.map(([x, y]) => <span class="ax__x" style={`left:${((Number(x) / VW) * 100).toFixed(2)}%`}>{y}</span>)}</div>

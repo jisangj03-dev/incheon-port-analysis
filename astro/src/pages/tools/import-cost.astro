@@ -59,7 +59,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
         <span class="mklb mklb--now" style={`left:${((X(iNow) / VW) * 100).toFixed(2)}%;top:${((Y(us[iNow]) / VH) * 100).toFixed(2)}%`}>가장 최근 주 <b>{E.now.fx.toLocaleString("ko-KR")}</b></span>
         <span class="mklb mklb--ago" id="cs-ago-lb" style={`left:${((X(iAgo) / VW) * 100).toFixed(2)}%;top:${((Y(us[iAgo]) / VH) * 100).toFixed(2)}%`}>견줄 주 <b id="cs-ago-v">{E.ago.fx.toLocaleString("ko-KR")}</b></span>
         </div>
-        <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 가장 최근 주 {day(D.asof)} {E.now.fx}원 · {E.ago_weeks}주 전 {E.ago.fx}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx}원</figcaption>
+        <figcaption class="s-cap">과세환율(수입) 원/달러 · 주마다 · 가장 최근 주 {day(D.asof)} {E.now.fx.toLocaleString("ko-KR")}원 · {E.ago_weeks}주 전 {E.ago.fx.toLocaleString("ko-KR")}원 · 가장 높았던 주 {day(D.usd_hi.week)} {D.usd_hi.fx.toLocaleString("ko-KR")}원</figcaption>
       </figure>
     </div>
     <div slot="controls" class="cost__ctl">
@@ -130,7 +130,7 @@ const kRange = (ci: number) => { const v = K.weeks.map((w: any[]) => Number(w[ci
       $("cs-wk").textContent = day(W[i][0]); $("cs-h-a").textContent = `${day(W[i][0])} 주`; $("cs-h-b").textContent = `${day(W[last][0])} 주`;
       const inner: [string, number, number][] = ([["개별소비세", a.excise, b.excise], ["주세", a.liquor, b.liquor], ["교육세", a.edu, b.edu], ["농어촌특별세", a.rural, b.rural]] as [string, number, number][]).filter((r) => r[1] || r[2]);
       const rows: [string, number, number][] = [["과세환율", a.fx, b.fx], ["과세가격", a.customs_value, b.customs_value], ["관세", a.duty, b.duty], ...inner, ["부가가치세", a.vat, b.vat], ["세관 납부세액(관세·내국세·부가세)", a.duty + a.excise + a.liquor + a.edu + a.rural + a.vat, b.duty + b.excise + b.liquor + b.edu + b.rural + b.vat], ["총 지급액(과세가격 + 세금 + 국내 운송·통관비)", a.landed, b.landed], ["원가(부가세 제외)", a.cost, b.cost]];
-      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("총 지급") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x : won(x)}</td><td>${k === "과세환율" ? y : won(y)}</td></tr>`).join("");
+      $("cs-body").innerHTML = rows.map(([k, x, y]) => `<tr${k.startsWith("원가") ? ' class="sum"' : k.startsWith("총 지급") ? ' class="paid"' : ""}><th>${k}</th><td>${k === "과세환율" ? x.toLocaleString("ko-KR") : won(x)}</td><td>${k === "과세환율" ? y.toLocaleString("ko-KR") : won(y)}</td></tr>`).join("");
       const dot = $("cs-dot"), ago = $("cs-ago"), usd = Number(W[i][1]);
       dot.setAttribute("cx", X(i).toFixed(1)); dot.setAttribute("cy", Y(usd).toFixed(1)); ago.setAttribute("x1", X(i).toFixed(1)); ago.setAttribute("x2", X(i).toFixed(1));
       const lb = $("cs-ago-lb"); lb.style.left = `${((X(i) / B.VW) * 100).toFixed(2)}%`; lb.style.top = `${((Y(usd) / B.VH) * 100).toFixed(2)}%`; $("cs-ago-v").textContent = usd.toLocaleString("ko-KR");

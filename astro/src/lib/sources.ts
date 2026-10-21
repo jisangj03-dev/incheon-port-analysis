@@ -29,5 +29,7 @@ export function sourceLine(id: string): string {
   const s = source(id);
   if (!s) return `출처 대장에 없음(${id})`;
   const kogl = /^해당 없음/.test(s.kogl) ? s.license : `공공누리 ${s.kogl === "미확인" ? "유형 미확인" : s.kogl} · ${s.license}`;
-  return pub(`${s.owner} 「${s.name}」 · ${kogl}`);
+  // 자료 이름이 기관 이름으로 시작하면 기관을 앞에 또 붙이지 않는다(「관세청 「관세청 …」」 — 16차 판정 경미)
+  const head = s.owner.split(" · ")[0];
+  return pub(`${s.name.startsWith(head) ? "" : `${s.owner} `}「${s.name}」 · ${kogl}`);
 }
