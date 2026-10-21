@@ -24,6 +24,7 @@
     },
     {
       "id": "choke",
+      "biz": false,
       "q": "바다 길목이 막히면 한국 교역의 어느 몫이 흔들리나?",
       "how": "IMF PortWatch 길목 통항과 관세청 국가별 수출입으로, 길목이 막히면 흔들리는 교역 몫과 우회 일수·운임 변동을 봅니다.",
       "href": "/tools/chokepoint.html",
