@@ -6,7 +6,7 @@ import Studio from "../layouts/Studio.astro";
 import Scene from "../components/scene/Scene.astro";
 import Trust from "../components/scene/Trust.astro";
 import NoteList from "../components/scene/NoteList.astro";
-import { portMonthly } from "../lib/data";
+import { portMonthly, teuYoyGap } from "../lib/data";
 import { rooms } from "../lib/rooms";
 import { u } from "../lib/site";
 import LiveMap from "../components/home/LiveMap.astro";
@@ -44,6 +44,7 @@ const gaps = S.slice(1).map((s, k) => ({ k, d: mi(s.ym) - mi(S[k].ym) })).filter
 });
 const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
 const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
+const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 차이 최댓값(%p · 데이터 파일에서)
 ---
 <Studio title="측심 — SCM 작업실" current="home" path="/" lateFonts>
   <LiveMap />
@@ -75,7 +76,7 @@ const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixe
         <p class="spark-cap s-cap">가장 많은 달 {S[iHi].ym} · {hi} · 가장 적은 달 {S[iLo].ym} · {lo}{gaps.map((g) => ` · ${g.t} 원천 없음(선을 끊음)`).join("")}</p>
         <div class="spark-x s-cap" aria-hidden="true">{yTicks.map((t) => <span style={`left:${((t.x / W) * 100).toFixed(2)}%`}>{t.y}</span>)}</div>
         <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
-        <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" note="월별 · 천TEU · 전년 대비는 공표값(수정된 전년 기준이라 선에서 잰 값과 최대 0.8%p 다르다)" />
+        <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" fresh={["mof-incheon-port-stats"]} note={`월별 · 천TEU · 전년 대비는 공표값(수정된 전년 기준이라 선에서 잰 값과 ${GAP != null ? `최대 ${GAP}%p ` : ""}다르다)`} />
       </figure>
       <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
     </Scene>

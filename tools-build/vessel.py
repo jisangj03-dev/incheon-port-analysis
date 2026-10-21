@@ -4,7 +4,7 @@
 Actions(vessel.yml)에서만 돈다 — 키는 저장소 시크릿 DATA_GO_KR_KEY 로만 받고 어디에도 찍지 않는다(사고 120).
 결과: data/collected/vessel-monthly.csv (ym,port,kind,etr_cnt,etr_grt,sat_cnt,sat_grt) · data/collected/vessel-monthly.json(받은 달·행 수·받은 날)
 ※ 예약 수집(collect.py vessel-harbor)은 details 를 펴지 않아 인천 「연안선」 한 줄만 남겼다 — 이 파일이 그것을 대신한다.
-  python tools-build/vessel.py [--from 201501] [--selftest]
+  python tools-build/vessel.py [--from 201501 | --recent 3] [--selftest]
 """
 import csv, datetime, io, json, os, sys, time, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET
@@ -46,9 +46,19 @@ def main():
     today = datetime.date.today()
     last = f"{today.year}{today.month:02d}"
     rows, got, empty, failed = [], [], [], []
+    # [2026-10-21 자동 갱신] --recent N = 마지막 N달만 다시 받고 그 앞 달은 지난 파일 그대로 — 매일 도는 refresh 가 140달을 다시 받지 않게
+    keep = []
+    if "--recent" in sys.argv and os.path.exists(OUT):
+        n = int(sys.argv[sys.argv.index("--recent") + 1])
+        y, m = today.year, today.month - (n - 1)
+        while m <= 0: y, m = y - 1, m + 12
+        start = f"{y}{m:02d}"
+        old = list(csv.DictReader(open(OUT, encoding="utf-8")))
+        keep = [r for r in old if r["ym"] < start]
+
     # 달마다 바로 파일에 쓴다 — 첫 실행이 20분 제한에 걸려 통째로 잃을 뻔했다(2026-10-14). 진행은 즉시 찍는다.
     tmp = OUT + ".part"
-    f = open(tmp, "w", encoding="utf-8", newline=""); w = csv.DictWriter(f, COLS); w.writeheader()
+    f = open(tmp, "w", encoding="utf-8", newline=""); w = csv.DictWriter(f, COLS); w.writeheader(); w.writerows(keep); rows += keep
     t0 = time.time()
     for ym in months(start, last):
         q = urllib.parse.urlencode({"serviceKey": key, "numOfRows": "1000", "pageNo": "1", "sym": ym, "eym": ym}, safe="%")
@@ -71,8 +81,8 @@ def main():
     os.replace(tmp, OUT)
     meta = {"source": "해양수산부 항만별 선박입출항실적 · 공공데이터포털 15059059 · SsopVsslEtryndHarbor2/YM", "unit": "척 · 총톤수(GT)",
             "granularity": "월 · 항만 · 선종(국적선·외국선·연안선) 합계 — 개별 선박 아님",
-            "months": [got[0], got[-1]] if got else [], "months_n": len(got), "empty_months": empty, "failed_months": failed, "rows": len(rows),
-            "fetched": today.isoformat(), "command": "python tools-build/vessel.py --from " + start}
+            "months": [min(r["ym"] for r in rows), max(r["ym"] for r in rows)], "months_n": len({r["ym"] for r in rows}), "empty_months": empty, "failed_months": failed, "rows": len(rows),
+            "fetched": today.isoformat(), "command": "python tools-build/vessel.py " + (f"--recent {sys.argv[sys.argv.index('--recent') + 1]}" if "--recent" in sys.argv else "--from " + start)}
     json.dump(meta, open(META, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(meta, ensure_ascii=False)[:600])
     return 0

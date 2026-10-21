@@ -869,7 +869,7 @@
   "201501",
   "202608"
  ],
- "computed": "2026-10-14",
+ "computed": "2026-10-21",
  "command": "python tools-build/vessel_derive.py",
  "granularity": "월 · 항만 · 선종 합계 — 개별 선박 아님",
  "fetched": "2026-10-14"

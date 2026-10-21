@@ -56,7 +56,9 @@ def derive():
         {"name": "평택항", "share_pct": pct(gate("평택항"), total)},
     ], "scope": "전 품목 · 수입 신고 금액 기준(관세청 항구·공항별 = 입항지 기준 · 통관 세관 기준이 아니다)"}
     inc, bus = customs["gates"][1]["share_pct"], customs["gates"][2]["share_pct"]
-    counter = {"text": f"바다로 들어오는 수입은 부산이 인천항보다 크다", "incheon_port_pct": inc, "busan_pct": bus, "ym": pym}
+    # [2026-10-21 자동 갱신] 비교 문장은 숫자에서 고른다 — 숫자가 바뀌면 문장도 따라 바뀐다(고정 문장은 거짓이 될 수 있다)
+    cmp_ = "부산이 인천항보다 크다" if bus > inc else ("인천항이 부산보다 크다" if inc > bus else "부산과 인천항이 같다")
+    counter = {"text": f"바다로 들어오는 수입은 {cmp_}", "incheon_port_pct": inc, "busan_pct": bus, "ym": pym}
     # ④ 인천 소재 기업의 전기기기 수입 — 관세청 시도별 품목별(소재지 기준 · 입·출항 관문 기준이 아니다)
     si = rows("data/collected/sido-item-incheon.csv")
     sym = max(r["reqYm"] for r in si)

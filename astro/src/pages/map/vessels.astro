@@ -30,7 +30,7 @@ const n = V.months.length;
         <button type="button" id="vr-play" class="s-btn s-btn--ghost" aria-pressed="false">재생</button>
         <input id="vr-m" type="range" min="0" max={n - 1} value={n - 1} step="1" aria-label="달 고르기" />
       </div>
-      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" note="월 집계 · 입항 척수" />
+      <Trust updated={upd} source={sourceLine("mof-vessel")} csv={u("/data/vessel-replay.csv")} csvName="vessel-replay.csv" fresh={["mof-vessel"]} note="월 집계 · 입항 척수" />
     </figure>
     <p class="counter s-prose"><b>반대 지표</b> — {V.counter}: 같은 달 부산 <b>{L.busan}</b>척, 인천의 <b class="s-signal">{L.busan_to_incheon}</b>배.</p>
     <script type="application/json" id="vr-data" set:html={JSON.stringify({ months: V.months, s: V.ocean_arrivals })}></script>
