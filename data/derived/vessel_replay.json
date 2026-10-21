@@ -139,7 +139,8 @@
   "2026-05",
   "2026-06",
   "2026-07",
-  "2026-08"
+  "2026-08",
+  "2026-09"
  ],
  "ocean_arrivals": {
   "인천": [
@@ -282,7 +283,8 @@
    552,
    522,
    545,
-   523
+   523,
+   502
   ],
   "부산": [
    2173,
@@ -424,7 +426,8 @@
    1874,
    1843,
    1913,
-   1819
+   1819,
+   1602
   ],
   "평택.당진": [
    478,
@@ -566,7 +569,8 @@
    433,
    416,
    388,
-   421
+   421,
+   382
   ],
   "경인": [
    11,
@@ -708,7 +712,8 @@
    5,
    6,
    5,
-   4
+   4,
+   6
   ]
  },
  "incheon_coastal": [
@@ -851,26 +856,27 @@
   584,
   609,
   578,
-  574
+  574,
+  546
  ],
  "latest": {
-  "ym": "2026-08",
-  "incheon": 523,
-  "busan": 1819,
-  "pyeongtaek": 421,
-  "gyeongin": 4,
-  "incheon_share_pct": 9.2,
-  "busan_to_incheon": 3.5,
-  "incheon_yoy_pct": -14.0
+  "ym": "2026-09",
+  "incheon": 502,
+  "busan": 1602,
+  "pyeongtaek": 382,
+  "gyeongin": 6,
+  "incheon_share_pct": 9.3,
+  "busan_to_incheon": 3.2,
+  "incheon_yoy_pct": -15.8
  },
  "counter": "외항선 입항 척수로는 부산이 인천보다 훨씬 많다",
- "source_rows": 12867,
+ "source_rows": 12957,
  "source_months": [
   "201501",
-  "202608"
+  "202609"
  ],
  "computed": "2026-10-21",
  "command": "python tools-build/vessel_derive.py",
  "granularity": "월 · 항만 · 선종 합계 — 개별 선박 아님",
- "fetched": "2026-10-14"
+ "fetched": "2026-10-21"
 }

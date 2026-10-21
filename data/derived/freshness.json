@@ -13,7 +13,7 @@
    ],
    "ours": "2026-09",
    "source_latest": "2026-09",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-15",
    "behind": false
@@ -30,7 +30,7 @@
    ],
    "ours": "2026-09",
    "source_latest": "2026-09",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-15",
    "behind": false
@@ -46,7 +46,7 @@
    ],
    "ours": "2026-09",
    "source_latest": "2026-09",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-15",
    "behind": false
@@ -62,7 +62,7 @@
    ],
    "ours": "2026-10-18",
    "source_latest": "2026-10-18",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-25",
    "behind": false
@@ -78,7 +78,7 @@
    ],
    "ours": "2026-10-19",
    "source_latest": "2026-10-19",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-27",
    "behind": false
@@ -94,7 +94,7 @@
    ],
    "ours": "2026-10-18",
    "source_latest": "2026-10-18",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-10-28",
    "behind": false
@@ -109,12 +109,12 @@
     "monthly",
     20
    ],
-   "ours": "2026-08",
+   "ours": "2026-09",
    "source_latest": "2026-09",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-20",
-   "behind": true
+   "behind": false
   },
   "mof-incheon-port-stats": {
    "label": "인천지방해양수산청 월별 항만운영통계(컨테이너)",
@@ -128,10 +128,10 @@
     30
    ],
    "ours": "2026-08",
-   "source_latest": null,
-   "checked": null,
+   "source_latest": "2026-08",
+   "checked": "2026-10-21",
    "last_error": null,
-   "next_expected": null,
+   "next_expected": "2026-10-30",
    "behind": false
   },
   "iiac-route-cargo": {
@@ -145,7 +145,7 @@
    ],
    "ours": "2026-06",
    "source_latest": "2026-06",
-   "checked": null,
+   "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2027-01-31",
    "behind": false
