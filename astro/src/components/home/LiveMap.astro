@@ -67,7 +67,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="live__text idv__me">
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
-    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 통계와 공개 지도를 바탕으로 계산하는 SCM 작업실입니다 — <span class="nb">실무 도구 {NT}개</span> · <span class="nb">시뮬레이션 {NS}개.</span></p>
+    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 통계와 공개 지도를 바탕으로 계산하는 SCM 작업실입니다 — <span class="nb">실무 도구 {NT}개 · 시뮬레이션 {NS}개.</span></p>
     <figure class="shots" id="shots" data-shots aria-label="실제 지면 화면 — 지면 셋을 차례로 보여 준다">
       <div class="shots__bar">
         <span class="shots__cap">실제 지면 화면</span>
@@ -91,7 +91,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="who3__t">{a.tools.map((t, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(t.href)} title={TITLE[t.href]}>{t.gain}</a></>)}</span>
       </li>)}
     </ul>
-    <p class="idv__ask">물동량·원가 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 연락 주세요.</p>
+    <p class="idv__ask">물동량·원가 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 메일로 숫자를 보내 주세요.</p>
     <div class="live__cta">
       {hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
       <a class="s-btn s-btn--ghost live__q" href={u("/tools/")}>도구 보기</a>
@@ -103,7 +103,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="now__text">
     <p class="s-cap axes__cap">최신 공표 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재(서로 다른 기준 — 아래 정의)</p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
-    <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{TOP && <span class="lg-d"> · 관문 몫 {L.imp_share_pct}%는 표시한 {SH.length}개월 가운데 가장 높은 달</span>}{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 관세청이 서울·인천·경기로 집계한 수출입 신고 업체(물건이 들어온 곳이 아님 · 업체를 시도에 넣는 기준은 미공개)</span><span class="lg-s">화주 = 관세청 시도별 집계 업체(물건이 들어온 곳 아님)</span></b></>}</p>
+    <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{TOP && <span class="lg-d"> · 관문 몫 {L.imp_share_pct}%는 표시한 {SH.length}개월 가운데 가장 높은 달</span>}{T && <> · <b class="live__def">화주 = 관세청 시도별 집계 업체(물건이 들어온 곳 아님 · 기준은 아래 방법)</b></>}</p>
     <ol class="live__stat ax">
       <li class="ax__row"><a href="#ax-logi">
         <span class="ax__k">{AXN.logi.name}<small>인천항</small></span>
@@ -489,6 +489,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .seg { flex: 1 1 0; min-width: 0; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
   .seg i { position: relative; display: block; width: 100%; height: 3px; background: var(--s-rule); overflow: hidden; }
   .seg i::after { content: ""; position: absolute; inset: 0; background: var(--s-signal); transform-origin: left; transform: scaleX(0); }
+  .seg.is-on i { height: 5px; background: var(--s-ink-3); } /* 지금 마디 — 채움(남은 시간)과 따로 진하고 두껍게(채움 0% · 멈춤 · 동작 줄이기에서도 구별 · 27차) */
   .seg.is-on i::after { animation: segfill 7s linear forwards; }
   .shots.is-held .seg.is-on i::after { animation-play-state: paused; }
   .shots.is-still .seg.is-on i::after { animation: none; transform: scaleX(1); }
@@ -620,13 +621,13 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   @media (max-width: 899px) {
     /* 좁은 화면 = 같은 순서(무엇 → 도구 띠 → 「이런 분께」 표 → 연락) · 지도는 「지금 숫자」 절 아래 */
     .idv__me, .idv__aud { padding-inline: var(--s-gutter); }
-    .idv__me { padding-top: var(--s-3); }
-    .idv__aud { padding-top: var(--s-3); padding-bottom: var(--s-5); }
+    .idv__me { padding-top: 12px; }
+    .idv__aud { padding-top: 10px; padding-bottom: var(--s-5); }
     .idv__rule { margin-bottom: 10px; }
     .idv .live__who { font-size: clamp(20px, 5.8vw, 34px); line-height: 1.22; }
     .idv__one { font-size: 15px; margin-top: 8px; line-height: 1.5; }
-    .shots { margin-top: 12px; }
-    .shots__bar { margin-bottom: 4px; }
+    .shots { margin-top: 8px; }
+    .shots__bar { margin-bottom: 2px; }
     .shot__img { width: 100%; } /* 좁은 화면 그림은 520 폭에서 2:1 로 따로 찍는다(og-cards.mjs) */
     .shot__t { font-size: 12.5px; } .shot__t small { font-size: 12px; }
     .idv__cap { margin-bottom: 4px; }
@@ -634,7 +635,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .who3__k { font-size: 15px; }
     .who3__p { font-size: 13.5px; } .who3__t { font-size: 13px; }
     .who3__t a { min-height: 28px; line-height: 28px; }
-    .idv__ask { font-size: 14.5px; margin-top: 10px; }
+    .idv__ask { font-size: 14.5px; margin-top: 8px; }
     .idv .live__cta { margin-top: 8px; }
     .now__text { padding: var(--s-5) var(--s-gutter) var(--s-4); border-top: 1px solid var(--s-rule); }
     .live__one { font-size: 13px; line-height: 1.5; }
