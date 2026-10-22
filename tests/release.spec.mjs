@@ -92,12 +92,15 @@ test("④ AI 표기 — AI 산출물 지면마다 「AI 정리」 · 「실명 �
   for (const f of HTML) expect(read(f), `${f} 「검수 전」`).not.toContain("AI 정리 · 검수 전");
 });
 
-test("⑤ 자문 아님 고지 · 실명 — 모든 지면 바닥글", () => {
+// [2026-10-22 선장님 최종 결정 · 품질기준 Q11] 바닥글은 사이트(측심)의 것 — 실명은 바닥글에 없고 소개 지면에 있다(종전: 바닥글 「〈실명〉의 SCM 작업실」)
+test("⑤ 자문 아님 고지 — 모든 지면 바닥글 · 실명은 바닥글이 아니라 소개에", () => {
   for (const f of HTML.filter((f) => !f.startsWith("embed/") && !f.startsWith("og/"))) {
     const html = read(f);
     expect(html, f).toContain("법률·세무·관세 자문이 아닙니다");
-    expect(html, f).toContain(`${P.name}의`);
+    const foot = html.slice(html.lastIndexOf("<footer"));
+    expect(foot, `${f} 바닥글 실명`).not.toContain(P.name);
   }
+  expect(read("about.html"), "소개에 실명").toContain(P.name);
 });
 
 test("⑥ 공공 데이터 차트의 출처 줄 = 출처 대장 그대로(공공누리 유형 포함 · 이용 조건은 줄 아래 접기 — 품질기준 Q5)", () => {

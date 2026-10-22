@@ -67,8 +67,14 @@
       "lead": "관문·도로·물량 — 들어온 물건이 어디로 얼마나 빨리 가고, 물량을 얼마로 잡을지.",
       "who": "포워더 · 3PL · 항만·공항 물류",
       "tools": [
-        "/tools/delivery-reach.html",
-        "/map/vessels.html"
+        {
+          "href": "/tools/delivery-reach.html",
+          "gain": "1·2·3시간 배송 범위"
+        },
+        {
+          "href": "/map/vessels.html",
+          "gain": "외항선 입항 추이"
+        }
       ]
     },
     {
@@ -78,8 +84,14 @@
       "lead": "무엇을 어디서 사고파는지 — 품목 구성과 바닷길 길목의 위험.",
       "who": "수출입 담당 · 무역 MD · 해외 소싱",
       "tools": [
-        "/tools/trade-race.html",
-        "/tools/chokepoint.html"
+        {
+          "href": "/tools/trade-race.html",
+          "gain": "품목 구성 변화"
+        },
+        {
+          "href": "/tools/chokepoint.html",
+          "gain": "바다 길목 막힘 충격"
+        }
       ]
     },
     {
@@ -89,8 +101,14 @@
       "lead": "팔 물건의 원가가 환율·관세로 얼마나 바뀌는지, 주문이 왜 출렁이는지.",
       "who": "유통 MD · 셀러 운영 · 구매·발주",
       "tools": [
-        "/tools/import-cost.html",
-        "/sim/beer-game.html"
+        {
+          "href": "/tools/import-cost.html",
+          "gain": "환율로 다시 잰 수입원가"
+        },
+        {
+          "href": "/sim/beer-game.html",
+          "gain": "발주 출렁임 체험"
+        }
       ]
     }
   ]

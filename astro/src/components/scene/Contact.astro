@@ -7,12 +7,14 @@ const C = profile().contact;
 const rev = (s: string) => [...s].reverse().join("");
 const hasMail = !!(C.mail && C.mail.user && C.mail.domain);
 // ask = 「문의 틀로 메일」 단추도 단다(홈 첫 화면·소개 · 2026-10-15 P2) — 지면 끝 연락 꼬리는 둘만
-interface Props { ask?: boolean }
-const { ask = false } = Astro.props;
+// mailFirst = 지면 꼬리(AskTail) — 사이트(측심) 문의 메일이 주 단추 · LinkedIn 은 뒤(2026-10-22 선장님 최종 결정 · 품질기준 Q11 · 24차 화면 판정 경미 8). 소개 지면은 종전 순서(10/14 ②)
+interface Props { ask?: boolean; mailFirst?: boolean }
+const { ask = false, mailFirst = false } = Astro.props;
 ---
 <p class="s-contact" data-contact>
-  {C.linkedin && <a class="s-btn" href={C.linkedin} rel="me noopener" data-c="linkedin">LinkedIn</a>}
-  {hasMail && <a class:list={["s-btn", { "s-btn--ghost": !!C.linkedin }]} href="#mail" data-c="mail" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>메일 보내기</a>}
+  {mailFirst && hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>문의 메일</a>}
+  {C.linkedin && <a class:list={["s-btn", { "s-btn--ghost": mailFirst && hasMail }]} href={C.linkedin} rel="me noopener" data-c="linkedin">LinkedIn</a>}
+  {!mailFirst && hasMail && <a class:list={["s-btn", { "s-btn--ghost": !!C.linkedin }]} href="#mail" data-c="mail" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>메일 보내기</a>}
   {hasMail && ask && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(C.mail.user)} data-b={rev(C.mail.domain)}>문의 틀로 메일</a>}
 </p>
 <script>

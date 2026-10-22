@@ -7,7 +7,7 @@
       "title": "수도권 배송 등시선",
       "axis": "logi",
       "sel": ".reach__map",
-      "note": "인천터미널 물류단지에서 도로로 닿는 시간"
+      "note": "인천터미널 물류단지에서 도로로 닿는 시간 · © OpenStreetMap"
     },
     {
       "id": "trade-race",

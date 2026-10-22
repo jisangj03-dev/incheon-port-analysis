@@ -40,7 +40,7 @@ const AX = existsSync(join(repoRoot(), "data/derived/home_axes.json")) ? J("data
 const T = AX?.trade, RT = AX?.retail;
 const SAME = !T || Math.abs(T.nat_imp - L.nat_imp) <= 0.1;
 const HS = J("data/hs2_short.json").names as Record<string, string>;
-const AXES = J("data/questions.json").axes as { id: string; name: string; verb: string; who: string; tools: string[] }[];
+const AXES = J("data/questions.json").axes as { id: string; name: string; verb: string; who: string; tools: { href: string; gain: string }[] }[];
 const AXN = Object.fromEntries(AXES.map((a) => [a.id, a])); // 축 이름·작은 말·사람·도구(질문 묶음과 같은 원천)
 const TITLE: Record<string, string> = Object.fromEntries(rooms().flatMap((r) => (r.items || []).map((it) => [it.href, it.title]))); // 지면 이름 = rooms.json
 const SHOTS = J("data/home_showcase.json").shots as { id: string; href: string; title: string; axis: string; note: string }[];
@@ -64,17 +64,17 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="live__text idv__me">
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
-    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 1차 데이터로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 연습용 시뮬레이션 {NS}개.</p>
+    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 1차 데이터로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
     <figure class="shots" id="shots" data-shots aria-label="실제 도구 화면 — 도구 셋이 7초마다 차례로 바뀐다">
       <div class="shots__bar">
         <span class="shots__cap">실제 도구 화면</span>
         <span class="shots__seg" role="group" aria-label="도구 고르기">{SHOTS.map((t, i) => <button type="button" class={`seg${i ? "" : " is-on"}`} data-i={i} aria-label={t.title} aria-pressed={i ? "false" : "true"}><i></i></button>)}</span>
-        <button type="button" class="shots__pause" id="shots-pause" aria-pressed="false">멈춤</button>
+        <button type="button" class="shots__pause" id="shots-pause" aria-pressed="false">넘김 멈춤</button>
       </div>
       <div class="shots__stage">
         {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
-          <picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1200" height="750" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture>
-          <span class="shot__t"><b>{t.title} →</b><small>{t.note}</small></span>
+          <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1280" height="720" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
+          <span class="shot__t"><b>{t.title} →</b> <small>{t.note}</small></span>
         </a>)}
       </div>
     </figure>
@@ -85,7 +85,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
       {AXES.map((a) => <li class={`who3__row${a.id === SHOTS[0]?.axis ? " is-on" : ""}`} data-axis={a.id}>
         <b class="who3__k">{a.name}</b>
         <span class="who3__p">{a.who}</span>
-        <span class="who3__t">{a.tools.map((h: string, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(h)}>{TITLE[h] ?? h}</a></>)}</span>
+        <span class="who3__t">{a.tools.map((t, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(t.href)} title={TITLE[t.href]}>{t.gain}</a></>)}</span>
       </li>)}
     </ul>
     <p class="idv__ask">이런 계산을 귀사의 물동량·재고·비용으로 다시 돌려 보고 싶다면, 연락 주세요.</p>
@@ -98,7 +98,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
 
   <section class="now" id="now-axes" aria-labelledby="axes-h">
   <div class="now__text">
-    <p class="s-cap axes__cap">지금 숫자 · 공공 통계 · 어느 문으로, 누가 들여오고, 팔 물건은 무엇이 들어오나</p>
+    <p class="s-cap axes__cap">최신 공표 숫자 · 공공 통계 · 어느 문으로, 누가 들여오고, 팔 물건은 무엇이 들어오나</p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
     <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 서울·인천·경기에 소재한 화주(수입자·수출자 — 본사 등 · 물건이 내린 곳 아님)</span><span class="lg-s">화주 = 소재지 기준(본사 등 · 물건이 내린 곳 아님)</span></b></>}</p>
     <ol class="live__stat ax">
@@ -158,7 +158,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
 
   <div class="s-wrap live__foot">
     {CT && <p class="s-prose live__counter"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준). {L.air_imp > L.port_imp ? "인천 관문 수입은 하늘(인천공항) 쪽이 바다(인천항)보다 크다." : "인천 관문 수입은 바다(인천항) 쪽이 하늘(인천공항)보다 크다."}</p>}
-    <Trust updated={F.made} source={[sourceLine("kcs-porttrade"), T && sourceLine("kcs-sido-item"), sourceLine("mof-incheon-port-stats"), sourceLine("mof-vessel"), sourceLine("kcs-nitemtrade"), sourceLine("kcs-nation"), sourceLine("iiac-route-cargo"), sourceLine("molit-warehouse"), KO && sourceLine("kostat-kosis")].filter(Boolean).join(" · ")} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" fresh={["kcs-porttrade", ...(T ? ["kcs-sido-sudo"] : []), "mof-incheon-port-stats", "mof-vessel", "kcs-nation", "iiac-route-cargo", ...(KO ? ["kosis-retail"] : [])]} note="월별 · 억 달러 · 천TEU · 척" />
+    <Trust updated={F.made} source={[sourceLine("kcs-porttrade"), T && sourceLine("kcs-sido-item"), sourceLine("mof-incheon-port-stats"), sourceLine("mof-vessel"), sourceLine("kcs-nitemtrade"), sourceLine("kcs-nation"), sourceLine("iiac-route-cargo"), sourceLine("molit-warehouse"), KO && sourceLine("kostat-kosis")].filter(Boolean).join(" · ")} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" fresh={["kcs-porttrade", ...(T ? ["kcs-sido-sudo"] : []), "mof-incheon-port-stats", "mof-vessel", "kcs-nation", "iiac-route-cargo", ...(KO ? ["kosis-retail"] : [])]} note="월별 · 억 달러 · 천TEU · 척" fold />
     <details class="live__how"><summary class="s-cap">세 축 숫자와 지도를 만든 방법·출처</summary>
     {T && <p class="s-cap">세 축 — 물류 = 인천지방해양수산청 월별 항만운영통계(인천항 컨테이너 · 전년 대비는 공표값) · 해양수산부 항만별 선박입출항실적(인천항 외항선 입항 척수). 무역·유통 = 관세청 시도별 품목별 수출입실적 — 시도는 물건이 들어온 곳이 아니라 <b>수출입 신고 회사(화주)의 소재지</b>다(서울에 본사를 둔 회사가 부산항이나 울산항으로 들여와도 서울). 수도권 = 서울·인천·경기 합 · 전국(분모) = {T.denom === "nation" ? `같은 달 관세청 국가별 수출입실적의 전 국가 합${AX?.checks?.sido_sum_vs_nation_pct != null && Math.abs(AX.checks.sido_sum_vs_nation_pct) >= 0.5 ? ` — 시도별 통계의 시도 합은 이보다 ${Math.abs(AX.checks.sido_sum_vs_nation_pct)}% 작다(행정 개편으로 바뀐 시도 코드가 빠진 몫 · 수도권 세 시도와는 무관)` : ""}` : `시도별 통계의 시도 ${T.n_sido}곳 합`}. 생활소비재 = 이 사이트가 HS 2단위로 고른 묶음이다(관세청 분류가 아니다) — {RT && Object.entries(RT.basket as Record<string, string[]>).map(([g, hs]) => `${g} ${hs.join("·")}`).join(" / ")}류(생활소비재 · 성질별 분류의 「소비재」와 다르다). 뺀 것: 곡물·유지·사료(원료 성격) · 담배(24) · 자동차(87) · 의약품(30) · 귀금속(71) · 전기기기(85 — 가전이 섞였지만 반도체·부품이 대부분). 17류(설탕·과자)는 원당이 섞였지만 넣었다.</p>}
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 다르다{F.checks?.nat_gap_eok != null ? ` — 최대 ${F.checks.nat_gap_eok}억 달러` : ""}). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
@@ -196,7 +196,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     };
     if (reduce) { box.classList.add("is-still"); pause?.setAttribute("hidden", ""); }
     segs.forEach((g, j) => g.addEventListener("click", () => show(j)));
-    pause?.addEventListener("click", () => { paused = !paused; pause.setAttribute("aria-pressed", String(paused)); pause.textContent = paused ? "재생" : "멈춤"; show(cur); });
+    pause?.addEventListener("click", () => { paused = !paused; pause.setAttribute("aria-pressed", String(paused)); pause.textContent = paused ? "넘김 재생" : "넘김 멈춤"; show(cur); });
     const hold = (on: boolean) => () => { if (held === on) return; held = on; on ? arm() : show(cur); };
     const stage = box.querySelector(".shots__stage")!;
     for (const ev of ["mouseenter", "focusin"]) stage.addEventListener(ev, hold(true));
@@ -493,14 +493,16 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   @keyframes segfill { to { transform: scaleX(1); } }
   .shots__pause { flex: 0 0 auto; min-height: 32px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--s-ink); background: var(--s-paper, #f5f2eb); border: 1px solid var(--s-rule); border-radius: 2px; cursor: pointer; }
   .shots__pause:hover { border-color: var(--s-ink-3); }
-  .shots__stage { position: relative; aspect-ratio: 16 / 9; max-height: min(300px, 40vh); width: 100%; background: var(--s-paper-2, #ebe6da); overflow: hidden; }
-  .shot { position: absolute; inset: 0; display: block; opacity: 0; transition: opacity .6s ease; color: var(--s-ink); text-decoration: none; }
-  .shot.is-on { opacity: 1; z-index: 1; }
+  .shots__stage { display: grid; width: 100%; } /* 셋을 한 칸에 겹친다 — 높이 = 가장 큰 것(그림 16:9 + 설명 줄) · 넘어가도 아래가 흔들리지 않는다 */
+  .shot { grid-area: 1 / 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .6s ease; color: var(--s-ink); text-decoration: none; }
+  .shot.is-on { opacity: 1; z-index: 1; pointer-events: auto; }
+  .shot__img { display: block; aspect-ratio: 16 / 9; width: min(100%, calc(38vh * 16 / 9)); overflow: hidden; background: var(--s-paper-2, #ebe6da); } /* 비율을 지키며 줄인다(높이로 자르면 그림 아래 이름표가 잘렸다) */
   .shot picture { display: block; width: 100%; height: 100%; }
-  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: center 40%; display: block; }
-  .shot__t { position: absolute; left: 0; bottom: 0; display: flex; flex-direction: column; padding: 5px 10px 6px; line-height: 1.3; background: rgb(245 242 235 / 0.95); border-top-right-radius: 2px; max-width: calc(100% - 20px); }
-  .shot__t b { font-size: 13px; font-weight: 700; }
-  .shot__t small { font-size: 12px; color: var(--s-ink-2); }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .shot__t { display: block; padding: 6px 0 0; line-height: 1.4; font-size: 13px; }
+  .shot__t b { font-weight: 700; }
+  .shot__t small { font-size: 12.5px; color: var(--s-ink-2); }
+  .shot:hover .shot__t b { text-decoration: underline; }
   .shot:focus-visible { outline: 2px solid var(--s-signal); outline-offset: -2px; }
   @media (prefers-reduced-motion: reduce) { .shot { transition: none; } }
   /* 「이런 분께」 표 */
@@ -512,7 +514,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .who3__k { grid-row: span 2; font-size: 16px; font-weight: 700; color: var(--s-ink); }
   .who3__p { font-size: 14.5px; color: var(--s-ink); }
   .who3__t { font-size: 14px; color: var(--s-ink-2); }
-  .who3__t a { color: var(--s-signal); font-weight: 600; text-decoration: none; display: inline-block; min-height: 32px; line-height: 32px; white-space: nowrap; }
+  .who3__t a { color: var(--s-signal); font-weight: 600; text-decoration: none; display: inline-block; min-height: 32px; line-height: 32px; }
   .who3__sep { color: var(--s-ink-3); }
   .who3__t a:hover { text-decoration: underline; }
   .idv__ask { margin: var(--s-4) 0 0; font-size: 16px; line-height: 1.5; color: var(--s-ink); max-width: 26em; }
@@ -607,7 +609,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .idv .live__who { font-size: clamp(28px, min(2.6vw, 6vh), 40px); }
     .idv__one { font-size: 16px; margin-top: 10px; }
     .shots { margin-top: 14px; }
-    .shots__stage { max-height: 33vh; }
+    .shot__img { width: min(100%, calc(30vh * 16 / 9)); }
     .who3__row { padding-block: 7px; }
     .idv__ask { margin-top: 10px; }
   }
@@ -617,11 +619,12 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .idv__me { padding-top: var(--s-3); }
     .idv__aud { padding-top: var(--s-3); padding-bottom: var(--s-5); }
     .idv__rule { margin-bottom: 10px; }
-    .idv .live__who { font-size: clamp(27px, 7.4vw, 36px); line-height: 1.16; }
+    .idv .live__who { font-size: clamp(20px, 5.8vw, 34px); line-height: 1.22; }
     .idv__one { font-size: 15px; margin-top: 8px; line-height: 1.5; }
     .shots { margin-top: 12px; }
     .shots__bar { margin-bottom: 4px; }
-    .shots__stage { aspect-ratio: auto; height: clamp(120px, 40vw, 190px); max-height: none; }
+    .shot__img { width: 100%; aspect-ratio: 2 / 1; } /* 좁은 화면 그림은 2:1 로 따로 찍는다(og-cards.mjs) */
+    .shot__t { font-size: 12.5px; } .shot__t small { font-size: 12px; }
     .idv__cap { margin-bottom: 4px; }
     .who3__row { grid-template-columns: 2.8em minmax(0, 1fr); padding: 4px 4px; row-gap: 0; }
     .who3__k { font-size: 15px; }

@@ -80,6 +80,7 @@ test("Q10 실제 도구 화면 띠 — 그림 실재 · 회전 · 마디 · 줄 
   await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
   await page.clock.install();
   await page.goto(`${B}/`, { waitUntil: "load" });
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000); // 가짜 시계도 그냥 두면 실제 시간대로 흐른다 — 멈춰 두고 넘긴 만큼만 간다
   await expect(page.locator("#shots iframe"), "iframe 0").toHaveCount(0);
   await expect(page.locator("#shots .shot")).toHaveCount(SHOW.length);
   await expect(page.locator("#shots .seg")).toHaveCount(SHOW.length);
@@ -119,6 +120,7 @@ test("Q10 동작 줄이기 — 띠가 돌지 않는다 · 마디로 고른다", 
   await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
   await page.clock.install();
   await page.goto(`${B}/`, { waitUntil: "load" });
+  await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000); // 가짜 시계도 그냥 두면 실제 시간대로 흐른다 — 멈춰 두고 넘긴 만큼만 간다
   await page.mouse.move(5, 5);
   for (let k = 0; k < 3; k++) await page.clock.fastForward(7100);
   expect(await page.evaluate(() => window.__shots.cur)).toBe(0);
