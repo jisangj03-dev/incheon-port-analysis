@@ -56,9 +56,9 @@ const V = J("data/derived/vessel_replay.json").latest;
 const sign = (x: number | null | undefined, u = "%") => x == null ? "—" : `${x > 0 ? "+" : x < 0 ? "−" : "±"}${Math.abs(x)}${u}`;
 const more = (x: number | null | undefined) => x == null ? "" : x > 0 ? "늘었다" : x < 0 ? "줄었다" : "같다";
 const airPct = Math.round((L.air_imp / L.imp_total) * 100);
-// KOSIS(유통) — 데이터와 출처 대장 줄이 둘 다 있을 때만 싣는다(이용지침 확인 = 대장 줄을 다는 사람 몫 · 2026-10-21 키 등록 전)
-const KO = RT?.kosis && source("kostat-kosis") ? RT.kosis : null;
-const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.round(mil / 100).toLocaleString("ko-KR")}억 원`;
+// KOSIS(유통) — 데이터와 출처 대장 줄이 둘 다 있을 때만 싣는다(활용약관 확인 = 대장 줄 · 2026-10-22 kogl-check 원문).
+//   [2026-10-22 유통 축 = KOSIS 실측] 있으면 유통 줄 = 수도권 대형소매점 판매액 + 전국 온라인쇼핑 · 없으면 종전 줄(수도권 화주 생활소비재 수입)로 남는다.
+const KO = RT?.kosis?.large && RT?.kosis?.online && source("kostat-kosis") ? RT.kosis : null;
 ---
 <section class="live" data-content="home-live" aria-labelledby="live-h">
   {/* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) */}
@@ -103,7 +103,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
 
   <section class="now" id="now-axes" aria-labelledby="axes-h">
   <div class="now__text">
-    <p class="s-cap axes__cap">최신 공표분으로 잰 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재<span class="nb">(서로 다른 기준 — 아래 정의)</span></p>
+    <p class="s-cap axes__cap">최신 공표분으로 잰 숫자 · 공공 통계 · 관문 · 화주 · {KO ? "소매 판매" : "생활소비재"}<span class="nb">(서로 다른 기준 — 아래 정의)</span></p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
     <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{TOP && <span> · 관문 몫 {L.imp_share_pct}%는 이 지면 자료 {SH.length}개월({F.months[0].ym}~{L.ym}) 가운데 가장 높은 달</span>}{T && <> · <b class="live__def">화주 = 관세청 시도별 집계 업체(물건이 들어온 곳 아님 · 기준은 아래 방법)</b></>}</p>
     <ol class="live__stat ax">
@@ -119,11 +119,16 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="ax__s" aria-hidden="true">수도권 화주 수입 <span class="nb">{T.ym}</span></span>
         <span class="ax__t">수도권 화주 수입 <span class="nb">{T.ym}</span> · 수입 1위 {HS[T.top_imp[0].hs] ?? T.top_imp[0].name} {T.top_imp[0].pct}%<span class="lg-x"> · 같은 달 수출 {fmt(T.sudo_exp)}억 달러</span></span>
       </a></li>}
-      {RT && <li class="ax__row"><a href="#ax-retail">
+      {KO ? <li class="ax__row"><a href="#ax-retail">
+        <span class="ax__k">{AXN.retail.name}<small>수도권 대형소매점</small></span>
+        <span class="ax__v"><b>{fmt(KO.large.sudo_jo)}</b><span class="live__unit">조 원</span></span>
+        <span class="ax__s" aria-hidden="true">수도권 대형소매점 판매액 <span class="nb">{KO.large.ym}</span> · 전년비 {sign(KO.large.yoy)}</span>
+        <span class="ax__t">서울·인천·경기 대형소매점(백화점·대형마트) 판매액 <span class="nb">{KO.large.ym}</span> · 작년 같은 달 {sign(KO.large.yoy)} · 전국 온라인쇼핑 {fmt(KO.online.jo)}조 원(<span class="nb">{KO.online.ym}</span> {sign(KO.online.yoy)})</span>
+      </a></li> : RT && <li class="ax__row"><a href="#ax-retail">
         <span class="ax__k">{AXN.retail.name}<small>생활소비재</small></span>
         <span class="ax__v"><b>{fmt(RT.cons_imp)}</b><span class="live__unit">억 달러</span></span>
         <span class="ax__s" aria-hidden="true">수도권 화주 생활소비재 수입 <span class="nb">{RT.ym}</span> · 전년비 {sign(RT.cons_yoy)}</span>
-        <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}{KO && <> · 전국 온라인쇼핑 {won(KO.online)}({KO.ym} {sign(KO.yoy)})</>}</span>
+        <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}</span>
       </a></li>}
     </ol>
     <p class="now__mapis">지도 점 = 인천공항을 오간 나라별 항공화물 <b>무게</b>(위 금액과 다른 단위 · 범례 참고)</p>
@@ -165,7 +170,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     {CT && <p class="s-prose live__counter"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준). {L.air_imp > L.port_imp ? "인천 관문 수입은 하늘(인천공항) 쪽이 바다(인천항)보다 크다." : "인천 관문 수입은 바다(인천항) 쪽이 하늘(인천공항)보다 크다."}</p>}
     <Trust updated={F.made} source={[sourceLine("kcs-porttrade"), T && sourceLine("kcs-sido-item"), sourceLine("mof-incheon-port-stats"), sourceLine("mof-vessel"), sourceLine("kcs-nitemtrade"), sourceLine("kcs-nation"), sourceLine("iiac-route-cargo"), sourceLine("molit-warehouse"), KO && sourceLine("kostat-kosis")].filter(Boolean).join(" · ")} csv={u("/data/home-now.csv")} csvName="cheuksim-home-numbers.csv" fresh={["kcs-porttrade", ...(T ? ["kcs-sido-sudo"] : []), "mof-incheon-port-stats", "mof-vessel", "kcs-nation", "iiac-route-cargo", ...(KO ? ["kosis-retail"] : [])]} note="월별 · 억 달러 · 천TEU · 척" fold />
     <details class="live__how"><summary class="s-cap">세 축 숫자와 지도를 만든 방법·출처</summary>
-    {T && <p class="s-cap">세 축 — 물류 = 인천지방해양수산청 월별 항만운영통계(인천항 컨테이너 · 전년 대비는 공표값) · 해양수산부 항만별 선박입출항실적(인천항 외항선 입항 척수). 무역·유통 = 관세청 시도별 품목별 수출입실적 — 시도는 물건이 들어온 곳(입항지)이 아니라 <b>관세청이 수출입 신고 업체를 시도로 나눠 집계한 것</b>이다 — 업체를 시도에 넣는 기준(본사·사업장 등)은 공개 명세에 없어 확인하지 못했다. 수도권 = 서울·인천·경기 합 · 전국(분모) = {T.denom === "nation" ? `같은 달 관세청 국가별 수출입실적의 전 국가 합${AX?.checks?.sido_sum_vs_nation_pct != null && Math.abs(AX.checks.sido_sum_vs_nation_pct) >= 0.5 ? ` — 시도별 통계의 시도 합은 이보다 ${Math.abs(AX.checks.sido_sum_vs_nation_pct)}% 작다(행정 개편으로 바뀐 시도 코드가 빠진 몫 · 수도권 세 시도와는 무관)` : ""}` : `시도별 통계의 시도 ${T.n_sido}곳 합`}. 생활소비재 = 이 사이트가 HS 2단위로 고른 묶음이다(관세청 분류가 아니다) — {RT && Object.entries(RT.basket as Record<string, string[]>).map(([g, hs]) => `${g} ${hs.join("·")}`).join(" / ")}류(생활소비재 · 성질별 분류의 「소비재」와 다르다). 뺀 것: 곡물·유지·사료(원료 성격) · 담배(24) · 자동차(87) · 의약품(30) · 귀금속(71) · 전기기기(85 — 가전이 섞였지만 반도체·부품이 대부분). 17류(설탕·과자)는 원당이 섞였지만 넣었다.</p>}
+    {T && <p class="s-cap">세 축 — 물류 = 인천지방해양수산청 월별 항만운영통계(인천항 컨테이너 · 전년 대비는 공표값) · 해양수산부 항만별 선박입출항실적(인천항 외항선 입항 척수). {KO ? "무역" : "무역·유통"} = 관세청 시도별 품목별 수출입실적 — 시도는 물건이 들어온 곳(입항지)이 아니라 <b>관세청이 수출입 신고 업체를 시도로 나눠 집계한 것</b>이다 — 업체를 시도에 넣는 기준(본사·사업장 등)은 공개 명세에 없어 확인하지 못했다. 수도권 = 서울·인천·경기 합 · 전국(분모) = {T.denom === "nation" ? `같은 달 관세청 국가별 수출입실적의 전 국가 합${AX?.checks?.sido_sum_vs_nation_pct != null && Math.abs(AX.checks.sido_sum_vs_nation_pct) >= 0.5 ? ` — 시도별 통계의 시도 합은 이보다 ${Math.abs(AX.checks.sido_sum_vs_nation_pct)}% 작다(행정 개편으로 바뀐 시도 코드가 빠진 몫 · 수도권 세 시도와는 무관)` : ""}` : `시도별 통계의 시도 ${T.n_sido}곳 합`}.{KO ? <> 유통 = 국가통계포털(KOSIS) 「{KO.large.tbl_name || "시도별 대형소매점 판매액"}」의 서울·인천·경기 대형소매점 판매액 합(경상금액 · 물가를 빼지 않은 금액) · 대형소매점 = 백화점 + 대형마트(인천은 원천에 내역 칸이 없어 합계만 있다). 온라인쇼핑 = 같은 포털 「{KO.online.tbl_name || "온라인쇼핑몰 판매매체별/상품군별거래액"}」의 전체 거래액(인터넷 + 모바일 · 전국 — 시도별 통계가 없다). 둘 다 공표 금액 그대로이고 전년 같은 달 대비만 이 사이트가 계산했다.</> : <> 생활소비재 = 이 사이트가 HS 2단위로 고른 묶음이다(관세청 분류가 아니다) — {RT && Object.entries(RT.basket as Record<string, string[]>).map(([g, hs]) => `${g} ${hs.join("·")}`).join(" / ")}류(생활소비재 · 성질별 분류의 「소비재」와 다르다). 뺀 것: 곡물·유지·사료(원료 성격) · 담배(24) · 자동차(87) · 의약품(30) · 귀금속(71) · 전기기기(85 — 가전이 섞였지만 반도체·부품이 대부분). 17류(설탕·과자)는 원당이 섞였지만 넣었다.</>}</p>}
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 다르다{F.checks?.nat_gap_eok != null ? ` — 최대 ${F.checks.nat_gap_eok}억 달러` : ""}). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
     <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점도 길도 그리지 않았다 — 배가 실제로 다닌 바닷길은 회녹 결(세계은행 선박 통행 밀도)로 보인다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소({F.warehouse_asof ? `${F.warehouse_asof} 내려받은 등록현황 · 날짜를 박은 기록 · ` : ""}인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>

@@ -1,11 +1,11 @@
-"""유통 축 KOSIS 원천(2026-10-21 과제 1) — 통계청 KOSIS OpenAPI 에서 유통·소비 월 통계를 받는다. 키 = 저장소 시크릿 KOSIS_KEY.
+"""유통 축 KOSIS 원천(2026-10-21 과제 1) — 국가통계포털 KOSIS(국가데이터처 운영 · 옛 통계청) OpenAPI 에서 유통·소비 월 통계를 받는다. 키 = 저장소 시크릿 KOSIS_KEY.
 키가 없으면 아무것도 쓰지 않고 0 으로 끝난다(지난 파일을 지킨다) — 키 발급(회원가입·활용신청)은 선장님 손이다.
 표는 이름으로 찾는다(KOSIS 통합검색 API) — 표 번호를 손으로 박지 않는다. 찾은 표 번호·이름은 산출물에 남는다(다음 실행부터 그 표를 쓴다).
   WANT[i] = (id, 찾을 표 이름, 기관, 주기, 고를 분류 항목 키워드)
 결과: data/collected/v3/kosis_retail.json
   python tools-build/kosis.py
   python tools-build/kosis.py --selftest
-[미확인] 이 세션은 키가 없어 응답 모양을 실측하지 못했다 — 첫 실행(Actions)의 요약이 실측이다.
+실측(2026-10-22 refresh 브랜치 실행 39791460081): online = DT_1KE10071 「온라인쇼핑몰 판매매체별/상품군별거래액」(분류 C1 상품군 × C2 판매매체 · 「합계 계」 = 전체) · retail-sido = DT_1K41005 「시도별 대형소매점 판매액」(항목 = 대형소매점·백화점·대형마트 경상금액 · 인천은 대형소매점만) · 단위 백만원 · 25개월.
 """
 import datetime, json, os, sys, time, urllib.parse
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "v3"))
@@ -83,10 +83,12 @@ def run():
     for sid, name, org, prd, keys in WANT:
         prev = old.get("tables", {}).get(sid, {})
         tbl = prev.get("tbl")
+        meta = {k: prev[k] for k in ("tbl_name", "org_name", "stat_name") if prev.get(k)}  # 표 이름·작성 기관·조사 이름(출처 표시 · 활용약관 제7조)
         cands = None
         if not tbl:
             st, pick, cands = find_table(name, org)
             tbl = pick and pick.get("TBL_ID")
+            if pick: meta = {k: v for k, v in (("tbl_name", pick.get("TBL_NM")), ("org_name", pick.get("ORG_NM")), ("stat_name", pick.get("STAT_NM"))) if v}
             say(sid, "표 찾기", st, tbl or "없음", (pick or {}).get("TBL_NM", ""), "· 후보", [(c["tbl"], c["name"]) for c in cands][:8])
         if not tbl: res[sid] = {"want": name, "found": None, "candidates": cands}; continue
         for k in range(3):
@@ -95,11 +97,11 @@ def run():
             time.sleep(3 * (k + 1))
         s = slim(rows, keys)
         say(sid, tbl, "행", len(rows), "→", len(s), err or "", "· 모양", json.dumps(shape(rows), ensure_ascii=False))
-        if s: res[sid] = {"want": name, "tbl": tbl, "org": org, "rows": s, "candidates": cands}
+        if s: res[sid] = {"want": name, "tbl": tbl, "org": org, **meta, "rows": s, "candidates": cands}
         elif prev: res[sid] = prev
     if not any(r.get("rows") for r in res.values()):
         say("받은 행 0 — 덮어쓰지 않는다"); return 1
-    write(OUT, {"source": "통계청 KOSIS OpenAPI(이용지침: 출처 표시 · 수치 변경 배포 금지)", "fetched": datetime.date.today().isoformat(), "tables": res})
+    write(OUT, {"source": "국가데이터처 국가통계포털(KOSIS) 공유서비스 OpenAPI(통계정보 이용지침: 출처 명시 · 상업적 활용 가능 · 가공 없는 유료 판매 금지)", "fetched": datetime.date.today().isoformat(), "tables": res})
     return 0
 
 

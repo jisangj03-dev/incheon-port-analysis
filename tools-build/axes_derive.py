@@ -7,7 +7,7 @@
 출력  data/derived/home_axes.json
   무역 = 수도권(서울·인천·경기) 신고 화주의 수출입이 전국에서 차지하는 몫 · 수도권 수입 상위 품목(HS 2단위).
   유통 = 수도권 화주가 들여온 소비재(아래 CONSUMER 묶음 · 이 사이트가 고른 HS 2단위 목록 — 관세청 분류가 아니다) 금액 · 전년 같은 달 대비.
-         KOSIS 키가 들어오면 온라인쇼핑 거래액(전국 · 월)을 같이 싣는다.
+         [2026-10-22] KOSIS(retail.kosis)가 있으면 지면 유통 줄은 그것 — 수도권 대형소매점 판매액 · 전국 온라인쇼핑 거래액(kosis_view).
 분모(전국) = 관세청 국가별 수출입실적의 전 국가 합(같은 달) — 없으면 시도 합. 시도 합과의 차이를 checks 에 남긴다(행정 개편으로 빠진 시도 코드를 드러낸다).
   python tools-build/axes_derive.py [--selftest]
 """
@@ -116,17 +116,46 @@ def derive(st, nation=None, kosis=None):
     return out
 
 
+SUDO_KO = ("서울", "인천", "경기")  # KOSIS 시도 이름 앞머리(서울특별시 · 인천광역시 · 경기도)
+
+
+def jo(mil):
+    """백만 원 → 조 원(소수 한 자리)."""
+    return round(mil / 1e6, 1)
+
+
 def kosis_view(K):
-    """KOSIS 온라인쇼핑 거래액(전국 · 월) — 마지막 달과 전년 같은 달."""
-    t = ((K or {}).get("tables") or {}).get("online") or {}
-    rows = [r for r in (t.get("rows") or []) if r.get("c") in ("합계", "계") or r.get("c", "").startswith("합계")]
-    if not rows: return None
-    by = {}
-    for r in rows: by.setdefault(r["ym"], r)
-    last = max(by)
-    ly = f"{int(last[:4]) - 1}{last[4:]}"
-    now = by[last]["v"]
-    return {"ym": ym_dash(last), "online": now, "unit": by[last].get("unit"), "yoy": yoy(now, by[ly]["v"]) if ly in by else None, "tbl": t.get("tbl")}
+    """[2026-10-22 유통 축 = KOSIS 실측] 수도권(서울·인천·경기) 대형소매점 판매액(경상금액 · 월) + 전국 온라인쇼핑 거래액(월).
+    대형소매점 = 백화점 + 대형마트(서울·경기는 원천의 두 내역 합과 같다 · 인천은 내역 칸이 원천에 없다 — 2026-08 실측).
+    세 시도가 다 있는 마지막 달만 쓴다(한 시도라도 빠진 달을 수도권 합으로 부르지 않는다). 둘 중 하나라도 없으면 None — 지면은 종전 줄(생활소비재 수입)로 남는다."""
+    T = (K or {}).get("tables") or {}
+    o = T.get("online") or {}
+    orows = {}
+    for r in o.get("rows") or []:
+        if r.get("c") in ("합계 계", "합계", "계"):  # 판매매체 합(모바일·인터넷 각각이 아니다)
+            orows.setdefault(r["ym"], r["v"])
+    rs = T.get("retail-sido") or {}
+    big = {}
+    for r in rs.get("rows") or []:
+        if r.get("item", "").startswith("대형소매점"):
+            sd = next((k for k in SUDO_KO if r.get("c", "").startswith(k)), None)
+            if sd: big.setdefault(r["ym"], {})[sd] = r["v"]
+    full = sorted(m for m, v in big.items() if len(v) == len(SUDO_KO))
+    if not orows or not full: return None
+    lo, lb = max(orows), full[-1]
+    ly = lambda m: f"{int(m[:4]) - 1}{m[4:]}"
+    sb = sum(big[lb].values())
+    sb_ly = sum(big[ly(lb)].values()) if ly(lb) in full else None
+    return {
+        "large": {"ym": ym_dash(lb), "sudo_mil": sb, "sudo_jo": jo(sb), "yoy": yoy(sb, sb_ly) if sb_ly else None,
+                  "by_sido_jo": {k: jo(v) for k, v in big[lb].items()}, "tbl": rs.get("tbl"), "tbl_name": rs.get("tbl_name")},
+        "online": {"ym": ym_dash(lo), "mil": orows[lo], "jo": jo(orows[lo]), "yoy": yoy(orows[lo], orows.get(ly(lo))) if orows.get(ly(lo)) else None,
+                   "tbl": o.get("tbl"), "tbl_name": o.get("tbl_name")},
+        "unit": "조 원(경상금액 · 백만 원 원값을 조 원으로)",
+        # 신선도 「지면 기준」(refresh.py kosis-retail ours) — 원천 쪽 latest 가 두 표의 최댓값이라 여기도 최댓값.
+        #   두 표는 공표일이 다르다(온라인쇼핑 = 달 초 · 대형소매점 = 산업활동동향 달 말) — 최솟값이면 한쪽만 새로 나온 날마다 헛 「갱신 지연」이 뜬다.
+        "ym": ym_dash(max(lb, lo)),
+    }
 
 
 def main():
@@ -152,8 +181,13 @@ def selftest():
     N = {"months": {"202609": [{"imp": 1100_000.0 * 2, "exp": 100_000.0}]}}  # 달러 — 전국 수입 2,200(천 달러)
     o2 = derive(st, N)
     assert o2["trade"]["imp_pct"] == 50.0 and o2["trade"]["denom"] == "nation" and o2["checks"]["sido_sum_vs_nation_pct"] == round((2100 / 2200 - 1) * 100, 2), o2["checks"]
-    K = {"tables": {"online": {"rows": [{"ym": "202608", "c": "합계", "v": 22.0, "unit": "백만원"}, {"ym": "202508", "c": "합계", "v": 20.0, "unit": "백만원"}]}}}
-    assert kosis_view(K)["yoy"] == 10.0 and kosis_view(None) is None
+    big = lambda ym, a: [{"ym": ym, "c": c, "item": "대형소매점 경상금액", "v": v} for c, v in zip(("서울특별시", "인천광역시", "경기도"), a)]
+    K = {"tables": {"online": {"rows": [{"ym": "202608", "c": "합계 모바일쇼핑", "v": 9.0e6}, {"ym": "202608", "c": "합계 계", "v": 22.0e6}, {"ym": "202508", "c": "합계 계", "v": 20.0e6}]},
+                    "retail-sido": {"rows": big("202608", [2e6, 0.2e6, 1.5e6]) + big("202508", [1.9e6, 0.2e6, 1.4e6]) + big("202609", [2e6, 0.2e6, 0])[:2]}}}
+    kv = kosis_view(K)
+    assert kv["online"]["jo"] == 22.0 and kv["online"]["yoy"] == 10.0, kv  # 모바일 줄이 앞에 와도 합계 계
+    assert kv["large"]["ym"] == "2026-08" and kv["large"]["sudo_jo"] == 3.7 and kv["large"]["yoy"] == round((3.7 / 3.5 - 1) * 100, 1), kv  # 경기가 빠진 2026-09 는 안 쓴다
+    assert kosis_view(None) is None and kosis_view({"tables": {"online": K["tables"]["online"]}}) is None
     print("selftest 5/5 ok"); return 0
 
 

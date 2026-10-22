@@ -325,6 +325,20 @@
       ]
     },
     {
+      "id": "kostat-kosis",
+      "name": "국가통계포털(KOSIS) 시도별 대형소매점 판매액 · 온라인쇼핑몰 판매매체별/상품군별거래액",
+      "owner": "국가데이터처 · 국가통계포털(KOSIS)",
+      "where": "KOSIS 공유서비스(OpenAPI) kosis.kr/openapi · 표 DT_1K41005 · DT_1KE10071(기관 코드 101)",
+      "license": "KOSIS 통계정보 이용지침 — 출처 명시 의무 · 사용·재사용·재배포·상업적 활용 가능(가공 없는 유료 판매 금지)",
+      "kogl": "해당 없음 — KOSIS 통계정보 이용지침·활용약관",
+      "commercial": "허용(이용지침 「비상업적 또는 상업적 활용이 모두 가능」 · 활용약관 제8조)",
+      "modify": "허용(이용지침 「자유롭게 사용, 재사용 및 재배포」 · 금지는 가공 없는 유료 판매) · 공표 금액 그대로 싣고 전년 같은 달 대비만 계산",
+      "checked": "2026-10-22 kogl-check 워크플로 — kosis.kr/serviceInfo/useGuide.do 「통계정보 이용지침」(운영 = 국가데이터처) · applicationClause.do 「통계정보 활용약관」 제7조·제8조 원문(data/collected/kogl_check.json) · 키 = 저장소 시크릿 KOSIS_KEY(refresh)",
+      "used_by": [
+        "홈 세 축(유통)"
+      ]
+    },
+    {
       "id": "kobc-kcci",
       "name": "한국해양진흥공사 KCCI 지수(한국형 컨테이너 운임지수 · 항로 13)",
       "owner": "한국해양진흥공사",

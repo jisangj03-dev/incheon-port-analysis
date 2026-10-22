@@ -58,7 +58,7 @@ STEPS = [
     # [2026-10-21 과제 1 · 홈 세 축] 수도권(서울·인천·경기) 시도별 수출입 — 13달 쌓기(이미 받은 달은 건너뜀 · 마지막 두 달만 다시)
     ("sudo-trade", "관세청 시도별 품목별(수도권 세 시도 + 전국 분모)", [sys.executable, "tools-build/sudo_trade.py"], ".", 1500),
     # 유통 축 KOSIS — 시크릿 KOSIS_KEY 가 없으면 아무것도 안 쓰고 0(키 발급 = 선장님)
-    ("kosis", "통계청 KOSIS 유통·소비(키 있을 때만)", [sys.executable, "tools-build/kosis.py"], ".", 600),
+    ("kosis", "국가통계포털(KOSIS) 대형소매점·온라인쇼핑(키 있을 때만)", [sys.executable, "tools-build/kosis.py"], ".", 600),
     # [2026-10-21 숫자 전수 ③→①] 달마다 다시 계산하는 바탕 층 — 때가 된 날만 돈다(periodic.py · 종료 75 = 건너뜀). --only 로 부르면 때와 상관없이 돈다
     ("iso", "도달 등시선 — OSM 도로망 · 카카오 내비 대조 · 시간대 배율(월 1회)", [sys.executable, "tools-build/periodic.py", "iso"], ".", 3000),
     ("tariff", "관세율표 — 공공데이터포털 파일 15051179(월 1회 확인)", [sys.executable, "tools-build/periodic.py", "tariff"], ".", 900),
@@ -193,7 +193,7 @@ SOURCES = [
     {"id": "kcs-sido-sudo", "label": "관세청 시도별 품목별 수출입실적(수도권 · 전국)", "pages": ["홈 무역·유통 축"], "step": "sudo-trade", "cadence": ["monthly", 15],
      "ours": lambda: ym((J("data/derived/home_axes.json") or {}).get("trade", {}).get("ym")),
      "latest": lambda: ym(max(((J("data/collected/v3/sudo_trade.json") or {}).get("months") or {}).keys(), default=None))},
-    {"id": "kosis-retail", "label": "통계청 KOSIS 온라인쇼핑·소매판매", "pages": ["홈 유통 축"], "step": "kosis", "cadence": ["monthly", 35],
+    {"id": "kosis-retail", "label": "국가통계포털(KOSIS) 대형소매점·온라인쇼핑", "pages": ["홈 유통 축"], "step": "kosis", "cadence": ["monthly", 35],
      "when": lambda: os.path.exists(os.path.join(ROOT, "data/collected/v3/kosis_retail.json")),  # 키가 들어와 한 번이라도 받은 뒤부터 잰다
      "ours": lambda: ym(((J("data/derived/home_axes.json") or {}).get("retail") or {}).get("kosis", {}).get("ym")),
      "latest": lambda: ym(max((r["ym"] for t in ((J("data/collected/v3/kosis_retail.json") or {}).get("tables") or {}).values() for r in (t.get("rows") or [])), default=None))},
