@@ -43,8 +43,22 @@ def find_table(name, org):
 
 
 def series(org, tbl, prd, n=25):
-    st, j = jcall("Param/statisticsParameterData.do", {"method": "getList", "orgId": org, "tblId": tbl, "itmId": "ALL", "objL1": "ALL", "objL2": "ALL", "prdSe": prd, "newEstPrdCnt": str(n)})
-    return st, (j if isinstance(j, list) else []), (None if isinstance(j, list) else hide(json.dumps(j, ensure_ascii=False))[:300])
+    # 분류 단계 수는 표마다 다르다 — 셋 · 둘 · 하나 순으로 묻고 행이 오는 첫 꼴을 쓴다(없는 단계를 ALL 로 물으면 오류인 표가 있다 · [미확인] → 첫 실행 로그가 실측)
+    err = None
+    for depth in (3, 2, 1):
+        objs = {f"objL{i}": "ALL" for i in range(1, depth + 1)}
+        st, j = jcall("Param/statisticsParameterData.do", {"method": "getList", "orgId": org, "tblId": tbl, "itmId": "ALL", **objs, "prdSe": prd, "newEstPrdCnt": str(n)})
+        if isinstance(j, list) and j:
+            return st, j, None
+        err = f"objL{depth}: {st} " + hide(json.dumps(j, ensure_ascii=False))[:200]
+    return st, [], err
+
+
+def shape(rows):
+    """응답 모양 한 줄 — 분류 이름·항목·달 범위(값은 안 찍는다)."""
+    lab = lambda k: sorted({str(r.get(k)) for r in rows if r.get(k)})
+    prd = lab("PRD_DE")
+    return {"C1": lab("C1_NM")[:12], "C2": lab("C2_NM")[:8], "ITM": lab("ITM_NM")[:6], "UNIT": lab("UNIT_NM")[:3], "PRD": (prd[:1] + prd[-1:]) if prd else []}
 
 
 def slim(rows, keys):
@@ -73,14 +87,14 @@ def run():
         if not tbl:
             st, pick, cands = find_table(name, org)
             tbl = pick and pick.get("TBL_ID")
-            say(sid, "표 찾기", st, tbl or "없음", "· 후보", [c["name"] for c in cands][:5])
+            say(sid, "표 찾기", st, tbl or "없음", (pick or {}).get("TBL_NM", ""), "· 후보", [(c["tbl"], c["name"]) for c in cands][:8])
         if not tbl: res[sid] = {"want": name, "found": None, "candidates": cands}; continue
         for k in range(3):
             st, rows, err = series(org, tbl, prd)
             if rows: break
             time.sleep(3 * (k + 1))
         s = slim(rows, keys)
-        say(sid, tbl, "행", len(rows), "→", len(s), err or "")
+        say(sid, tbl, "행", len(rows), "→", len(s), err or "", "· 모양", json.dumps(shape(rows), ensure_ascii=False))
         if s: res[sid] = {"want": name, "tbl": tbl, "org": org, "rows": s, "candidates": cands}
         elif prev: res[sid] = prev
     if not any(r.get("rows") for r in res.values()):
