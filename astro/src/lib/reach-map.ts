@@ -1,4 +1,4 @@
-// 수도권 배송 등시선(실무 도구 · 2026-10-14) — 출발지에서 도착 분 격자(빌드 때 계산 · tools-build/v3/osm_iso.py)를 받아,
+// 수도권 도달 등시선(실무 도구 · 2026-10-14) — 출발지에서 도착 분 격자(빌드 때 계산 · tools-build/v3/osm_iso.py)를 받아,
 // 0분에서 180분까지 문턱을 올리며 도달권이 번지는 장면을 그린다(1시간·2시간·3시간 띠). 바탕 = 홈과 같은 땅(Natural Earth · OSM 인천 상세).
 // 투영 = 위도 보정 경위도 평면(위에서 내려다본 지도) — 등시선은 길이·넓이를 읽어야 해서 기울이지 않는다.
 import { pace, paused } from "./motion";
@@ -19,6 +19,7 @@ export class ReachMap {
   cv: HTMLCanvasElement; ctx: CanvasRenderingContext2D; iso: Iso; geo: Geo | null; o = 0; t = 180; k = 1; prep = 0; grid: Uint8Array; W = 0; H = 0; dpr = 1; // k = 시간대 배율(자유 흐름 분 × k · 내비 대조 보정) · prep = 상하차·준비 분(모든 도착에 더한다)
   view: number[]; // 보이는 경위도 범위
   field: HTMLCanvasElement; raf = 0;
+  /** 정지 그림으로 자를 띠 [위, 아래, 여백](캔버스 CSS px) — 주면 이름표는 띠 안 여백 밖이나 띠 밖에만 둔다(홈 띠 그림 · og-cards.mjs · 10/22 화면 판정: 그림 끝에 닿은 이름표) */ crop?: number[];
   onFrame?: (r: ReachMap) => void;
   constructor(cv: HTMLCanvasElement, iso: Iso, geo: Geo | null) {
     this.cv = cv; this.ctx = cv.getContext("2d")!; this.iso = iso; this.geo = geo;
@@ -77,22 +78,24 @@ export class ReachMap {
     const O = this.iso.origins[this.o], [ox, oy] = this.px(O.lon, O.lat);
     ctx.beginPath(); ctx.arc(ox, oy, 7, 0, Math.PI * 2); ctx.fillStyle = "#191714"; ctx.fill();
     // 출발지 이름(2차 화면 판정 — 고리 두른 점에 이름이 없었다)
-    ctx.font = `700 ${this.W < 500 ? 11.5 : 13}px system-ui, sans-serif`; ctx.textBaseline = "middle"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(243,239,229,0.9)";
+    ctx.font = `700 ${this.W < 500 ? 12.5 : 13}px system-ui, sans-serif`; ctx.textBaseline = "middle"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(243,239,229,0.9)";
     // 도시 점 자리 = 모든 이름표가 피할 자리(4차 화면 판정: 「용인 기흥」 점이 「수원 72분」 글자 한가운데 · 출발지 이름표가 다른 점까지 뻗었다)
     const dots = Object.values(this.iso.cities).map(([x, y]) => { const [cx, cy] = this.px(x, y); return [cx - 4, cy - 4, cx + 4, cy + 4]; });
     const clash = (bx: number[], list: number[][]) => list.some((q) => !(bx[2] < q[0] || bx[0] > q[2] || bx[3] < q[1] || bx[1] > q[3]));
     const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width;
-    const oc = [[ox - 12 - ow, oy - 14], [ox + 12, oy - 14], [ox - ow / 2, oy - 22], [ox - ow / 2, oy + 22], [ox - 12 - ow, oy + 14], [ox + 12, oy + 14]]
-      .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2);
+    // 출발점 고리(반지름 7→18)와 겹치지 않는 거리 — 이름표 바탕 상자가 고리를 덮었다(10/22 화면 3차 판정 경미)
+    const fits = (bx: number[]) => { const c = this.crop; return !c || (bx[1] >= c[0] + c[2] && bx[3] <= c[1] - c[2]) || bx[3] <= c[0] || bx[1] >= c[1]; }; // 자를 띠 안 여백 밖 · 또는 띠 밖
+    const oc = [[ox + 20, oy - 14], [ox - 20 - ow, oy - 14], [ox - ow / 2, oy - 28], [ox - ow / 2, oy + 28], [ox + 20, oy + 14], [ox - 20 - ow, oy + 14]]
+      .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2 && fits(c.bx));
     // 출발지 이름은 출발점 바로 옆(왼쪽·오른쪽 위 둘 중 화면에 드는 쪽)에 바탕 상자와 함께 — 도시 점을 피해 멀리 가면 다른 점의 이름처럼 읽혔다(8차 화면 판정 · 390) · 도시 이름표가 이 자리를 피한다
     const og = oc.slice(0, 2).find((c) => !clash(c.bx, dots)) || oc[0] || { ax: ox + 12, ay: oy - 14, bx: [ox + 10, oy - 22, ox + 14 + ow, oy - 6] };
     ctx.fillStyle = "rgba(243,239,229,0.92)"; ctx.fillRect(og.bx[0] - 2, og.bx[1], og.bx[2] - og.bx[0] + 4, og.bx[3] - og.bx[1]);
     ctx.fillStyle = "#191714"; ctx.fillText(oname, og.ax, og.ay);
     const oBox = og.bx; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
-    ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 18), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 11), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
     const boxes: number[][] = [oBox, [ox - 9, oy - 9, ox + 9, oy + 9]];
-    ctx.font = `500 ${this.W < 500 ? 10.5 : 12}px system-ui, sans-serif`; ctx.textBaseline = "middle";
+    ctx.font = `500 12px system-ui, sans-serif`; ctx.textBaseline = "middle"; // 좁은 화면도 12px — 10.5px 은 홈 띠 그림에서 10px 로 읽혔다(10/22 화면 판정 경미)
     for (const [nm, [x, y]] of Object.entries(this.iso.cities)) {
       const [cx, cy] = this.px(x, y), m0 = ((this.truck && (O as any).cities_truck) || O.cities)[nm], m = m0 == null ? null : Math.round(m0 * this.k + this.prep), on = m != null && m <= this.t;
       const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width;
@@ -100,7 +103,7 @@ export class ReachMap {
       const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13], [cx + 5, cy - 11], [cx - 5 - tw, cy - 11], [cx + 5, cy + 11], [cx - 5 - tw, cy + 11]];
       const others = dots.filter((d) => !(d[0] === cx - 4 && d[1] === cy - 4));
       let lx = 0, ly = 0, hit = true;
-      for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2) continue; if (clash(bx, boxes) || clash(bx, others)) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }
+      for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2 || !fits(bx)) continue; if (clash(bx, boxes) || clash(bx, others)) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }
       if (hit) continue;
       ctx.beginPath(); ctx.arc(cx, cy, on ? 3.5 : 2.5, 0, Math.PI * 2); ctx.fillStyle = on ? "#191714" : "rgba(25,23,20,0.35)"; ctx.fill();
       ctx.lineWidth = 3; ctx.strokeStyle = "rgba(243,239,229,0.85)"; ctx.strokeText(label, lx, ly);

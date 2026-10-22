@@ -45,6 +45,8 @@ const HS = J("data/hs2_short.json").names as Record<string, string>;
 const AXES = J("data/questions.json").axes as { id: string; name: string; verb: string; who: string; tools: { href: string; gain: string }[] }[];
 const AXN = Object.fromEntries(AXES.map((a) => [a.id, a])); // 축 이름·작은 말·사람·도구(질문 묶음과 같은 원천)
 const TITLE: Record<string, string> = Object.fromEntries(rooms().flatMap((r) => (r.items || []).map((it) => [it.href, it.title]))); // 지면 이름 = rooms.json
+// {SLOT} = 등시선 기본 시간대와 출발 시각(reach_slots.json default 의 label 「낮 14:00」) — 띠 설명에 몇 시인지 없었다(10/22 화면 판정 경미)
+const RSL = J("data/derived/reach_slots.json"), SLOT = RSL.slots.find((t: any) => t.id === RSL.default)?.label ?? RSL.default;
 const SHOTS = J("data/home_showcase.json").shots as { id: string; href: string; title: string; axis: string; note: string; whole?: number }[];
 const NS = ((room("sim")?.items || []) as any[]).length;
 const TRY = (J("data/derived/trade_race.json").years as any[]).filter((y) => !y.partial).at(-1)?.y ?? ""; // 트리맵 레이스 지면이 처음 보이는 해(마지막 온전한 해) — 띠 설명 줄 {Y}
@@ -77,7 +79,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
       <div class="shots__stage">
         {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}${t.whole ? " shot--whole" : ""}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
           <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 지면 화면(주 그림)`} width="1176" height="588" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
-          <span class="shot__t"><b>{t.title} →</b> <small>{t.note.replace("{Y}", TRY)}</small></span>
+          <span class="shot__t"><b>{t.title} →</b> <small>{t.note.replace("{Y}", TRY).replace("{SLOT}", SLOT)}</small></span>
         </a>)}
       </div>
     </figure>

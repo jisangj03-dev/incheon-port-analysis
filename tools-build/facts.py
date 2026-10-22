@@ -11,7 +11,7 @@
   python tools-build/facts.py --approve  지금 갈래를 승인 갈래로 옮긴다(refresh 의 문장 확인 PR 만 쓴다 — 사람 결재 = 그 PR 머지)
   python tools-build/facts.py --selftest
 """
-import json, os, sys
+import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DER = os.path.join(ROOT, "data", "derived")
@@ -66,7 +66,9 @@ def facts(D):
     S, I = D["reach_slots"], D["isochrones"]
     oi = max(0, next((i for i, o in enumerate(I["origins"]) if o["kind"] == "물류단지"), 0))
     put("reach.origin", I["origins"][oi]["name"], ["/tools/delivery-reach.html"], "isochrones.json origins(물류단지)")
-    put("reach.slot", S["default"], ["/tools/delivery-reach.html"], "reach_slots.json default", "({v} 시간대)")
+    put("reach.slot", S["default"], ["/tools/delivery-reach.html"], "reach_slots.json default", "({v} 시간대")
+    SD = next(s for s in S["slots"] if s["id"] == S["default"])
+    put("reach.slot_at", (re.search(r"\d{1,2}:\d{2}", SD.get("label", "")) or [""])[0], ["/tools/delivery-reach.html"], "reach_slots.json slots[default].label(내비 대조 출발 시각)", "평일 {v} 출발")
     put("reach.seoul_car", S["table"][oi][S["default"]]["car"]["서울시청"], ["/tools/delivery-reach.html"], "reach_slots.json table[물류단지][default].car.서울시청", "승용차로 출발하면 서울시청까지 {v}분")
     R = {r["id"]: len(r.get("items") or []) for r in D["rooms"]["rooms"]}
     put("site.n_tools", R["tools"], ["/"], "rooms.json tools", "실무 도구 {v}개")

@@ -115,6 +115,46 @@ if (existsSync("data/derived/facts.json") && existsSync("content-queue/templates
   }
   L.push("", `- 초안 숫자 자리 ${n}개 · 이름 ${Object.keys(uses).length}개 · 공개판 불일치 ${bad}`);
 }
+// ⑧ 띠 그림 = 등시선 지면(2026-10-22 갱신 무인화 · 주 1회) — 배포된 띠 그림이 찍힌 순간의 장면 상태(assets/toolshots/delivery-reach*.json · og-cards guard 가 냄)를
+//   등시선 지면 첫 문장의 서울시청 분·차종과 대조하고, 홈 띠 설명이 같은 기준(승용차)인지 본다. 어긋나면 FAIL → 자동경보.
+//   cfg.shots 가 있으면 홈 첫 화면·띠 그림 원본·지면 지도를 docs/live-shots 에 받아 둔다(브랜치 실행만 커밋 · main 은 결과 이슈만).
+{
+  const { chromium } = await import("@playwright/test");
+  const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
+  const html = await (await fetch(cfg.base + "/")).text();
+  const carNote = /승용차·평일 [^<]*출발로 계산한 도달 시간/.test(html), truckNote = /화물차·[^<]*계산한 도달 시간/.test(html);
+  L.push("", "## ⑧ 띠 그림 = 등시선 지면", "", `- 홈 원문 실명 등장: **${html.split(P.name).length - 1}회** · 띠 설명 「승용차·평일 … 출발」: ${carNote ? "있음" : "**없음**"} · 「화물차·」: ${truckNote ? "**있음**" : "없음"}`);
+  if (!carNote || truckNote) FAIL.push("홈 띠 설명이 승용차 기준이 아니다");
+  const b = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
+  const pg = await b.newPage({ viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 });
+  await pg.goto(cfg.base + "/tools/delivery-reach.html", { waitUntil: "load" }); await pg.waitForTimeout(4000);
+  const lead = (await pg.locator(".tool__lead").first().textContent()) || "";
+  const leadMin = Number((lead.match(/서울시청까지 (\d+)분/) || [])[1]), leadCar = /승용차로 출발하면/.test(lead);
+  L.push(`- 등시선 지면 첫 문장: 「${lead.slice(0, 90)}…」 → 서울시청 **${leadMin}분** · ${leadCar ? "승용차" : "**승용차 아님**"}`);
+  for (const f of ["delivery-reach", "delivery-reach-m"]) {
+    const r = await fetch(`${cfg.base}/assets/toolshots/${f}.json`);
+    if (!r.ok) { L.push(`- 띠 그림 상태 ${f}.json: ${r.status}`); FAIL.push(`띠 그림 상태 ${f}.json ${r.status}`); continue; }
+    const st = await r.json(), same = st.서울시청분 === leadMin && st.차종 === "승용" && leadCar;
+    L.push(`- 띠 그림 \`${f}.jpg\` 찍힌 장면: ${st.출발지} · ${st.차종} · ${st.시간대} · 서울시청 **${st.서울시청분}분** → ${same ? "**같다**" : "**다르다**"}`);
+    if (!same) FAIL.push(`띠 그림(${f}) 서울시청 ${st.서울시청분}분·${st.차종} ≠ 등시선 지면 ${leadMin}분`);
+  }
+  if (cfg.shots?.length) {
+    mkdirSync("docs/live-shots", { recursive: true });
+    for (const f of ["delivery-reach.jpg", "delivery-reach-m.jpg"]) {
+      const r = await fetch(`${cfg.base}/assets/toolshots/${f}`);
+      if (r.ok) { writeFileSync(`docs/live-shots/toolshot-${f}`, Buffer.from(await r.arrayBuffer())); L.push(`- 공개판 띠 그림 \`docs/live-shots/toolshot-${f}\``); } else FAIL.push(`띠 그림 ${f} ${r.status}`);
+    }
+    await pg.locator(".reach__map").first().screenshot({ path: "docs/live-shots/delivery-reach-map-560.png" }); L.push("- `docs/live-shots/delivery-reach-map-560.png` (실물 지면 지도)");
+    for (const [w, h] of cfg.shots) {
+      const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: w < 500, hasTouch: w < 500, deviceScaleFactor: w < 500 ? 2 : 1 });
+      const hp = await ctx.newPage();
+      await hp.goto(cfg.base + "/", { waitUntil: "load" }); await hp.waitForTimeout(2500);
+      const f = `docs/live-shots/home--${w}x${h}.png`; await hp.screenshot({ path: f }); L.push(`- \`${f}\``);
+      await ctx.close();
+    }
+  }
+  await b.close();
+}
 L.push("", `## 판정 — 어긋남 ${FAIL.length}`, "", ...(FAIL.length ? FAIL.map((f) => `- ${f}`) : ["- 없음"]));
 writeFileSync("live-check-fail.txt", FAIL.join("\n"));
 console.log(L.join("\n"));

@@ -60,7 +60,7 @@ STEPS = [
     # 유통 축 KOSIS — 시크릿 KOSIS_KEY 가 없으면 아무것도 안 쓰고 0(키 발급 = 선장님)
     ("kosis", "통계청 KOSIS 유통·소비(키 있을 때만)", [sys.executable, "tools-build/kosis.py"], ".", 600),
     # [2026-10-21 숫자 전수 ③→①] 달마다 다시 계산하는 바탕 층 — 때가 된 날만 돈다(periodic.py · 종료 75 = 건너뜀). --only 로 부르면 때와 상관없이 돈다
-    ("iso", "배송 등시선 — OSM 도로망 · 카카오 내비 대조 · 시간대 배율(월 1회)", [sys.executable, "tools-build/periodic.py", "iso"], ".", 3000),
+    ("iso", "도달 등시선 — OSM 도로망 · 카카오 내비 대조 · 시간대 배율(월 1회)", [sys.executable, "tools-build/periodic.py", "iso"], ".", 3000),
     ("tariff", "관세율표 — 공공데이터포털 파일 15051179(월 1회 확인)", [sys.executable, "tools-build/periodic.py", "tariff"], ".", 900),
     ("derive", "파생 일곱 + 예측 원장", None, ".", 900),
 ]
@@ -198,7 +198,7 @@ SOURCES = [
      "ours": lambda: ym(((J("data/derived/home_axes.json") or {}).get("retail") or {}).get("kosis", {}).get("ym")),
      "latest": lambda: ym(max((r["ym"] for t in ((J("data/collected/v3/kosis_retail.json") or {}).get("tables") or {}).values() for r in (t.get("rows") or [])), default=None))},
     # 우리가 다시 계산하는 층 — 원천(OSM 은 매일 · 관세율표는 개정 때) 대신 우리 재계산 주기로 잰다(recompute · 다음 = 마지막 확인 + 주기)
-    {"id": "osm-reach", "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)", "pages": ["배송 등시선", "도구 목록"], "step": "iso", "cadence": ["recompute", 28],
+    {"id": "osm-reach", "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)", "pages": ["도달 등시선", "도구 목록"], "step": "iso", "cadence": ["recompute", 28],
      "ours": lambda: (J("data/derived/isochrones.json") or {}).get("made"),
      "latest": lambda: (J("data/derived/isochrones.json") or {}).get("made")},
     {"id": "kcs-tariff", "label": "관세청 품목번호별 관세율표(파일 · 우리 확인)", "pages": ["수입원가"], "step": "tariff", "cadence": ["recompute", 28],

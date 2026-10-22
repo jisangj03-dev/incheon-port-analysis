@@ -216,7 +216,7 @@
   "osm-reach": {
    "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)",
    "pages": [
-    "배송 등시선",
+    "도달 등시선",
     "도구 목록"
    ],
    "cadence": [

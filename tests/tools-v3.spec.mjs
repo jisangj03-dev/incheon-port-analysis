@@ -227,7 +227,7 @@ test("등시선: 기본 = 낮 시간대 · 첫 문장 = 고른 시간대 값 + �
   // 스크립트 없이 — 서버 첫 그림
   const ctx = await browser.newContext({ javaScriptEnabled: false }), p0 = await ctx.newPage();
   await p0.goto(`${B}/tools/delivery-reach.html`);
-  await expect(p0.locator(".tool__lead")).toContainText(`서울시청까지 ${T.car["서울시청"]}분(낮 시간대)`); // 보정 근거(카카오 내비 ${D.n}구간 대조)는 방법 칸 — 9차 화면 판정 Q5
+  await expect(p0.locator(".tool__lead")).toContainText(`서울시청까지 ${T.car["서울시청"]}분(낮 시간대 · 평일 ${D.label.match(/\d{1,2}:\d{2}/)[0]} 출발 기준)`); // 보정 근거(카카오 내비 ${D.n}구간 대조)는 방법 칸 — 9차 화면 판정 Q5
   await expect(p0.locator('#reach-list li[data-city="서울시청"] b')).toHaveText(String(T.car["서울시청"]));
   await expect(p0.locator(".seg:not(#reach-veh) button[aria-pressed=true]")).toContainText("낮");
   await ctx.close();
@@ -236,7 +236,7 @@ test("등시선: 기본 = 낮 시간대 · 첫 문장 = 고른 시간대 값 + �
   await page.locator(".seg:not(#reach-veh) button").first().click();
   await expect(page.locator(".tool__lead")).toContainText(`서울시청까지 ${I.origins[fi].cities["서울시청"]}분(자유 흐름 · 혼잡 미반영)`);
   const C = RS.slots.find((t) => t.id === "출근");
-  if (C) { await page.locator(".seg:not(#reach-veh) button", { hasText: "출근" }).click(); await expect(page.locator(".tool__lead")).toContainText(`서울시청까지 ${RS.table[fi]["출근"].car["서울시청"]}분(출근 시간대)`); }
+  if (C) { await page.locator(".seg:not(#reach-veh) button", { hasText: "출근" }).click(); await expect(page.locator(".tool__lead")).toContainText(`서울시청까지 ${RS.table[fi]["출근"].car["서울시청"]}분(출근 시간대 · 평일 ${RS.slots.find((t) => t.id === "출근").label.match(/\d{1,2}:\d{2}/)[0]} 출발 기준)`); }
 });
 
 // [#67 ①] 시간대 표는 isochrones × 배율(0.5 올림)과 같다 — isochrones 를 다시 계산하고 reach_slots.py 를 안 돌리면 여기서 빨개진다

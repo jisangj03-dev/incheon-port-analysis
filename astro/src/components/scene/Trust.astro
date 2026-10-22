@@ -19,14 +19,16 @@ const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts
   if (cur) out.push(cur.trim()); return out.filter(Boolean); })();
 // 한 줄에는 출처 둘까지 — 셋 이상이면 「외 N」로 줄이고 나머지는 접기 안(2026-10-20 2차 화면 판정: 수입원가·초크포인트 출처가 3~4줄로 펼쳐졌다)
 const names = segs.filter((x) => !TERMS.test(x));
-const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
-const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
+// 단, 「갱신 지연」·「자동 받기 실패」 상자가 떠 있으면 출처를 다 펼친다 — 상자가 말하는 자료가 「외 N」 안에 묻혀 어느 출처인지 못 찾았다(10/22 화면 3차 판정 경미 · 홈)
+const cut = names.length > 2 && !DL.length;
+const short = (cut ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
+const terms = [...(cut ? names.slice(2) : []), ...segs.filter((x) => TERMS.test(x))];
 ---
 {DL.map((g) => <p class={`s-delay${g.head === "갱신 지연" ? "" : " s-delay--soft"}`} data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
 <p class="s-trust" data-fresh-ids={DI.join(",") || undefined}><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
-{(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, names.length > 2 ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
+{(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, cut ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
 <style>
   .s-delay__i { display: block; }
   .s-delay--soft { border-left-color: var(--s-ink-3); background: color-mix(in srgb, var(--s-ink-3) 8%, transparent); } /* 자동 받기 실패 = 지금 숫자는 최신 — 「갱신 지연」보다 약하게(10/22 화면 3차 판정) */
