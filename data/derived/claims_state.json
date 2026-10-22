@@ -2,8 +2,8 @@
  "_설명": "해석 문장 지금 갈래 vs 승인 갈래(data/claims.json) — 다르면 배포 대신 문장 확인 PR.",
  "claims": {
   "home.sea_counter": {
-   "now": "busan",
-   "approved": "busan",
+   "now": "incheon",
+   "approved": "incheon",
    "flipped": false
   },
   "home.air_vs_port": {
@@ -27,8 +27,8 @@
    "flipped": false
   },
   "gate.air_most": {
-   "now": "most",
-   "approved": "most",
+   "now": "over_half",
+   "approved": "over_half",
    "flipped": false
   }
  }
