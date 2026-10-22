@@ -24,7 +24,11 @@ SOURCES = {
     "kcs-nitemtrade": {"q": "관세청 품목별 국가별 수출입실적", "want": ["품목별", "국가별"]},
     "mof-vessel": {"id": "15059059"},
     "mof-incheon-port-stats": {"board": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700"},
+    # [2026-10-22 유통 축 KOSIS] 공공데이터포털 밖 원천 — 첫 화면·OpenAPI 화면에서 저작권·이용약관 글로 가는 고리를 따라가 그 글의 조건 문장을 옮긴다.
+    "kostat-kosis": {"site": ["https://kosis.kr/", "https://kosis.kr/openapi/index/index.jsp"],
+                     "link": ["저작권", "이용약관", "이용정책", "약관"]},
 }
+TERMS = re.compile(r"[^.。]{0,80}(?:출처|상업|영리|변경|가공|공공누리|저작권|무단|2차)[^.。]{0,120}")
 KOGL = re.compile(r"공공누리\s*(?:제\s*)?([1-4])\s*유형|KOGL\s*(?:Type\s*)?([1-4])|img_opentype0?([1-4])|opentype_?0?([1-4])", re.I)
 
 
@@ -76,7 +80,25 @@ def main():
     out = {"checked": datetime.date.today().isoformat(), "command": "python tools-build/kogl_check.py", "sources": {}}
     for sid, s in SOURCES.items():
         rec = {}
-        if "board" in s:
+        if "site" in s:
+            rec = {"pages": []}
+            seen = set()
+            for start in s["site"]:
+                st, h = get(start)
+                rec["pages"].append({"url": start, "status": st, "title": parse(h)["title"]})
+                for m in re.finditer(r'<a\b[^>]*href="([^"#]+)"[^>]*>([\s\S]{0,200}?)</a>', h):
+                    lt = text(m.group(2))
+                    if not any(k in lt for k in s["link"]): continue
+                    url = urllib.parse.urljoin(start, html.unescape(m.group(1)))
+                    if url in seen or not url.startswith("http") or len(seen) >= 6: continue
+                    seen.add(url)
+                    st2, h2 = get(url)
+                    t2 = text(h2)
+                    rec["pages"].append({"url": url, "link_text": lt[:40], "status": st2, **parse(h2),
+                                         "terms": [x.strip() for x in TERMS.findall(t2)][:12]})
+            rec["status"] = rec["pages"][0]["status"] if rec["pages"] else None
+            rec["kogl_type"] = next((x.get("kogl_type") for x in rec["pages"] if x.get("kogl_type")), None)
+        elif "board" in s:
             st, h = get(s["board"])
             rec = {"url": s["board"], "status": st}
             # 목록의 첫 글을 연다(공공누리 마크는 글 본문 아래에 붙는다)
@@ -110,8 +132,9 @@ def selftest():
     p = parse('<th>이용허락범위</th><td>제한 없음</td><img src="/img/img_opentype01.png" alt="공공누리 제1유형">')
     assert p["license_text"].startswith("제한 없음") and p["kogl_type"] == 1, p
     assert parse("<p>아무것도 없음</p>") == {"title": None, "license_text": None, "kogl_type": None, "evidence": []}
+    assert TERMS.findall("통계자료는 출처를 밝히고 이용할 수 있습니다. 날씨가 좋다.") == ["통계자료는 출처를 밝히고 이용할 수 있습니다"]
     UA.encode("latin-1")  # 헤더에 못 싣는 글자가 있으면 여기서 멈춘다
-    print("selftest 3/3 ok"); return 0
+    print("selftest 4/4 ok"); return 0
 
 
 if __name__ == "__main__":
