@@ -53,9 +53,10 @@ export function delayLine(ids: string[], today = new Date().toISOString().slice(
       : r.fail_kind === "auth" ? "자동 받기가 막힘(이용 인증)"
       : r.fail_kind === "format" ? "원천 자료 형식이 바뀌어 자동 받기가 멈춤"
       : r.fail_kind ? `자동 받기 실패 ${r.fail_days ?? 1}일째`
-      : `마지막으로 받은 날 ${r.checked ?? "—"}`;
+      : r.next_expected && today > r.next_expected ? `공표 예정 ${r.next_expected} 무렵이 지났는데 새 자료를 아직 못 받음(마지막 확인 ${r.checked ?? "—"})`
+      : `마지막 확인 ${r.checked ?? "—"} — 확인 주기를 넘김`;
     const due = r.next_expected && today > r.next_expected;
-    if (r.behind || due || !r.fail_kind) { late = true; parts.push(`${basis} — ${why}${due ? ` · 다음 공표 예정 ${r.next_expected} 무렵이 지났다` : ""}`); }
+    if (r.behind || due || !r.fail_kind) { late = true; parts.push(`${basis} — ${why}${due && r.fail_kind ? ` · 다음 공표 예정 ${r.next_expected} 무렵이 지났다` : ""}`); }
     else parts.push(`${name} ${why} — 지금 숫자(${r.ours ?? "—"}${/^\d{4}-\d{2}-\d{2}$/.test(r.ours ?? "") ? " 주" : ""})는 최신이고, 다음 공표분(${r.next_expected} 무렵)부터 늦을 수 있다`);
   }
   if (!parts.length) return null;
