@@ -1,7 +1,7 @@
 ---
 id: delivery-reach
 made: 자동(refresh · 숫자 = data/derived)
-asof: 2026-10-21
+asof: 2026-10-22
 state: 초안(게시 = 선장님 · 이 파일은 어디에도 게시되지 않았다)
 note: AI 초안 · 검수 전 — 숫자는 data/derived 에서만(시험 tests/content-queue.spec.mjs)
 ---
