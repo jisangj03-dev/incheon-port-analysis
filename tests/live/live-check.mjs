@@ -23,6 +23,27 @@ L.push("", "## ③ Cloudflare 비컨", "");
   const html = await (await fetch(cfg.base + "/")).text();
   L.push(`- 홈 HTML 에 비컨 스크립트: **${/static\.cloudflareinsights\.com\/beacon\.min\.js/.test(html) ? "있다" : "없다"}** · 토큰 표지 ${/data-cf-beacon/.test(html) ? "있다" : "없다"}`);
 }
+// ⑤ 홈 실물 화면(2026-10-22 · 첫 화면 정체성 배포 확인) — cfg.shots 의 폭마다 첫 화면을 찍고(띠 둘째·셋째 그림 포함) 실명이 홈 원문에 0인지 잰다
+if (cfg.shots?.length) {
+  const { chromium } = await import("@playwright/test");
+  mkdirSync("docs/live-shots", { recursive: true });
+  const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
+  const html = await (await fetch(cfg.base + "/")).text();
+  L.push("", "## ⑤ 홈 실물 화면", "", `- 홈 원문 실명(profile.json name) 등장: **${html.split(P.name).length - 1}회** · 「수도권 물류·무역·유통을」 제목: ${html.includes("수도권 물류·무역·유통을") ? "있음" : "없음"}`);
+  const b = await chromium.launch();
+  for (const [w, h] of cfg.shots) {
+    const ctx = await b.newContext({ viewport: { width: w, height: h }, isMobile: w < 500, hasTouch: w < 500, deviceScaleFactor: w < 500 ? 2 : 1 });
+    const pg = await ctx.newPage();
+    await pg.goto(cfg.base + "/", { waitUntil: "load" }); await pg.waitForTimeout(2500);
+    for (const k of [0, 1, 2]) {
+      if (k) { await pg.evaluate((k) => window.__shots?.show(k), k); await pg.waitForTimeout(1500); }
+      const f = `docs/live-shots/home--${w}x${h}${k ? `-shot${k + 1}` : ""}.png`;
+      await pg.screenshot({ path: f }); L.push(`- \`${f}\``);
+    }
+    await ctx.close();
+  }
+  await b.close();
+}
 L.push("", "## ④ Lighthouse 모바일(실물)", "", "| 지면 | 성능 | 접근성 | 권장 | SEO | 권장 감점 항목 |", "|---|---|---|---|---|---|");
 mkdirSync("lighthouse-live", { recursive: true });
 for (const p of cfg.lighthouse) {

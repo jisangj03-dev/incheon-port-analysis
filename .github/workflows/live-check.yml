@@ -53,6 +53,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/실물점검.md
+          [ -d docs/live-shots ] && git add docs/live-shots
           git diff --cached --quiet && exit 0
           git commit -m "실물 점검 결과 — live-check 워크플로"
           git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
