@@ -70,7 +70,7 @@ if (cfg.open?.length) {
     if (seen.has(u)) return seen.get(u);
     let st = "오류";
     for (const m of ["HEAD", "GET"]) {
-      try { const r = await fetch(u, { method: m, redirect: "follow", signal: AbortSignal.timeout(20000), headers: { "user-agent": "Mozilla/5.0 (측심 링크 점검 · 주 1회)" } }); st = r.status; if (r.status < 400 || m === "GET") break; } catch (e) { st = "연결 실패"; }
+      try { const r = await fetch(u, { method: m, redirect: "follow", signal: AbortSignal.timeout(20000), headers: { "user-agent": "Mozilla/5.0 (compatible; cheuksim-linkcheck/1.0; weekly)" } }); st = r.status; if (r.status < 400 || m === "GET") break; } catch (e) { st = "연결 실패"; }
     }
     seen.set(u, st); return st;
   };

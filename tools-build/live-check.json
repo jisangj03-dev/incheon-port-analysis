@@ -29,7 +29,7 @@
   "/tools/import-cost.html"
  ],
  "range": "/tiles/incheon.pmtiles",
- "run": 5,
+ "run": 6,
  "open": [
   "/",
   "/tools/",
