@@ -35,15 +35,17 @@ const CT = existsSync(join(repoRoot(), "data/derived/supply_hs85.json")) ? J("da
 const fmt = (v: number) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 // ── [2026-10-21 선장님 과제 1] 세 축 — 무역(사고팖) · 물류(옮김) · 유통(팖). 숫자는 전부 refresh 가 다시 받는 파일에서(docs/숫자전수 ① 칸).
-//    무역·유통 = data/derived/home_axes.json(tools-build/axes_derive.py · 관세청 시도별 = 신고 화주 소재지) · 물류 = 컨테이너 long · 외항선 · home_flows.
+//    무역·유통 = data/derived/home_axes.json(tools-build/axes_derive.py · 관세청 시도별 = 신고 업체를 시도로 집계 · 배정 기준 미공개) · 물류 = 컨테이너 long · 외항선 · home_flows.
 const AX = existsSync(join(repoRoot(), "data/derived/home_axes.json")) ? J("data/derived/home_axes.json") : null;
 const T = AX?.trade, RT = AX?.retail;
 const SAME = !T || Math.abs(T.nat_imp - L.nat_imp) <= 0.1;
+// 관문 몫이 표시 기간 가운데 가장 높은 달이면 그렇다고 적는다(평소보다 높은 달을 평소처럼 읽지 않게 · 25차 사실 대조 제안)
+const SH = F.months.map((m: any) => m.imp_share_pct), TOP = L.imp_share_pct >= Math.max(...SH);
 const HS = J("data/hs2_short.json").names as Record<string, string>;
 const AXES = J("data/questions.json").axes as { id: string; name: string; verb: string; who: string; tools: { href: string; gain: string }[] }[];
 const AXN = Object.fromEntries(AXES.map((a) => [a.id, a])); // 축 이름·작은 말·사람·도구(질문 묶음과 같은 원천)
 const TITLE: Record<string, string> = Object.fromEntries(rooms().flatMap((r) => (r.items || []).map((it) => [it.href, it.title]))); // 지면 이름 = rooms.json
-const SHOTS = J("data/home_showcase.json").shots as { id: string; href: string; title: string; axis: string; note: string }[];
+const SHOTS = J("data/home_showcase.json").shots as { id: string; href: string; title: string; axis: string; note: string; whole?: number }[];
 const NS = ((room("sim")?.items || []) as any[]).length;
 const TRY = (J("data/derived/trade_race.json").years as any[]).filter((y) => !y.partial).at(-1)?.y ?? ""; // 트리맵 레이스 지면이 처음 보이는 해(마지막 온전한 해) — 띠 설명 줄 {Y}
 // 두 몫의 분모 — 관세청 항구·공항별 전국(F)과 국가별 전 국가 합(T) · 같은 달에 0.1억 달러 안이면 「둘 다 ÷ 전국」 한 숫자로(23차 사실 대조 제안 · 2026-01~03 은 최대 1.9 차이) // 연습용 시뮬레이션 수(rooms.json)
@@ -65,16 +67,16 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="live__text idv__me">
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
-    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 데이터를 바탕으로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
-    <figure class="shots" id="shots" data-shots aria-label="실제 도구 화면 — 도구 셋이 7초마다 차례로 바뀐다">
+    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 통계와 공개 지도를 바탕으로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
+    <figure class="shots" id="shots" data-shots aria-label="실제 도구 화면 — 도구 셋을 차례로 보여 준다">
       <div class="shots__bar">
         <span class="shots__cap">실제 도구 화면</span>
-        <span class="shots__seg" role="group" aria-label="도구 고르기">{SHOTS.map((t, i) => <button type="button" class={`seg${i ? "" : " is-on"}`} data-i={i} aria-label={t.title} aria-pressed={i ? "false" : "true"}><i></i></button>)}</span>
+        <span class="shots__seg" role="group" aria-label="도구 고르기">{SHOTS.map((t, i) => <button type="button" class={`seg${i ? "" : " is-on"}`} data-i={i} aria-label={t.title} title={t.title} aria-pressed={i ? "false" : "true"}><i></i></button>)}</span>
         <button type="button" class="shots__pause" id="shots-pause" aria-pressed="false">넘김 멈춤</button>
       </div>
       <div class="shots__stage">
-        {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
-          <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1280" height="720" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
+        {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}${t.whole ? " shot--whole" : ""}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
+          <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1176" height="588" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
           <span class="shot__t"><b>{t.title} →</b> <small>{t.note.replace("{Y}", TRY)}</small></span>
         </a>)}
       </div>
@@ -89,7 +91,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="who3__t">{a.tools.map((t, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(t.href)} title={TITLE[t.href]}>{t.gain}</a></>)}</span>
       </li>)}
     </ul>
-    <p class="idv__ask">물동량·원가·발주 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 연락 주세요.</p>
+    <p class="idv__ask">물동량·원가 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 연락 주세요.</p>
     <div class="live__cta">
       {hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
       <a class="s-btn s-btn--ghost live__q" href={u("/tools/")}>도구 보기</a>
@@ -101,7 +103,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="now__text">
     <p class="s-cap axes__cap">최신 공표 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재(서로 다른 기준 — 아래 정의)</p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
-    <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 서울·인천·경기에 소재한 화주(수입자·수출자 — 본사 등 · 물건이 내린 곳 아님)</span><span class="lg-s">화주 = 소재지 기준(본사 등 · 물건이 내린 곳 아님)</span></b></>}</p>
+    <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{TOP && <span class="lg-d"> · 관문 몫 {L.imp_share_pct}%는 표시한 {SH.length}개월 가운데 가장 높은 달</span>}{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 관세청이 서울·인천·경기로 집계한 수출입 신고 업체(물건이 들어온 곳이 아님 · 업체를 시도에 넣는 기준은 미공개)</span><span class="lg-s">화주 = 관세청 시도별 집계 업체(물건이 들어온 곳 아님)</span></b></>}</p>
     <ol class="live__stat ax">
       <li class="ax__row"><a href="#ax-logi">
         <span class="ax__k">{AXN.logi.name}<small>인천항</small></span>
@@ -122,7 +124,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}{KO && <> · 전국 온라인쇼핑 {won(KO.online)}({KO.ym} {sign(KO.yoy)})</>}</span>
       </a></li>}
     </ol>
-    <p class="now__mapis">오른쪽 지도 점 = 인천공항을 오간 나라별 항공화물 <b>무게</b>(위 금액과 다른 단위 · 범례 참고)</p>
+    <p class="now__mapis">지도 점 = 인천공항을 오간 나라별 항공화물 <b>무게</b>(위 금액과 다른 단위 · 범례 참고)</p>
   </div>
   <div class="live__frame">
   <div class="live__stage" id="live-stage">
@@ -161,7 +163,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     {CT && <p class="s-prose live__counter"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준). {L.air_imp > L.port_imp ? "인천 관문 수입은 하늘(인천공항) 쪽이 바다(인천항)보다 크다." : "인천 관문 수입은 바다(인천항) 쪽이 하늘(인천공항)보다 크다."}</p>}
     <Trust updated={F.made} source={[sourceLine("kcs-porttrade"), T && sourceLine("kcs-sido-item"), sourceLine("mof-incheon-port-stats"), sourceLine("mof-vessel"), sourceLine("kcs-nitemtrade"), sourceLine("kcs-nation"), sourceLine("iiac-route-cargo"), sourceLine("molit-warehouse"), KO && sourceLine("kostat-kosis")].filter(Boolean).join(" · ")} csv={u("/data/home-flows.csv")} csvName="incheon-gate-flows.csv" fresh={["kcs-porttrade", ...(T ? ["kcs-sido-sudo"] : []), "mof-incheon-port-stats", "mof-vessel", "kcs-nation", "iiac-route-cargo", ...(KO ? ["kosis-retail"] : [])]} note="월별 · 억 달러 · 천TEU · 척" fold />
     <details class="live__how"><summary class="s-cap">세 축 숫자와 지도를 만든 방법·출처</summary>
-    {T && <p class="s-cap">세 축 — 물류 = 인천지방해양수산청 월별 항만운영통계(인천항 컨테이너 · 전년 대비는 공표값) · 해양수산부 항만별 선박입출항실적(인천항 외항선 입항 척수). 무역·유통 = 관세청 시도별 품목별 수출입실적 — 시도는 물건이 들어온 곳이 아니라 <b>수출입 신고 회사(화주)의 소재지</b>다(서울에 본사를 둔 회사가 부산항이나 울산항으로 들여와도 서울). 수도권 = 서울·인천·경기 합 · 전국(분모) = {T.denom === "nation" ? `같은 달 관세청 국가별 수출입실적의 전 국가 합${AX?.checks?.sido_sum_vs_nation_pct != null && Math.abs(AX.checks.sido_sum_vs_nation_pct) >= 0.5 ? ` — 시도별 통계의 시도 합은 이보다 ${Math.abs(AX.checks.sido_sum_vs_nation_pct)}% 작다(행정 개편으로 바뀐 시도 코드가 빠진 몫 · 수도권 세 시도와는 무관)` : ""}` : `시도별 통계의 시도 ${T.n_sido}곳 합`}. 생활소비재 = 이 사이트가 HS 2단위로 고른 묶음이다(관세청 분류가 아니다) — {RT && Object.entries(RT.basket as Record<string, string[]>).map(([g, hs]) => `${g} ${hs.join("·")}`).join(" / ")}류(생활소비재 · 성질별 분류의 「소비재」와 다르다). 뺀 것: 곡물·유지·사료(원료 성격) · 담배(24) · 자동차(87) · 의약품(30) · 귀금속(71) · 전기기기(85 — 가전이 섞였지만 반도체·부품이 대부분). 17류(설탕·과자)는 원당이 섞였지만 넣었다.</p>}
+    {T && <p class="s-cap">세 축 — 물류 = 인천지방해양수산청 월별 항만운영통계(인천항 컨테이너 · 전년 대비는 공표값) · 해양수산부 항만별 선박입출항실적(인천항 외항선 입항 척수). 무역·유통 = 관세청 시도별 품목별 수출입실적 — 시도는 물건이 들어온 곳(입항지)이 아니라 <b>관세청이 수출입 신고 업체를 시도로 나눠 집계한 것</b>이다 — 업체를 시도에 넣는 기준(본사·사업장 등)은 공개 명세에 없어 확인하지 못했다. 수도권 = 서울·인천·경기 합 · 전국(분모) = {T.denom === "nation" ? `같은 달 관세청 국가별 수출입실적의 전 국가 합${AX?.checks?.sido_sum_vs_nation_pct != null && Math.abs(AX.checks.sido_sum_vs_nation_pct) >= 0.5 ? ` — 시도별 통계의 시도 합은 이보다 ${Math.abs(AX.checks.sido_sum_vs_nation_pct)}% 작다(행정 개편으로 바뀐 시도 코드가 빠진 몫 · 수도권 세 시도와는 무관)` : ""}` : `시도별 통계의 시도 ${T.n_sido}곳 합`}. 생활소비재 = 이 사이트가 HS 2단위로 고른 묶음이다(관세청 분류가 아니다) — {RT && Object.entries(RT.basket as Record<string, string[]>).map(([g, hs]) => `${g} ${hs.join("·")}`).join(" / ")}류(생활소비재 · 성질별 분류의 「소비재」와 다르다). 뺀 것: 곡물·유지·사료(원료 성격) · 담배(24) · 자동차(87) · 의약품(30) · 귀금속(71) · 전기기기(85 — 가전이 섞였지만 반도체·부품이 대부분). 17류(설탕·과자)는 원당이 섞였지만 넣었다.</p>}
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 다르다{F.checks?.nat_gap_eok != null ? ` — 최대 ${F.checks.nat_gap_eok}억 달러` : ""}). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
     <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점도 길도 그리지 않았다 — 배가 실제로 다닌 바닷길은 회녹 결(세계은행 선박 통행 밀도)로 보인다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소({F.warehouse_asof ? `${F.warehouse_asof} 내려받은 등록현황 · 날짜를 박은 기록 · ` : ""}인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
@@ -500,6 +502,8 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .shot__img { display: block; aspect-ratio: 2 / 1; width: min(100%, calc((100svh - 420px) * 2)); min-width: min(100%, 320px); overflow: hidden; background: var(--s-paper-2, #ebe6da); } /* 2:1 로 찍은 그림 · 창이 낮으면 비율을 지키며 줄인다(높이로 자르면 그림 아래 이름표가 잘렸다) */
   .shot picture { display: block; width: 100%; height: 100%; }
   .shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
+  .shot--whole .shot__img { background: none; }
+  .shot--whole img { object-fit: contain; object-position: left center; } /* 통째로 찍은 그림(트리맵)은 자르지 않는다 */
   .shot__t { display: block; padding: 6px 0 0; line-height: 1.4; font-size: 13px; }
   .shot__t b { font-weight: 700; }
   .shot__t small { font-size: 12.5px; color: var(--s-ink-2); }
@@ -594,7 +598,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   @media (min-width: 900px) {
     /* [2026-10-22 선장님 최종 결정] 첫 화면 = 무엇·도구 띠(왼쪽 7단) + 「이런 분께」 표·연락(오른쪽 5단) · 지도 없음 — 창 높이 안에서 끝난다 */
     .idv { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 56px); align-items: center;
-      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 780px); box-sizing: border-box; padding-block: var(--s-4);
+      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 700px); box-sizing: border-box; padding-block: var(--s-4);
       padding-left: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); padding-right: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); }
     .idv__me { grid-column: 1 / span 7; }
     .idv__aud { grid-column: 8 / -1; }
