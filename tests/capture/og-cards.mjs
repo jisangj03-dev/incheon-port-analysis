@@ -71,6 +71,34 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
   writeFileSync(join(dir, "cards.json"), JSON.stringify({ _설명: "도구 카드에 찍힌 값(카드를 찍는 순간 도구 지면에서 읽음) — 시험이 지면과 대조한다", cards }, null, 1));
   unlinkSync(join(dir, "tool.html"));
 }
+// 홈 「실제 도구 화면」 띠(2026-10-22 · data/home_showcase.json) — 실제 도구 지면의 주 그림(sel)을 찍는다(지어낸 목업 0 · iframe 0).
+// 넓은 화면용(1200 폭에서 찍음)과 좁은 화면용(390 폭 · 2배 — 홈 띠에 줄여 넣어도 지면 글자가 읽히게 · <picture> 가 고른다) 두 장.
+// 배포 때마다 다시 찍으므로 그림 = 그 배포의 실제 지면이다. 못 찍으면 홈은 그림 없이 글(도구 이름·한 줄)만 보인다 — 실패로 센다.
+const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
+if (SHOW.length) {
+  mkdirSync(join(dist, "assets", "toolshots"), { recursive: true });
+  for (const [suf, opt] of [["", { viewport: { width: 1200, height: 820 }, deviceScaleFactor: 1 }], ["-m", { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
+    const sctx = await browser.newContext(opt);
+    const sp = await sctx.newPage();
+    for (const t of SHOW) {
+      const name = `${t.id}${suf}.jpg`, out = join(dist, "assets", "toolshots", name);
+      try {
+        await sp.goto(`${base}/incheon-port-analysis${t.href}`, { waitUntil: "load" });
+        await sp.evaluate(() => document.fonts.ready);
+        await sp.waitForTimeout(3500); // 첫 장면이 그려지고 움직임이 한 번 돌 시간
+        const el = t.sel ? sp.locator(t.sel).first() : null;
+        if (el && (await el.count())) { await el.scrollIntoViewIfNeeded(); await sp.waitForTimeout(800); await el.screenshot({ path: out, type: "jpeg", quality: suf ? 70 : 76 }); } // 주 그림만(지도 · 트리맵 · 차트)
+        else {
+          const top = await sp.evaluate(() => Math.ceil(document.querySelector("header.s-mast")?.getBoundingClientRect().bottom || 0));
+          const vp = opt.viewport;
+          await sp.screenshot({ path: out, type: "jpeg", quality: 74, clip: { x: 0, y: top, width: vp.width, height: Math.min(750, vp.height - top) } });
+        }
+        console.log(`도구 화면 toolshots/${name} ${statSync(out).size}B`);
+      } catch (e) { bad++; console.error(`도구 화면 못 찍었다 ${name}: ${String(e).split("\n")[0]}`); }
+    }
+    await sctx.close();
+  }
+}
 // 홈 카드 = 지면 기본 카드(Base.astro ogImage 기본값 /og/home.jpg) · 옛 주소 /assets/og.jpg 를 미리 긁어 간 곳도 새 그림을 받게 덮어쓴다(2026-10-20)
 if (existsSync(join(dir, "home.jpg"))) { mkdirSync(join(dist, "assets"), { recursive: true }); copyFileSync(join(dir, "home.jpg"), join(dist, "assets", "og.jpg")); console.log("assets/og.jpg ← og/home.jpg"); }
 else { bad++; console.error("홈 카드 og/home.jpg 가 없다 — assets/og.jpg 를 못 바꿨다"); }

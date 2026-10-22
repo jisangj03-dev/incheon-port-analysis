@@ -1,6 +1,7 @@
-// 홈 지도 이름표(.fm-lb) 중 보이는 것이 글 블록(.live__text 의 문장·단추)과 겹치는 쌍 — hero.spec · autoplay.spec 이 같이 쓴다(#67 ③)
+// 홈 지도 이름표(.fm-lb) 중 보이는 것이 글 블록과 겹치는 쌍 — hero.spec · autoplay.spec 이 같이 쓴다(#67 ③)
+// [2026-10-22 시안 v3] 지도는 첫 화면 아래 「지금 숫자」 절(#now-axes)로 갔다 — 이웃 글 = .now__text · 첫 화면 글(.live__text)도 그대로 본다
 export const labelHits = (page) => page.evaluate(() => {
-  const R = (e) => e.getBoundingClientRect(), txt = [...document.querySelectorAll(".live__text > *, .live__text a, .live__text button")].map((e) => [e.className?.toString().split(" ")[0] || e.tagName, R(e)]);
+  const R = (e) => e.getBoundingClientRect(), txt = [...document.querySelectorAll(".live__text > *, .live__text a, .live__text button, .now__text > *, .now__text a")].map((e) => [e.className?.toString().split(" ")[0] || e.tagName, R(e)]);
   const out = [];
   for (const l of document.querySelectorAll(".fm-lb")) {
     if (getComputedStyle(l).visibility === "hidden") continue;
