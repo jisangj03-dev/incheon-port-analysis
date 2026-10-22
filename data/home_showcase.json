@@ -1,5 +1,5 @@
 {
-  "_설명": "홈 첫 화면 「실제 도구 화면」 띠(2026-10-22 Claude Design 시안 v3) — 배포 때 tests/capture/og-cards.mjs 가 이 지면들의 주 그림(sel — 등시선 지도 · 트리맵 · 주문 출렁임 차트)을 실제로 찍어 assets/toolshots/<id>.jpg 로 둔다(지어낸 목업 0 · iframe 0). axis = 오른쪽 독자 표의 줄(logi 물류 · trade 무역 · retail 유통). guard = 찍은 장면이 데이터 파일과 같은지 og-cards.mjs 가 재고 다르면 배포를 막는다(reach — 등시선 지면 기본값 = 승용차·낮 · 서울시청 분이 reach_slots.json 과 같아야 한다 · 10/22 띠 52분(화물차)·초안 51분(승용차) 불일치).",
+  "_설명": "홈 첫 화면 「실제 도구 화면」 띠(2026-10-22 Claude Design 시안 v3) — 배포 때 tests/capture/og-cards.mjs 가 이 지면들의 주 그림(sel — 등시선 지도 · 트리맵 · 주문 출렁임 차트)을 실제로 찍어 assets/toolshots/<id>.jpg 로 둔다(지어낸 목업 0 · iframe 0). axis = 오른쪽 독자 표의 줄(logi 물류 · trade 무역 · retail 유통). guard = 찍은 장면이 데이터 파일과 같은지 og-cards.mjs 가 재고 다르면 배포를 막는다(hide = 찍을 때 숨길 지면 틀 — 등시선 「칠한 범위 180분 안」은 정지 그림에선 뜻이 없고 가장 큰 숫자로 눈만 끈다 · 10/22 화면 판정) (reach — 등시선 지면 기본값 = 승용차·낮 · 서울시청 분이 reach_slots.json 과 같아야 한다 · 10/22 띠 52분(화물차)·초안 51분(승용차) 불일치).",
   "shots": [
     {
       "id": "delivery-reach",
@@ -9,6 +9,7 @@
       "sel": ".reach__map",
       "note": "승용차·낮 시간대로 계산한 도달 시간 · 진할수록 가깝다 · © OpenStreetMap",
       "guard": "reach",
+      "hide": ".reach__t",
       "mvw": 390,
       "mfy": 0.3,
       "mdy": -20

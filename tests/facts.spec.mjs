@@ -19,7 +19,10 @@ test.describe("갱신 무인화 — 핵심 숫자 · 해석 문장", () => {
   test("핵심 숫자 — 지면에 같은 값", () => {
     const F = JSON.parse(readFileSync("data/derived/facts.json", "utf-8")).facts;
     const miss = [];
-    for (const [k, f] of Object.entries(F)) for (const p of f.pages) if (existsSync(dist(p)) && !text(p).includes(f.v)) miss.push(`${k}=${f.v} @ ${p}`);
+    // 값은 앞뒤가 숫자가 아닌 자리에서만 센다(「5」가 「52주」 안에서 통과하지 않게) · ctx 가 있으면 그 꼴로(10/22 사실 대조 C4)
+    const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pat = (f) => f.ctx ? new RegExp(f.ctx.split("{v}").map(esc).join(`\\s*${esc(f.v)}\\s*`)) : new RegExp(`(?<![\\d.])${esc(f.v)}(?![\\d])`);
+    for (const [k, f] of Object.entries(F)) for (const p of f.pages) if (existsSync(dist(p)) && !pat(f).test(text(p))) miss.push(`${k}=${f.v}${f.ctx ? ` 「${f.ctx}」` : ""} @ ${p}`);
     expect(miss, "핵심 숫자가 지면에 그 값으로 안 보인다(기준이 다르거나 지면이 다른 값을 낸다)").toEqual([]);
   });
   test("해석 문장 — 지금 갈래 = 승인 갈래 · 승인 문장이 지면에 있다", () => {

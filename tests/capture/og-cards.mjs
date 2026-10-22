@@ -111,6 +111,7 @@ if (SHOW.length) {
         await sp.evaluate(() => document.fonts.ready);
         await sp.waitForTimeout(3500); // 첫 장면이 그려지고 움직임이 한 번 돌 시간
         if (t.click) { await sp.click(t.click); await sp.waitForTimeout(2500); } // 지면의 단추를 눌러 둔 장면(10/22 — 등시선은 더 누르지 않는다: 지면 기본값 = 초안·답 문장과 같은 기준)
+        if (t.hide) await sp.addStyleTag({ content: `${t.hide}{visibility:hidden!important}` }); // 정지 그림에서 뜻이 없는 지면 틀(움직이는 문턱 표시 등)
         if (t.guard) { const g = await GUARD[t.guard](sp); if (g) throw new Error(`찍을 장면이 데이터와 다르다 — ${g}`); } // 다르면 그림을 안 만들고 실패로 센다(배포 막힘)
         const el = t.sel ? sp.locator(t.sel).first() : null;
         if (el && (await el.count())) {

@@ -62,7 +62,8 @@
    "pages": [
     "/tools/import-cost.html"
    ],
-   "src": "import_cost.json example.ago_weeks"
+   "src": "import_cost.json example.ago_weeks",
+   "ctx": "{v}주 전"
   },
   "cost.pct": {
    "v": "−5.9",
@@ -90,7 +91,8 @@
    "pages": [
     "/map/vessels.html"
    ],
-   "src": "vessel_replay.json latest.incheon"
+   "src": "vessel_replay.json latest.incheon",
+   "ctx": "{v}척"
   },
   "vessel.yoy": {
    "v": "−15.8",
@@ -104,7 +106,8 @@
    "pages": [
     "/tools/trade-race.html"
    ],
-   "src": "trade_race.json 마지막 온전한 해"
+   "src": "trade_race.json 마지막 온전한 해",
+   "ctx": "{v}년"
   },
   "race.top_name": {
    "v": "전기기기",
@@ -132,28 +135,32 @@
    "pages": [
     "/tools/delivery-reach.html"
    ],
-   "src": "reach_slots.json default"
+   "src": "reach_slots.json default",
+   "ctx": "({v} 시간대)"
   },
   "reach.seoul_car": {
    "v": "51",
    "pages": [
     "/tools/delivery-reach.html"
    ],
-   "src": "reach_slots.json table[물류단지][default].car.서울시청"
+   "src": "reach_slots.json table[물류단지][default].car.서울시청",
+   "ctx": "승용차로 출발하면 서울시청까지 {v}분"
   },
   "site.n_tools": {
    "v": "5",
    "pages": [
     "/"
    ],
-   "src": "rooms.json tools"
+   "src": "rooms.json tools",
+   "ctx": "실무 도구 {v}개"
   },
   "site.n_sims": {
    "v": "2",
    "pages": [
     "/"
    ],
-   "src": "rooms.json sim"
+   "src": "rooms.json sim",
+   "ctx": "시뮬레이션 {v}개"
   }
  }
 }

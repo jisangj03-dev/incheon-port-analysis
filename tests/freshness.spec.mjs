@@ -15,7 +15,9 @@ const today = new Date().toISOString().slice(0, 10);
 // [2026-10-22 갱신 무인화 ④ · docs/측심_갱신무인화_판정기준_선커밋_20261022.md] 원천 하나가 끊기거나 뒤처져도 **배포는 막지 않는다**(다른 원천 갱신은 나간다).
 //   대신 그 원천을 쓰는 지면마다 「갱신 지연」이 보여야 한다 — 지난 숫자를 새것처럼 내보내지 않는 것이 이 시험의 일이다. 사람 손은 refresh 가 이슈(자동경보)로 올린다.
 const days = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
-const shouldDelay = (r) => !!(r.behind || ["auth", "format"].includes(r.fail_kind) || (r.fail_kind && r.fail_since && days(r.fail_since, F.made) + 1 >= 2) || !r.checked || days(r.checked, F.made) > (r.max_age ?? MAX_AGE));
+// refresh.py judge() 와 같은 규칙 — 안전망(공표 예정일 10일 넘김 · 재계산 층 제외)은 받기 스크립트가 실패를 종료 0 으로 숨겨도 잡는다(10/22 사실 대조 중대 E3·E4)
+const shouldDelay = (r) => !!(r.behind || ["auth", "format"].includes(r.fail_kind) || (r.fail_kind && r.fail_since && days(r.fail_since, F.made) + 1 >= 2) || !r.checked || days(r.checked, F.made) > (r.max_age ?? MAX_AGE)
+  || (r.cadence?.[0] !== "recompute" && r.next_expected && days(r.next_expected, F.made) > 10));
 const walk = (d) => readdirSync(d).flatMap((f) => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : [p]; });
 const built = () => walk("astro/dist").filter((f) => f.endsWith(".html") && !/\/(docs|analysis|_a)\//.test(f)).map((f) => [f, readFileSync(f, "utf-8")]);
 

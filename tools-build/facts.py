@@ -37,7 +37,8 @@ def load():
 def facts(D):
     """이름 → {v: 초안에 넣는 글자, pages: 그 글자가 그대로 보여야 하는 지면, src: 데이터 파일}."""
     out = {}
-    def put(k, v, pages, src): out[k] = {"v": str(v), "pages": pages, "src": src}
+    def put(k, v, pages, src, ctx=None):  # ctx = 지면에서 그 값이 놓이는 꼴(「서울시청까지 {v}분」) — 짧은 값이 엉뚱한 자리의 같은 글자로 통과하지 않게(10/22 사실 대조 C4)
+        out[k] = {"v": str(v), "pages": pages, "src": src, **({"ctx": ctx} if ctx else {})}
     F = D["home_flows"]; L = F["months"][-1]
     put("gate.ym", ym(L["ym"]), ["/"], "home_flows.json months[-1].ym")
     put("gate.imp_share", f1(L["imp_share_pct"]), ["/"], "home_flows.json imp_share_pct")
@@ -50,26 +51,26 @@ def facts(D):
     put("sudo.imp_share", f1(T["imp_pct"]), ["/"], "home_axes.json trade.imp_pct")
     E = D["import_cost"]["example"]
     put("cost.goods", f"{E['goods'] // 10000}만" if E["goods"] % 10000 == 0 else f"{E['goods']:,}", ["/tools/import-cost.html"], "import_cost.json example.goods(달러)")
-    put("cost.ago_weeks", E["ago_weeks"], ["/tools/import-cost.html"], "import_cost.json example.ago_weeks")
+    put("cost.ago_weeks", E["ago_weeks"], ["/tools/import-cost.html"], "import_cost.json example.ago_weeks", "{v}주 전")
     put("cost.pct", signed(E["pct"]), ["/tools/import-cost.html"], "import_cost.json example.pct")
     H = next(p for p in D["chokepoints"]["points"] if p["id"] == "hormuz")
     put("choke.hormuz_imp", f1(H["imp_pct"]), ["/tools/chokepoint.html"], "chokepoints.json hormuz.imp_pct")
     V = D["vessel_replay"]["latest"]
     put("vessel.ym", ym(V["ym"]), ["/map/vessels.html"], "vessel_replay.json latest.ym")
-    put("vessel.incheon", V["incheon"], ["/map/vessels.html"], "vessel_replay.json latest.incheon")
+    put("vessel.incheon", V["incheon"], ["/map/vessels.html"], "vessel_replay.json latest.incheon", "{v}척")
     put("vessel.yoy", signed(V["incheon_yoy_pct"]), ["/map/vessels.html"], "vessel_replay.json latest.incheon_yoy_pct")
     Y = [y for y in D["trade_race"]["years"] if not y.get("partial")][-1]
-    put("race.year", Y["y"], ["/tools/trade-race.html"], "trade_race.json 마지막 온전한 해")
+    put("race.year", Y["y"], ["/tools/trade-race.html"], "trade_race.json 마지막 온전한 해", "{v}년")
     put("race.top_name", Y["top_exp"]["name"].split("(")[0], ["/tools/trade-race.html"], "trade_race.json top_exp.name")
     put("race.top_pct", f1(Y["top_exp"]["pct"]), ["/tools/trade-race.html"], "trade_race.json top_exp.pct")
     S, I = D["reach_slots"], D["isochrones"]
     oi = max(0, next((i for i, o in enumerate(I["origins"]) if o["kind"] == "물류단지"), 0))
     put("reach.origin", I["origins"][oi]["name"], ["/tools/delivery-reach.html"], "isochrones.json origins(물류단지)")
-    put("reach.slot", S["default"], ["/tools/delivery-reach.html"], "reach_slots.json default")
-    put("reach.seoul_car", S["table"][oi][S["default"]]["car"]["서울시청"], ["/tools/delivery-reach.html"], "reach_slots.json table[물류단지][default].car.서울시청")
+    put("reach.slot", S["default"], ["/tools/delivery-reach.html"], "reach_slots.json default", "({v} 시간대)")
+    put("reach.seoul_car", S["table"][oi][S["default"]]["car"]["서울시청"], ["/tools/delivery-reach.html"], "reach_slots.json table[물류단지][default].car.서울시청", "승용차로 출발하면 서울시청까지 {v}분")
     R = {r["id"]: len(r.get("items") or []) for r in D["rooms"]["rooms"]}
-    put("site.n_tools", R["tools"], ["/"], "rooms.json tools")
-    put("site.n_sims", R["sim"], ["/"], "rooms.json sim")
+    put("site.n_tools", R["tools"], ["/"], "rooms.json tools", "실무 도구 {v}개")
+    put("site.n_sims", R["sim"], ["/"], "rooms.json sim", "시뮬레이션 {v}개")
     return out
 
 
@@ -85,8 +86,8 @@ def variants(D):
         "home.air_vs_port": "air" if L["air_imp"] > L["port_imp"] else "port",
         "home.top_month": "top" if L["imp_share_pct"] >= max(SH) else "not",
         "vessels.counter": "none" if not (V.get("incheon") and V.get("busan")) else ("much" if V["busan"] >= 2 * V["incheon"] else "more" if V["busan"] > V["incheon"] else "less" if V["incheon"] > V["busan"] else "same"),
-        "gate.half": "over" if L["imp_share_pct"] >= 50 else ("near" if L["imp_share_pct"] >= 40 else "under"),
-        "gate.air_most": "most" if air >= 0.6 else ("over_half" if air > 0.5 else "sea"),
+        "gate.half": "over" if L["imp_share_pct"] >= 50 else ("near" if L["imp_share_pct"] >= 45 else "under"),
+        "gate.air_most": "most" if air >= 0.7 else ("over_half" if air > 0.5 else "sea"),  # 「대부분」 = 70% 이상(10/22 사실 대조 D1 — 60% 는 낮은 경계)
     }
 
 

@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./content";
 
-type Rec = { label: string; ours: string | null; source_latest: string | null; checked: string | null; next_expected: string | null; behind: boolean; delayed?: boolean; delay_reason?: string | null };
+type Rec = { label: string; ours: string | null; source_latest: string | null; checked: string | null; next_expected: string | null; behind: boolean; delayed?: boolean; delay_reason?: string | null; fail_kind?: string | null; fail_days?: number; max_age?: number };
 let _f: Record<string, Rec> | null = null;
 const all = () => (_f ??= (() => { const p = join(repoRoot(), "data/derived/freshness.json"); return existsSync(p) ? JSON.parse(readFileSync(p, "utf-8")).sources : {}; })());
 
@@ -21,7 +21,7 @@ const SHORT: Record<string, string> = {
 export function freshLine(ids: string[]): string | null {
   const rs = ids.map((id) => [id, freshRec(id)] as const).filter((x) => x[1]) as [string, Rec][];
   if (!rs.length) return null;
-  const checked = rs.map(([, r]) => r.checked).filter(Boolean).sort()[0] ?? null;
+  const checked = rs.filter(([, r]) => !r.fail_kind).map(([, r]) => r.checked).filter(Boolean).sort()[0] ?? null; // 받기가 끊긴 원천의 확인일은 「갱신 지연」 줄이 따로 적는다(10/22 화면 판정 — 한 날짜가 끊긴 원천까지 덮어 읽혔다)
   const parts: string[] = [];
   if (checked) parts.push(`원천 확인 ${checked}`);
   const late = rs.filter(([, r]) => r.checked && r.next_expected && r.checked > r.next_expected);
@@ -37,10 +37,27 @@ export function freshLine(ids: string[]): string | null {
   return parts.join(" · ") || null;
 }
 
-/** [2026-10-22 갱신 무인화 ④] 「갱신 지연」 한 줄 — 원천 받기가 끊겼거나(키·형식·이틀 넘는 실패) 확인이 주기 한도를 넘었거나 지면이 원천보다 뒤처진 원천.
- *  출처 줄 접기와 상관없이 늘 보인다(지난 숫자를 새것처럼 읽지 않게). refresh.py judge() 가 정하고 시험 freshness.spec 이 지면에 보이는지 본다. */
-export function delayLine(ids: string[]): string | null {
-  const rs = ids.map((id) => freshRec(id)).filter((r): r is Rec => !!r && !!r.delayed);
-  if (!rs.length) return null;
-  return `갱신 지연 — ${rs.map((r) => `${SHORT[ids.find((i) => freshRec(i) === r)!] ?? r.label}: ${r.delay_reason}${r.ours ? ` · 이 지면 숫자는 ${r.ours} 기준` : ""}`).join(" / ")}`;
+/** [2026-10-22 갱신 무인화 ④] 원천이 끊겼거나 뒤처졌을 때의 한 줄 — 출처 줄 접기와 상관없이 늘 보인다. 켜는 조건은 refresh.py judge()(delayed).
+ *  말은 원천 하나로 좁힌다(10/22 화면 판정 중대: 「이 지면 숫자는 …기준」이 지면 전체의 기준일로 읽혔다) ·
+ *  아직 다음 공표 전이면 「자동 받기 실패 — 다음 공표분부터 늦을 수 있음」, 지났거나 뒤처졌으면 「갱신 지연」(늦은 것이 없는데 지연이라 쓰지 않는다).
+ *  today = 빌드 날(refresh 가 그날 다시 빌드한다). */
+export function delayLine(ids: string[], today = new Date().toISOString().slice(0, 10)): string | null {
+  const parts: string[] = [];
+  let late = false;
+  for (const id of ids) {
+    const r = freshRec(id);
+    if (!r || !r.delayed) continue;
+    const name = SHORT[id] ?? r.label;
+    const basis = r.ours ? `${name} 숫자는 ${r.ours}${/^\d{4}-\d{2}-\d{2}$/.test(r.ours) ? " 주" : ""} 기준` : `${name} 숫자`;
+    const why = r.behind ? `원천은 ${r.source_latest} 까지 냈으나 아직 반영 전`
+      : r.fail_kind === "auth" ? "자동 받기가 막힘(이용 인증)"
+      : r.fail_kind === "format" ? "원천 자료 형식이 바뀌어 자동 받기가 멈춤"
+      : r.fail_kind ? `자동 받기 실패 ${r.fail_days ?? 1}일째`
+      : `마지막으로 받은 날 ${r.checked ?? "—"}`;
+    const due = r.next_expected && today > r.next_expected;
+    if (r.behind || due || !r.fail_kind) { late = true; parts.push(`${basis} — ${why}${due ? ` · 다음 공표 예정 ${r.next_expected} 무렵이 지났다` : ""}`); }
+    else parts.push(`${name} ${why} — 지금 숫자(${r.ours ?? "—"}${/^\d{4}-\d{2}-\d{2}$/.test(r.ours ?? "") ? " 주" : ""})는 최신이고, 다음 공표분(${r.next_expected} 무렵)부터 늦을 수 있다`);
+  }
+  if (!parts.length) return null;
+  return `${late ? "갱신 지연" : "자동 받기 실패"} · ${parts.join(" / ")}`;
 }

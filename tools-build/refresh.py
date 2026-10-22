@@ -130,9 +130,9 @@ def run(cmd, cwd, limit):
 
 
 # [2026-10-22 갱신 무인화 ④] 실패 갈래 — 일시(다시 시도하면 풀린다) · 인증(키 만료·미등록 — 사람 손) · 형식(원천이 꼴을 바꿨다 — 사람 손) · 그 밖
-AUTH = ("SERVICE_KEY", "SERVICE KEY", "SERVICEKEY", "UNAUTHORIZED", "HTTP Error 401", "HTTP Error 403", "401 Client Error", "403 Client Error", "인증", "등록되지 않은", "키 없음", "LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS")
+AUTH = ("SERVICE_KEY", "SERVICE KEY", "SERVICEKEY", "UNAUTHORIZED", "HTTP Error 401", "HTTP Error 403", "401 Client Error", "403 Client Error", "인증", "등록되지 않은", "키 없음", "LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS")  # 일일 호출 한도는 하루 뒤 풀리지만, 이틀 이상 이어지면 활용 한도 조정이 사람 손이다(헛경보 쪽 — 안전)
 FORMAT = ("KeyError", "JSONDecodeError", "ParseError", "열이 다르다", "형식", "schema", "UnicodeDecodeError", "XMLSyntaxError", "IndexError")
-TRANSIENT = ("timed out", "Timeout", "초 넘음", "HTTP Error 5", "Connection", "Temporary failure", "Remote end closed", "reset by peer", "EOF occurred", "IncompleteRead", "Name or service not known", "502", "503", "504")
+TRANSIENT = ("timed out", "Timeout", "초 넘음", "HTTP Error 500", "HTTP Error 502", "HTTP Error 503", "HTTP Error 504", "Bad Gateway", "Service Unavailable", "Gateway Time", "ConnectionError", "ConnectionReset", "Connection reset", "Connection refused", "Connection aborted", "Temporary failure", "Remote end closed", "reset by peer", "EOF occurred", "IncompleteRead", "Name or service not known")  # 맨 숫자(502 등)는 넣지 않는다 — 「502척」 옆 KeyError 를 일시로 읽었다(사실 대조 F3)
 
 
 def classify(rc, out):
@@ -252,7 +252,11 @@ def judge(r, today):
     if kind in ("auth", "format"): why.append({"auth": "원천 인증 오류(키 만료·미등록 추정)", "format": "원천 형식이 바뀐 것으로 보임"}[kind])
     elif kind and run_days >= 2: why.append(f"받기 실패 {run_days}일째")
     if age > r["max_age"]: why.append(f"마지막 확인 {r.get('checked') or '없음'}(주기 한도 {r['max_age']}일 넘음)")
-    human = bool(r.get("behind") or kind in ("auth", "format") or (kind and run_days >= 3) or age > r["max_age"])
+    # 안전망(사실 대조 중대 E3·E4 — 받기 스크립트가 실패를 종료 0 으로 숨긴 일): 종료 코드와 상관없이, 공표 예정일을 10일 넘겼는데
+    # 원천 마지막 기준기가 그대로면 지연 + 사람 손(원천이 늦는 것일 수도 있다 — 그래서 문구는 「미공표이거나 받기가 조용히 실패」).
+    late = r["cadence"][0] != "recompute" and r.get("next_expected") and days(r["next_expected"]) > 10
+    if late: why.append(f"공표 예정 {r['next_expected']} 무렵에서 {days(r['next_expected'])}일 지남 — 원천 미공표이거나 받기가 조용히 실패")
+    human = bool(r.get("behind") or kind in ("auth", "format") or (kind and run_days >= 3) or age > r["max_age"] or late)
     return {"fail_days": run_days, "delayed": bool(why), "delay_reason": " · ".join(why) or None, "human": human}
 
 
@@ -414,14 +418,17 @@ def selftest():
     assert next_expected(["recompute", 28], "2026-10-21") == "2026-11-18" and max_age_days(["recompute", 28]) == 38 and max_age_days(["monthly", 15]) == 10
     assert classify(1, "HTTP Error 401: Unauthorized") == "auth" and classify(124, "") == "transient" and classify(1, "urlopen error timed out") == "transient"
     assert classify(1, "KeyError: 'items'") == "format" and classify(1, "뭔가") == "other" and classify(0, "") is None
-    base = {"checked": "2026-10-22", "max_age": 10, "behind": False, "source_latest": "2026-09", "ours": "2026-09"}
+    base = {"checked": "2026-10-22", "max_age": 10, "behind": False, "source_latest": "2026-09", "ours": "2026-09", "cadence": ["monthly", 15], "next_expected": "2026-11-15"}
+    assert classify(1, "KeyError: 'items' (인천 502척)") == "format", "맨 숫자 502 를 일시로 읽으면 안 된다"
+    j = judge({**base, "next_expected": "2026-10-05", "fail_kind": None, "fail_since": None}, "2026-10-22"); assert j["delayed"] and j["human"] and "조용히" in j["delay_reason"], j
+    assert not judge({**base, "next_expected": "2026-10-15", "fail_kind": None, "fail_since": None}, "2026-10-22")["delayed"]
     assert judge({**base, "fail_kind": "transient", "fail_since": "2026-10-22"}, "2026-10-22") == {"fail_days": 1, "delayed": False, "delay_reason": None, "human": False}
     j = judge({**base, "fail_kind": "transient", "fail_since": "2026-10-21"}, "2026-10-22"); assert j["delayed"] and not j["human"], j
     assert judge({**base, "fail_kind": "transient", "fail_since": "2026-10-20"}, "2026-10-22")["human"]
     j = judge({**base, "fail_kind": "auth", "fail_since": "2026-10-22"}, "2026-10-22"); assert j["delayed"] and j["human"] and "인증" in j["delay_reason"], j
     assert judge({**base, "checked": "2026-10-01", "fail_kind": None, "fail_since": None}, "2026-10-22")["human"]
     assert judge({**base, "behind": True, "ours": "2026-08", "fail_kind": None, "fail_since": None}, "2026-10-22")["delayed"]
-    print("selftest 17/17 ok"); return 0
+    print("selftest 20/20 ok"); return 0
 
 
 if __name__ == "__main__":
