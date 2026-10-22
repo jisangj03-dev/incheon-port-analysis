@@ -404,16 +404,16 @@
   },
   {
    "ym": "2026-09",
-   "port_imp": 82.0,
+   "port_imp": 246.0,
    "port_exp": 37.0,
    "air_imp": 277.0,
    "air_exp": 769.0,
    "nat_imp": 710.8,
    "nat_exp": 1210.5,
-   "imp_total": 359.0,
+   "imp_total": 523.0,
    "exp_total": 806.0,
-   "total": 1165.0,
-   "imp_share_pct": 50.5,
+   "total": 1329.0,
+   "imp_share_pct": 73.6,
    "exp_share_pct": 66.6,
    "teu": null
   }

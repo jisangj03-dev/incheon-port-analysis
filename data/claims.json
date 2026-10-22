@@ -19,7 +19,7 @@
      "text": "바다로 들어오는 수입은 부산과 인천항이 같다"
     }
    },
-   "approved": "busan",
+   "approved": "incheon",
    "page": "/"
   },
   {
@@ -127,7 +127,7 @@
      "blog": "인천공항 몫은 그 절반이 안 됩니다"
     }
    },
-   "approved": "most"
+   "approved": "over_half"
   }
  ]
 }

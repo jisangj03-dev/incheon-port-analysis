@@ -9,7 +9,7 @@
    "src": "home_flows.json months[-1].ym"
   },
   "gate.imp_share": {
-   "v": "50.5",
+   "v": "73.6",
    "pages": [
     "/"
    ],
@@ -23,7 +23,7 @@
    "src": "home_flows.json exp_share_pct"
   },
   "gate.port_imp": {
-   "v": "82.0",
+   "v": "246.0",
    "pages": [
     "/"
    ],
