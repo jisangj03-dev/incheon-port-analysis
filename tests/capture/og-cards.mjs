@@ -84,16 +84,26 @@ if (SHOW.length) {
     for (const t of SHOW) {
       const name = `${t.id}${suf}.jpg`, out = join(dist, "assets", "toolshots", name);
       try {
+        await sp.setViewportSize({ width: suf && t.mvw ? t.mvw : opt.viewport.width, height: opt.viewport.height }); // mvw = 좁은 화면 그림만 다른 폭(지도 이름표를 제 크기로)
         await sp.goto(`${base}/incheon-port-analysis${t.href}`, { waitUntil: "load" });
         await sp.evaluate(() => document.fonts.ready);
         await sp.waitForTimeout(3500); // 첫 장면이 그려지고 움직임이 한 번 돌 시간
+        if (t.click) { await sp.click(t.click); await sp.waitForTimeout(2500); } // 지면의 단추를 눌러 둔 장면(등시선 = 화물차 · 26차 화면 판정 「배송인데 승용차」)
         const el = t.sel ? sp.locator(t.sel).first() : null;
         if (el && (await el.count())) {
           await el.evaluate((e) => e.scrollIntoView({ block: "center" })); await sp.waitForTimeout(800);
           // whole = 주 그림을 자르지 않고 통째로(트리맵 — 1000×560 고정 배치라 2:1 로 자르면 아래 품목이 빠졌다 · 25차 화면 판정) · 상자 높이를 배치 본래 비율로 맞춘다
           if (t.whole) { await el.evaluate((e, r) => { e.style.height = `${Math.round(e.getBoundingClientRect().width * r)}px`; dispatchEvent(new Event("resize")); }, t.whole); await sp.waitForTimeout(1500); } // 지면이 resize 에서 칸을 다시 배치한다(좁은 화면에서 옛 높이 배치가 잘렸다)
           const bb = await el.boundingBox(), w = Math.floor(bb.width), h = t.whole ? Math.floor(bb.height) : Math.round(w * ratio);
-          const y = bb.height >= h ? bb.y : bb.y - (h - bb.height) / 2; // 위에 맞춘다(트리맵 가장 큰 칸 이름 · 지도 위쪽 이름표가 잘렸다)
+          const fy = (suf && t.mfy) || 0; // mfy = 좁은 화면 그림을 자를 세로 자리(0 = 위 · 1 = 아래) — 등시선은 출발지가 들어오게
+          let y = bb.height >= h ? Math.max(bb.y, bb.y + (bb.height - h) * fy + ((suf && t.mdy) || 0)) : bb.y - (h - bb.height) / 2; // mdy = 픽셀 보정(캔버스 이름표는 문서에 없어 아래 자동 회피가 못 본다)
+          // 자르는 선이 이름표를 가로지르지 않는 자리를 ±40px 안에서 고른다(지도는 이름표를 다시 그려 숨김이 풀린다 — 26차 「파주」 반쪽)
+          if (bb.height > h) y = await el.evaluate((e, [y0, h, lo, hi]) => {
+            const R = [...e.querySelectorAll("*")].filter((x) => [...x.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((x) => x.getBoundingClientRect()).filter((r) => r.width && r.height);
+            const cuts = (y) => R.filter((r) => (r.top < y && r.bottom > y) || (r.top < y + h && r.bottom > y + h)).length;
+            for (let d = 0; d <= 40; d += 2) for (const c of [y0 + d, y0 - d]) if (c >= lo && c <= hi && !cuts(c)) return c;
+            return y0;
+          }, [y, h, bb.y, bb.y + bb.height - h]); // 위에 맞춘다(트리맵 가장 큰 칸 이름 · 지도 위쪽 이름표가 잘렸다)
           // 그림 가장자리에 반쯤 걸린 글자(지도 이름표 등)는 숨긴다 — 잘린 이름표가 읽히지 않는 조각으로 남았다(24차 화면 판정 경미 1). 다른 것은 손대지 않는다
           // 주 그림이 2:1 보다 납작해 위아래로 넓혀 찍을 때 들어오는 지면 글(「아래 막대를 움직여 보세요」 등 — 정지 그림에선 뜻이 없다)도 숨긴다
           await sp.evaluate(([y0, y1, x0, x1, sel]) => {

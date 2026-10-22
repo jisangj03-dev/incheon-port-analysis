@@ -68,15 +68,15 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
     <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 통계와 공개 지도를 바탕으로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
-    <figure class="shots" id="shots" data-shots aria-label="실제 도구 화면 — 도구 셋을 차례로 보여 준다">
+    <figure class="shots" id="shots" data-shots aria-label="실제 지면 화면 — 지면 셋을 차례로 보여 준다">
       <div class="shots__bar">
-        <span class="shots__cap">실제 도구 화면</span>
+        <span class="shots__cap">실제 지면 화면</span>
         <span class="shots__seg" role="group" aria-label="도구 고르기">{SHOTS.map((t, i) => <button type="button" class={`seg${i ? "" : " is-on"}`} data-i={i} aria-label={t.title} title={t.title} aria-pressed={i ? "false" : "true"}><i></i></button>)}</span>
-        <button type="button" class="shots__pause" id="shots-pause" aria-pressed="false">넘김 멈춤</button>
+        <button type="button" class="shots__pause" id="shots-pause" aria-pressed="false">자동 넘김 멈춤</button>
       </div>
       <div class="shots__stage">
         {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}${t.whole ? " shot--whole" : ""}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
-          <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1176" height="588" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
+          <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 지면 화면(주 그림)`} width="1176" height="588" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
           <span class="shot__t"><b>{t.title} →</b> <small>{t.note.replace("{Y}", TRY)}</small></span>
         </a>)}
       </div>
@@ -199,7 +199,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     };
     if (reduce) { box.classList.add("is-still"); pause?.setAttribute("hidden", ""); }
     segs.forEach((g, j) => g.addEventListener("click", () => show(j)));
-    pause?.addEventListener("click", () => { paused = !paused; pause.setAttribute("aria-pressed", String(paused)); pause.textContent = paused ? "넘김 재생" : "넘김 멈춤"; show(cur); });
+    pause?.addEventListener("click", () => { paused = !paused; pause.setAttribute("aria-pressed", String(paused)); pause.textContent = paused ? "자동 넘김 재생" : "자동 넘김 멈춤"; show(cur); });
     const hold = (on: boolean) => () => { if (held === on) return; held = on; on ? arm() : show(cur); };
     const stage = box.querySelector(".shots__stage")!;
     for (const ev of ["mouseenter", "focusin"]) stage.addEventListener(ev, hold(true));
@@ -494,7 +494,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .shots.is-still .seg.is-on i::after { animation: none; transform: scaleX(1); }
   .seg:focus-visible { outline: 2px solid var(--s-signal); outline-offset: 2px; }
   @keyframes segfill { to { transform: scaleX(1); } }
-  .shots__pause { flex: 0 0 auto; min-height: 32px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--s-ink); background: var(--s-paper, #f5f2eb); border: 1px solid var(--s-rule); border-radius: 2px; cursor: pointer; }
+  .shots__pause { flex: 0 0 auto; min-height: 40px; padding: 0 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--s-ink); background: var(--s-paper, #f5f2eb); border: 1px solid var(--s-rule); border-radius: 2px; cursor: pointer; }
   .shots__pause:hover { border-color: var(--s-ink-3); }
   .shots__stage { display: grid; width: 100%; } /* 셋을 한 칸에 겹친다 — 높이 = 가장 큰 것(그림 16:9 + 설명 줄) · 넘어가도 아래가 흔들리지 않는다 */
   .shot { grid-area: 1 / 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .6s ease; color: var(--s-ink); text-decoration: none; }
@@ -598,7 +598,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   @media (min-width: 900px) {
     /* [2026-10-22 선장님 최종 결정] 첫 화면 = 무엇·도구 띠(왼쪽 7단) + 「이런 분께」 표·연락(오른쪽 5단) · 지도 없음 — 창 높이 안에서 끝난다 */
     .idv { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 56px); align-items: center;
-      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 700px); box-sizing: border-box; padding-block: var(--s-4);
+      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 1040px); /* 창 높이만큼 — 아래 「최신 공표 숫자」가 첫 화면에 걸리지 않게(26차 · 1920×1080) */ box-sizing: border-box; padding-block: var(--s-4);
       padding-left: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); padding-right: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); }
     .idv__me { grid-column: 1 / span 7; }
     .idv__aud { grid-column: 8 / -1; }
