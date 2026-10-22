@@ -52,7 +52,11 @@ test.describe("신선도 — 지면 출처 줄", () => {
       await page.goto(BASE + p, { waitUntil: "domcontentloaded" });
       const t = (await page.locator("[data-fresh]").allTextContents()).join(" | ");
       expect(t, "출처 줄의 신선도 토막").toContain("다음 공표 예정");
-      expect(t, "원천 확인").toMatch(/원천 확인 \d{4}-\d{2}-\d{2}/);
+      // 지면 원천이 전부 받기 실패 중(fail_kind)이면 「원천 확인」 날짜를 적지 않는 것이 맞다 — freshLine 은 끊긴 원천의 확인일을 쓰지 않는다.
+      //   그 하루짜리 일시 오류(아직 지연 아님)를 빨강으로 잡아 배포를 막고 사람에게 올렸다(사고 135 · 10/22 — 트리맵 = 관세청 시도별 하나 · kr-apis 900초 넘음)
+      const ids = (await page.locator("[data-fresh-ids]").evaluateAll((es) => es.map((e) => e.getAttribute("data-fresh-ids")))).join(",").split(",").filter((k) => F.sources[k]);
+      if (ids.some((k) => !F.sources[k].fail_kind)) expect(t, "원천 확인").toMatch(/원천 확인 \d{4}-\d{2}-\d{2}/);
+      else expect(t, "끊긴 원천만이면 확인일을 쓰지 않는다").not.toMatch(/원천 확인/);
     });
   }
 });
