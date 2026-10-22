@@ -119,6 +119,7 @@ test("히어로 — 1568×709 움직이는 지도에서도 이름표 × 글·단
   test.setTimeout(120_000);
   await page.setViewportSize({ width: 1568, height: 709 });
   await page.goto(`${B}/`, { waitUntil: "load" });
+  await page.evaluate(() => document.getElementById("live-stage").scrollIntoView({ block: "center" })); // 시안 v3(10-22) — 지도는 첫 화면 아래 절
   const bad = [];
   for (let k = 0; k < 6; k++) { await page.waitForTimeout(1500); for (const h of await labelHits(page)) bad.push(h); }
   expect([...new Set(bad)], [...new Set(bad)].join("\n")).toEqual([]);

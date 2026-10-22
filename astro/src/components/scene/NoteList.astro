@@ -10,7 +10,7 @@ const N = notes();
 const list = limit ? N.slice(0, limit) : N;
 const count = Object.fromEntries(STAGES.map((s) => [s, N.filter((n) => n.stage === s).length]));
 ---
-{!answer && <p class="s-cap s-stages">{STAGES.map((s) => <span><i class="st-dot" data-s={s} aria-hidden="true"></i> {s} {count[s]}</span>)}</p>}
+{!answer && <p class="s-cap s-stages">{STAGES.filter((s) => count[s] > 0).map((s) => <span><i class="st-dot" data-s={s} aria-hidden="true"></i> {s} {count[s]}</span>)}</p>}
 <ul class="s-notes">
   {list.map((n) => (
     <li data-stage={n.stage}>

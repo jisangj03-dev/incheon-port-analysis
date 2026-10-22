@@ -10,7 +10,6 @@ import { portMonthly, teuYoyGap } from "../lib/data";
 import { rooms } from "../lib/rooms";
 import { u } from "../lib/site";
 import LiveMap from "../components/home/LiveMap.astro";
-import { profile } from "../lib/profile";
 import { sourceLine } from "../lib/sources";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +19,6 @@ const P = portMonthly();
 const S = P.series;
 const last = S[S.length - 1];
 const R = rooms();
-const PF = profile();
 
 // ── 같이 푸는 질문(data/questions.json) — 실무 질문 하나 = 보여 주는 지면 하나
 const QJ = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8"));
@@ -48,11 +46,11 @@ const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
 const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
 const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 차이 최댓값(%p · 데이터 파일에서)
 ---
-<Studio title="측심 — SCM 작업실" current="home" path="/" lateFonts>
+<Studio title="수도권 물류·무역·유통 SCM 작업실" current="home" path="/" lateFonts>
   <LiveMap />
 
   <div class="s-wrap" data-content="ds-home">
-    <Scene kind="text" id="questions" cap="같이 푸는 질문" title="이런 질문을 같이 풉니다" lead="물류·무역·유통 세 축으로 나눠, 실무에서 자주 막히는 질문마다 그 답을 숫자로 보여 주는 지면을 하나씩 만들어 두었습니다. 귀사 숫자로 다시 돌려 보고 싶다면 연락 주세요.">
+    <Scene kind="text" id="questions" cap="같이 푸는 질문" title="이런 질문을 같이 풉니다" lead="물류·무역·유통 세 축으로 나눠, 실무에서 자주 막히는 질문마다 그 답을 숫자로 보여 주는 지면을 하나씩 만들어 두었습니다.">
       <div class="qax">
         {AXES.map((a) => (
           <section class="qax__col" id={`ax-${a.id}`} aria-labelledby={`ax-${a.id}-h`}>
@@ -86,7 +84,7 @@ const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 �
         <p class="spark-cap s-cap">가장 많은 달 {S[iHi].ym} · {hi} · 가장 적은 달 {S[iLo].ym} · {lo}{gaps.map((g) => ` · ${g.t} 원천 없음(선을 끊음)`).join("")}</p>
         <div class="spark-x s-cap" aria-hidden="true">{yTicks.map((t) => <span style={`left:${((t.x / W) * 100).toFixed(2)}%`}>{t.y}</span>)}</div>
         <label class="scrub"><span class="s-cap">달을 옮겨 보세요</span><input id="now-m" type="range" min="0" max={S.length - 1} value={S.length - 1} step="1" aria-label="달 고르기" /></label>
-        <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" fresh={["mof-incheon-port-stats"]} note={`월별 · 천TEU · 전년 대비는 공표값(수정된 전년 기준이라 선에서 잰 값과 ${GAP != null ? `최대 ${GAP}%p ` : ""}다르다)`} />
+        <Trust updated={P.updated} source={sourceLine("mof-incheon-port-stats")} csv={u("/data/port-monthly.csv")} csvName="incheon-port-monthly.csv" fresh={["mof-incheon-port-stats"]} note="월별 · 천TEU" fold more={`전년 대비는 공표값 — 수정된 전년 기준이라 선에서 잰 값과 ${GAP != null ? `최대 ${GAP}%p ` : ""}다르다`} />
       </figure>
       <script type="application/json" id="now-data" set:html={JSON.stringify(series)}></script>
     </Scene>
@@ -101,10 +99,7 @@ const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 �
       <NoteList limit={6} />
     </Scene>
 
-    <Scene kind="text" id="about" title="소개">
-      <p class="s-lead s-prose">{PF.name} · {PF.affiliation}. {PF.credentials.join(" · ")}{PF.writing.length > 0 && <> · {PF.writing.map((w) => w.url ? <a href={w.url} rel="noopener">{w.outlet ? `${w.outlet} 기고` : w.title}</a> : (w.outlet ? `${w.outlet} 기고` : w.title))}</>}.</p>
-      <p class="s-prose">공급망이 어디서 막히고 어디서 출렁이는지를 숫자로 보이는 일을 합니다. 틀린 곳을 알려 주시면 고쳐 적습니다. <a href={u("/about.html")}>소개 더 보기</a></p>
-    </Scene>
+    {/* [2026-10-22 선장님 최종 결정] 홈에는 사람 정보를 두지 않는다 — 「소개」 절을 걷었다(만든 사람·이력은 상단 메뉴 「소개」 지면 · 위 「네 개의 방」 목록에도 있다) */}
   </div>
   <script>
     // ② 달 막대 — 큰 숫자·전년 대비·점이 같이 움직인다

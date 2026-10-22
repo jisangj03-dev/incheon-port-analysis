@@ -1,0 +1,35 @@
+{
+  "_설명": "홈 첫 화면 「실제 도구 화면」 띠(2026-10-22 Claude Design 시안 v3) — 배포 때 tests/capture/og-cards.mjs 가 이 지면들의 주 그림(sel — 등시선 지도 · 트리맵 · 주문 출렁임 차트)을 실제로 찍어 assets/toolshots/<id>.jpg 로 둔다(지어낸 목업 0 · iframe 0). axis = 오른쪽 독자 표의 줄(logi 물류 · trade 무역 · retail 유통).",
+  "shots": [
+    {
+      "id": "delivery-reach",
+      "href": "/tools/delivery-reach.html",
+      "title": "수도권 배송 등시선",
+      "axis": "logi",
+      "sel": ".reach__map",
+      "note": "화물차·낮 시간대로 계산한 도달 시간 · 진할수록 가깝다 · © OpenStreetMap",
+      "click": "[data-truck=\"1\"]",
+      "mvw": 390,
+      "mfy": 0.3,
+      "mdy": -20
+    },
+    {
+      "id": "trade-race",
+      "href": "/tools/trade-race.html",
+      "title": "품목 트리맵 레이스",
+      "axis": "trade",
+      "sel": ".race__box",
+      "note": "{Y}년 관세청이 인천으로 집계한 업체의 수출 품목 몫",
+      "whole": 0.5
+    },
+    {
+      "id": "beer-game",
+      "href": "/sim/beer-game.html",
+      "title": "맥주 게임",
+      "axis": "retail",
+      "sel": "#wave svg",
+      "note": "시뮬레이션 — 소비자 수요와 네 단계 주문의 출렁임",
+      "tight": true
+    }
+  ]
+}
