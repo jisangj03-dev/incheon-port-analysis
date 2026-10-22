@@ -10,7 +10,6 @@ import { portMonthly, teuYoyGap } from "../lib/data";
 import { rooms } from "../lib/rooms";
 import { u } from "../lib/site";
 import LiveMap from "../components/home/LiveMap.astro";
-import { profile } from "../lib/profile";
 import { sourceLine } from "../lib/sources";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +19,6 @@ const P = portMonthly();
 const S = P.series;
 const last = S[S.length - 1];
 const R = rooms();
-const PF = profile();
 
 // ── 같이 푸는 질문(data/questions.json) — 실무 질문 하나 = 보여 주는 지면 하나
 const QJ = JSON.parse(readFileSync(join(repoRoot(), "data/questions.json"), "utf-8"));
@@ -48,7 +46,7 @@ const pct = (i: number) => `${((sx(i) / W) * 100).toFixed(2)}%`;
 const series = S.map((s, i) => ({ ym: s.ym, v: s.v, yoy: s.yoy, x: +sx(i).toFixed(1), y: +sy(s.v).toFixed(1) }));
 const GAP = teuYoyGap(); // 공표 전년비 vs 처리량으로 잰 전년비 차이 최댓값(%p · 데이터 파일에서)
 ---
-<Studio title="측심 — SCM 작업실" current="home" path="/" lateFonts>
+<Studio title="수도권 물류·무역·유통 SCM 작업실" current="home" path="/" lateFonts>
   <LiveMap />
 
   <div class="s-wrap" data-content="ds-home">

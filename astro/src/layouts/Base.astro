@@ -5,7 +5,6 @@
 import "../styles/global.css";
 import "../styles/studio.css";
 import { BRAND, NAV, u, abs, REPO, ISSUES, CF_BEACON, newsletterHref, newsletterLabel } from "../lib/site";
-import { profile } from "../lib/profile";
 import AskTail from "../components/scene/AskTail.astro";
 
 interface Props {
@@ -32,7 +31,6 @@ interface Props {
   lateFonts?: boolean;
 }
 const { title, description = BRAND.description, path, ogImage = "/og/home.jpg", surface = "light", type = "article", noindex = false, jsonld = [], wide = false, fonts = true, studio = false, current, lateFonts = false, ask = true, biz = true } = Astro.props;
-const P = profile();
 const fullTitle = title ? `${title} · ${BRAND.name}` : `${BRAND.name} — ${BRAND.tagline}`;
 const canonical = abs(path);
 const cur = (n: { id: string; href: string }) => (current ? current === n.id : path.startsWith(n.href.replace(/\.html$/, "").replace(/#.*$/, "")) && n.href !== "/");
@@ -71,7 +69,7 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
   {fonts && <noscript><link rel="stylesheet" href={u("/fonts/pretendard/pretendard.css")} /></noscript>}
   <noscript><link rel="stylesheet" href={u("/fonts/noto-serif-kr/noto-serif-kr-700.css")} /></noscript>
   <script is:inline>if (new URLSearchParams(location.search).get("type") === "sans") document.documentElement.dataset.type = "sans";</script>
-  <meta property="og:type" content={type} />
+  <meta property="og:type" content={path === "/" ? "website" : type} />
   <meta property="og:site_name" content={BRAND.name} />
   <meta property="og:locale" content="ko_KR" />
   <meta property="og:title" content={title ?? `${BRAND.name} — ${BRAND.tagline}`} />
@@ -113,7 +111,7 @@ const analytics = import.meta.env.PROD && process.env.SOUNDING_NO_ANALYTICS !== 
       </ul>
     </div>
     <p class="foot__legal">
-      공공 1차 데이터를 정리한 정보이며 <strong>법률·세무·관세 자문이 아닙니다.</strong> AI가 정리한 글·그림 가운데 검수를 마친 것에는 검수한 사람의 이름을 같이 답니다(<a href={u("/about.html#ai")}>표기 기준</a>).
+      공공 1차 데이터를 정리한 정보이며 <strong>법률·세무·관세 자문이 아닙니다.</strong> 지면의 글과 코드는 AI가 만들고, 원자료 대조를 마친 지면에는 검수한 사람의 이름을 같이 답니다(<a href={u("/about.html#ai")}>표기 기준</a>).
       발행한 주소는 바꾸지 않고, 오류는 지우지 않고 고쳐 적습니다. 글꼴 Pretendard · Noto Serif KR(OFL-1.1) · 지도 © OpenStreetMap 기여자.
     </p>
   </footer>

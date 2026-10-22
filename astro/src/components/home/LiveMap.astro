@@ -45,6 +45,7 @@ const AXN = Object.fromEntries(AXES.map((a) => [a.id, a])); // 축 이름·작�
 const TITLE: Record<string, string> = Object.fromEntries(rooms().flatMap((r) => (r.items || []).map((it) => [it.href, it.title]))); // 지면 이름 = rooms.json
 const SHOTS = J("data/home_showcase.json").shots as { id: string; href: string; title: string; axis: string; note: string }[];
 const NS = ((room("sim")?.items || []) as any[]).length;
+const TRY = (J("data/derived/trade_race.json").years as any[]).filter((y) => !y.partial).at(-1)?.y ?? ""; // 트리맵 레이스 지면이 처음 보이는 해(마지막 온전한 해) — 띠 설명 줄 {Y}
 // 두 몫의 분모 — 관세청 항구·공항별 전국(F)과 국가별 전 국가 합(T) · 같은 달에 0.1억 달러 안이면 「둘 다 ÷ 전국」 한 숫자로(23차 사실 대조 제안 · 2026-01~03 은 최대 1.9 차이) // 연습용 시뮬레이션 수(rooms.json)
 const P = portMonthly(), PL = P.series[P.series.length - 1];
 const V = J("data/derived/vessel_replay.json").latest;
@@ -64,7 +65,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="live__text idv__me">
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
-    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 1차 데이터로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
+    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 데이터를 바탕으로 계산하는 SCM 작업실입니다 — 실무 도구 {NT}개 · 시뮬레이션 {NS}개.</p>
     <figure class="shots" id="shots" data-shots aria-label="실제 도구 화면 — 도구 셋이 7초마다 차례로 바뀐다">
       <div class="shots__bar">
         <span class="shots__cap">실제 도구 화면</span>
@@ -74,7 +75,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
       <div class="shots__stage">
         {SHOTS.map((t, i) => <a class={`shot${i ? "" : " is-on"}`} data-axis={t.axis} data-i={i} href={u(t.href)} aria-hidden={i ? "true" : undefined} tabindex={i ? -1 : undefined}>
           <span class="shot__img"><picture><source media="(max-width: 899px)" srcset={u(`/assets/toolshots/${t.id}-m.jpg`)} /><img src={u(`/assets/toolshots/${t.id}.jpg`)} alt={`${t.title} — 실제 도구 화면(주 그림)`} width="1280" height="720" loading={i ? "lazy" : "eager"} decoding="async" onerror="this.hidden=true" /></picture></span>
-          <span class="shot__t"><b>{t.title} →</b> <small>{t.note}</small></span>
+          <span class="shot__t"><b>{t.title} →</b> <small>{t.note.replace("{Y}", TRY)}</small></span>
         </a>)}
       </div>
     </figure>
@@ -88,7 +89,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="who3__t">{a.tools.map((t, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(t.href)} title={TITLE[t.href]}>{t.gain}</a></>)}</span>
       </li>)}
     </ul>
-    <p class="idv__ask">이런 계산을 귀사의 물동량·재고·비용으로 다시 돌려 보고 싶다면, 연락 주세요.</p>
+    <p class="idv__ask">물동량·원가·발주 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 연락 주세요.</p>
     <div class="live__cta">
       {hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
       <a class="s-btn s-btn--ghost live__q" href={u("/tools/")}>도구 보기</a>
@@ -98,24 +99,24 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
 
   <section class="now" id="now-axes" aria-labelledby="axes-h">
   <div class="now__text">
-    <p class="s-cap axes__cap">최신 공표 숫자 · 공공 통계 · 어느 문으로, 누가 들여오고, 팔 물건은 무엇이 들어오나</p>
+    <p class="s-cap axes__cap">최신 공표 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재(서로 다른 기준 — 아래 정의)</p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
     <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 서울·인천·경기에 소재한 화주(수입자·수출자 — 본사 등 · 물건이 내린 곳 아님)</span><span class="lg-s">화주 = 소재지 기준(본사 등 · 물건이 내린 곳 아님)</span></b></>}</p>
     <ol class="live__stat ax">
       <li class="ax__row"><a href="#ax-logi">
-        <span class="ax__k">{AXN.logi.name}<small>{AXN.logi.verb}</small></span>
+        <span class="ax__k">{AXN.logi.name}<small>인천항</small></span>
         <span class="ax__v"><b>{PL.v.toLocaleString("ko-KR")}</b><span class="live__unit">천TEU</span></span>
         <span class="ax__s" aria-hidden="true">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 전년비 {sign(PL.yoy)}</span>
         <span class="ax__t">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 작년 같은 달 {sign(PL.yoy)} · 외항선 {V.incheon.toLocaleString("ko-KR")}척(<span class="nb">{V.ym}</span>)</span>
       </a></li>
       {T && <li class="ax__row"><a href="#ax-trade">
-        <span class="ax__k">{AXN.trade.name}<small>{AXN.trade.verb}</small></span>
+        <span class="ax__k">{AXN.trade.name}<small>수도권 화주</small></span>
         <span class="ax__v"><b>{fmt(T.sudo_imp)}</b><span class="live__unit">억 달러</span></span>
         <span class="ax__s" aria-hidden="true">수도권 화주 수입 <span class="nb">{T.ym}</span></span>
         <span class="ax__t">수도권 화주 수입 <span class="nb">{T.ym}</span> · 수입 1위 {HS[T.top_imp[0].hs] ?? T.top_imp[0].name} {T.top_imp[0].pct}%<span class="lg-x"> · 같은 달 수출 {fmt(T.sudo_exp)}억 달러</span></span>
       </a></li>}
       {RT && <li class="ax__row"><a href="#ax-retail">
-        <span class="ax__k">{AXN.retail.name}<small>{AXN.retail.verb}</small></span>
+        <span class="ax__k">{AXN.retail.name}<small>생활소비재</small></span>
         <span class="ax__v"><b>{fmt(RT.cons_imp)}</b><span class="live__unit">억 달러</span></span>
         <span class="ax__s" aria-hidden="true">생활소비재 수입 <span class="nb">{RT.ym}</span> · 전년비 {sign(RT.cons_yoy)}</span>
         <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}{KO && <> · 전국 온라인쇼핑 {won(KO.online)}({KO.ym} {sign(KO.yoy)})</>}</span>
@@ -496,7 +497,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .shots__stage { display: grid; width: 100%; } /* 셋을 한 칸에 겹친다 — 높이 = 가장 큰 것(그림 16:9 + 설명 줄) · 넘어가도 아래가 흔들리지 않는다 */
   .shot { grid-area: 1 / 1; display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: opacity .6s ease; color: var(--s-ink); text-decoration: none; }
   .shot.is-on { opacity: 1; z-index: 1; pointer-events: auto; }
-  .shot__img { display: block; aspect-ratio: 16 / 9; width: min(100%, calc(38vh * 16 / 9)); overflow: hidden; background: var(--s-paper-2, #ebe6da); } /* 비율을 지키며 줄인다(높이로 자르면 그림 아래 이름표가 잘렸다) */
+  .shot__img { display: block; aspect-ratio: 2 / 1; width: min(100%, calc((100svh - 420px) * 2)); min-width: min(100%, 320px); overflow: hidden; background: var(--s-paper-2, #ebe6da); } /* 2:1 로 찍은 그림 · 창이 낮으면 비율을 지키며 줄인다(높이로 자르면 그림 아래 이름표가 잘렸다) */
   .shot picture { display: block; width: 100%; height: 100%; }
   .shot img { width: 100%; height: 100%; object-fit: cover; object-position: center top; display: block; }
   .shot__t { display: block; padding: 6px 0 0; line-height: 1.4; font-size: 13px; }
@@ -609,7 +610,6 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .idv .live__who { font-size: clamp(28px, min(2.6vw, 6vh), 40px); }
     .idv__one { font-size: 16px; margin-top: 10px; }
     .shots { margin-top: 14px; }
-    .shot__img { width: min(100%, calc(30vh * 16 / 9)); }
     .who3__row { padding-block: 7px; }
     .idv__ask { margin-top: 10px; }
   }
@@ -623,7 +623,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .idv__one { font-size: 15px; margin-top: 8px; line-height: 1.5; }
     .shots { margin-top: 12px; }
     .shots__bar { margin-bottom: 4px; }
-    .shot__img { width: 100%; aspect-ratio: 2 / 1; } /* 좁은 화면 그림은 2:1 로 따로 찍는다(og-cards.mjs) */
+    .shot__img { width: 100%; } /* 좁은 화면 그림은 520 폭에서 2:1 로 따로 찍는다(og-cards.mjs) */
     .shot__t { font-size: 12.5px; } .shot__t small { font-size: 12px; }
     .idv__cap { margin-bottom: 4px; }
     .who3__row { grid-template-columns: 2.8em minmax(0, 1fr); padding: 4px 4px; row-gap: 0; }

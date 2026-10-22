@@ -27,6 +27,8 @@ test("사업 문의가 붙은 지면(홈 「같이 푸는 질문」 · 도구 �
   await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
   await page.goto("/incheon-port-analysis/", { waitUntil: "domcontentloaded" });
   await expect(page.locator('[data-q="choke"]'), "홈 「귀사 숫자로」 질문 목록에 초크포인트").toHaveCount(0);
+  // [2026-10-22 24차 사실 대조 중대 1] 첫 화면 「이런 분께」 표·도구 화면 띠도 사업 문의(연락 줄) 바로 위 — 허락이 필요한 원천의 지면을 걸지 않는다
+  for (const id of NEEDS) for (const p of PAGES[id] || []) await expect(page.locator(`.idv a[href$="${p}"]`), `홈 첫 화면에 ${p}`).toHaveCount(0);
   await page.goto("/incheon-port-analysis/tools/", { waitUntil: "domcontentloaded" });
   const row = await page.locator('main .tl a[href$="/tools/chokepoint.html"]').first().innerText();
   for (const id of NEEDS) expect(row, `도구 목록 초크포인트 줄에 ${id} 숫자`).not.toMatch(MARK[id]);
