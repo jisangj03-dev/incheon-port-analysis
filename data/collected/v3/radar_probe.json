@@ -1,0 +1,104 @@
+{
+ "checked": "2026-10-22",
+ "key_present": true,
+ "note": "행 값은 저장하지 않는다(개인정보) — 칸 이름·건수만",
+ "sources": {
+  "alio-recruit": {
+   "search": "공공기관 채용정보",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15125273",
+     "재정경제부_ 공공기관 채용정보 조회서비스"
+    ],
+    [
+     "15043125",
+     "한국관광공사_ 채용정보 _현황"
+    ],
+    [
+     "15043066",
+     "한국체육산업개발주식회사_ 채용정보"
+    ],
+    [
+     "15043189",
+     "한국저작권위원회_문화체육관광부 한국저작권위원회_ 채용정보"
+    ],
+    [
+     "15043108",
+     "문화체육관광부_국립중앙박물관_ 채용정보"
+    ]
+   ],
+   "sets": {
+    "15125273": {
+     "title": "재정경제부_ 공공기관 채용정보 조회서비스",
+     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+     "endpoints": [],
+     "ops": [
+      "getCategoryClass",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getTemplate"
+     ],
+     "request_vars": "",
+     "calls": []
+    },
+    "15043125": {
+     "title": "한국관광공사_ 채용정보 _현황",
+     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+     "endpoints": [],
+     "ops": [
+      "getCategoryClass",
+      "getDatament",
+      "getDatament_response",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getTemplate"
+     ],
+     "request_vars": "",
+     "calls": []
+    }
+   }
+  },
+  "bizinfo": {
+   "search": "기업마당 지원사업",
+   "search_status": 200,
+   "candidates": [
+    [
+     "15157820",
+     "중소벤처기업부_중소기업 지원사업 공고 조회 서비스"
+    ],
+    [
+     "15160998",
+     "중소벤처 기업 연구원_교육·세미나·전시회 등 행사정보 조회 서비스"
+    ]
+   ],
+   "sets": {
+    "15157820": {
+     "title": "중소벤처기업부_중소기업 지원사업 공고 조회 서비스",
+     "license_text": "공공저작물 : 출처표시, 변경금지 (제 3유형) 심의유형 개발단계 : 자",
+     "endpoints": [],
+     "ops": [
+      "getCategoryClass",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getTemplate"
+     ],
+     "request_vars": "",
+     "calls": []
+    }
+   }
+  },
+  "kstartup": {
+   "search": "K-Startup 사업공고",
+   "search_status": 200,
+   "candidates": [],
+   "sets": {}
+  }
+ }
+}
