@@ -1,0 +1,133 @@
+{
+ "_설명": "해석 문장 대장(갱신 무인화 ③ · docs/측심_갱신무인화_판정기준_선커밋_20261022.md). 숫자가 바뀌면 뜻이 뒤집힐 수 있는 문장마다 조건(tools-build/facts.py variants) · 갈래별 문장(사람이 미리 쓴 것) · 승인 갈래(approved). 지금 갈래 ≠ approved 이면 시험이 빨강이고 refresh 는 배포 대신 approved 만 바꾼 문장 확인 PR 을 연다 — 머지 = 선장님 결재. 지면 문장은 파생 코드(where)가 같은 조건으로 고르고, 홍보 초안은 {{claim:id.형}} 으로 이 문장을 그대로 쓴다.",
+ "claims": [
+  {
+   "id": "home.sea_counter",
+   "where": [
+    "tools-build/supply_derive.py",
+    "홈 「반대 지표」"
+   ],
+   "when": "관세청 항구·공항별 최신 달 전국 수입액 중 부산항·부산신항 몫 vs 인천항 몫",
+   "variants": {
+    "busan": {
+     "text": "바다로 들어오는 수입은 부산이 인천항보다 크다"
+    },
+    "incheon": {
+     "text": "바다로 들어오는 수입은 인천항이 부산보다 크다"
+    },
+    "same": {
+     "text": "바다로 들어오는 수입은 부산과 인천항이 같다"
+    }
+   },
+   "approved": "busan",
+   "page": "/"
+  },
+  {
+   "id": "home.air_vs_port",
+   "where": [
+    "astro/src/components/home/LiveMap.astro",
+    "홈 「반대 지표」 둘째 문장"
+   ],
+   "when": "인천 관문 수입 = 인천공항 vs 인천항(최신 달 금액)",
+   "variants": {
+    "air": {
+     "text": "인천 관문 수입은 하늘(인천공항) 쪽이 바다(인천항)보다 크다."
+    },
+    "port": {
+     "text": "인천 관문 수입은 바다(인천항) 쪽이 하늘(인천공항)보다 크다."
+    }
+   },
+   "approved": "air",
+   "page": "/"
+  },
+  {
+   "id": "home.top_month",
+   "where": [
+    "astro/src/components/home/LiveMap.astro",
+    "홈 숫자 절 기준 줄"
+   ],
+   "when": "최신 달 관문 수입 몫이 표시 기간 가운데 가장 높은가",
+   "variants": {
+    "top": {
+     "text": "가장 높은 달"
+    },
+    "not": {
+     "text": ""
+    }
+   },
+   "approved": "top",
+   "page": "/"
+  },
+  {
+   "id": "vessels.counter",
+   "where": [
+    "tools-build/vessel_derive.py",
+    "외항선 입항 추이 「반대 지표」"
+   ],
+   "when": "최신 달 외항선 입항 부산 vs 인천(2배 이상이면 「훨씬」)",
+   "variants": {
+    "much": {
+     "text": "외항선 입항 척수로는 부산이 인천보다 훨씬 많다"
+    },
+    "more": {
+     "text": "외항선 입항 척수로는 부산이 인천보다 많다"
+    },
+    "less": {
+     "text": "외항선 입항 척수로는 인천이 부산보다 많다"
+    },
+    "same": {
+     "text": "외항선 입항 척수는 부산과 인천이 같다"
+    },
+    "none": {
+     "text": "외항선 입항 척수 비교 — 같은 달 자료가 없다"
+    }
+   },
+   "approved": "much",
+   "page": "/map/vessels.html"
+  },
+  {
+   "id": "gate.half",
+   "where": [
+    "content-queue/templates/launch.md 블로그 제목안"
+   ],
+   "when": "인천 관문 수입 몫 ≥ 50%(절반) · 45~50%(절반 가까이) · 45% 미만",
+   "variants": {
+    "over": {
+     "title": "한국 수입의 절반이 지나는 관문"
+    },
+    "near": {
+     "title": "한국 수입의 절반 가까이가 지나는 관문"
+    },
+    "under": {
+     "title": "한국 수입이 지나는 관문"
+    }
+   },
+   "approved": "over"
+  },
+  {
+   "id": "gate.air_most",
+   "where": [
+    "content-queue/templates/launch.md LinkedIn·블로그·Threads"
+   ],
+   "when": "인천 관문 수입 중 인천공항 몫 ≥ 70%(대부분) · 50~70%(절반 넘게) · 50% 이하(바다 쪽)",
+   "variants": {
+    "most": {
+     "li": "금액으로 보면 대부분이 하늘길입니다",
+     "th": "금액으로는 대부분 인천공항입니다",
+     "blog": "그 대부분이 인천공항입니다"
+    },
+    "over_half": {
+     "li": "금액으로 보면 절반 넘게 하늘길입니다",
+     "th": "금액으로는 절반 넘게 인천공항입니다",
+     "blog": "그 절반 넘게를 인천공항이 차지합니다"
+    },
+    "sea": {
+     "li": "금액으로 보면 바다(인천항) 쪽이 하늘길보다 큽니다",
+     "th": "금액으로는 인천항 쪽이 더 큽니다",
+     "blog": "인천공항 몫은 그 절반이 안 됩니다"
+    }
+   },
+   "approved": "most"
+  }
+ ]
+}

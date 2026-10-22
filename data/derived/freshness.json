@@ -17,7 +17,13 @@
    "last_error": null,
    "next_expected": "2026-11-15",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kcs-nation": {
    "label": "관세청 국가별 수출입실적",
@@ -35,7 +41,13 @@
    "last_error": null,
    "next_expected": "2026-11-15",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kcs-sido-item": {
    "label": "관세청 시도별 품목별 수출입실적(인천)",
@@ -52,7 +64,13 @@
    "last_error": null,
    "next_expected": "2026-11-15",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kcs-fx": {
    "label": "관세청 관세환율(수입 · 주간)",
@@ -69,7 +87,13 @@
    "last_error": null,
    "next_expected": "2026-10-25",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kobc-kcci": {
    "label": "한국해양진흥공사 KCCI(주간)",
@@ -86,7 +110,13 @@
    "last_error": null,
    "next_expected": "2026-10-27",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "imf-portwatch": {
    "label": "IMF PortWatch 길목 통항",
@@ -103,7 +133,13 @@
    "last_error": null,
    "next_expected": "2026-10-28",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "mof-vessel": {
    "label": "해양수산부 항만별 선박입출항실적",
@@ -121,7 +157,13 @@
    "last_error": null,
    "next_expected": "2026-11-20",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "mof-incheon-port-stats": {
    "label": "인천지방해양수산청 월별 항만운영통계(컨테이너)",
@@ -134,13 +176,19 @@
     "monthly",
     30
    ],
-   "ours": "2026-08",
-   "source_latest": "2026-08",
+   "ours": "2026-09",
+   "source_latest": "2026-09",
    "checked": "2026-10-22",
    "last_error": null,
-   "next_expected": "2026-10-30",
+   "next_expected": "2026-11-30",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kcs-sido-sudo": {
    "label": "관세청 시도별 품목별 수출입실적(수도권 · 전국)",
@@ -157,7 +205,13 @@
    "last_error": null,
    "next_expected": "2026-11-15",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "osm-reach": {
    "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)",
@@ -169,13 +223,19 @@
     "recompute",
     28
    ],
-   "ours": "2026-10-21",
-   "source_latest": "2026-10-21",
+   "ours": "2026-10-22",
+   "source_latest": "2026-10-22",
    "checked": "2026-10-21",
    "last_error": null,
    "next_expected": "2026-11-18",
    "max_age": 38,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "kcs-tariff": {
    "label": "관세청 품목번호별 관세율표(파일 · 우리 확인)",
@@ -192,7 +252,13 @@
    "last_error": null,
    "next_expected": "2026-11-18",
    "max_age": 38,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   },
   "iiac-route-cargo": {
    "label": "인천국제공항공사 항공사별 노선별 운송실적(반기 파일)",
@@ -209,7 +275,13 @@
    "last_error": null,
    "next_expected": "2027-01-31",
    "max_age": 10,
-   "behind": false
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
   }
  }
 }

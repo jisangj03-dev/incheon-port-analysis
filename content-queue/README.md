@@ -1,7 +1,10 @@
 # 콘텐츠 큐 — 초안만 있다(게시 = 선장님)
 
-- `tools-build/content_queue.py` 가 도구 데이터가 갱신될 때(기준일이 `state.json` 과 다를 때) 도구마다 LinkedIn · 블로그 · Threads 초안을 `<날짜>/<도구>.md` 로 쓴다.
-- 숫자는 `data/derived/*.json` 에서만 온다. 데이터 밖 숫자가 하나라도 있으면 생성기가 그 초안을 쓰지 않고, `tests/content-queue.spec.mjs` 가 한 번 더 본다.
+- **`live/` = 지금 쓰는 판.** refresh(매일 06:17 KST)가 원천 갱신 때마다 다시 만든다 — 숫자는 `data/derived/facts.json`·도구 파생 파일에서, 해석 문장은 `data/claims.json` 승인 갈래에서(갱신 무인화 ① · `docs/측심_갱신무인화_판정기준_선커밋_20261022.md`). 게시 직전에도 이 판을 쓴다.
+  - 도구 초안: `tools-build/content_queue.py --live`(지금 공개 도구만) · 홍보 초안: `tools-build/drafts.py`(틀 `templates/`).
+- `templates/` = 홍보 초안 틀. 숫자를 적지 않는다(`{{이름}}` · `{{claim:id.형}}`) — `python tools-build/drafts.py --check` 가 손으로 적은 숫자를 막는다.
+- 날짜 폴더(`<날짜>/<도구>.md`) = 그날 데이터로 만든 **기록**(보관 · `content_queue.py` 를 `--live` 없이 돌린 것). 숫자가 지금 지면과 다를 수 있다 — 게시에 쓰지 않는다.
+- 숫자는 데이터 파일에서만 온다. 데이터 밖 숫자가 하나라도 있으면 생성기가 그 초안을 쓰지 않고, `tests/content-queue.spec.mjs` 가 한 번 더 본다.
 - **게시는 선장님이 한다.** 이 폴더의 어떤 파일도 자동으로 올라가지 않는다. 게시 상태 정본은 `docs/채널대기열.md` 다.
 - 초안은 AI 가 썼고 검수 전이다 — 게시 전에 읽고 고친 만큼만 검수 표기를 단다.
-- 기준: `docs/측심_전권위임_단계기준_선커밋_20261015.md` ④-상세.
+- 기준: `docs/측심_전권위임_단계기준_선커밋_20261015.md` ④-상세 · `docs/측심_갱신무인화_판정기준_선커밋_20261022.md` ①.

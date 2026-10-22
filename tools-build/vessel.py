@@ -47,7 +47,7 @@ def main():
     last = f"{today.year}{today.month:02d}"
     rows, got, empty, failed = [], [], [], []
     # [2026-10-21 자동 갱신] --recent N = 마지막 N달만 다시 받고 그 앞 달은 지난 파일 그대로 — 매일 도는 refresh 가 140달을 다시 받지 않게
-    keep = []
+    keep, prev = [], {}
     if "--recent" in sys.argv and os.path.exists(OUT):
         n = int(sys.argv[sys.argv.index("--recent") + 1])
         y, m = today.year, today.month - (n - 1)
@@ -55,6 +55,9 @@ def main():
         start = f"{y}{m:02d}"
         old = list(csv.DictReader(open(OUT, encoding="utf-8")))
         keep = [r for r in old if r["ym"] < start]
+        prev = {}  # 다시 받을 창 안의 지난 행 — 그 달 받기가 실패하면 지난 행을 그대로 둔다(사실 대조 중대 E4: 실패한 달이 지워진 채 종료 0)
+        for r in old:
+            if r["ym"] >= start: prev.setdefault(r["ym"], []).append(r)
 
     # 달마다 바로 파일에 쓴다 — 첫 실행이 20분 제한에 걸려 통째로 잃을 뻔했다(2026-10-14). 진행은 즉시 찍는다.
     tmp = OUT + ".part"
@@ -69,11 +72,12 @@ def main():
                 break
             except Exception as ex:
                 r = None
-                if k == 2: print(ym, "실패", type(ex).__name__, flush=True)
+                if k == 2: print(ym, "실패", type(ex).__name__, str(ex)[:120], flush=True)
                 time.sleep(2 * (k + 1))
         if r: rows += r; got.append(ym); w.writerows(r); f.flush()
-        elif r == []: empty.append(ym)
-        else: failed.append(ym)
+        else:
+            (empty if r == [] else failed).append(ym)
+            if "--recent" in sys.argv and prev.get(ym): rows += prev[ym]; w.writerows(prev[ym]); f.flush(); print(ym, "못 받음 — 지난 행 그대로", flush=True)
         print(ym, len(r or []), f"{time.time() - t0:.0f}s", flush=True)
     f.close()
     if not rows:
@@ -85,6 +89,9 @@ def main():
             "fetched": today.isoformat(), "command": "python tools-build/vessel.py " + (f"--recent {sys.argv[sys.argv.index('--recent') + 1]}" if "--recent" in sys.argv else "--from " + start)}
     json.dump(meta, open(META, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(json.dumps(meta, ensure_ascii=False)[:600])
+    # 지난 파일에 있던 달을 못 받았으면 종료 2 — 파일은 지난 행으로 지켰지만 refresh 가 「원천 확인 오늘」로 적지 않게
+    lost = [m for m in failed + empty if m in prev] if "--recent" in sys.argv else failed
+    if lost: print("못 받은 달", lost, flush=True); return 2
     return 0
 
 

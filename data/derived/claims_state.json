@@ -1,0 +1,35 @@
+{
+ "_설명": "해석 문장 지금 갈래 vs 승인 갈래(data/claims.json) — 다르면 배포 대신 문장 확인 PR.",
+ "claims": {
+  "home.sea_counter": {
+   "now": "busan",
+   "approved": "busan",
+   "flipped": false
+  },
+  "home.air_vs_port": {
+   "now": "air",
+   "approved": "air",
+   "flipped": false
+  },
+  "home.top_month": {
+   "now": "top",
+   "approved": "top",
+   "flipped": false
+  },
+  "vessels.counter": {
+   "now": "much",
+   "approved": "much",
+   "flipped": false
+  },
+  "gate.half": {
+   "now": "over",
+   "approved": "over",
+   "flipped": false
+  },
+  "gate.air_most": {
+   "now": "most",
+   "approved": "most",
+   "flipped": false
+  }
+ }
+}
