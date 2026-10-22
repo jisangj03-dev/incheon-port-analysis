@@ -22,13 +22,14 @@ const names = segs.filter((x) => !TERMS.test(x));
 const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
 const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
-{DL.map((g) => <p class="s-delay" data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
+{DL.map((g) => <p class={`s-delay${g.head === "갱신 지연" ? "" : " s-delay--soft"}`} data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
 <p class="s-trust" data-fresh-ids={DI.join(",") || undefined}><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
 {(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, names.length > 2 ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
 <style>
   .s-delay__i { display: block; }
+  .s-delay--soft { border-left-color: var(--s-ink-3); background: color-mix(in srgb, var(--s-ink-3) 8%, transparent); } /* 자동 받기 실패 = 지금 숫자는 최신 — 「갱신 지연」보다 약하게(10/22 화면 3차 판정) */
   .s-delay b { display: block; font-weight: 650; }
   .s-delay { margin: 4px 0 0; padding: 4px 8px; border-left: 3px solid var(--s-signal); background: color-mix(in srgb, var(--s-signal) 8%, transparent); font-size: 13px; color: var(--s-ink); max-width: 60em; }
   .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
