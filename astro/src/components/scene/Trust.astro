@@ -19,10 +19,16 @@ const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts
   if (cur) out.push(cur.trim()); return out.filter(Boolean); })();
 // 한 줄에는 출처 둘까지 — 셋 이상이면 「외 N」로 줄이고 나머지는 접기 안(2026-10-20 2차 화면 판정: 수입원가·초크포인트 출처가 3~4줄로 펼쳐졌다)
 const names = segs.filter((x) => !TERMS.test(x));
-// 단, 「갱신 지연」·「자동 받기 실패」 상자가 떠 있으면 출처를 다 펼친다 — 상자가 말하는 자료가 「외 N」 안에 묻혀 어느 출처인지 못 찾았다(10/22 화면 3차 판정 경미 · 홈)
-const cut = names.length > 2 && !DL.length;
-const short = (cut ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
-const terms = [...(cut ? names.slice(2) : []), ...segs.filter((x) => TERMS.test(x))];
+// 단, 「갱신 지연」·「자동 받기 실패」 상자가 떠 있으면 그 자료를 출처 줄 앞에 꺼낸다 — 상자가 말하는 자료가 「외 N」 안에 묻혀 어느 출처인지 못 찾았다(10/22 화면 3차 판정 경미 · 홈)
+//   전부가 아니라 상자가 말하는 자료만 앞으로 꺼낸다 — 전부 펼치면 좁은 화면에서 출처 줄이 8줄이 됐다(10/22 화면 4차 판정 경미)
+const late = DL.flatMap((g) => g.items.map((t) => t.split(" — ")[0]));
+const nz = (x: string) => x.replace(/\([^)]*\)|（[^）]*）/g, "").replace(/[「」\s]/g, ""); // 신선도 이름(「…(인천)」·「KCCI(주간)」)과 출처 대장 이름의 괄호·낫표 차이를 걷고 견준다
+const hit = (x: string) => late.some((l) => nz(x).includes(nz(l)));
+const lost = late.some((l) => !names.some((x) => nz(x).includes(nz(l)))); // 상자 자료를 출처 이름에서 못 찾으면(PortWatch·우리 재계산 층) 예전처럼 다 펼친다
+const ord = [...names.filter(hit), ...names.filter((x) => !hit(x))], keep = lost ? names.length : Math.max(2, names.filter(hit).length);
+const cut = ord.length > keep;
+const short = (cut ? `${ord.slice(0, keep).join(" · ")} 외 ${ord.length - keep}` : ord.join(" · ")) || source;
+const terms = [...(cut ? ord.slice(keep) : []), ...segs.filter((x) => TERMS.test(x))];
 ---
 {DL.map((g) => <p class={`s-delay${g.head === "갱신 지연" ? "" : " s-delay--soft"}`} data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
 <p class="s-trust" data-fresh-ids={DI.join(",") || undefined}><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"

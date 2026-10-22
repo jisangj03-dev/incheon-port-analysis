@@ -35,7 +35,8 @@ def reach():
     t = next((x for x in (S or {}).get("slots", []) if x["id"] == (S or {}).get("default")), None)
     tb = S["table"][0][t["id"]] if t and t["k"] != 1 else None
     c, w = (tb["car"], tb["within"]) if tb else (o["cities"], o["cities_within"])
-    s, tag = c.get("서울시청"), (f"({t['id']} 시간 보정, 카카오 내비 {t.get('n', 30)}구간 대조)" if tb else "(자유 흐름 · 혼잡 미반영)")
+    hh = (re.search(r"\d{1,2}:\d{2}", t.get("label", "")) or [""])[0] if t else ""  # 지면·홍보 초안과 같은 꼴 「(낮 시간대 · 평일 14:00 출발 기준)」 — 10/22 사실 대조: 도구 초안에만 시각이 없었다
+    s, tag = c.get("서울시청"), (f"({t['id']} 시간대 · 평일 {hh} 출발 기준 · 카카오 내비 {t.get('n', 30)}구간 대조 보정)" if tb else "(자유 흐름 · 혼잡 미반영)")
     return {"id": "delivery-reach", "asof": I["made"], "q": "인천 창고에서 수도권 어디까지 몇 시간에 닿나?",
             "hook": f"{o['name']}에서 서울시청까지 승용차로 {s}분{tag}. 표에 든 수도권 도시 {o['n_cities']}곳 중 {w['1h']}곳이 1시간 안입니다.",
             "body": [f"2시간이면 {w['2h']}곳, 3시간이면 {w['3h']}곳. 출발지를 바꾸면 도달권이 지도 위에서 다시 번집니다.",

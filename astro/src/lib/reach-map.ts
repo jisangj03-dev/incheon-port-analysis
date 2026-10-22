@@ -85,10 +85,13 @@ export class ReachMap {
     const oname = `출발 · ${O.name}`, ow = ctx.measureText(oname).width;
     // 출발점 고리(반지름 7→18)와 겹치지 않는 거리 — 이름표 바탕 상자가 고리를 덮었다(10/22 화면 3차 판정 경미)
     const fits = (bx: number[]) => { const c = this.crop; return !c || (bx[1] >= c[0] + c[2] && bx[3] <= c[1] - c[2]) || bx[3] <= c[0] || bx[1] >= c[1]; }; // 자를 띠 안 여백 밖 · 또는 띠 밖
-    const oc = [[ox + 20, oy - 14], [ox - 20 - ow, oy - 14], [ox - ow / 2, oy - 28], [ox - ow / 2, oy + 28], [ox + 20, oy + 14], [ox - 20 - ow, oy + 14]]
-      .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2 && fits(c.bx));
+    //   바탕 상자는 bx 보다 2px 더 칠한다 — 옆 후보 24px 이면 칠한 모서리(20, ±6)까지 20.9px > 고리 18 + 선 0.75 · 위·아래 28px 이면 20px
+    //   순서는 예전 그대로(왼쪽 위 먼저 — 10/22 사실 대조: 순서를 바꿔 넓은 화면에서 이름표가 오른쪽으로 옮겨 갔다)
+    const all = [[ox - 24 - ow, oy - 14], [ox + 24, oy - 14], [ox - ow / 2, oy - 28], [ox - ow / 2, oy + 28], [ox - 24 - ow, oy + 14], [ox + 24, oy + 14]]
+      .map(([ax, ay]) => ({ ax, ay, bx: [ax - 2, ay - 8, ax + ow + 2, ay + 8] })).filter((c) => c.bx[0] >= 2 && c.bx[2] <= this.W - 2 && c.bx[1] >= 2 && c.bx[3] <= this.H - 2);
+    const oc = all.filter((c) => fits(c.bx));
     // 출발지 이름은 출발점 바로 옆(왼쪽·오른쪽 위 둘 중 화면에 드는 쪽)에 바탕 상자와 함께 — 도시 점을 피해 멀리 가면 다른 점의 이름처럼 읽혔다(8차 화면 판정 · 390) · 도시 이름표가 이 자리를 피한다
-    const og = oc.slice(0, 2).find((c) => !clash(c.bx, dots)) || oc[0] || { ax: ox + 12, ay: oy - 14, bx: [ox + 10, oy - 22, ox + 14 + ow, oy - 6] };
+    const og = oc.slice(0, 2).find((c) => !clash(c.bx, dots)) || oc[0] || all[0] || { ax: ox + 24, ay: oy - 14, bx: [ox + 22, oy - 22, ox + 26 + ow, oy - 6] }; // 자를 띠 때문에 다 걸러지면 화면 안 자리(고리와 떨어진 거리는 같다)
     ctx.fillStyle = "rgba(243,239,229,0.92)"; ctx.fillRect(og.bx[0] - 2, og.bx[1], og.bx[2] - og.bx[0] + 4, og.bx[3] - og.bx[1]);
     ctx.fillStyle = "#191714"; ctx.fillText(oname, og.ax, og.ay);
     const oBox = og.bx; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
