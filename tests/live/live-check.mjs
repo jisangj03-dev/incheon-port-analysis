@@ -91,6 +91,30 @@ if (cfg.open?.length) {
   for (const b of broken) { L.push(`  - 깨짐: ${b}`); FAIL.push(`링크 깨짐 ${b}`); }
   for (const u of [...new Set(unknown)]) L.push(`  - 확인 불가: ${u}`);
 }
+// ⑦ 홍보 초안 숫자 = 공개판(2026-10-22 갱신 무인화 · launch 대조) — content-queue/live/launch.md 의 숫자는 전부 data/derived/facts.json 이름에서 온다.
+//   이름마다 공개 지면 실물(HTML 보이는 글자)에 같은 값이 같은 꼴로 있는지 잰다. 초안에 나온 자리 수(같은 숫자가 여러 번)도 같이 적는다.
+if (existsSync("data/derived/facts.json") && existsSync("content-queue/templates/launch.md")) {
+  const F = JSON.parse(readFileSync("data/derived/facts.json", "utf-8")).facts;
+  const tpl = readFileSync("content-queue/templates/launch.md", "utf-8").split("\n---\n").slice(1).join("\n---\n");
+  const uses = {}; for (const m of tpl.matchAll(/\{\{\s*([^}:]+?)\s*\}\}/g)) uses[m[1]] = (uses[m[1]] || 0) + 1;
+  const vis = (h) => h.replace(/<script[\s\S]*?<\/script>/gi, " ").replace(/<style[\s\S]*?<\/style>/gi, " ").replace(/<[^>]+>/g, " ").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\s+/g, " ");
+  const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const pat = (f) => f.ctx ? new RegExp(f.ctx.split("{v}").map(esc).join(`\\s*${esc(f.v)}\\s*`)) : new RegExp(`(?<![\\d.])${esc(f.v)}(?![\\d])`);
+  const cache = {};
+  const page = async (p) => (cache[p] ??= vis(await (await fetch(cfg.base + (p === "/" ? "/" : p))).text()));
+  L.push("", "## ⑦ 홍보 초안(launch) 숫자 = 공개판", "", "| 이름 | 값 | 초안 자리 | 공개 지면 | 공개판에 같은 값 |", "|---|---|---|---|---|");
+  let n = 0, bad = 0;
+  for (const [k, c] of Object.entries(uses)) {
+    const f = F[k]; if (!f) { L.push(`| ${k} | (facts 없음) | ${c} | — | **없음** |`); bad++; FAIL.push(`launch 숫자 ${k} — facts 없음`); continue; }
+    n += c;
+    const res = [];
+    for (const p of f.pages) res.push(pat(f).test(await page(p)) ? `\`${p}\` 있음` : `\`${p}\` **없음**`);
+    const ok = f.pages.length && res.every((r) => r.endsWith("있음"));
+    if (!ok && f.pages.length) { bad++; FAIL.push(`launch 숫자 ${k}=${f.v} — 공개판에 없음`); }
+    L.push(`| ${k} | ${f.v} | ${c} | ${f.pages.join(" · ") || "(지면 없음)"} | ${f.pages.length ? res.join(" · ") : "—"} |`);
+  }
+  L.push("", `- 초안 숫자 자리 ${n}개 · 이름 ${Object.keys(uses).length}개 · 공개판 불일치 ${bad}`);
+}
 L.push("", `## 판정 — 어긋남 ${FAIL.length}`, "", ...(FAIL.length ? FAIL.map((f) => `- ${f}`) : ["- 없음"]));
 writeFileSync("live-check-fail.txt", FAIL.join("\n"));
 console.log(L.join("\n"));
