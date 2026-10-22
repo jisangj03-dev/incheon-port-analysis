@@ -233,17 +233,26 @@ jobs:
       - name: 모의 — 이번 회차가 했을 일(커밋·배포 0)
         if: inputs.mock != ''
         run: |
+          # 로그에도 찍는다 — 요약 화면은 API 로 읽히지 않아 실행 증명이 로그에 남아야 한다(10/22 M1)
           {
             echo "## 모의 ${{ inputs.mock }} — 판정"
             echo "- 시험: ${{ steps.qa.outcome }} · 해석 문장 뒤집힘: ${{ steps.diff.outputs.claims || 'no' }}"
             if [ "${{ steps.qa.outcome }}" = "success" ] && [ "${{ steps.diff.outputs.claims }}" != "yes" ]; then echo "- **자동 반영** — main 이었다면 커밋 → 배포(pages) 했을 회차"; fi
-            echo "- 핵심 숫자(facts) 외항선: $(python -c "import json;f=json.load(open('data/derived/facts.json'))['facts'];print(f['vessel.incheon']['v'], f['vessel.yoy']['v'])")"
+            echo "- main 대비 바뀐 숫자(facts): $(python - <<'PY'
+          import json, subprocess
+          new = json.load(open("data/derived/facts.json"))["facts"]
+          old = json.loads(subprocess.run(["git", "show", "HEAD:data/derived/facts.json"], capture_output=True, text=True).stdout or '{"facts":{}}')["facts"]
+          print(", ".join(f"{k} {old.get(k, {}).get('v')}→{v['v']}" for k, v in new.items() if old.get(k, {}).get("v") != v["v"]) or "없음")
+          PY
+          )"
             echo "- 홍보 초안 live/launch.md 외항선 줄: $(grep -o '외항선 입항 [0-9,]*척[^·]*' content-queue/live/launch.md | head -1)"
-            echo "- 지면(빌드) 외항선: $(grep -o '[0-9,]*척 · 인천' astro/dist/map/vessels.html | head -1)"
-            echo "- 갱신 지연: $(python -c "import json;h=json.load(open('data/derived/health.json'));print([d['id'] for d in h['delayed']], '· 사람 손', [d['id'] for d in h['human']])")"
-            echo "- 수입원가 지면 「갱신 지연」 줄: $(grep -o '갱신 지연 — [^<]*' astro/dist/tools/import-cost.html | head -1)"
+            echo "- 도구 초안 live 바뀐 파일: $(git diff --name-only -- content-queue/live | tr '\n' ' ')"
+            echo "- 지면(빌드) 외항선 지면 답: $(grep -o '[0-9,]*</i><small>척 · 인천' astro/dist/map/vessels.html | head -1 | sed 's/<[^>]*>//g')"
+            echo "- 띠 그림: $(ls astro/dist/assets/toolshots/ 2>/dev/null | tr '\n' ' ')"
+            echo "- 갱신 지연·사람 손: $(python -c "import json;h=json.load(open('data/derived/health.json'));print([d['id'] for d in h['delayed']], '· 사람 손', [d['id'] for d in h['human']])")"
+            for f in index tools/import-cost tools/chokepoint; do echo "- $f 지연 상자: $(grep -o 'data-delay[^>]*>.\{0,400\}' astro/dist/$f.html | sed 's/<[^>]*>/ /g; s/data-delay[^>]*>//' | tr -s ' ' | head -2 | tr '\n' ' ')"; done
             echo "- 해석 문장 상태: $(python -c "import json;print({k:(v['approved'],v['now']) for k,v in json.load(open('data/derived/claims_state.json'))['claims'].items()})")"
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 해석 문장 확인 PR(뒤집힘 · 배포 대신)
         if: steps.diff.outputs.claims == 'yes' && steps.qa.outcome == 'success'
         env:
