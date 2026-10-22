@@ -91,7 +91,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
       note: `관세청 시도별 품목별 수출입실적(공공데이터포털 15101641) · 시도 = 인천(28) · 원천 금액은 천 달러 → 이 CSV 의 금액 열은 백만 달러 · 관세청이 인천(시도 28)으로 집계한 업체 실적 — 업체를 시도에 넣는 기준은 공개 명세에 없다(입·출항 관문 기준이 아니다) · 계산 tools-build/v3/race_derive.py` };
   },
-  // 수도권 배송 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
+  // 수도권 도달 등시선 — 출발지 × 도시 도착 분(자유 흐름 속도 가정)
   "delivery-reach": () => {
     const I = J("data/derived/isochrones.json"), RS = existsSync(join(repoRoot(), "data/derived/reach_slots.json")) ? J("data/derived/reach_slots.json") : null;
     const SL = (RS?.slots ?? []).filter((t: any) => t.k !== 1);

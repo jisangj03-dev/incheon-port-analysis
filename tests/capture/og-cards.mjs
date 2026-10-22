@@ -88,12 +88,14 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
 const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
 // guard — 찍을 장면이 데이터 파일과 같은가(10/22 선장님 대조: 띠 그림 서울시청 52분(화물차) ↔ 지면·초안 51분(승용차)). 다르면 이유 문자열, 같으면 "".
 //   띠 그림은 배포마다 다시 찍히므로 「낡음」은 없다 — 남는 위험은 「찍은 장면의 기준이 지면·초안과 다름」이고, 그것을 여기서 막는다.
+const STATE = {}; // guard 가 잰 장면 상태 — 찍은 뒤 assets/toolshots/<id>.json 으로 낸다(실물 점검 ⑧ 이 공개판 띠 그림의 숫자를 지면 첫 문장과 대조 · 10/22)
 const GUARD = {
   reach: async (p) => {
     const S = JSON.parse(readFileSync("data/derived/reach_slots.json", "utf-8")), I = JSON.parse(readFileSync("data/derived/isochrones.json", "utf-8"));
     const oi = Math.max(0, I.origins.findIndex((o) => o.kind === "물류단지")), want = S.table[oi][S.default].car["서울시청"];
     const got = await p.evaluate(() => { const r = window.__reach; if (!r) return null; const o = r.iso.origins[r.o], C = (r.truck && o.cities_truck) || o.cities; return { o: r.o, truck: !!r.truck, prep: r.prep, seoul: Math.round(C["서울시청"] * r.k + r.prep) }; });
     if (!got) return "지도 인스턴스 없음";
+    STATE.reach = { 서울시청분: got.seoul, 차종: got.truck ? "화물차" : "승용", 시간대: S.default, 출발지: I.origins[got.o].name, 상하차분: got.prep };
     const why = [got.o !== oi && `출발지 ${got.o}≠${oi}`, got.truck && "화물차 장면", got.prep && `상하차 ${got.prep}분`, got.seoul !== want && `서울시청 ${got.seoul}분 ≠ 데이터 ${want}분(${S.default}·승용)`].filter(Boolean);
     return why.join(" · ");
   },
@@ -144,7 +146,11 @@ if (SHOW.length) {
               if (cut || (main && !main.contains(e))) e.style.visibility = "hidden";
             }
           }, [Math.max(0, y), Math.max(0, y) + h, bb.x, bb.x + w, t.sel]);
+          // 캔버스 이름표(등시선 지도)는 문서에 없어 위 회피가 못 본다 — 자를 띠를 지도에 알려 틀 끝 14px 안에 걸리는 이름표를 다른 자리로 옮기거나 빼고 다시 그린다
+          //   (10/22 화면 3차 판정 경미: 「시흥 43분」「성남 분당 64분」이 그림 아래 끝에 닿음)
+          await sp.evaluate(([y0, h]) => { const r = window.__reach, cv = r?.cv; if (!cv) return; const t = cv.getBoundingClientRect().top; r.crop = [y0 - t, y0 - t + h, 14]; r.draw(); }, [Math.max(0, y), h]);
           await sp.screenshot({ path: out, type: "jpeg", quality: 72, clip: { x: Math.floor(bb.x), y: Math.max(0, Math.round(y)), width: w, height: h } }); // 주 그림(지도 · 트리맵 · 차트) · 2:1
+          if (t.guard && STATE[t.guard]) writeFileSync(join(dist, "assets", "toolshots", `${t.id}${suf}.json`), JSON.stringify({ _설명: "이 띠 그림을 찍은 순간의 장면 상태(og-cards guard) — 실물 점검 ⑧ 이 등시선 지면 첫 문장과 대조한다", ...STATE[t.guard] }));
         }
         else {
           const top = await sp.evaluate(() => Math.ceil(document.querySelector("header.s-mast")?.getBoundingClientRect().bottom || 0));

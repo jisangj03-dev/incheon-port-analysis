@@ -1,5 +1,5 @@
 ---
-// 도구 · 수도권 배송 등시선(실무 질문 Q2) — 인천 물류단지·관문에서 1·2·3시간 안에 닿는 수도권. 빌드 때 계산한 격자(OSM · 자유 흐름 속도).
+// 도구 · 수도권 도달 등시선(실무 질문 Q2) — 인천 물류단지·관문에서 1·2·3시간 안에 닿는 수도권. 빌드 때 계산한 격자(OSM · 자유 흐름 속도).
 // 첫 그림 = 서버에서 그린 도시 도착 분 표(스크립트 0) · 지도는 받은 뒤 0→180분으로 번진다. 숫자 = data/derived/isochrones.json.
 import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
@@ -28,7 +28,9 @@ const W = TB?.within ?? O.cities_within, in1 = W["1h"], in2 = W["2h"];
 const seoul = C0["서울시청"];
 // 도로 등급 = OSM 분류를 우리말로(연결로·진입로는 생략 — 방법 칸이 개발 용어를 늘어놓았다 · 5차 사실 대조)
 const RK: Record<string, string> = { motorway: "고속도로", trunk: "자동차전용·간선", primary: "주간선", secondary: "보조간선", tertiary: "집산로", unclassified: "기타 도로", residential: "생활도로" };
-const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간대)`); // 보정 근거(카카오 내비 대조)는 아래 방법 칸에 — 답 문장 안 각주였다(9차 화면 판정 Q5)
+// 시간대에 출발 시각을 붙인다 — 「낮 시간대」만으로는 몇 시인지 없었다(10/22 화면 판정 경미) · 시각은 reach_slots.json label(「낮 14:00」 = 내비 대조 출발 시각 · 평일 화요일)
+const at = (t: any) => (String(t.label ?? "").match(/\d{1,2}:\d{2}/) ?? [])[0];
+const tag = (t: any) => (t.k === 1 ? "(자유 흐름 · 혼잡 미반영)" : `(${t.id} 시간대${at(t) ? ` · 평일 ${at(t)} 출발 기준` : ""})`); // 보정 근거(카카오 내비 대조)는 아래 방법 칸에 — 답 문장 안 각주였다(9차 화면 판정 Q5)
 const NP = join(repoRoot(), "data/derived/navi_check.json");
 const NV = existsSync(NP) ? JSON.parse(readFileSync(NP, "utf-8")) : null;
 const pct = (v: number) => `${v > 0 ? "+" : ""}${v}%`;
@@ -38,7 +40,7 @@ const navi = NV?.status === "ok"
     " — 음수면 우리가 짧게 잡은 것. 약관대로 경로·쌍별 시간은 저장하지 않고 통계만 싣는다."
   : `내비 대조 미실시${NV?.reason ? `(${NV.reason})` : ""}.`;
 ---
-<Studio title="수도권 배송 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 기본은 낮 시간대(카카오 내비 대조 보정) · 출근·화물차 판 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
+<Studio title="수도권 도달 등시선 — 인천 창고에서 몇 시간이면 닿나" description="인천 물류단지·관문에서 수도권 어디까지 1·2·3시간 안에 닿는지, OSM 도로로 미리 계산한 도달권이 번지는 지도. 기본은 낮 시간대(카카오 내비 대조 보정) · 출근·화물차 판 · 참고용." current="tools" ogImage="/og/tool-delivery-reach.jpg" lateFonts>
   <ToolShell id="reach" who="풀필먼트 · 3PL · 셀러" q="인천 창고에서 수도권 어디까지 1·2·3시간 안에 닿나?" lead={`${O.name}에서 승용차로 출발하면 서울시청까지 ${seoul ?? "—"}분${tag(DEF)}, 표에 든 수도권 도시 ${O.n_cities}곳 가운데 1시간 안 ${in1}곳 · 2시간 안 ${in2}곳. 1.5톤 넘는 화물차는 아래에서 「화물차」를 고르세요.`}
     updated={I.made} source={`${sourceLine("osm-protomaps")} · ${sourceLine("kakaomobility-navi")}`} csv={u("/data/delivery-reach.csv")} csvName="incheon-delivery-reach.csv" delay={["osm-reach"]} note="기본 = 낮 시간대(카카오 내비 대조 보정 · 실측 소통 속도 아님)"
     how={`OpenStreetMap 대한민국 자료에서 수도권 도로만 읽어 도로 등급별 속도(km/h — ${Object.entries(I.speeds_kmh).filter(([k]) => RK[k]).map(([k, v]) => `${RK[k]} ${v}`).join(" · ")})로 엮고, 출발지에서 가장 빠른 길(최단 시간 경로)을 풀었다. 칸 크기 ${I.step}°.`}

@@ -43,7 +43,7 @@ import AiMark from "../../components/scene/AiMark.astro";
       </a></li>; })}
     </ol>
     <p class="tl__none s-cap" hidden>이 직무로 고른 도구가 아직 없습니다.</p>
-    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>모든 도구는 공개 1차 데이터(정부 통계 · OpenStreetMap · 초크포인트 지면은 IMF PortWatch도 — 이 목록에는 그 숫자를 싣지 않는다)로 움직이고(배송 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 지면마다 원문·CSV·갱신일을 붙인다. 숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 그림 칸의 막대는 그 줄의 숫자들을 0에서부터 같은 눈금으로 그린 것이다. 계산은 참고용이며 자문이 아니다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
+    <details class="tl__terms s-cap"><summary>출처 · 이용 조건 전부</summary><p>모든 도구는 공개 1차 데이터(정부 통계 · OpenStreetMap · 초크포인트 지면은 IMF PortWatch도 — 이 목록에는 그 숫자를 싣지 않는다)로 움직이고(도달 등시선의 시간대 보정만 카카오 길찾기 대조 통계), 지면마다 원문·CSV·갱신일을 붙인다. 숫자마다 위 출처 한 줄의 원자료에서 그 도구 지면과 같은 규칙으로 읽었다. 그림 칸의 막대는 그 줄의 숫자들을 0에서부터 같은 눈금으로 그린 것이다. 계산은 참고용이며 자문이 아니다. 기관별 이용허락·확인한 날은 <a href={u("/data.html")}>데이터 출처</a>에 모았다.</p></details>
     <section class="aux" id="sim">
       <h2 class="s-cap">보조 · {S.title}</h2>
       <ul>{(S.items || []).map((r: any) => <li><a href={u(r.href)}>{r.title}</a> — {r.lead}</li>)}</ul>

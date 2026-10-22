@@ -136,7 +136,15 @@
     "/tools/delivery-reach.html"
    ],
    "src": "reach_slots.json default",
-   "ctx": "({v} 시간대)"
+   "ctx": "({v} 시간대"
+  },
+  "reach.slot_at": {
+   "v": "14:00",
+   "pages": [
+    "/tools/delivery-reach.html"
+   ],
+   "src": "reach_slots.json slots[default].label(내비 대조 출발 시각)",
+   "ctx": "평일 {v} 출발"
   },
   "reach.seoul_car": {
    "v": "51",

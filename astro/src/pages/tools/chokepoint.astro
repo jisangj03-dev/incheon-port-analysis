@@ -111,7 +111,7 @@ const client = { points: P.map((p) => ({ ...p, svg: line(p) })), months: D.month
   .ck__share { margin: 0; font-variant-numeric: tabular-nums; } .ck__share span { color: var(--s-ink-2); margin-right: 6px; } .ck__share b { font-size: 19px; }
   .ck__more { display: grid; gap: 6px; margin-top: var(--s-3); font-size: 14px; color: var(--s-ink-2); max-width: 60rem; }
   .ck__more :global(p) { margin: 0; } .ck__more :global(small) { color: var(--s-ink-3); } .ck__more :global(b) { color: var(--s-ink); }
-  .ck__more :global(summary) { cursor: pointer; min-height: 44px; display: flex; align-items: center; }
+  .ck__more :global(summary) { cursor: pointer; min-height: 44px; display: block; box-sizing: border-box; padding: 12px 0 12px 1.1em; line-height: 20px; text-indent: -1.1em; } .ck__more :global(summary)::before { text-indent: 0; } /* 블록 + 내어쓰기(▸ 는 inline-block 이라 내어쓰기를 물려받지 않게) — 좁은 화면에서 요약이 두 줄이 되면 flex 가운데 정렬이 ▸ 를 두 줄 사이에 띄웠다(10/22 화면 판정 경미 · 390) */
   .ck__bars-h { margin: var(--s-3) 0 var(--s-2); }
   .ck__bars { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 24px; font-variant-numeric: tabular-nums; font-size: 13.5px; }
   .ck__bars :global(li) { display: grid; grid-template-columns: 7.5rem 1fr 4.5rem; gap: 8px; align-items: center; }
