@@ -37,18 +37,16 @@ export function freshLine(ids: string[]): string | null {
   return parts.join(" · ") || null;
 }
 
-/** [2026-10-22 갱신 무인화 ④] 원천이 끊겼거나 뒤처졌을 때의 한 줄 — 출처 줄 접기와 상관없이 늘 보인다. 켜는 조건은 refresh.py judge()(delayed).
- *  말은 원천 하나로 좁힌다(10/22 화면 판정 중대: 「이 지면 숫자는 …기준」이 지면 전체의 기준일로 읽혔다) ·
- *  아직 다음 공표 전이면 「자동 받기 실패 — 다음 공표분부터 늦을 수 있음」, 지났거나 뒤처졌으면 「갱신 지연」(늦은 것이 없는데 지연이라 쓰지 않는다).
+/** [2026-10-22 갱신 무인화 ④] 원천이 끊겼거나 뒤처졌을 때의 줄 — 출처 줄 접기와 상관없이 늘 보인다. 켜는 조건은 refresh.py judge()(delayed).
+ *  자료 이름을 다 쓴다(「관세청 숫자」라 쓰면 그 지면의 관세청 자료 전부가 늦은 것으로 읽혔다 — 10/22 화면 재판정 중대) ·
+ *  상태별로 줄을 나눈다: 「갱신 지연」 = 공표 예정을 넘겼거나 뒤처짐 · 「자동 받기 실패」 = 지금 숫자는 최신이지만 다음 공표분부터 늦을 수 있음.
  *  today = 빌드 날(refresh 가 그날 다시 빌드한다). */
-export function delayLine(ids: string[], today = new Date().toISOString().slice(0, 10)): string | null {
-  const parts: string[] = [];
-  let late = false;
+export function delayLines(ids: string[], today = new Date().toISOString().slice(0, 10)): { head: string; items: string[] }[] {
+  const late: string[] = [], soon: string[] = [];
+  const wk = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v} 주` : v ?? "—");
   for (const id of ids) {
     const r = freshRec(id);
     if (!r || !r.delayed) continue;
-    const name = SHORT[id] ?? r.label;
-    const basis = r.ours ? `${name} 숫자는 ${r.ours}${/^\d{4}-\d{2}-\d{2}$/.test(r.ours) ? " 주" : ""} 기준` : `${name} 숫자`;
     const why = r.behind ? `원천은 ${r.source_latest} 까지 냈으나 아직 반영 전`
       : r.fail_kind === "auth" ? "자동 받기가 막힘(이용 인증)"
       : r.fail_kind === "format" ? "원천 자료 형식이 바뀌어 자동 받기가 멈춤"
@@ -56,9 +54,8 @@ export function delayLine(ids: string[], today = new Date().toISOString().slice(
       : r.next_expected && today > r.next_expected ? `공표 예정 ${r.next_expected} 무렵이 지났는데 새 자료를 아직 못 받음(마지막 확인 ${r.checked ?? "—"})`
       : `마지막 확인 ${r.checked ?? "—"} — 확인 주기를 넘김`;
     const due = r.next_expected && today > r.next_expected;
-    if (r.behind || due || !r.fail_kind) { late = true; parts.push(`${basis} — ${why}${due && r.fail_kind ? ` · 다음 공표 예정 ${r.next_expected} 무렵이 지났다` : ""}`); }
-    else parts.push(`${name} ${why} — 지금 숫자(${r.ours ?? "—"}${/^\d{4}-\d{2}-\d{2}$/.test(r.ours ?? "") ? " 주" : ""})는 최신이고, 다음 공표분(${r.next_expected} 무렵)부터 늦을 수 있다`);
+    if (r.behind || due || !r.fail_kind) late.push(`${r.label} — ${wk(r.ours)} 기준 · ${why}${due && r.fail_kind ? ` · 공표 예정 ${r.next_expected} 무렵이 지남` : ""}`);
+    else soon.push(`${r.label} — ${why} · 지금 숫자(${wk(r.ours)})는 최신, 다음 공표분(${r.next_expected} 무렵)부터 늦을 수 있음`);
   }
-  if (!parts.length) return null;
-  return `${late ? "갱신 지연" : "자동 받기 실패"} · ${parts.join(" / ")}`;
+  return [...(late.length ? [{ head: "갱신 지연", items: late }] : []), ...(soon.length ? [{ head: "자동 받기 실패", items: soon }] : [])];
 }

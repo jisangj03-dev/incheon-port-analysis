@@ -105,7 +105,7 @@ def sido_years():
         say(y, end, st, rc, len(rows))
     miss = [y for y, r in years.items() if not r["rows"]]
     if miss:  # 빈 해가 하나라도 있으면 덮어쓰지 않는다(지난 온전한 파일을 지킨다)
-        say("빈 해", miss, "— sido_item_years.json 을 덮어쓰지 않는다 · 마지막 응답", st, rc, msg); FAILED.append("sido_years"); return
+        say("빈 해", miss, "— sido_item_years.json 을 덮어쓰지 않는다 · 마지막 응답", f"HTTP {st}", rc, msg); FAILED.append("sido_years"); return
     write("data/collected/v3/sido_item_years.json", {"source": "관세청 시도별 품목별 수출입실적(공공데이터포털 15101641) · 시도 = 인천(28) · 금액 = 천 달러", "fetched": today.isoformat(), "years": years})
 
 
@@ -125,7 +125,7 @@ def fx_weeks(since="2024-01-07"):
         d += datetime.timedelta(days=7)
     exp = (today - datetime.date.fromisoformat(since)).days // 7 + 1
     if len(weeks) < 0.9 * exp:  # 빈 주가 많으면 덮어쓰지 않는다
-        say("관세환율", len(weeks), "/", exp, "주만 받음 — 덮어쓰지 않는다 · 마지막 응답", st, rc, msg); FAILED.append("fx_weeks"); return
+        say("관세환율", len(weeks), "/", exp, "주만 받음 — 덮어쓰지 않는다 · 마지막 응답", f"HTTP {st}", rc, msg); FAILED.append("fx_weeks"); return
     seen, out = set(), []
     for w in weeks:
         if w["from"] not in seen: seen.add(w["from"]); out.append(w)
@@ -148,7 +148,7 @@ def nation_months(n=12):
             time.sleep(3 * (k + 1))
         if not rows: say("빈 달", ym); continue
         out[ym] = [{"c": r.get("statCd"), "name": r.get("statCdCntnKor1"), "exp": float(r.get("expDlr") or 0), "imp": float(r.get("impDlr") or 0)} for r in rows if r.get("statCd") and r.get("statCd") != "-"]
-    if len(out) < n * 0.9: say("국가별", len(out), "/", n, "달만 — 덮어쓰지 않는다 · 마지막 응답", st, rc, msg); FAILED.append("nation_months"); return
+    if len(out) < n * 0.9: say("국가별", len(out), "/", n, "달만 — 덮어쓰지 않는다 · 마지막 응답", f"HTTP {st}", rc, msg); FAILED.append("nation_months"); return
     write("data/collected/v3/nation_months.json", {"source": "관세청 국가별 수출입실적(공공데이터포털 · 1220000/nationtrade) · 전국 · 달러", "fetched": datetime.date.today().isoformat(), "months": out})
     say("국가별", len(out), "달")
 
