@@ -34,7 +34,7 @@ test("세 축 — 축 줄 숫자 = 데이터 파일 · 줄 → 그 축 질문 �
     if (KO) {
       expect(r).toContain(`${fmt(KO.large.sudo_jo)}`);
       expect(r).toContain(KO.large.ym);
-      expect(await page.locator('.ax__row a[href="#ax-retail"]').textContent()).toContain(`전국 온라인쇼핑 ${fmt(KO.online.jo)}조 원`);
+      expect(await page.locator('.ax__row a[href="#ax-retail"]').textContent()).toContain(`전국 온라인쇼핑 거래액 ${fmt(KO.online.jo)}조 원`);
       expect(r).not.toContain(fmt(AX.retail.cons_imp)); // 교체 — 두 숫자를 한 줄에 섞지 않는다
     } else expect(r).toContain(fmt(AX.retail.cons_imp));
   }
