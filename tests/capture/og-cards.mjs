@@ -72,13 +72,13 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
   unlinkSync(join(dir, "tool.html"));
 }
 // 홈 「실제 도구 화면」 띠(2026-10-22 · data/home_showcase.json) — 실제 도구 지면의 주 그림(sel)을 찍는다(지어낸 목업 0 · iframe 0).
-// 넓은 화면용(560 폭 — 홈 띠 칸 약 580px 에 이름표가 제 크기 · 28차 · 2배 · 2:1)과 좁은 화면용(520 폭 · 2배 · 2:1 — 390 폭에선 차트·트리맵이 세로로 길어 한 조각만 들어왔다) 두 장 — 홈 띠 칸(2:1 · 넓은 화면 약 580px · 좁은 화면 약 360px)에 거의 제 크기로 들어가
+// 넓은 화면용(560 폭 — 홈 띠 칸 약 580px 에 이름표가 제 크기 · 28차 · 2배 · 2:1)과 좁은 화면용(390 폭 · 2배 · 2:1 — 홈 띠 칸 358px 에 제 크기 · 트리맵은 whole 로 2:1 재배치 · 29차) 두 장 — 홈 띠 칸(2:1 · 넓은 화면 약 580px · 좁은 화면 약 360px)에 거의 제 크기로 들어가
 // 지면 이름표가 읽힌다(24차 화면 판정: 1200 폭에서 찍어 줄였더니 이름표가 8px). 그림 = 주 그림 상자 너비 × 2:1(상자가 더 길면 위에서부터 · whole 은 통째로).
 // 배포 때마다 다시 찍으므로 그림 = 그 배포의 실제 지면이다. 못 찍으면 홈은 그림 없이 글(도구 이름·한 줄)만 보인다 — 실패로 센다.
 const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
 if (SHOW.length) {
   mkdirSync(join(dist, "assets", "toolshots"), { recursive: true });
-  for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 520, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
+  for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 390, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
     const sctx = await browser.newContext(opt);
     const sp = await sctx.newPage();
     for (const t of SHOW) {

@@ -101,7 +101,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
 
   <section class="now" id="now-axes" aria-labelledby="axes-h">
   <div class="now__text">
-    <p class="s-cap axes__cap">최신 공표분으로 잰 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재(서로 다른 기준 — 아래 정의)</p>
+    <p class="s-cap axes__cap">최신 공표분으로 잰 숫자 · 공공 통계 · 관문 · 화주 · 생활소비재<span class="nb">(서로 다른 기준 — 아래 정의)</span></p>
     <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
     <p class="live__one">{L.ym} 수입액 · {SAME ? <>둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러</> : <>관문 몫 ÷ 전국 {fmt(L.nat_imp)}억 달러(항구·공항별) · 화주 몫 ÷ 전국 {fmt(T.nat_imp)}억 달러(국가별)</>}<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{TOP && <span class="lg-d"> · 관문 몫 {L.imp_share_pct}%는 이 지면 자료 {SH.length}개월({F.months[0].ym}~{L.ym}) 가운데 가장 높은 달</span>}{T && <> · <b class="live__def">화주 = 관세청 시도별 집계 업체(물건이 들어온 곳 아님 · 기준은 아래 방법)</b></>}</p>
     <ol class="live__stat ax">
@@ -520,7 +520,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .who3__k { grid-row: span 2; font-size: 16px; font-weight: 700; color: var(--s-ink); }
   .who3__p { font-size: 14.5px; color: var(--s-ink); }
   .who3__t { font-size: 14px; color: var(--s-ink-2); }
-  .who3__t a { color: var(--s-signal); font-weight: 600; text-decoration: none; display: inline-block; min-height: 32px; line-height: 32px; }
+  .who3__t a { color: var(--s-signal); font-weight: 600; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: rgb(179 54 30 / 0.45); display: inline-block; min-height: 32px; line-height: 32px; } /* 링크로 보이게(29차 제안) */
   .who3__sep { color: var(--s-ink-3); }
   .who3__t a:hover { text-decoration: underline; }
   .idv__ask { margin: var(--s-4) 0 0; font-size: 16px; line-height: 1.5; color: var(--s-ink); max-width: 26em; }
