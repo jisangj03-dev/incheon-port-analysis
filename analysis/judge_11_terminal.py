@@ -40,6 +40,10 @@ BERTHS = os.path.join(HERE, "port_container_berths.csv")
 SOURCES = os.path.join(HERE, "terminal_monthly_sources.csv")
 
 PRECOMMIT = "e8789fb0311ef6b804f23459c3373a0217805373"
+# 선커밋 §2 「구간: 2025-10 ~ 2026-07 · 10개월. 이 편의 모든 판정은 이 창 안이다.」
+# **[2026-10-22] 창을 코드가 든다.** 수집 CSV 는 refresh 가 매달 늘린다(2026-08 이 들어와 11개월이 됐다).
+# 파일에 있는 달을 다 읽으면 판정이 창을 따라 움직인다 — 발행본과 다른 판정이 조용히 난다.
+WINDOW = ("2025-10", "2026-07")
 # 부두현황의 `주요취급화물` — **어긋남을 설명하는 것이 원문 안에 있다.**
 # SICT 는 `- (폐쇄)` 다. 이름 집합이 다른 것은 표가 틀려서가 아니라 그 부두가 닫혀서다.
 # **그 사실을 코드가 들고 다닌다** — 다음 세션이 다시 캐지 않도록(FACTS 「SICT」 행도 같은 말을 든다).
@@ -51,6 +55,10 @@ T3_MIN_MONTHS = 6                           # T3 — 10개월 중
 
 def rd(path):
     return list(csv.DictReader(io.open(path, encoding="utf-8-sig", newline="")))
+
+
+def in_window(r):
+    return WINDOW[0] <= r["기준연월"] <= WINDOW[1]
 
 
 def num(s):
@@ -71,7 +79,7 @@ def sign(v):
 
 
 def load():
-    rows = rd(MONTHLY)
+    rows = [r for r in rd(MONTHLY) if in_window(r)]
     months = sorted({r["기준연월"] for r in rows})
     total, group, term = {}, collections.defaultdict(dict), collections.defaultdict(dict)
     yoy_total, yoy_term = {}, collections.defaultdict(dict)
@@ -101,7 +109,7 @@ def gates(months, total, group, term, berth):
     stop, notes = [], []
 
     # 1. 소스 실재
-    src = rd(SOURCES)
+    src = [r for r in rd(SOURCES) if in_window(r)]
     smonths = {r["기준연월"] for r in src}
     missing_sha = [r["기준연월"] for r in src if not (r.get("SHA256_앞16") or "").strip()]
     if smonths != set(months):
@@ -324,6 +332,9 @@ def selftest():
     months, total, group, term, yt, yterm, berth = load()
     chk("10개월", len(months), 10)
     chk("창이 2025-10~2026-07", (months[0], months[-1]), ("2025-10", "2026-07"))
+    chk("창 밖 달은 수집 파일에 있어도 안 읽는다",
+        [in_window({"기준연월": m}) for m in ("2025-09", "2025-10", "2026-07", "2026-08")],
+        [False, True, True, False])
     chk("달마다 터미널 5", {len(term[m]) for m in months}, {5})
     chk("국제여객부두를 IPT 로 채웠다", all("국제여객부두" in group[m] for m in months), True)
     chk("안벽 길이 다섯", sorted(berth), ["E1CT", "HJIT", "ICT", "SICT", "SNCT"])

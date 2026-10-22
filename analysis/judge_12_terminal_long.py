@@ -44,6 +44,8 @@ SOURCES = os.path.join(HERE, "terminal_monthly_long_sources.csv")
 
 PRECOMMIT = "894439103c58ec4da3d8794a1f43f9b2e0aee2ab"
 WINDOW = ("2023-03", "2026-07")     # 선커밋 §2 — 창 41개월
+# **[2026-10-22] 창은 자리만이 아니라 읽는 범위다.** 수집 CSV 는 refresh 가 매달 늘린다
+# (2026-08·09 가 들어와 관측 41이 됐다). 창 밖 달을 읽으면 판정이 창을 따라 움직인다.
 # 못 읽은 달. **첨부가 `.hwp` 다**(원문 확인 2026-09-12) — 「원문에 없다」가 아니다.
 UNREADABLE = ("2023-12", "2024-01")
 GROUPS = ("신항", "남항", "국제여객부두")
@@ -90,8 +92,12 @@ def window_months():
     return out
 
 
+def in_window(r):
+    return WINDOW[0] <= r["기준연월"] <= WINDOW[1]
+
+
 def load():
-    rows = rd(MONTHLY)
+    rows = [r for r in rd(MONTHLY) if in_window(r)]
     months = sorted({r["기준연월"] for r in rows})
     total, group, term = {}, collections.defaultdict(dict), collections.defaultdict(dict)
     yoy_total, yoy_term = {}, collections.defaultdict(dict)
@@ -121,7 +127,7 @@ def gates(months, total, group, term, other):
     win = window_months()
 
     # 1 소스 실재
-    src = rd(SOURCES)
+    src = [r for r in rd(SOURCES) if in_window(r)]
     src_months = {r["기준연월"] for r in src}
     no_sha = [r["기준연월"] for r in src if not (r.get("SHA256_앞16") or "").strip()]
     if no_sha:
@@ -341,6 +347,9 @@ def selftest():
     print("── 인수시험: 실물 ──")
     months, total, group, term, yt, yterm, other = load()
     chk("관측 39개월", len(months), 39)
+    chk("창 밖 달은 수집 파일에 있어도 안 읽는다",
+        [in_window({"기준연월": m}) for m in ("2023-02", "2023-03", "2026-07", "2026-08")],
+        [False, True, True, False])
     chk("못 읽은 달 둘", sorted(set(window_months()) - set(months)), sorted(UNREADABLE))
     chk("달마다 터미널 5", {len(term[m]) for m in months}, {5})
     chk("부두군은 창 내내 신항·남항", {tuple(sorted(x for x in group[m] if x != "국제여객부두"))
