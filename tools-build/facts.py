@@ -49,6 +49,15 @@ def facts(D):
     put("air.window", f"{ac['from']}~{ac['through'][-2:]}", ["/"], "home_flows.json air_cargo from~through")
     T = D["home_axes"]["trade"]
     put("sudo.imp_share", f1(T["imp_pct"]), ["/"], "home_axes.json trade.imp_pct")
+    # [2026-10-22] 유통 축 = KOSIS 실측(홈 #ax-retail · axes_derive.kosis_view) — 있을 때만(지면도 KOSIS·대장 줄이 둘 다 있을 때만 싣는다)
+    KO = (D["home_axes"].get("retail") or {}).get("kosis") or {}
+    if KO.get("large") and KO.get("online"):
+        put("retail.ym", KO["large"]["ym"], ["/"], "home_axes.json retail.kosis.large.ym", "대형소매점 판매액 {v}")
+        put("retail.large_jo", f1(KO["large"]["sudo_jo"]), ["/"], "home_axes.json retail.kosis.large.sudo_jo(조 원 · 서울·인천·경기 합)", "대형소매점 {v} 조 원")
+        put("retail.large_yoy", signed(KO["large"]["yoy"]), ["/"], "home_axes.json retail.kosis.large.yoy", "작년 같은 달 {v}%")
+        put("retail.online_ym", KO["online"]["ym"], ["/"], "home_axes.json retail.kosis.online.ym", "조 원({v}")
+        put("retail.online_jo", f1(KO["online"]["jo"]), ["/"], "home_axes.json retail.kosis.online.jo(조 원 · 전국)", "온라인쇼핑 거래액 {v}조 원")
+        put("retail.online_yoy", signed(KO["online"]["yoy"]), ["/"], "home_axes.json retail.kosis.online.yoy", "{v}%)")
     E = D["import_cost"]["example"]
     put("cost.goods", f"{E['goods'] // 10000}만" if E["goods"] % 10000 == 0 else f"{E['goods']:,}", ["/tools/import-cost.html"], "import_cost.json example.goods(달러)")
     put("cost.ago_weeks", E["ago_weeks"], ["/tools/import-cost.html"], "import_cost.json example.ago_weeks", "{v}주 전")

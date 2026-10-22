@@ -393,7 +393,7 @@ def check_one(path, net=False):
         findings.append((FAIL, "머리말에 `channel:` 이 없다"))
     else:
         try:
-            findings += CH.check_format(ch, body, meta.get("title"))
+            findings += CH.check_format(ch, body, meta.get("title"), meta.get("id"))
         except KeyError as e:
             findings.append((FAIL, str(e)))
     findings += check_hangul(body)
