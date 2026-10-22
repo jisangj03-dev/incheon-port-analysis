@@ -1,16 +1,16 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-23 01:35",
+ "snapshot": "2026-10-22 16:59",
  "window_days": 21,
- "scanned": 8978,
- "n": 35,
+ "scanned": 8984,
+ "n": 34,
  "group_counts": {
   "연구·계획": 7,
   "행사·전시": 3,
   "운송·배송": 15,
   "보관·창고": 2,
-  "통관·무역": 6,
+  "통관·무역": 5,
   "항만·해운·항공": 2
  },
  "groups": [
@@ -343,18 +343,6 @@
    "presmptPrce": 50000000,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01786121&bidPbancOrd=000",
    "group": "운송·배송"
-  },
-  {
-   "bidNtceNo": "R26BK01782740",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2027년 스마트 수출전문단지 구축사업 현장평가 용역",
-   "ntceInsttNm": "한국농수산식품유통공사",
-   "dminsttNm": "한국농수산식품유통공사",
-   "bidNtceDt": "2026-10-22 18:07:50",
-   "bidClseDt": "2026-11-03 10:00:00",
-   "presmptPrce": 72727273,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01782740&bidPbancOrd=000",
-   "group": "통관·무역"
   },
   {
    "bidNtceNo": "R26BK01785672",
