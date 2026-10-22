@@ -155,6 +155,22 @@ if (existsSync("data/derived/facts.json") && existsSync("content-queue/templates
   }
   await b.close();
 }
+// ⑨ 홈 유통 줄 = 파생 파일(2026-10-22 유통 축 KOSIS · 사고 137) — 공개판 홈의 #ax-retail 줄이 data/derived/home_axes.json retail.kosis 와 같은 값·같은 달인지.
+//   KOSIS 가 없거나 출처 대장 줄이 없으면 지면은 종전 줄(생활소비재 수입)이라 그 값을 댄다. 배포 뒤 공개판이 저장소와 갈리면 FAIL → 자동경보.
+{
+  const AX = JSON.parse(readFileSync("data/derived/home_axes.json", "utf-8")), R = AX.retail || {};
+  const SRC = JSON.parse(readFileSync("data/sources.json", "utf-8")).sources;
+  const KO = R.kosis?.large && R.kosis?.online && SRC.some((s) => s.id === "kostat-kosis") ? R.kosis : null;
+  const one = (v) => v.toLocaleString("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const home = await (await fetch(cfg.base + "/")).text();
+  const i = home.indexOf('href="#ax-retail"');
+  const row = i < 0 ? "" : home.slice(i, home.indexOf("</a>", i)).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const want = KO ? [`${one(KO.large.sudo_jo)}`, "조 원", KO.large.ym, `온라인쇼핑 거래액 ${one(KO.online.jo)}조 원`, KO.online.ym] : [one(R.cons_imp), "억 달러", R.ym];
+  const miss = want.filter((w) => !row.includes(w));
+  L.push("", "## ⑨ 홈 유통 줄 = 파생 파일", "", `- 기준: ${KO ? "KOSIS(수도권 대형소매점 · 전국 온라인쇼핑)" : "종전(생활소비재 수입)"} · 공개판 줄: 「${row.trim().slice(0, 160)}」`, `- 찾을 값 ${want.length} · 빠진 값 ${miss.length ? miss.join(" · ") : "0"}`);
+  if (!row) FAIL.push("홈 유통 줄(#ax-retail)이 공개판에 없다");
+  else if (miss.length) FAIL.push(`홈 유통 줄이 파생 파일과 다르다 — 빠진 값 ${miss.join(" · ")}`);
+}
 L.push("", `## 판정 — 어긋남 ${FAIL.length}`, "", ...(FAIL.length ? FAIL.map((f) => `- ${f}`) : ["- 없음"]));
 writeFileSync("live-check-fail.txt", FAIL.join("\n"));
 console.log(L.join("\n"));

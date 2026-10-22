@@ -65,8 +65,12 @@ def posts(out, name):
         sec = re.search(rf"^## {re.escape(title.strip())}\s*\n(.*?)(?=^## |\Z)", body, re.M | re.S)
         if not sec: raise KeyError(f"틀 {name}: posts 의 절 「{title.strip()}」 이 본문에 없다")
         text = sec.group(1).strip() + "\n"
+        # 절 첫 줄이 「제목: …」이면 게시 파일 머리의 title 로 옮긴다(제목 칸이 있는 채널 — 티스토리 · 뉴스레터 · 2026-10-22 B10)
+        tm = re.match(r"제목:\s*(.+)\n+", text)
+        head_title = f"title: {tm.group(1).strip()}\n" if tm else ""
+        if tm: text = text[tm.end():]
         url = (re.findall(r"https?://\S+", text) or [""])[-1]
-        res.append((f"{qid}.md", f"---\nid: {qid}\nchannel: {ch}\ntarget: {url}\nstatus: 자동 생성 초안 — 틀 content-queue/templates/{name} 의 「{title.strip()}」 절(숫자 = data/derived/facts.json) · 게시 = 선장님\n---\n{text}"))
+        res.append((f"{qid}.md", f"---\nid: {qid}\nchannel: {ch}\n{head_title}target: {url}\nstatus: 자동 생성 초안 — 틀 content-queue/templates/{name} 의 「{title.strip()}」 절(숫자 = data/derived/facts.json) · 게시 = 선장님\n---\n{text}"))
     return res
 
 
@@ -101,7 +105,9 @@ def selftest():
     assert digits_outside("---\nmade: 2026\n---\n{{a.b}}% · https://x.io/2 · 52주") == ["52"]
     P = posts("---\nid: t\nposts: li-1 linkedin LinkedIn | th-1 threads Threads\n---\n# 제목\n\n## LinkedIn\n\n본문 가\n\nhttps://x.io/\n\n## Threads\n\n짧은 판 https://x.io/\n", "t.md")
     assert [f for f, _ in P] == ["li-1.md", "th-1.md"] and "channel: linkedin\ntarget: https://x.io/\n" in P[0][1] and P[0][1].endswith("---\n본문 가\n\nhttps://x.io/\n") and "## Threads" not in P[0][1], P
-    print("drafts selftest OK (3)"); return 0
+    P = posts("---\nid: t\nposts: tb-1 tistory 블로그\n---\n## 블로그\n\n제목: 글 제목\n\n본문 https://x.io/\n", "t.md")
+    assert "title: 글 제목\n" in P[0][1] and "제목:" not in P[0][1].split("---\n")[-1], P
+    print("drafts selftest OK (4)"); return 0
 
 
 if __name__ == "__main__":

@@ -50,6 +50,54 @@
    ],
    "src": "home_axes.json trade.imp_pct"
   },
+  "retail.ym": {
+   "v": "2026-08",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.large.ym",
+   "ctx": "대형소매점 판매액 {v}"
+  },
+  "retail.large_jo": {
+   "v": "3.9",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.large.sudo_jo(조 원 · 서울·인천·경기 합)",
+   "ctx": "대형소매점 {v} 조 원"
+  },
+  "retail.large_yoy": {
+   "v": "+3.0",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.large.yoy",
+   "ctx": "작년 같은 달 {v}%"
+  },
+  "retail.online_ym": {
+   "v": "2026-08",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.online.ym",
+   "ctx": "조 원({v}"
+  },
+  "retail.online_jo": {
+   "v": "24.2",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.online.jo(조 원 · 전국)",
+   "ctx": "온라인쇼핑 거래액 {v}조 원"
+  },
+  "retail.online_yoy": {
+   "v": "+7.3",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json retail.kosis.online.yoy",
+   "ctx": "{v}%)"
+  },
   "cost.goods": {
    "v": "1만",
    "pages": [

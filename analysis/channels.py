@@ -45,6 +45,7 @@ FAIL, WARN, INFO = "FAIL", "WARN", "INFO"
 
 CHANNELS = {
     "linkedin": {
+        "utm": ("linkedin", "social"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "링크드인",
         "주소": "https://www.linkedin.com/feed/",
         "확인일": "2026-09-09",
@@ -74,6 +75,7 @@ CHANNELS = {
         ],
     },
     "geeknews": {
+        "utm": ("geeknews", "social"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "GeekNews",
         "주소": "https://news.hada.io/new",
         "확인일": "2026-09-09",
@@ -97,6 +99,7 @@ CHANNELS = {
         ],
     },
     "email": {
+        "utm": ("email", "email"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "메일(1:1 서신)",
         "주소": "—",
         "확인일": "2026-09-10",
@@ -123,6 +126,7 @@ CHANNELS = {
     #   instagram.com·threads.net 도움말을 막는다. 그래서 상한은 「하드」가 아니라 WARN 으로만 쓰고(아래 「상한확인」),
     #   다음에 공식 문서를 본 세션이 확인일·출처를 고친다.
     "instagram": {
+        "utm": ("instagram", "social"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "인스타그램(릴스)",
         "주소": "https://www.instagram.com/",
         "확인일": "2026-10-12",
@@ -144,6 +148,7 @@ CHANNELS = {
         ],
     },
     "threads": {
+        "utm": ("threads", "social"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "스레드",
         "주소": "https://www.threads.net/",
         "확인일": "2026-10-12",
@@ -162,7 +167,55 @@ CHANNELS = {
             "상한 수치는 **[미확인]** — 공식 도움말을 본 세션이 고친다.",
         ],
     },
+    "tistory": {
+        "utm": ("tistory", "blog"),
+        "이름": "티스토리 블로그 「물류의 모든 것」",
+        "주소": "https://logisticsforeveryone.tistory.com/",
+        "확인일": "2026-10-22",
+        "출처": "선장님 지정(10/22 채팅 · 게시처 · 필명) · 형식 상한은 [미확인] 세션 지식",
+        "상한확인": False,
+        "제목": True,
+        "제목접두": None,
+        "제목관측": None,
+        "본문상한": None,                   # [미확인]
+        "훅": None,
+        "되돌릴수있나": True,               # 수정·삭제 가능(세션 지식)
+        "자기것허용": True,
+        "필명": "물류로그",                 # **실명 금지** — 본문·제목에 data/profile.json 이름이 있으면 FAIL
+        "링크카드": "본문 링크는 눌린다 · 미리보기 카드 여부는 [미확인]",
+        "사람이할일": "로그인 · 글쓰기 화면에 붙여넣기 · 발행 버튼",
+        "메모": [
+            "**필명 「물류로그」로만 쓴다 — 실명·학교·자격 줄 0**(선장님 10/22). 실명은 data/profile.json 한 곳에만 산다.",
+            "원문은 측심에 둔다 — 블로그는 요약과 링크(§7 허브-스포크). 측심 링크는 UTM `utm_source=tistory&utm_medium=blog`.",
+            "본문 상한·카드 동작은 **[미확인]** — 첫 게시 뒤 실측해 고친다.",
+        ],
+    },
+    "beehiiv": {
+        "utm": ("beehiiv", "email"),
+        "이름": "뉴스레터(Beehiiv · 물류로그)",
+        "주소": "https://app.beehiiv.com/",
+        "확인일": "2026-10-22",
+        "출처": "선장님 지정(10/22 채팅 · 뉴스레터 = Beehiiv · 필명) · 형식은 [미확인] 세션 지식",
+        "상한확인": False,
+        "제목": True,                       # 메일 제목
+        "제목접두": None,
+        "제목관측": None,
+        "본문상한": None,
+        "훅": None,
+        "되돌릴수있나": False,              # **메일로 나간 것은 회수 못 한다**(웹 판은 고칠 수 있어도 받은편지함은 남는다)
+        "삭제유예": "없다(발송분)",
+        "자기것허용": True,
+        "필명": "물류로그",
+        "링크카드": None,
+        "사람이할일": "로그인 · 구독자 확인 · 최종 문안 승인 · 발송",
+        "메모": [
+            "**발송은 되돌릴 수 없다** — 메일과 같다. 게시 전 전문 승인이 필수다.",
+            "**필명 「물류로그」로만 — 실명 0.** 구독 신청 주소(구독 페이지)는 선장님이 계정을 연 뒤 대기열·지면에 단다.",
+            "측심 링크는 UTM `utm_source=beehiiv&utm_medium=email`.",
+        ],
+    },
     "disquiet": {
+        "utm": ("disquiet", "social"),           # 측심 링크 UTM(source, medium) — 우리 규칙(2026-10-22 · li-12·th-01 이 UTM 없이 나감)
         "이름": "디스콰이엇",
         "주소": "https://disquiet.io/",
         "확인일": "2026-09-09",
@@ -210,6 +263,40 @@ STALE = [
     (re.compile(r"오늘|어제|이번\s*주|지난주"), "상대 날짜"),
 ]
 
+SITE = re.compile(r"https?://jisangj03-dev\.github\.io/incheon-port-analysis(?:[/?#]|$)", re.I)  # 측심 공개판
+
+
+def real_name():
+    """실명 — data/profile.json 한 곳에서만 읽는다(필명 채널 검사용 · 저장소의 다른 곳에 실명을 두지 않는다)."""
+    try:
+        import json, os
+        p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "profile.json")
+        return (json.load(open(p, encoding="utf-8")).get("name") or "").strip() or None
+    except Exception:
+        return None
+
+
+def utm_problems(channel, body, rid=None):
+    """측심 링크마다 UTM 이 채널 값과 같은가 — [(레벨, 메시지)]. 우리 규칙(2026-10-22 선장님 「모든 측심 링크에 UTM 필수」)."""
+    c = rules(channel)
+    want = c.get("utm")
+    out = []
+    if not want:
+        return out
+    from urllib.parse import urlsplit, parse_qs
+    for u in urls(body):
+        if not SITE.match(u):
+            continue
+        q = {k: v[0] for k, v in parse_qs(urlsplit(u).query).items()}
+        miss = []
+        if q.get("utm_source") != want[0]: miss.append("utm_source=%s" % want[0])
+        if q.get("utm_medium") != want[1]: miss.append("utm_medium=%s" % want[1])
+        if not q.get("utm_campaign") or (rid and q.get("utm_campaign") != rid): miss.append("utm_campaign=%s" % (rid or "<대기열 id>"))
+        if miss:
+            out.append((FAIL, "측심 링크에 UTM 이 없거나 다르다 — %s 필요: %s" % (" · ".join(miss), u)))
+    return out
+
+
 SHORTENER = re.compile(r"https?://(bit\.ly|tinyurl\.com|t\.co|lnkd\.in|han\.gl|buly\.kr|url\.kr)/", re.I)
 URL = re.compile(r"https?://[^\s<>\"')\]]+")
 
@@ -225,8 +312,8 @@ def urls(text):
     return [u.rstrip(".,)") for u in URL.findall(text or "")]
 
 
-def check_format(channel, body, title=None):
-    """채널 형식만 본다. 반환 [(레벨, 메시지)]. **수치·링크 생존은 여기서 안 본다.**"""
+def check_format(channel, body, title=None, rid=None):
+    """채널 형식만 본다. 반환 [(레벨, 메시지)]. **수치·링크 생존은 여기서 안 본다.** rid = 대기열 id(UTM campaign 대조)."""
     c = rules(channel)
     out = []
     body = body or ""
@@ -298,6 +385,11 @@ def check_format(channel, body, title=None):
         out.append((WARN, "선행 조건: **%s** — 안 되어 있으면 글이 피드에 안 뜬다" % c["선행조건"]))
 
     # ── 우리 규율 ──
+    out += utm_problems(channel, body, rid)
+    if c.get("필명"):
+        nm = real_name()
+        if nm and (nm in body or nm in (title or "")):
+            out.append((FAIL, "필명 채널(「%s」)에 실명이 들었다 — 실명 금지(선장님 10/22)" % c["필명"]))
     for pat, what in STALE:
         m = pat.search(body) or (pat.search(title) if title else None)
         if m:
@@ -355,14 +447,34 @@ def selftest():
         return [l for l, _ in f]
 
     print("── 인수시험: 채널을 가리는가 ──")
-    chk("아는 채널 여섯", sorted(CHANNELS),
-        ["disquiet", "email", "geeknews", "instagram", "linkedin", "threads"])
+    chk("아는 채널 여덟", sorted(CHANNELS),
+        ["beehiiv", "disquiet", "email", "geeknews", "instagram", "linkedin", "threads", "tistory"])
     chk("메일은 회수가 안 된다", CHANNELS["email"]["되돌릴수있나"], False)
     chk("메일은 유예조차 없다", CHANNELS["email"]["삭제유예"], "없다")
     chk("메일은 게시 지면이 없다", CHANNELS["email"].get("게시지면"), False)
     chk("나머지 셋은 지면이 있다",
         [CHANNELS[c].get("게시지면", True) for c in ("linkedin", "geeknews", "disquiet", "instagram", "threads")],
         [True, True, True, True, True])
+
+    print("── 인수시험: 측심 링크 UTM (2026-10-22) ──")
+    S = "https://jisangj03-dev.github.io/incheon-port-analysis/"
+    f = check_format("linkedin", "글\n" + S)
+    chk("UTM 없는 측심 링크는 FAIL", any("UTM" in m for l, m in f if l == FAIL), True)
+    f = check_format("linkedin", "글\n" + S + "?utm_source=linkedin&utm_medium=social&utm_campaign=li-13", rid="li-13")
+    chk("맞는 UTM 은 통과", any("UTM" in m for _, m in f), False)
+    f = check_format("linkedin", "글\n" + S + "?utm_source=threads&utm_medium=social&utm_campaign=li-13", rid="li-13")
+    chk("다른 채널 UTM 은 FAIL", any("utm_source=linkedin" in m for l, m in f if l == FAIL), True)
+    f = check_format("linkedin", "글\n" + S + "?utm_source=linkedin&utm_medium=social&utm_campaign=li-99", rid="li-13")
+    chk("campaign 이 대기열 id 와 다르면 FAIL", any("utm_campaign=li-13" in m for l, m in f if l == FAIL), True)
+    f = check_format("linkedin", "글\nhttps://example.org/")
+    chk("측심 밖 링크는 UTM 을 안 본다", any("UTM" in m for _, m in f), False)
+    f = check_format("tistory", "본문\n" + S + "?utm_source=tistory&utm_medium=blog&utm_campaign=tb-01", title="제목", rid="tb-01")
+    chk("티스토리 정상 문안은 FAIL 없다", FAIL in levels(f), False)
+    nm = real_name()
+    if nm:
+        f = check_format("tistory", "글쓴이 " + nm + "\n" + S + "?utm_source=tistory&utm_medium=blog&utm_campaign=tb-01", title="제목", rid="tb-01")
+        chk("필명 채널에 실명이 있으면 FAIL", any("실명" in m for l, m in f if l == FAIL), True)
+    chk("뉴스레터 발송은 되돌릴 수 없다", CHANNELS["beehiiv"]["되돌릴수있나"], False)
 
     print("── 인수시험: 릴스 채널(상한 [미확인]) ──")
     f = check_format("instagram", "가" * 2300 + "\nhttps://a.b/c")
