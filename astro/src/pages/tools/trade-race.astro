@@ -1,5 +1,5 @@
 ---
-// 도구 · 품목 트리맵 레이스(실무 질문 Q3) — 인천 소재 기업의 품목별(HS 2단위) 수출·수입 구성이 해마다 칸 넓이로 다시 배치되며 흐른다.
+// 도구 · 품목 트리맵 레이스(실무 질문 Q3) — 인천으로 집계된 업체의 품목별(HS 2단위) 수출·수입 구성이 해마다 칸 넓이로 다시 배치되며 흐른다.
 // 원천 = 관세청 시도별 품목별 수출입실적(인천 28) · 파생 = data/derived/trade_race.json(tools-build/v3/race_derive.py). 첫 그림 = 마지막 해(서버에서 칸 배치).
 import Studio from "../../layouts/Studio.astro";
 import ToolShell from "../../components/scene/ToolShell.astro";
@@ -25,14 +25,14 @@ const rank = new Map([...tot.entries()].sort((a, b) => b[1] - a[1]).map(([hs], i
 const { list: L0, R: R0 } = layout(L.items.map((i: any) => ({ hs: i.hs, name: i.name, v: i.exp })), rank, TOP, 1000, 560);
 const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? null : (L.items.find((i: any) => i.hs === x.hs)?.exp_pct ?? null) })); // 「그 밖」 % 는 움직이는 그림이 붙인다(빌드 때 계산한 % 는 데이터 파일에 없는 숫자 — §2-1)
 ---
-<Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천 소재 기업의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
-  <ToolShell id="race" who="수출입 담당 · MD · 영업" asOf={`${L.y}년 연간`} q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천 소재 기업 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${Number(L.top_exp.pct).toFixed(1)}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
+<Studio title="품목 트리맵 레이스 — 인천은 무엇을 사고파나" description="인천으로 집계된 업체의 수출·수입 품목 구성(HS 2단위)이 해마다 칸 넓이로 다시 배치되며 흐른다. 관세청 시도별 품목별 수출입실적." current="tools" ogImage="/og/tool-trade-race.jpg" lateFonts>
+  <ToolShell id="race" who="수출입 담당 · MD · 영업" asOf={`${L.y}년 연간`} q="인천은 무엇을 사고파나 — 해마다 품목 구성은 어떻게 바뀌었나?" lead={`인천으로 집계된 업체 수출에서 ${L.top_exp.name}의 몫이 ${F.y}년 ${(F.items.find((i: any) => i.hs === L.top_exp.hs) || {}).exp_pct ?? "—"}%에서 ${L.y}년 ${Number(L.top_exp.pct).toFixed(1)}%로 바뀌었습니다. ${L.y}년 수입 1위는 ${L.top_imp.name}(${L.top_imp.pct}%).`}
     updated={D.fetched} source={sourceLine("kcs-sido-item")} csv={u("/data/trade-race.csv")} csvName="incheon-trade-race.csv" fresh={["kcs-sido-item"]} note="HS 2단위 · 백만 달러 · 관세청 시도(인천) 집계"
-    how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천 소재 기업 수출(또는 수입)에서 그 품목의 몫. 그 해 금액이 큰 품목부터 열 개까지 칸을 따로 두고(칸이 좁아 이름이 안 들어가면 그보다 적게) 나머지는 「그 밖 N개 류」로 묶었다. 칸 자리 순서는 전 기간 몫 순으로 고정해 해가 바뀌어도 칸이 제자리에서 커지고 줄어든다."
+    how="관세청 시도별 품목별 수출입실적을 해마다 1~12월 한 번에 물어(연간 합) HS 2단위 칸으로 나눴다. 칸 넓이 = 그 해 인천으로 집계된 업체 수출(또는 수입)에서 그 품목의 몫. 그 해 금액이 큰 품목부터 열 개까지 칸을 따로 두고(칸이 좁아 이름이 안 들어가면 그보다 적게) 나머지는 「그 밖 N개 류」로 묶었다. 칸 자리 순서는 전 기간 몫 순으로 고정해 해가 바뀌어도 칸이 제자리에서 커지고 줄어든다."
     limits="인천항·인천공항(입·출항 관문)을 지난 화물이 아니라 관세청이 인천광역시로 집계한 업체의 실적이다(업체를 시도에 넣는 기준은 공개 명세에 없어 확인하지 못했다) — 인천 관문을 지난 화물과 다르다. 마지막 해가 12월까지 안 찼으면 「1~○월」로 적고 비교에서 뺀다.">
     <div slot="answer" class="race">
       <p class="race__y"><b id="race-y">{L.y}</b> <span id="race-k">수출</span> <i id="race-total" data-og-num={`백만 달러 · ${L.y}년 수출`}>{L.exp_total.toLocaleString("ko-KR")}</i><small>백만 달러</small></p>
-      <div class="race__box" id="race-box" role="group" aria-label={`${L.y}년 인천 소재 기업 수출 품목 구성 — 칸을 누르면 그 품목의 해마다 금액`}>
+      <div class="race__box" id="race-box" role="group" aria-label={`${L.y}년 인천으로 집계된 업체 수출 품목 구성 — 칸을 누르면 그 품목의 해마다 금액`}>
         {list.map((it, k) => { const r = R0[k]; return <span class="tm-pre" style={`left:${(r.x / 10).toFixed(2)}%;top:${((r.y / 560) * 100).toFixed(2)}%;width:${(r.w / 10).toFixed(2)}%;height:${((r.h / 560) * 100).toFixed(2)}%;background:${it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c};color:${inkOn(it.hs === "etc" ? "#d9d1c0" : groupOf(it.hs).c)}`}>{(() => { const nm = tileLabel(it, r); return nm && <><b>{nm}</b>{it.pct != null && pctFits(r) && <i>{it.pct}%</i>}</>; })()}</span>; })}
       </div>
       <p class="race__legend">{GROUPS.map((g) => <span><i style={`background:${g.c}`}></i>{g.label}</span>)}<span><i style="background:#d9d1c0"></i>그 밖(작은 품목 묶음)</span></p>
@@ -58,7 +58,7 @@ const list = L0.map((x) => ({ ...x, pct: x.hs === "etc" ? null : (L.items.find((
     let race: TreemapRace;
     const make = () => {
       race?.stop(); for (const el of box.querySelectorAll(".tm-pre, .tm-tile")) el.remove();
-      race = new TreemapRace(box, years(), { top: 10, onYear: (y, i) => { $("race-y").textContent = y.y; $("race-total").textContent = fmt(y.total); $("race-k").textContent = k === "exp" ? "수출" : "수입"; sl.value = String(i); box.setAttribute("aria-label", `${y.y} 인천 소재 기업 ${k === "exp" ? "수출" : "수입"} 품목 구성`); },
+      race = new TreemapRace(box, years(), { top: 10, onYear: (y, i) => { $("race-y").textContent = y.y; $("race-total").textContent = fmt(y.total); $("race-k").textContent = k === "exp" ? "수출" : "수입"; sl.value = String(i); box.setAttribute("aria-label", `${y.y} 인천으로 집계된 업체 ${k === "exp" ? "수출" : "수입"} 품목 구성`); },
         onPick: (hs) => { const s = Y.map((y: any) => `${y.y} ${fmt((y[k].items.find((i: any) => i.hs === hs) || { v: 0 }).v)}`).join(" · "); const nm = (Y[0][k].items.find((i: any) => i.hs === hs) || { name: hs }).name; $("race-pick").textContent = `${nm}(HS ${hs}) — ${s} 백만 달러`; } });
       (window as any).__race = race;
     };
