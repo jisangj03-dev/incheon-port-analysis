@@ -62,16 +62,20 @@ test.describe("기준 9·10·14·15·16·17·19·24 — 전 지면", () => {
 });
 
 // 정체성 전환(2026-10-14 · docs/측심_정체성전환_판정기준_선커밋_20261014.md §2·§5-4) — 종전 기준 2·12(도구 링크·사람별 입구 넷)를 대신한다.
-test("정체성 §2 — 상단 메뉴 = 구조 넷 · 첫 화면에 실명 · 크몽·셀러 입구 0", async ({ page }) => {
+// [2026-10-22 선장님 최종 결정 · 품질기준 Q11] 「첫 화면에 실명」(10-14 §2)을 뒤집었다 — 실명·학교·자격은 소개 지면에만, 홈 어디에도 없다
+test("정체성 §2 — 상단 메뉴 = 구조 넷 · 홈에 실명 0 · 소개에 실명 · 크몽·셀러 입구 0", async ({ page }) => {
   await watch(page);
   await page.goto(`${BASE}/`);
   await expect(page.locator("header.s-mast nav a")).toHaveText(["도구", "노트", "소개"]); // 2026-10-20 지도 지면을 내렸다 — 첫 화면이 지도
   const P = JSON.parse(readFileSync("data/profile.json", "utf-8"));
   const vh = page.viewportSize().height;
-  const lead = page.locator(".live__who");
-  await expect(lead).toContainText(P.name);
-  const b = await lead.boundingBox();
-  expect(b && b.y + b.height <= vh, "실명 한 줄이 첫 화면 안").toBe(true);
+  const b = await page.locator("#live-h").boundingBox();
+  expect(b && b.y + b.height <= vh, "제목(측심이 무엇)이 첫 화면 안").toBe(true);
+  const text = await page.locator("body").innerText();
+  for (const w of [P.name, ...(P.education || []).map((e) => e.school), ...P.credentials]) expect(text, `홈 글에 「${w}」`).not.toContain(w);
+  await page.goto(`${BASE}/about.html`);
+  await expect(page.locator("main"), "실명은 소개에").toContainText(P.name);
+  await page.goto(`${BASE}/`);
   const html = await page.content();
   for (const w of ["kmong", "크몽", "data-persona", "/for/"]) expect(html, w).not.toContain(w);
   // 메뉴마다 한 번 눌러 200

@@ -5,8 +5,9 @@
 //   한 줄에는 「누가 낸 무슨 자료」만, 이용 조건은 그 아래 접기(details)로. 문구는 지우지 않는다(출처 표시 의무 · 출고 검사 ⑥).
 import Updated from "../Updated.astro";
 import { freshLine } from "../../lib/freshness";
-interface Props { updated: string; source: string; csv?: string; csvName?: string; note?: string; fresh?: string[] }
-const { updated, source, csv, csvName = "data.csv", note, fresh } = Astro.props;
+// fold = 「원천 확인 · 다음 공표 예정」과 more(긴 해명)를 한 줄이 아니라 접기 안에 둔다(홈 · 2026-10-22 24차 화면 판정 Q5 — 모바일에서 출처 꼬리가 6줄로 펼쳐졌다)
+interface Props { updated: string; source: string; csv?: string; csvName?: string; note?: string; fresh?: string[]; fold?: boolean; more?: string }
+const { updated, source, csv, csvName = "data.csv", note, fresh, fold = false, more } = Astro.props;
 // [2026-10-21 자동 갱신] 원천 id 를 주면 「원천 확인 · 다음 공표 예정(원천별 · 주기 추정)」(data/derived/freshness.json)
 const FL = fresh?.length ? freshLine(fresh) : null;
 const TERMS = /공공누리|이용허락|운영정책|약관|CC BY|CC0|ODbL|퍼블릭 도메인|Public Domain|라이선스|license|Apache|Contains modified|저작권|허락|출처 대장에 없음/i;
@@ -19,10 +20,10 @@ const names = segs.filter((x) => !TERMS.test(x));
 const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
 const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
-<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
+<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
-{terms.length > 0 && <details class="s-terms"><summary>{names.length > 2 ? "출처 전부 · 이용 조건" : "이용 조건"}</summary><p>{[...new Set(terms)].join(" · ")}</p></details>}
+{(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, names.length > 2 ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
 <style>
   .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
   .s-terms summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; }

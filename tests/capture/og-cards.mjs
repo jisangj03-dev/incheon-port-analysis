@@ -71,6 +71,68 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
   writeFileSync(join(dir, "cards.json"), JSON.stringify({ _설명: "도구 카드에 찍힌 값(카드를 찍는 순간 도구 지면에서 읽음) — 시험이 지면과 대조한다", cards }, null, 1));
   unlinkSync(join(dir, "tool.html"));
 }
+// 홈 「실제 도구 화면」 띠(2026-10-22 · data/home_showcase.json) — 실제 도구 지면의 주 그림(sel)을 찍는다(지어낸 목업 0 · iframe 0).
+// 넓은 화면용(560 폭 — 홈 띠 칸 약 580px 에 이름표가 제 크기 · 28차 · 2배 · 2:1)과 좁은 화면용(390 폭 · 2배 · 2:1 — 홈 띠 칸 358px 에 제 크기 · 트리맵은 whole 로 2:1 재배치 · 29차) 두 장 — 홈 띠 칸(2:1 · 넓은 화면 약 580px · 좁은 화면 약 360px)에 거의 제 크기로 들어가
+// 지면 이름표가 읽힌다(24차 화면 판정: 1200 폭에서 찍어 줄였더니 이름표가 8px). 그림 = 주 그림 상자 너비 × 2:1(상자가 더 길면 위에서부터 · whole 은 통째로).
+// 배포 때마다 다시 찍으므로 그림 = 그 배포의 실제 지면이다. 못 찍으면 홈은 그림 없이 글(도구 이름·한 줄)만 보인다 — 실패로 센다.
+const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
+if (SHOW.length) {
+  mkdirSync(join(dist, "assets", "toolshots"), { recursive: true });
+  for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 390, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
+    const sctx = await browser.newContext(opt);
+    const sp = await sctx.newPage();
+    for (const t of SHOW) {
+      const name = `${t.id}${suf}.jpg`, out = join(dist, "assets", "toolshots", name);
+      try {
+        await sp.setViewportSize({ width: suf && t.mvw ? t.mvw : opt.viewport.width, height: opt.viewport.height }); // mvw = 좁은 화면 그림만 다른 폭(지도 이름표를 제 크기로)
+        await sp.goto(`${base}/incheon-port-analysis${t.href}`, { waitUntil: "load" });
+        await sp.evaluate(() => document.fonts.ready);
+        await sp.waitForTimeout(3500); // 첫 장면이 그려지고 움직임이 한 번 돌 시간
+        if (t.click) { await sp.click(t.click); await sp.waitForTimeout(2500); } // 지면의 단추를 눌러 둔 장면(등시선 = 화물차 · 26차 화면 판정 「배송인데 승용차」)
+        const el = t.sel ? sp.locator(t.sel).first() : null;
+        if (el && (await el.count())) {
+          await el.evaluate((e) => e.scrollIntoView({ block: "center" })); await sp.waitForTimeout(800);
+          // whole = 주 그림을 자르지 않고 통째로(트리맵 — 1000×560 고정 배치라 2:1 로 자르면 아래 품목이 빠졌다 · 25차 화면 판정) · 상자 높이를 배치 본래 비율로 맞춘다
+          if (t.whole) { await el.evaluate((e, r) => { e.style.height = `${Math.round(e.getBoundingClientRect().width * r)}px`; dispatchEvent(new Event("resize")); }, t.whole); await sp.waitForTimeout(1500); } // 지면이 resize 에서 칸을 다시 배치한다(좁은 화면에서 옛 높이 배치가 잘렸다)
+          let bb = await el.boundingBox();
+          // tight = 그린 것(선·글자)만 감싸게 — 차트 위아래 빈 여백을 덜어 띠 안에서 선이 작아지지 않게(맥주 게임 · 28차)
+          if (t.tight) bb = await el.evaluate((e) => { const R = [...e.querySelectorAll("path,line,polyline,text,circle,rect")].map((x) => x.getBoundingClientRect()).filter((r) => r.width || r.height); const o = e.getBoundingClientRect(); const top = Math.min(...R.map((r) => r.top)) - 8, bot = Math.max(...R.map((r) => r.bottom)) + 8; return { x: o.left, y: Math.max(o.top, top), width: o.width, height: Math.min(o.bottom, bot) - Math.max(o.top, top) }; });
+          const w = Math.floor(bb.width), h = t.whole ? Math.floor(bb.height) : Math.round(w * ratio);
+          const fy = (suf && t.mfy) || 0; // mfy = 좁은 화면 그림을 자를 세로 자리(0 = 위 · 1 = 아래) — 등시선은 출발지가 들어오게
+          let y = bb.height >= h ? Math.max(bb.y, bb.y + (bb.height - h) * fy + ((suf && t.mdy) || 0)) : bb.y - (h - bb.height) / 2; // mdy = 픽셀 보정(캔버스 이름표는 문서에 없어 아래 자동 회피가 못 본다)
+          // 자르는 선이 이름표를 가로지르지 않는 자리를 ±40px 안에서 고른다(지도는 이름표를 다시 그려 숨김이 풀린다 — 26차 「파주」 반쪽)
+          if (bb.height > h) y = await el.evaluate((e, [y0, h, lo, hi]) => {
+            const R = [...e.querySelectorAll("*")].filter((x) => [...x.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim())).map((x) => x.getBoundingClientRect()).filter((r) => r.width && r.height);
+            const cuts = (y) => R.filter((r) => (r.top < y && r.bottom > y) || (r.top < y + h && r.bottom > y + h)).length;
+            for (let d = 0; d <= 40; d += 2) for (const c of [y0 + d, y0 - d]) if (c >= lo && c <= hi && !cuts(c)) return c;
+            return y0;
+          }, [y, h, bb.y, bb.y + bb.height - h]); // 위에 맞춘다(트리맵 가장 큰 칸 이름 · 지도 위쪽 이름표가 잘렸다)
+          // 그림 가장자리에 반쯤 걸린 글자(지도 이름표 등)는 숨긴다 — 잘린 이름표가 읽히지 않는 조각으로 남았다(24차 화면 판정 경미 1). 다른 것은 손대지 않는다
+          // 주 그림이 2:1 보다 납작해 위아래로 넓혀 찍을 때 들어오는 지면 글(「아래 막대를 움직여 보세요」 등 — 정지 그림에선 뜻이 없다)도 숨긴다
+          await sp.evaluate(([y0, y1, x0, x1, sel]) => {
+            const main = document.querySelector(sel);
+            for (const e of document.querySelectorAll("body *")) {
+              const own = [...e.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());
+              if (!own) continue;
+              const r = e.getBoundingClientRect(); if (!r.width || !r.height) continue;
+              if (r.bottom <= y0 || r.top >= y1 || r.right <= x0 || r.left >= x1) continue;
+              const cut = (r.top < y0 && r.bottom > y0) || (r.top < y1 && r.bottom > y1) || (r.left < x0 && r.right > x0) || (r.left < x1 && r.right > x1);
+              if (cut || (main && !main.contains(e))) e.style.visibility = "hidden";
+            }
+          }, [Math.max(0, y), Math.max(0, y) + h, bb.x, bb.x + w, t.sel]);
+          await sp.screenshot({ path: out, type: "jpeg", quality: 72, clip: { x: Math.floor(bb.x), y: Math.max(0, Math.round(y)), width: w, height: h } }); // 주 그림(지도 · 트리맵 · 차트) · 2:1
+        }
+        else {
+          const top = await sp.evaluate(() => Math.ceil(document.querySelector("header.s-mast")?.getBoundingClientRect().bottom || 0));
+          const vp = opt.viewport;
+          await sp.screenshot({ path: out, type: "jpeg", quality: 74, clip: { x: 0, y: top, width: vp.width, height: Math.min(750, vp.height - top) } });
+        }
+        console.log(`도구 화면 toolshots/${name} ${statSync(out).size}B`);
+      } catch (e) { bad++; console.error(`도구 화면 못 찍었다 ${name}: ${String(e).split("\n")[0]}`); }
+    }
+    await sctx.close();
+  }
+}
 // 홈 카드 = 지면 기본 카드(Base.astro ogImage 기본값 /og/home.jpg) · 옛 주소 /assets/og.jpg 를 미리 긁어 간 곳도 새 그림을 받게 덮어쓴다(2026-10-20)
 if (existsSync(join(dir, "home.jpg"))) { mkdirSync(join(dist, "assets"), { recursive: true }); copyFileSync(join(dir, "home.jpg"), join(dist, "assets", "og.jpg")); console.log("assets/og.jpg ← og/home.jpg"); }
 else { bad++; console.error("홈 카드 og/home.jpg 가 없다 — assets/og.jpg 를 못 바꿨다"); }

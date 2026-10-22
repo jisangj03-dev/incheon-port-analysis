@@ -34,6 +34,32 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       인천_수입_전국비중_pct: m.imp_share_pct, 인천_수출_전국비중_pct: m.exp_share_pct, 신항_천TEU: m.teu?.["신항"] ?? "", 남항_천TEU: m.teu?.["남항"] ?? "", 국제여객부두_천TEU: m.teu?.["국제여객부두"] ?? "" })),
       note: `관세청 항구·공항별 수출입실적 · 인천지방해양수산청 항만운영통계 · 계산 tools-build/flows_derive.py · ${F.made}` };
   },
+  // 홈 「최신 공표분으로 잰 숫자」 절 — 절에 보이는 숫자를 한 줄씩(항목·값·단위·기준월·원천). 지면과 같은 파일에서 읽는다(28차 사실 대조 — 종전 CSV 는 관문 금액뿐)
+  "home-now": () => {
+    const F = J("data/derived/home_flows.json"), L = F.months[F.months.length - 1];
+    const AX = existsSync(join(repoRoot(), "data/derived/home_axes.json")) ? J("data/derived/home_axes.json") : null, T = AX?.trade, R = AX?.retail;
+    const P = portMonthly(), PL = P.series[P.series.length - 1], V = J("data/derived/vessel_replay.json").latest;
+    const r = (항목: string, 값: unknown, 단위: string, 기준월: string, 원천: string) => ({ 항목, 값, 단위, 기준월, 원천 });
+    const rows = [
+      r("전국 수입액", L.nat_imp, "억 달러", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천 관문(공항+항만) 수입 몫", L.imp_share_pct, "%", L.ym, "관세청 항구·공항별 수출입실적 · 입항지 기준"),
+      r("인천 관문 수출 몫", L.exp_share_pct, "%", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천공항 수입", L.air_imp, "억 달러", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천항 수입", L.port_imp, "억 달러", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천공항 수출", L.air_exp, "억 달러", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천항 수출", L.port_exp, "억 달러", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천 관문 수입 중 공항 몫", Math.round((L.air_imp / L.imp_total) * 100), "%", L.ym, "관세청 항구·공항별 수출입실적"),
+      r("인천항 컨테이너", PL.v, "천TEU", PL.ym, "인천지방해양수산청 항만운영통계"),
+      r("인천항 컨테이너 전년 대비(공표값)", PL.yoy, "%", PL.ym, "인천지방해양수산청 항만운영통계"),
+      r("인천항 외항선 입항", V.incheon, "척", V.ym, "해양수산부 항만별 선박입출항실적"),
+      ...(T ? [r("수도권 화주 수입 몫(전국 대비)", T.imp_pct, "%", T.ym, "관세청 시도별 품목별 수출입실적 ÷ 관세청 국가별 수출입실적"),
+        r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 화주 수출", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
+        r(`수도권 수입 1위 HS ${T.top_imp[0].hs} 몫`, T.top_imp[0].pct, "%", T.ym, "관세청 시도별 품목별 수출입실적")] : []),
+      ...(R ? [r("수도권 화주 생활소비재 수입", R.cons_imp, "억 달러", R.ym, "관세청 시도별 품목별 수출입실적 · 묶음 = tools-build/axes_derive.py CONSUMER"),
+        r("생활소비재 수입 전년 같은 달 대비", R.cons_yoy, "%", R.ym, "같은 원천")] : []),
+    ];
+    return { rows, note: `홈 「최신 공표분으로 잰 숫자」 절 · 계산 tools-build/flows_derive.py · tools-build/axes_derive.py · ${F.made}` };
+  },
   // 위성으로 본 묘박지 — 달마다 고른 장면 · 배 어림
   anchorage: () => {
     const S = J("data/derived/s2_anchorage.json");

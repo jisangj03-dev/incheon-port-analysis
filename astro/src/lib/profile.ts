@@ -21,6 +21,7 @@ export function reviewed(key?: string): boolean {
   if (!key) return false;
   _rev ??= (() => { try { return readFileSync(join(repoRoot(), "docs/검수기록.md"), "utf-8"); } catch { return ""; } })();
   const k = key.replace(/^\//, "").replace(/\.html$/, "");
-  return _rev.split("\n").some((l) => l.startsWith("| 20") && l.split("|")[2]?.includes(k));
+  // 칸 = 검수한 파일 이름 — 부분 문자열이 아니라 같은 이름(또는 경로 끝)으로만 맞춘다(「index」가 tools/index 줄에 걸려 홈에 실명이 뜨지 않게 · 2026-10-22 25차 사실 대조)
+  return _rev.split("\n").some((l) => { if (!l.startsWith("| 20")) return false; const c = (l.split("|")[2] || "").trim().replace(/\.(md|html)$/, ""); return c === k || c.endsWith(`/${k}`) || k.endsWith(`/${c}`); });
 }
 export const aiMark = (key?: string) => (reviewed(key) ? `AI 정리 · ${profile().name} 검수` : "AI 정리");
