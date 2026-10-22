@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ["claude/**"]
-    paths: ["tools-build/v3/radar_probe.py", ".github/workflows/radar-probe.yml"]
+    paths: ["tools-build/radar_probe.py", ".github/workflows/radar-probe.yml"]
 permissions:
   contents: write
 concurrency:
@@ -25,7 +25,7 @@ jobs:
         run: |
           if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
           git fetch -q --depth=1 origin main
-          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/v3/radar_probe.py'; then
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/radar_probe.py'; then
             echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=yes" >> "$GITHUB_OUTPUT"
@@ -41,10 +41,9 @@ jobs:
         with:
           python-version: "3.12"
       - name: 탐색
-        working-directory: tools-build/v3
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
-        run: python radar_probe.py
+        run: python tools-build/radar_probe.py
       - name: 결과 커밋(그 브랜치에)
         if: always()
         run: |
