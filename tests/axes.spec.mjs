@@ -27,7 +27,7 @@ test("세 축 — 축 줄 숫자 = 데이터 파일 · 줄 → 그 축 질문 �
     const t = await page.locator('.ax__row a[href="#ax-trade"]').innerText();
     expect(t).toContain(fmt(AX.trade.sudo_imp));
     expect(await page.locator('.ax__row a[href="#ax-trade"]').textContent()).toContain(`같은 달 수출 ${fmt(AX.trade.sudo_exp)}억`); // 낮은 창에서는 감춘다 — 글은 늘 있다
-    await expect(page.locator("#live-h")).toContainText(`${AX.trade.imp_pct}%`);
+    await expect(page.locator("#axes-h")).toContainText(`${AX.trade.imp_pct}%`); // 2026-10-22 첫 화면 아래 절로 내림
     const r = await page.locator('.ax__row a[href="#ax-retail"]').innerText();
     expect(r).toContain(fmt(AX.retail.cons_imp));
   }
@@ -41,3 +41,23 @@ test("세 축 — 축 줄 숫자 = 데이터 파일 · 줄 → 그 축 질문 �
   const Q = J("data/questions.json"), ids = new Set(Q.axes.map((a) => a.id));
   for (const q of Q.questions) expect(ids.has(q.axis), `${q.id} 축 ${q.axis}`).toBe(true);
 });
+
+// [2026-10-22 선장님 방향 전환 · 품질기준 Q9] 첫 화면 = 정체성·대상 — 두 폭 첫 화면에 「무엇」(제목) · 대상 둘(실무자 · 채용 담당자) · 연락 단추가 접힘선 위 ·
+// 통계 숫자(%·억 달러·TEU)는 첫 화면 글에 없다(아래 #now-axes 절로). 사람 판정(Q9)의 필요조건만 기계로 본다.
+for (const [w, h] of [[1520, 730], [390, 844]]) {
+  test(`Q9 첫 화면 정체성·대상 — ${w}×${h}`, async ({ page }, info) => {
+    test.skip(info.project.name !== "desktop-1440", "크기를 시험 안에서 바꾼다 — 한 번이면 된다");
+    await page.setViewportSize({ width: w, height: h });
+    await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
+    await page.goto(`${B}/`, { waitUntil: "domcontentloaded" });
+    const above = async (sel) => { const b = await page.locator(sel).first().boundingBox(); return !!b && b.y + b.height <= h; };
+    expect(await above("#live-h"), "제목").toBe(true);
+    const who = await page.locator(".aud__who").allInnerTexts();
+    expect(who.join(" "), "대상 둘").toMatch(/실무자[\s\S]*채용 담당자/);
+    for (const i of [0, 1]) { const b = await page.locator(".aud__who").nth(i).boundingBox(); expect(b && b.y + b.height <= h, `대상 ${i + 1} 접힘선 위`).toBe(true); }
+    expect(await above('.live__cta [data-c="mail"]'), "문의 단추").toBe(true);
+    const txt = await page.locator(".live__text").innerText();
+    expect(txt, "첫 화면 글에 통계 숫자").not.toMatch(/\d+(\.\d+)?\s*%|억 달러|TEU/);
+    await expect(page.locator("#now-axes #axes-h"), "숫자 절은 아래에 있다").toHaveCount(1);
+  });
+}

@@ -18,7 +18,7 @@ test("히어로 — 너비 1280·1440·1536 × 높이 640·720·900 에서 글·
     await page.waitForSelector("#live-stage[data-ready='1']", { timeout: 30_000 });
     await page.waitForTimeout(300);
     const hits = await page.evaluate(() => {
-      const sel = [".live__text > *", ".live__cta a", ".live__cta button", ".live__stat", ".live__ctl", ".live__legend", ".live__pause"];
+      const sel = [".live__text > *", ".live__cta a", ".live__cta button", ".aud", ".live__ctl", ".live__legend", ".live__pause"];
       const els = [...new Set(sel.flatMap((s) => [...document.querySelectorAll(s)]))].filter((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && getComputedStyle(e).visibility !== "hidden"; });
       const nm = (e) => `${e.className?.toString().split(" ")[0] || e.tagName}「${(e.textContent || "").trim().slice(0, 12)}」`;
       const out = [];
@@ -31,14 +31,14 @@ test("히어로 — 너비 1280·1440·1536 × 높이 640·720·900 에서 글·
       return out;
     });
     for (const h of hits) bad.push(`${vp.width}×${vp.height} ${h}`);
-    // [2026-10-20 품질기준 Q1·Q6] 첫 화면 안에서 끝난다 — 제목·한 문장·큰 숫자·행동 둘·지도 단추가 접힘선 위 · 인천 관문(공항)이 지도 칸 안
+    // [2026-10-20 품질기준 Q1·Q6 · 10-22 Q9] 첫 화면 안에서 끝난다 — 제목(정체성)·리드·대상 둘·행동 둘·지도 단추가 접힘선 위 · 인천 관문(공항)이 지도 칸 안
     const f = await page.evaluate(() => {
       const vh = innerHeight, b = (s) => document.querySelector(s)?.getBoundingClientRect();
       const st = b("#live-stage"), fm = window.__fm, g = fm?.D.flows.air_gate, s = fm && g ? fm.screen(g.lon, g.lat) : null;
-      return { vh, h1: b("#live-h").bottom, one: b(".live__one").bottom, stat: b(".live__stat").bottom, cta: b(".live__cta").bottom, ctl: b(".live__ctl").bottom,
+      return { vh, h1: b("#live-h").bottom, lead: b(".live__lead").bottom, aud: b(".aud").bottom, cta: b(".live__cta").bottom, ctl: b(".live__ctl").bottom,
         inc: s ? [st.left + s[0], st.top + s[1], st.left, st.right, st.top, Math.min(st.bottom, vh)] : null };
     });
-    for (const k of ["h1", "one", "stat", "cta", "ctl"]) if (f[k] > f.vh + 1) bad.push(`${vp.width}×${vp.height} ${k} 가 접힘선 아래(${Math.round(f[k])} > ${f.vh})`);
+    for (const k of ["h1", "lead", "aud", "cta", "ctl"]) if (f[k] > f.vh + 1) bad.push(`${vp.width}×${vp.height} ${k} 가 접힘선 아래(${Math.round(f[k])} > ${f.vh})`);
     if (f.inc && !(f.inc[0] > f.inc[2] + 8 && f.inc[0] < f.inc[3] - 8 && f.inc[1] > f.inc[4] + 8 && f.inc[1] < f.inc[5] - 8)) bad.push(`${vp.width}×${vp.height} 인천공항이 지도 칸 밖(${f.inc.map(Math.round).join(",")})`);
   }
   expect(bad, bad.join("\n")).toEqual([]);

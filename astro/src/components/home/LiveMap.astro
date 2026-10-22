@@ -22,6 +22,7 @@ const rev = (x: string) => [...x].reverse().join("");
 const hasMail = !!(PF.contact?.mail?.user && PF.contact?.mail?.domain); // 문의 메일 — 주소는 원문에 두지 않고 누를 때 조립(Contact 스크립트가 [data-c=mail] 을 다 받는다)
 // 관문 → 실무 도구(rooms.json tools 방 · gate 칸이 있는 것만) — 관문을 누르면 이어지는 도구
 const TOOLS = ((room("tools")?.items || []) as any[]).filter((t) => t.gate);
+const NT = ((room("tools")?.items || []) as any[]).length; // 실무 도구 수(rooms.json — 첫 화면 대상 줄)
 const L = F.months[F.months.length - 1];
 // 작년 같은 달 — 전국 수출 규모가 평소의 두 배 가까워 「오류 아닌가」로 읽혔다(9~16차 화면 판정 · 원자료 일치) → 같은 원천의 비교 한 토막을 기준 줄에
 const LY = F.months.find((m: any) => m.ym === `${Number(L.ym.slice(0, 4)) - 1}${L.ym.slice(4)}`);
@@ -51,37 +52,18 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   {/* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) */}
   <div class="live__hero">
   <div class="live__text">
-    {/* [2026-10-21 선장님 과제 1 · 첫 화면 개편] 무역 한 축(「한국 수입 50.5%가 인천」)에서 세 축으로 — 질문 하나 → 답 한 줄(두 몫) → 세 축 줄(사고팔고 · 옮기고 · 판다).
-        축 줄을 누르면 아래 「이런 질문을 같이 풉니다」의 그 축 묶음으로 간다(실무자가 자기 축으로 바로). 큰 숫자는 축마다 하나. */}
-    <p class="s-cap live__who">{PF.name} · SCM 작업실 · 수도권 물류·무역·유통</p>
-    <p class="live__ask">수도권 공급망 — 수입품은 어느 문으로 들어와, 누가 들여오고, 무엇으로 팔릴까?</p>
-    <h1 id="live-h" class="s-prose">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h1>
-    <p class="live__one">{L.ym} 수입액 · 둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 서울·인천·경기에 소재한 화주(수입자·수출자 — 본사 등 · 물건이 내린 곳 아님)</span><span class="lg-s">화주 = 소재지 기준(본사 등 · 물건이 내린 곳 아님)</span></b></>}</p>
-    <ol class="live__stat ax" id="fm-hud" aria-live="off">
-      <li class="ax__row"><a href="#ax-logi">
-        <span class="ax__k">{AXN.logi.name}<small>{AXN.logi.verb}</small></span>
-        <span class="ax__v"><b>{PL.v.toLocaleString("ko-KR")}</b><span class="live__unit">천TEU</span></span>
-        <span class="ax__s" aria-hidden="true">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 전년비 {sign(PL.yoy)}</span>
-        <span class="ax__t">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 작년 같은 달 {sign(PL.yoy)} · 외항선 {V.incheon.toLocaleString("ko-KR")}척(<span class="nb">{V.ym}</span>)</span>
-      </a></li>
-      {T && <li class="ax__row"><a href="#ax-trade">
-        <span class="ax__k">{AXN.trade.name}<small>{AXN.trade.verb}</small></span>
-        <span class="ax__v"><b>{fmt(T.sudo_imp)}</b><span class="live__unit">억 달러</span></span>
-        <span class="ax__s" aria-hidden="true">수도권 화주 수입 <span class="nb">{T.ym}</span></span>
-        <span class="ax__t">수도권 화주 수입 <span class="nb">{T.ym}</span> · 수입 1위 {HS[T.top_imp[0].hs] ?? T.top_imp[0].name} {T.top_imp[0].pct}%<span class="lg-x"> · 같은 달 수출 {fmt(T.sudo_exp)}억 달러</span></span>
-      </a></li>}
-      {RT && <li class="ax__row"><a href="#ax-retail">
-        <span class="ax__k">{AXN.retail.name}<small>{AXN.retail.verb}</small></span>
-        <span class="ax__v"><b>{fmt(RT.cons_imp)}</b><span class="live__unit">억 달러</span></span>
-        <span class="ax__s" aria-hidden="true">생활소비재 수입 <span class="nb">{RT.ym}</span> · 전년비 {sign(RT.cons_yoy)}</span>
-        <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}{KO && <> · 전국 온라인쇼핑 {won(KO.online)}({KO.ym} {sign(KO.yoy)})</>}</span>
-      </a></li>}
-    </ol>
-    {/* [2026-10-21 11차 화면 판정 H4] 지도가 무엇인지는 글 기둥에서 먼저 말한다 */}
-    <p class="live__mapis">지도 점 = 인천공항 항공화물 <b>무게</b>({F.air_cargo ? (F.air_cargo.from.slice(5) === "01" && F.air_cargo.through.slice(5) === "06" && F.air_cargo.from.slice(0, 4) === F.air_cargo.through.slice(0, 4) ? `${F.air_cargo.from.slice(0, 4)} 상반기` : `${F.air_cargo.from}~${F.air_cargo.through}`) : ""} 월평균)</p>
+    {/* [2026-10-22 선장님 방향 전환 · docs/품질기준.md Q9] 첫 화면 = 정체성·대상 — 3초 안에 ① 이곳이 무엇인가 ② 누구를 위한 곳인가(실무자 · 채용 담당자)
+        ③ 무엇을 얻고 왜 연락하나. 통계 두 몫·기준 줄·세 축 숫자 줄은 첫 화면 바로 아래 「이번 달 수도권 공급망」 절로 내렸다(삭제 아님 · #now-axes). */}
+    <p class="s-cap live__who">{PF.name} · {PF.affiliation} · SCM 작업실</p>
+    <h1 id="live-h" class="s-prose">수도권 공급망을 <span class="live__nb">공공 데이터로</span> 재는 작업실</h1>
+    <p class="live__lead s-prose">인천 항만·공항을 지나 수도권 창고·매장으로 가는 물건의 길을 관세청·해양수산부 같은 공공 1차 통계로 직접 계산해 보여 줍니다. <span class="lg-d2"> 숫자마다 출처·기준일·CSV를 함께 둡니다.</span></p>
+    <ul class="aud" aria-label="누구를 위한 곳인가">
+      <li><b class="aud__who">물류·무역·유통 실무자</b><span class="aud__get">수입원가 · 배송 도달권 · 바닷길 충격을 공개 통계로 바로 계산하는 도구 {NT}개.<span class="lg-d2"> 귀사 숫자로 같은 분석을 돌려 보고 싶을 때 연락 주세요.</span><span class="lg-m2"> 귀사 숫자로 돌려 보려면 연락 주세요.</span></span><a class="aud__go" href={u("/tools/")}>도구 바로 쓰기 →</a></li>
+      <li><b class="aud__who">채용 담당자</b><span class="aud__get">{PF.credentials.slice(0, 2).join(" · ")} 등 자격 {PF.credentials.length}종.<span class="lg-d2"> 판정 기준을 먼저 적고 독립 검증을 거쳐 올리는 일하는 방식을 이 사이트가 그대로 보여 줍니다.</span><span class="lg-m2"> 기준을 먼저 적고 독립 검증을 거쳐 올리는 방식 그대로.</span></span><a class="aud__go" href={u("/about.html")}>소개 보기 →</a></li>
+    </ul>
     <div class="live__cta">
-      <a class="s-btn live__q" href="#questions">축별 질문 보기</a>
-      {hasMail && <a class="s-btn s-btn--ghost" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
+      {hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
+      <a class="s-btn s-btn--ghost live__q" href="#now-axes">이번 달 수도권 공급망 ↓</a>
     </div>
   </div>
 
@@ -117,6 +99,32 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   </aside>
   </div>
   </div>
+
+  <section class="s-wrap axes" id="now-axes" aria-labelledby="axes-h">
+    <p class="s-cap axes__cap">이번 달 수도권 공급망 · 공공 통계 · 어느 문으로 들어와, 누가 들여오고, 무엇으로 팔릴까</p>
+    <h2 id="axes-h" class="s-prose axes__h">한국 수입의 <span class="live__nb"><span class="s-signal">{L.imp_share_pct}%</span>는</span> 인천 관문으로{T && <>, <span class="live__nb"><span class="s-signal">{T.imp_pct}%</span>는</span> 수도권 화주에게</>}.</h2>
+    <p class="live__one">{L.ym} 수입액 · 둘 다 ÷ 전국 {fmt(L.nat_imp)}억 달러<span class="lg-d"> · 인천 관문 = 공항 {airPct}% + 항만 {100 - airPct}%(입항지 기준)</span><span class="lg-s"> · 관문 = 입항지 기준</span>{T && <> · <b class="live__def"><span class="lg-l">수도권 화주 = 서울·인천·경기에 소재한 화주(수입자·수출자 — 본사 등 · 물건이 내린 곳 아님)</span><span class="lg-s">화주 = 소재지 기준(본사 등 · 물건이 내린 곳 아님)</span></b></>}</p>
+    <ol class="live__stat ax">
+      <li class="ax__row"><a href="#ax-logi">
+        <span class="ax__k">{AXN.logi.name}<small>{AXN.logi.verb}</small></span>
+        <span class="ax__v"><b>{PL.v.toLocaleString("ko-KR")}</b><span class="live__unit">천TEU</span></span>
+        <span class="ax__s" aria-hidden="true">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 전년비 {sign(PL.yoy)}</span>
+        <span class="ax__t">인천항 컨테이너 <span class="nb">{PL.ym}</span> · 작년 같은 달 {sign(PL.yoy)} · 외항선 {V.incheon.toLocaleString("ko-KR")}척(<span class="nb">{V.ym}</span>)</span>
+      </a></li>
+      {T && <li class="ax__row"><a href="#ax-trade">
+        <span class="ax__k">{AXN.trade.name}<small>{AXN.trade.verb}</small></span>
+        <span class="ax__v"><b>{fmt(T.sudo_imp)}</b><span class="live__unit">억 달러</span></span>
+        <span class="ax__s" aria-hidden="true">수도권 화주 수입 <span class="nb">{T.ym}</span></span>
+        <span class="ax__t">수도권 화주 수입 <span class="nb">{T.ym}</span> · 수입 1위 {HS[T.top_imp[0].hs] ?? T.top_imp[0].name} {T.top_imp[0].pct}%<span class="lg-x"> · 같은 달 수출 {fmt(T.sudo_exp)}억 달러</span></span>
+      </a></li>}
+      {RT && <li class="ax__row"><a href="#ax-retail">
+        <span class="ax__k">{AXN.retail.name}<small>{AXN.retail.verb}</small></span>
+        <span class="ax__v"><b>{fmt(RT.cons_imp)}</b><span class="live__unit">억 달러</span></span>
+        <span class="ax__s" aria-hidden="true">생활소비재 수입 <span class="nb">{RT.ym}</span> · 전년비 {sign(RT.cons_yoy)}</span>
+        <span class="ax__t">수도권 화주가 들여온 생활소비재({RT.groups.map((g: any) => g.name.split("·")[0]).join("·")}) <span class="nb">{RT.ym}</span> · 작년 같은 달 {sign(RT.cons_yoy)}{KO && <> · 전국 온라인쇼핑 {won(KO.online)}({KO.ym} {sign(KO.yoy)})</>}</span>
+      </a></li>}
+    </ol>
+  </section>
 
   <div class="s-wrap live__foot">
     {CT && <p class="s-prose live__counter"><b>반대 지표</b> — {CT.text}. {CT.ym.slice(0, 4)}-{CT.ym.slice(4)} 전국 수입액 중 부산항·부산신항 <b class="s-signal">{CT.busan_pct}%</b>, 인천항 <b>{CT.incheon_port_pct}%</b>(관세청 항구·공항별 · 입항지 기준). {L.air_imp > L.port_imp ? "인천 관문 수입은 하늘(인천공항) 쪽이 바다(인천항)보다 크다." : "인천 관문 수입은 바다(인천항) 쪽이 하늘(인천공항)보다 크다."}</p>}
@@ -379,6 +387,20 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .live__nb { white-space: nowrap; }
   .live__def { font-weight: 500; color: var(--s-ink-2); }
   .lg-s { display: none; }
+  /* [2026-10-22 Q9] 첫 화면 = 정체성 — 한 줄 무엇(제목) · 두 줄 어떻게(리드) · 대상 둘(얻는 것 · 가는 곳) · 행동 둘 */
+  .live__lead { margin: 0; max-width: 34em; font-size: 16.5px; line-height: 1.6; color: var(--s-ink-2); }
+  .aud { list-style: none; margin: var(--s-5) 0 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--s-rule); }
+  .aud li { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); column-gap: 16px; row-gap: 2px; padding: 12px 0; border-bottom: 1px solid var(--s-rule); }
+  .aud__who { font-size: 15.5px; font-weight: 650; color: var(--s-ink); line-height: 1.35; }
+  .aud__get { font-size: 14.5px; color: var(--s-ink-2); line-height: 1.55; }
+  .aud__go { grid-column: 2; justify-self: start; min-height: 44px; display: inline-flex; align-items: center; font-size: 14.5px; font-weight: 600; color: var(--s-signal); text-decoration: none; }
+  .aud__go:hover { text-decoration: underline; }
+  .lg-m2 { display: none; }
+  /* 첫 화면 바로 아래 — 이번 달 수도권 공급망(두 몫 · 기준 줄 · 세 축 줄) */
+  .axes { padding-block: var(--s-6) var(--s-4); scroll-margin-top: 72px; }
+  .axes__cap { margin: 0 0 var(--s-2); }
+  .axes__h { font-size: clamp(24px, 2.4vw, 36px); line-height: 1.25; margin: 0 0 var(--s-3); text-wrap: balance; max-width: 30em; }
+  .axes .ax { max-width: 52rem; }
   /* 세 축 줄 — 축 이름 · 큰 숫자 하나 · 한 줄 맥락 · 그 축 질문으로(→) */
   .ax { list-style: none; margin: var(--s-4) 0 0; padding: 0; border-top: 1px solid var(--s-rule); font-variant-numeric: tabular-nums; }
   .ax__row a { display: grid; grid-template-columns: 6.6em 8.4em minmax(0, 1fr) 1em; align-items: center; column-gap: 14px; padding: 9px 0; min-height: 44px;
@@ -464,6 +486,10 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     .lg-d, .lg-x { display: none; } .live__one > .lg-s { display: inline; } /* 관문 공항·항만 나눔은 관문 숫자 판·방법 칸에 · 「입항지 기준」과 화주 정의는 남긴다(19·20차 판정) */
   }
   @media (min-width: 900px) and (max-height: 680px) {
+    .aud { margin-top: var(--s-3); }
+    .aud li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who go" "get get"; padding: 4px 0 8px; align-items: center; }
+    .aud__who { grid-area: who; } .aud__go { grid-area: go; grid-column: auto; min-height: 40px; } .aud__get { grid-area: get; font-size: 13.5px; }
+    .lg-d2 { display: none; } .lg-m2 { display: inline; } /* 낮은 창(640) = 대상 줄 짧은 판 — 행동 둘·지도 단추가 접힘선 위(hero 시험) */
     /* 더 낮은 창(1280·1440 × 640 · hero 시험) — 세 축 줄이 들어오며 행동 둘·지도 단추가 접힘선 밑으로 밀렸다 → 축 작은 말·기준 줄 뒤쪽을 접는다 */
     .live__text h1 { font-size: clamp(26px, min(2.8vw, 5vh), 50px); }
     .ax__row a { padding: 5px 0; grid-template-columns: 4.2em 7.4em minmax(0, 1fr) 1em; column-gap: 10px; }
@@ -477,6 +503,10 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
     /* 좁은 화면 — 글이 위, 지도는 그 아래 전폭(인천이 첫 화면 안에 들게 지도 높이를 창의 절반 남짓으로) */
     .live__text { padding: var(--s-4) var(--s-gutter) var(--s-4); }
     .live__text h1 { font-size: clamp(28px, 7.6vw, 40px); }
+    .live__lead { font-size: 15px; }
+    .aud li { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "who go" "get get"; padding: 8px 0 10px; align-items: center; }
+    .aud__who { grid-area: who; } .aud__go { grid-area: go; grid-column: auto; min-height: 44px; } .aud__get { grid-area: get; font-size: 14px; }
+    .lg-d2 { display: none; } .lg-m2 { display: inline; } /* 좁은 화면 = 대상 줄 짧은 판 · 링크는 대상 이름 옆(지도 속 인천이 접힘선 위에 들게 · Q6) */
     .live__one { font-size: 13px; line-height: 1.5; }
     .live__ask { font-size: 14.5px; }
     .ax { margin-top: var(--s-3); }
