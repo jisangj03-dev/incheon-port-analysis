@@ -67,7 +67,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   <div class="live__text idv__me">
     <span class="idv__rule" aria-hidden="true"></span>
     <h1 id="live-h" class="live__who"><span class="nb">수도권 물류·무역·유통을</span> <span class="nb">숫자·지도·시뮬레이션으로</span> 풉니다.</h1>
-    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 주로 공공 통계와 공개 지도로 계산하는 SCM 작업실입니다 — <span class="nb">실무 도구 {NT}개 · 시뮬레이션 {NS}개.</span></p>
+    <p class="idv__one"><b>{BRAND.name}</b>은 관문 인천에서 수도권까지의 공급망을 공공 통계와 공개 지도, 시뮬레이션으로 계산하는 SCM 작업실입니다 — <span class="nb">실무 도구 {NT}개 · 시뮬레이션 {NS}개.</span></p>
     <figure class="shots" id="shots" data-shots aria-label="실제 지면 화면 — 지면 셋을 차례로 보여 준다">
       <div class="shots__bar">
         <span class="shots__cap">실제 지면 화면</span>
@@ -91,7 +91,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
         <span class="who3__t">{a.tools.map((t, k: number) => <>{k > 0 && <span class="who3__sep" aria-hidden="true"> / </span>}<a href={u(t.href)} title={TITLE[t.href]}>{t.gain}</a></>)}</span>
       </li>)}
     </ul>
-    <p class="idv__ask">물동량·원가 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 메일로 숫자를 보내 주세요.</p>
+    <p class="idv__ask">물동량·원가 계산을 귀사 숫자로 다시 돌려 보고 싶다면, 메일로 알려 주세요.</p>
     <div class="live__cta">
       {hasMail && <a class="s-btn" href="#mail" data-c="mail" data-ask="1" data-a={rev(PF.contact.mail.user)} data-b={rev(PF.contact.mail.domain)}>문의 메일</a>}
       <a class="s-btn s-btn--ghost live__q" href={u("/tools/")}>도구 보기</a>
@@ -486,7 +486,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .shots__bar { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
   .shots__cap { font-size: 12.5px; font-weight: 650; letter-spacing: .02em; color: var(--s-ink-2); white-space: nowrap; }
   .shots__seg { display: flex; gap: 4px; flex: 1 1 auto; min-width: 0; }
-  .seg { flex: 1 1 0; min-width: 0; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
+  .seg { flex: 1 1 0; min-width: 0; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center; }
   .seg i { position: relative; display: block; width: 100%; height: 3px; background: var(--s-rule); overflow: hidden; }
   .seg i::after { content: ""; position: absolute; inset: 0; background: var(--s-signal); transform-origin: left; transform: scaleX(0); }
   .seg.is-on i { height: 5px; background: var(--s-ink-3); } /* 지금 마디 — 채움(남은 시간)과 따로 진하고 두껍게(채움 0% · 멈춤 · 동작 줄이기에서도 구별 · 27차) */
@@ -512,7 +512,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   .shot:focus-visible { outline: 2px solid var(--s-signal); outline-offset: -2px; }
   @media (prefers-reduced-motion: reduce) { .shot { transition: none; } }
   /* 「이런 분께」 표 */
-  .idv__cap { margin: 0 0 var(--s-2); }
+  .idv__cap { margin: 0 0 var(--s-2); font-size: 14px; font-weight: 650; color: var(--s-ink); letter-spacing: 0; } /* 독자 표의 머리 — 가장 옅은 글자였다(28차) */
   .who3 { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--s-rule); }
   .who3__row { display: grid; grid-template-columns: 3.4em minmax(0, 1fr); column-gap: 14px; row-gap: 2px; padding: 11px 8px; border-bottom: 1px solid var(--s-rule); transition: background .3s ease; }
   .who3__row.is-on { background: rgb(179 54 30 / 0.07); box-shadow: inset 3px 0 0 var(--s-signal); }
@@ -599,7 +599,7 @@ const won = (mil: number) => mil >= 1e6 ? `${fmt(mil / 1e6)}조 원` : `${Math.r
   @media (min-width: 900px) {
     /* [2026-10-22 선장님 최종 결정] 첫 화면 = 무엇·도구 띠(왼쪽 7단) + 「이런 분께」 표·연락(오른쪽 5단) · 지도 없음 — 창 높이 안에서 끝난다 */
     .idv { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: clamp(24px, 3vw, 56px); align-items: center;
-      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 1040px); /* 창 높이만큼 — 아래 「최신 공표 숫자」가 첫 화면에 걸리지 않게(26차 · 1920×1080) */ box-sizing: border-box; padding-block: var(--s-4);
+      min-height: clamp(480px, calc(100svh - var(--live-top, 92px)), 860px); /* 창 높이만큼 — 아래 「최신 공표 숫자」가 첫 화면에 걸리지 않게(26차 · 1920×1080) */ box-sizing: border-box; padding-block: var(--s-4);
       padding-left: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); padding-right: max(var(--s-gutter), calc((100vw - var(--s-wide)) / 2 + var(--s-gutter))); }
     .idv__me { grid-column: 1 / span 7; }
     .idv__aud { grid-column: 8 / -1; }

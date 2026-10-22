@@ -72,13 +72,13 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
   unlinkSync(join(dir, "tool.html"));
 }
 // 홈 「실제 도구 화면」 띠(2026-10-22 · data/home_showcase.json) — 실제 도구 지면의 주 그림(sel)을 찍는다(지어낸 목업 0 · iframe 0).
-// 넓은 화면용(640 폭 · 2배 · 2:1)과 좁은 화면용(520 폭 · 2배 · 2:1 — 390 폭에선 차트·트리맵이 세로로 길어 한 조각만 들어왔다) 두 장 — 홈 띠 칸(2:1 · 넓은 화면 약 580px · 좁은 화면 약 360px)에 거의 제 크기로 들어가
+// 넓은 화면용(560 폭 — 홈 띠 칸 약 580px 에 이름표가 제 크기 · 28차 · 2배 · 2:1)과 좁은 화면용(520 폭 · 2배 · 2:1 — 390 폭에선 차트·트리맵이 세로로 길어 한 조각만 들어왔다) 두 장 — 홈 띠 칸(2:1 · 넓은 화면 약 580px · 좁은 화면 약 360px)에 거의 제 크기로 들어가
 // 지면 이름표가 읽힌다(24차 화면 판정: 1200 폭에서 찍어 줄였더니 이름표가 8px). 그림 = 주 그림 상자 너비 × 2:1(상자가 더 길면 위에서부터 · whole 은 통째로).
 // 배포 때마다 다시 찍으므로 그림 = 그 배포의 실제 지면이다. 못 찍으면 홈은 그림 없이 글(도구 이름·한 줄)만 보인다 — 실패로 센다.
 const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
 if (SHOW.length) {
   mkdirSync(join(dist, "assets", "toolshots"), { recursive: true });
-  for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 640, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 520, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
+  for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 520, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
     const sctx = await browser.newContext(opt);
     const sp = await sctx.newPage();
     for (const t of SHOW) {
@@ -94,7 +94,10 @@ if (SHOW.length) {
           await el.evaluate((e) => e.scrollIntoView({ block: "center" })); await sp.waitForTimeout(800);
           // whole = 주 그림을 자르지 않고 통째로(트리맵 — 1000×560 고정 배치라 2:1 로 자르면 아래 품목이 빠졌다 · 25차 화면 판정) · 상자 높이를 배치 본래 비율로 맞춘다
           if (t.whole) { await el.evaluate((e, r) => { e.style.height = `${Math.round(e.getBoundingClientRect().width * r)}px`; dispatchEvent(new Event("resize")); }, t.whole); await sp.waitForTimeout(1500); } // 지면이 resize 에서 칸을 다시 배치한다(좁은 화면에서 옛 높이 배치가 잘렸다)
-          const bb = await el.boundingBox(), w = Math.floor(bb.width), h = t.whole ? Math.floor(bb.height) : Math.round(w * ratio);
+          let bb = await el.boundingBox();
+          // tight = 그린 것(선·글자)만 감싸게 — 차트 위아래 빈 여백을 덜어 띠 안에서 선이 작아지지 않게(맥주 게임 · 28차)
+          if (t.tight) bb = await el.evaluate((e) => { const R = [...e.querySelectorAll("path,line,polyline,text,circle,rect")].map((x) => x.getBoundingClientRect()).filter((r) => r.width || r.height); const o = e.getBoundingClientRect(); const top = Math.min(...R.map((r) => r.top)) - 8, bot = Math.max(...R.map((r) => r.bottom)) + 8; return { x: o.left, y: Math.max(o.top, top), width: o.width, height: Math.min(o.bottom, bot) - Math.max(o.top, top) }; });
+          const w = Math.floor(bb.width), h = t.whole ? Math.floor(bb.height) : Math.round(w * ratio);
           const fy = (suf && t.mfy) || 0; // mfy = 좁은 화면 그림을 자를 세로 자리(0 = 위 · 1 = 아래) — 등시선은 출발지가 들어오게
           let y = bb.height >= h ? Math.max(bb.y, bb.y + (bb.height - h) * fy + ((suf && t.mdy) || 0)) : bb.y - (h - bb.height) / 2; // mdy = 픽셀 보정(캔버스 이름표는 문서에 없어 아래 자동 회피가 못 본다)
           // 자르는 선이 이름표를 가로지르지 않는 자리를 ±40px 안에서 고른다(지도는 이름표를 다시 그려 숨김이 풀린다 — 26차 「파주」 반쪽)
