@@ -3,12 +3,13 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { check } from "../tools-build/check-data-numbers.mjs";
 
 const Q = "content-queue";
-// 숫자 대조는 **가장 최근 날짜 폴더**만 — 지난 폴더는 그날 데이터로 만든 기록이라, 데이터가 새로 들어오면 숫자가 어긋나는 것이 맞다(2026-10-20 입찰 레이더 재수집 뒤 10-15 초안의 「8,205건」)
-const DAYS = existsSync(Q) ? readdirSync(Q).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort().slice(-1) : [];
-const drafts = existsSync(Q) ? DAYS.flatMap((d) => readdirSync(join(Q, d)).filter((f) => f.endsWith(".md")).map((f) => join(Q, d, f))) : [];
+// [2026-10-22 갱신 무인화 ①] 숫자 대조는 **live/**(refresh 가 원천 갱신 때마다 다시 만드는 판)만 — 날짜 폴더는 그날 데이터로 만든 기록(보관)이라 숫자가 어긋나는 것이 맞다.
+//   홍보 초안은 틀(templates/ · 숫자 0)에서 drafts.py 가 만든다 — live 판이 지금 데이터로 다시 만든 것과 같은지도 본다.
+const drafts = existsSync(join(Q, "live")) ? readdirSync(join(Q, "live")).filter((f) => f.endsWith(".md")).map((f) => join(Q, "live", f)) : [];
 const DATA = [...readdirSync("data/derived").filter((f) => f.endsWith(".json")).map((f) => `data/derived/${f}`), "data/rooms.json", "data/sources.json"].map((f) => readFileSync(f, "utf-8"));
 const profile = JSON.parse(readFileSync("data/profile.json", "utf-8"));
 
@@ -22,5 +23,13 @@ test("B10 콘텐츠 큐 — 초안 숫자 = 데이터 · 게시 0 · 채널 셋 
     for (const ch of ["## LinkedIn", "## 블로그", "## Threads"]) expect(md, `${f} ${ch}`).toContain(ch);
     if (profile.name) expect(md.includes(profile.name), `${f} 실명`).toBe(false);
     expect(md).not.toMatch(/serviceKey|DATA_GO_KR_KEY=/);
+  }
+});
+
+test("갱신 무인화 ① — 홍보 초안 = 틀 + 데이터(손으로 적은 숫자 0 · live 판이 지금 데이터와 같다)", ({}, info) => {
+  test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
+  for (const a of [["tools-build/facts.py"], ["tools-build/drafts.py", "--check"]]) {
+    const r = spawnSync("python3", a, { encoding: "utf-8" });
+    expect(r.status, `${a.join(" ")}\n${r.stdout}${r.stderr}`).toBe(0);
   }
 });

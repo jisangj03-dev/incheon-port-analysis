@@ -4,12 +4,14 @@
 // [2026-10-20 · docs/품질기준.md Q5] 출처 줄이 행정 문구(공공누리 유형 · 이용허락범위 · 라이선스)로 본문을 덮었다 →
 //   한 줄에는 「누가 낸 무슨 자료」만, 이용 조건은 그 아래 접기(details)로. 문구는 지우지 않는다(출처 표시 의무 · 출고 검사 ⑥).
 import Updated from "../Updated.astro";
-import { freshLine } from "../../lib/freshness";
+import { freshLine, delayLines } from "../../lib/freshness";
 // fold = 「원천 확인 · 다음 공표 예정」과 more(긴 해명)를 한 줄이 아니라 접기 안에 둔다(홈 · 2026-10-22 24차 화면 판정 Q5 — 모바일에서 출처 꼬리가 6줄로 펼쳐졌다)
-interface Props { updated: string; source: string; csv?: string; csvName?: string; note?: string; fresh?: string[]; fold?: boolean; more?: string }
-const { updated, source, csv, csvName = "data.csv", note, fresh, fold = false, more } = Astro.props;
+interface Props { updated: string; source: string; csv?: string; csvName?: string; note?: string; fresh?: string[]; delay?: string[]; fold?: boolean; more?: string }
+const { updated, source, csv, csvName = "data.csv", note, fresh, delay = [], fold = false, more } = Astro.props;
+const DI = [...new Set([...(fresh ?? []), ...delay])]; // 지연을 살필 원천 = 신선도 줄 원천 + 「다음 공표」가 없는 우리 재계산 층(delay)
 // [2026-10-21 자동 갱신] 원천 id 를 주면 「원천 확인 · 다음 공표 예정(원천별 · 주기 추정)」(data/derived/freshness.json)
 const FL = fresh?.length ? freshLine(fresh) : null;
+const DL = DI.length ? delayLines(DI) : []; // 갱신 지연 · 자동 받기 실패 — 접기와 상관없이 보인다(갱신 무인화 ④)
 const TERMS = /공공누리|이용허락|운영정책|약관|CC BY|CC0|ODbL|퍼블릭 도메인|Public Domain|라이선스|license|Apache|Contains modified|저작권|허락|출처 대장에 없음/i;
 // 괄호·낫표 안의 「 · 」는 가르지 않는다(이용허락 문구가 괄호 안에서 잘려 「…확인)」만 남던 것 · 2026-10-20 사실 대조 C1)
 const segs = (() => { const out: string[] = []; let cur = "", d = 0; const parts = source.split(" · ");
@@ -20,11 +22,16 @@ const names = segs.filter((x) => !TERMS.test(x));
 const short = (names.length > 2 ? `${names.slice(0, 2).join(" · ")} 외 ${names.length - 2}` : names.join(" · ")) || source;
 const terms = [...names.slice(2), ...segs.filter((x) => TERMS.test(x))];
 ---
-<p class="s-trust"><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
+{DL.map((g) => <p class={`s-delay${g.head === "갱신 지연" ? "" : " s-delay--soft"}`} data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
+<p class="s-trust" data-fresh-ids={DI.join(",") || undefined}><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
 {(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, names.length > 2 ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
 <style>
+  .s-delay__i { display: block; }
+  .s-delay--soft { border-left-color: var(--s-ink-3); background: color-mix(in srgb, var(--s-ink-3) 8%, transparent); } /* 자동 받기 실패 = 지금 숫자는 최신 — 「갱신 지연」보다 약하게(10/22 화면 3차 판정) */
+  .s-delay b { display: block; font-weight: 650; }
+  .s-delay { margin: 4px 0 0; padding: 4px 8px; border-left: 3px solid var(--s-signal); background: color-mix(in srgb, var(--s-signal) 8%, transparent); font-size: 13px; color: var(--s-ink); max-width: 60em; }
   .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
   .s-terms summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; }
   .s-terms p { margin: 2px 0 0; max-width: 60em; }

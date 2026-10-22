@@ -121,7 +121,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           python3 tools-build/v3/choke_derive.py || echo "초크포인트 파생 실패 — 지난 파일 유지"
           # B10 콘텐츠 큐 — 기준일이 바뀐 도구만 초안(LinkedIn·블로그·Threads). 데이터 밖 숫자가 있으면 그 초안은 안 쓴다 · 게시 0(선장님)
-          python3 tools-build/content_queue.py || echo "::warning::콘텐츠 큐 — 데이터 밖 숫자로 버린 초안이 있다(로그)"
+          # [2026-10-22 갱신 무인화 ①] 초안은 live/ 판을 다시 만든다(지금 공개 도구만 · 날짜 폴더 0) — 핵심 숫자·홍보 초안 틀도 같이
+          python3 tools-build/content_queue.py --live || echo "::warning::콘텐츠 큐 — 데이터 밖 숫자로 버린 초안이 있다(로그)"
+          python3 tools-build/facts.py && python3 tools-build/drafts.py || echo "::warning::핵심 숫자·홍보 초안 다시 만들기 실패(로그)"
           git add data/collected/v3 data/derived astro/public/media/s2 content-queue 2>/dev/null || true
           git diff --cached --quiet && { echo "바뀐 것 없음" >> "$GITHUB_STEP_SUMMARY"; exit 0; }
           if [ "$EVENT" = "schedule" ]; then

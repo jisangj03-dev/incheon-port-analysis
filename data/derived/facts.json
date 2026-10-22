@@ -1,0 +1,166 @@
+{
+ "_설명": "이름 붙은 핵심 숫자 — tools-build/facts.py 가 데이터 파일에서 만든다. 초안 틀·시험이 이 값을 쓴다(손으로 적은 숫자 0).",
+ "facts": {
+  "gate.ym": {
+   "v": "2026-09",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json months[-1].ym"
+  },
+  "gate.imp_share": {
+   "v": "50.5",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json imp_share_pct"
+  },
+  "gate.exp_share": {
+   "v": "66.6",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json exp_share_pct"
+  },
+  "gate.port_imp": {
+   "v": "82.0",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json port_imp(억 달러)"
+  },
+  "gate.air_imp": {
+   "v": "277.0",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json air_imp(억 달러)"
+  },
+  "air.window": {
+   "v": "2026-01~06",
+   "pages": [
+    "/"
+   ],
+   "src": "home_flows.json air_cargo from~through"
+  },
+  "sudo.imp_share": {
+   "v": "68.1",
+   "pages": [
+    "/"
+   ],
+   "src": "home_axes.json trade.imp_pct"
+  },
+  "cost.goods": {
+   "v": "1만",
+   "pages": [
+    "/tools/import-cost.html"
+   ],
+   "src": "import_cost.json example.goods(달러)"
+  },
+  "cost.ago_weeks": {
+   "v": "52",
+   "pages": [
+    "/tools/import-cost.html"
+   ],
+   "src": "import_cost.json example.ago_weeks",
+   "ctx": "{v}주 전"
+  },
+  "cost.pct": {
+   "v": "−5.9",
+   "pages": [
+    "/tools/import-cost.html"
+   ],
+   "src": "import_cost.json example.pct"
+  },
+  "choke.hormuz_imp": {
+   "v": "8.3",
+   "pages": [
+    "/tools/chokepoint.html"
+   ],
+   "src": "chokepoints.json hormuz.imp_pct"
+  },
+  "vessel.ym": {
+   "v": "2026-09",
+   "pages": [
+    "/map/vessels.html"
+   ],
+   "src": "vessel_replay.json latest.ym"
+  },
+  "vessel.incheon": {
+   "v": "502",
+   "pages": [
+    "/map/vessels.html"
+   ],
+   "src": "vessel_replay.json latest.incheon",
+   "ctx": "{v}척"
+  },
+  "vessel.yoy": {
+   "v": "−15.8",
+   "pages": [
+    "/map/vessels.html"
+   ],
+   "src": "vessel_replay.json latest.incheon_yoy_pct"
+  },
+  "race.year": {
+   "v": "2025",
+   "pages": [
+    "/tools/trade-race.html"
+   ],
+   "src": "trade_race.json 마지막 온전한 해",
+   "ctx": "{v}년"
+  },
+  "race.top_name": {
+   "v": "전기기기",
+   "pages": [
+    "/tools/trade-race.html"
+   ],
+   "src": "trade_race.json top_exp.name"
+  },
+  "race.top_pct": {
+   "v": "38.0",
+   "pages": [
+    "/tools/trade-race.html"
+   ],
+   "src": "trade_race.json top_exp.pct"
+  },
+  "reach.origin": {
+   "v": "인천터미널 물류단지",
+   "pages": [
+    "/tools/delivery-reach.html"
+   ],
+   "src": "isochrones.json origins(물류단지)"
+  },
+  "reach.slot": {
+   "v": "낮",
+   "pages": [
+    "/tools/delivery-reach.html"
+   ],
+   "src": "reach_slots.json default",
+   "ctx": "({v} 시간대)"
+  },
+  "reach.seoul_car": {
+   "v": "51",
+   "pages": [
+    "/tools/delivery-reach.html"
+   ],
+   "src": "reach_slots.json table[물류단지][default].car.서울시청",
+   "ctx": "승용차로 출발하면 서울시청까지 {v}분"
+  },
+  "site.n_tools": {
+   "v": "5",
+   "pages": [
+    "/"
+   ],
+   "src": "rooms.json tools",
+   "ctx": "실무 도구 {v}개"
+  },
+  "site.n_sims": {
+   "v": "2",
+   "pages": [
+    "/"
+   ],
+   "src": "rooms.json sim",
+   "ctx": "시뮬레이션 {v}개"
+  }
+ }
+}

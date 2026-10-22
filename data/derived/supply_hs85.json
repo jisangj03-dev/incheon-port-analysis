@@ -73,9 +73,9 @@
    "id": "sea",
    "title": "바다 — 인천항 컨테이너",
    "data": {
-    "ym": "2026-08",
-    "kteu": 281.0,
-    "yoy_pct": -7.1,
+    "ym": "2026-09",
+    "kteu": 294.0,
+    "yoy_pct": 0.6,
     "scope": "인천항 컨테이너 전체 — 품목을 가르지 않는다"
    },
    "source": "mof-incheon-port-stats"

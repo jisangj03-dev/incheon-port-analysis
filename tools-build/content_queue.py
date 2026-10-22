@@ -37,7 +37,7 @@ def reach():
     c, w = (tb["car"], tb["within"]) if tb else (o["cities"], o["cities_within"])
     s, tag = c.get("서울시청"), (f"({t['id']} 시간 보정, 카카오 내비 {t.get('n', 30)}구간 대조)" if tb else "(자유 흐름 · 혼잡 미반영)")
     return {"id": "delivery-reach", "asof": I["made"], "q": "인천 창고에서 수도권 어디까지 몇 시간에 닿나?",
-            "hook": f"{o['name']}에서 서울시청까지 {s}분{tag}. 표에 든 수도권 도시 {o['n_cities']}곳 중 {w['1h']}곳이 1시간 안입니다.",
+            "hook": f"{o['name']}에서 서울시청까지 승용차로 {s}분{tag}. 표에 든 수도권 도시 {o['n_cities']}곳 중 {w['1h']}곳이 1시간 안입니다.",
             "body": [f"2시간이면 {w['2h']}곳, 3시간이면 {w['3h']}곳. 출발지를 바꾸면 도달권이 지도 위에서 다시 번집니다.",
                      "출근·낮·자유 흐름 시간대와 화물차 판(고속도로 80km/h · 화물차 통행 금지 길 제외), 상하차 분을 직접 골라 볼 수 있습니다."],
             "how": "OpenStreetMap 도로를 도로 등급별 자유 흐름 속도로 엮어 미리 계산하고, 시간대는 카카오 내비(미래 출발시각) 30구간 대조 오차 중앙값만큼 늘렸습니다.",
@@ -132,7 +132,26 @@ def outside(md, ok):
     return sorted({norm(n) for n in numbers(body)} - ok)
 
 
+def live():
+    """[2026-10-22 갱신 무인화 ①] 도구 초안을 content-queue/live/ 에 늘 다시 쓴다(날짜 폴더·state 없이) — refresh 가 원천 갱신 때마다 부른다.
+    made 줄은 날짜 대신 「자동」 — 날마다 글자가 바뀌어 커밋이 생기지 않게(숫자가 바뀔 때만 파일이 바뀐다)."""
+    ok, d, n, bad = allowed(), os.path.join(Q, "live"), 0, []
+    os.makedirs(d, exist_ok=True)
+    rooms = json.load(open(os.path.join(ROOT, "data/rooms.json"), encoding="utf-8"))["rooms"]
+    on = {os.path.basename(it["href"]).replace(".html", "") for r in rooms if r["id"] == "tools" for it in r.get("items") or []}  # 지금 공개 도구만(내린 지면 초안 0)
+    for fn in TOOLS:
+        try: f = fn()
+        except (FileNotFoundError, KeyError, ValueError, IndexError) as e: print("건너뜀", fn.__name__, type(e).__name__, e); continue
+        if f["id"] not in on: continue
+        md = render(f, "자동(refresh · 숫자 = data/derived)"); b = outside(md, ok)
+        if b: bad.append((f["id"], b)); print("버림(데이터 밖 숫자)", f["id"], b); continue
+        open(os.path.join(d, f"{f['id']}.md"), "w", encoding="utf-8").write(md); n += 1
+    print(f"live 초안 {n}편 · 버림 {len(bad)}")
+    return 1 if bad else 0
+
+
 def main():
+    if "--live" in sys.argv: return live()
     made = sys.argv[sys.argv.index("--date") + 1] if "--date" in sys.argv else datetime.date.today().isoformat()
     st_p = os.path.join(Q, "state.json")
     st = json.load(open(st_p, encoding="utf-8")) if os.path.exists(st_p) else {}
