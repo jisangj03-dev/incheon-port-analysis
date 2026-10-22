@@ -4,6 +4,7 @@ import { portMonthly, mapSeries } from "../../lib/data";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "../../lib/content";
+import { source } from "../../lib/sources";
 const J = (f: string) => JSON.parse(readFileSync(join(repoRoot(), f), "utf-8"));
 
 const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string }> = {
@@ -55,8 +56,14 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       ...(T ? [r("수도권 화주 수입 몫(전국 대비)", T.imp_pct, "%", T.ym, "관세청 시도별 품목별 수출입실적 ÷ 관세청 국가별 수출입실적"),
         r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 화주 수출", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
         r(`수도권 수입 1위 HS ${T.top_imp[0].hs} 몫`, T.top_imp[0].pct, "%", T.ym, "관세청 시도별 품목별 수출입실적")] : []),
-      ...(R ? [r("수도권 화주 생활소비재 수입", R.cons_imp, "억 달러", R.ym, "관세청 시도별 품목별 수출입실적 · 묶음 = tools-build/axes_derive.py CONSUMER"),
+      ...(R && !(R.kosis?.large && R.kosis?.online && source("kostat-kosis")) ? [r("수도권 화주 생활소비재 수입", R.cons_imp, "억 달러", R.ym, "관세청 시도별 품목별 수출입실적 · 묶음 = tools-build/axes_derive.py CONSUMER"),
         r("생활소비재 수입 전년 같은 달 대비", R.cons_yoy, "%", R.ym, "같은 원천")] : []),
+      // [2026-10-22] 유통 축 = KOSIS 실측(지면 유통 줄과 같은 조건 — 데이터와 출처 대장 줄이 둘 다 있을 때 · 그때는 위 생활소비재 두 줄을 싣지 않는다 — 2차 사실 대조 경미)
+      ...(R?.kosis?.large && R?.kosis?.online && source("kostat-kosis") ? [
+        r("수도권(서울·인천·경기) 대형소매점 판매액", R.kosis.large.sudo_jo, "조 원", R.kosis.large.ym, "KOSIS 시도별 대형소매점 판매액(경상금액) · 세 시도 합"),
+        r("수도권 대형소매점 판매액 전년 같은 달 대비", R.kosis.large.yoy, "%", R.kosis.large.ym, "같은 원천 · 이 사이트 계산"),
+        r("전국 온라인쇼핑 거래액", R.kosis.online.jo, "조 원", R.kosis.online.ym, "KOSIS 온라인쇼핑몰 판매매체별/상품군별거래액 · 합계"),
+        r("전국 온라인쇼핑 거래액 전년 같은 달 대비", R.kosis.online.yoy, "%", R.kosis.online.ym, "같은 원천 · 이 사이트 계산")] : []),
     ];
     return { rows, note: `홈 「최신 공표분으로 잰 숫자」 절 · 계산 tools-build/flows_derive.py · tools-build/axes_derive.py · ${F.made}` };
   },

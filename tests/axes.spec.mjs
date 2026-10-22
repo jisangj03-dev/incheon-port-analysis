@@ -29,7 +29,14 @@ test("세 축 — 축 줄 숫자 = 데이터 파일 · 줄 → 그 축 질문 �
     expect(await page.locator('.ax__row a[href="#ax-trade"]').textContent()).toContain(`같은 달 수출 ${fmt(AX.trade.sudo_exp)}억`); // 낮은 창에서는 감춘다 — 글은 늘 있다
     await expect(page.locator("#axes-h")).toContainText(`${AX.trade.imp_pct}%`); // 2026-10-22 첫 화면 아래 절로 내림
     const r = await page.locator('.ax__row a[href="#ax-retail"]').innerText();
-    expect(r).toContain(fmt(AX.retail.cons_imp));
+    // [2026-10-22] KOSIS 가 있고 출처 대장 줄이 있으면 유통 줄 = 수도권 대형소매점 + 전국 온라인쇼핑, 아니면 종전(생활소비재 수입)
+    const SRC = J("data/sources.json").sources, KO = AX.retail.kosis?.large && AX.retail.kosis?.online && SRC.some((s) => s.id === "kostat-kosis") ? AX.retail.kosis : null;
+    if (KO) {
+      expect(r).toContain(`${fmt(KO.large.sudo_jo)}`);
+      expect(r).toContain(KO.large.ym);
+      expect(await page.locator('.ax__row a[href="#ax-retail"]').textContent()).toContain(`전국 온라인쇼핑 거래액 ${fmt(KO.online.jo)}조 원`);
+      expect(r).not.toContain(fmt(AX.retail.cons_imp)); // 교체 — 두 숫자를 한 줄에 섞지 않는다
+    } else expect(r).toContain(fmt(AX.retail.cons_imp));
   }
   // 줄마다 대상 묶음이 있고, 묶음마다 질문이 하나 이상
   for (const href of await rows.evaluateAll((a) => a.map((x) => x.getAttribute("href")))) {
