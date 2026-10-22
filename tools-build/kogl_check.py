@@ -26,7 +26,7 @@ SOURCES = {
     "mof-incheon-port-stats": {"board": "https://incheon.mof.go.kr/ko/board.do?menuIdx=1700"},
     # [2026-10-22 유통 축 KOSIS] 공공데이터포털 밖 원천 — 첫 화면·OpenAPI 화면에서 저작권·이용약관 글로 가는 고리를 따라가 그 글의 조건 문장을 옮긴다.
     "kostat-kosis": {"site": ["https://kosis.kr/", "https://kosis.kr/openapi/index/index.jsp"],
-                     "link": ["저작권", "이용약관", "이용정책", "약관"]},
+                     "link": ["저작권", "이용약관", "이용정책", "약관", "이용지침"]},
 }
 TERMS = re.compile(r"[^.。]{0,80}(?:출처|상업|영리|변경|가공|공공누리|저작권|무단|2차)[^.。]{0,120}")
 KOGL = re.compile(r"공공누리\s*(?:제\s*)?([1-4])\s*유형|KOGL\s*(?:Type\s*)?([1-4])|img_opentype0?([1-4])|opentype_?0?([1-4])", re.I)
@@ -90,7 +90,7 @@ def main():
                     lt = text(m.group(2))
                     if not any(k in lt for k in s["link"]): continue
                     url = urllib.parse.urljoin(start, html.unescape(m.group(1)))
-                    if url in seen or not url.startswith("http") or len(seen) >= 6: continue
+                    if url in seen or not url.startswith("http") or len(seen) >= 8: continue
                     seen.add(url)
                     st2, h2 = get(url)
                     t2 = text(h2)
