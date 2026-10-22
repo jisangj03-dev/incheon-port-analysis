@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { repoRoot } from "./content";
 
-type Rec = { label: string; ours: string | null; source_latest: string | null; checked: string | null; next_expected: string | null; behind: boolean };
+type Rec = { label: string; ours: string | null; source_latest: string | null; checked: string | null; next_expected: string | null; behind: boolean; delayed?: boolean; delay_reason?: string | null };
 let _f: Record<string, Rec> | null = null;
 const all = () => (_f ??= (() => { const p = join(repoRoot(), "data/derived/freshness.json"); return existsSync(p) ? JSON.parse(readFileSync(p, "utf-8")).sources : {}; })());
 
@@ -35,4 +35,12 @@ export function freshLine(ids: string[]): string | null {
   if (nx.length) parts.push(`다음 공표 예정(지난 주기로 본 추정) ${nx.join(" · ")} 무렵`);
   for (const [id, r] of late) parts.push(`${SHORT[id] ?? r.label} 공표 예정 ${r.next_expected} 무렵이었으나 ${r.checked} 확인 때 아직 미공표`);
   return parts.join(" · ") || null;
+}
+
+/** [2026-10-22 갱신 무인화 ④] 「갱신 지연」 한 줄 — 원천 받기가 끊겼거나(키·형식·이틀 넘는 실패) 확인이 주기 한도를 넘었거나 지면이 원천보다 뒤처진 원천.
+ *  출처 줄 접기와 상관없이 늘 보인다(지난 숫자를 새것처럼 읽지 않게). refresh.py judge() 가 정하고 시험 freshness.spec 이 지면에 보이는지 본다. */
+export function delayLine(ids: string[]): string | null {
+  const rs = ids.map((id) => freshRec(id)).filter((r): r is Rec => !!r && !!r.delayed);
+  if (!rs.length) return null;
+  return `갱신 지연 — ${rs.map((r) => `${SHORT[ids.find((i) => freshRec(i) === r)!] ?? r.label}: ${r.delay_reason}${r.ours ? ` · 이 지면 숫자는 ${r.ours} 기준` : ""}`).join(" / ")}`;
 }

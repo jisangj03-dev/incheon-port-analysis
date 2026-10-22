@@ -7,17 +7,27 @@
 # 시험이 깨지면 main 에 쓰지 않고 배포하지 않는다 — 결과를 bot/refresh-fail-* 브랜치에 밀고 이슈를 연다(같은 제목이 열려 있으면 댓글).
 # 바뀐 것이 없으면(원천이 새로 낸 것이 없으면) 아무것도 커밋하지 않는다. 확인일만 바뀐 날은 7일에 한 번만 커밋한다(지면의 「마지막 확인」).
 #
-# 매일 07:37 KST — 원천 대부분이 월·주 단위라 하루 한 번이면 공표 뒤 하루 안에 지면이 바뀐다.
+# 매일 06:17 KST — 원천 대부분이 월·주 단위라 하루 한 번이면 공표 뒤 하루 안에 지면이 바뀐다.
+#   [2026-10-22 갱신 무인화] 07:37 → 06:17 — jota 비서실 07:30 브리핑 전에 끝나야 그날 경보가 그날 브리핑에 실린다(jota cheuksim-watch 07:05 KST).
+# [2026-10-22 갱신 무인화 · docs/측심_갱신무인화_판정기준_선커밋_20261022.md]
+#   ① 받기·파생 뒤 핵심 숫자(facts) · 홍보 초안(틀) · 도구 초안(live)을 다시 만든다(refresh.py).
+#   ③ 해석 문장이 뒤집히면(facts.py --check 종료 3) main 에 쓰지 않고 배포하지 않는다 — 승인 갈래만 바꾼 문장 확인 PR(라벨 문장확인)을 연다.
+#   ④ 원천 하나가 끊겨도 배포는 막지 않는다(그 지면에 「갱신 지연」) · 사람 손이 필요하면 이슈(라벨 자동경보) · 풀리면 스스로 닫는다.
+#   모의(mock 입력) — claude/ 브랜치에서만 · main 커밋·배포 0 · 연 이슈·PR 제목에 [모의].
 # claude/ 브랜치에서 이 파일·refresh.py 가 바뀌면 그 브랜치에서 한 번 돌고 결과를 그 브랜치에 커밋한다(실행 증명 · main·배포 0).
 name: refresh
 
 on:
   schedule:
-    - cron: "37 22 * * *"
+    - cron: "17 21 * * *"
   workflow_dispatch:
     inputs:
       only:
         description: "받기 단계 몇 개만(쉼표 · 비우면 전부) — collect,kr-apis,kcci,portwatch,iiac,vessel,teu,sudo-trade,kosis,iso,tariff,derive"
+        required: false
+        default: ""
+      mock:
+        description: "모의 시험(claude/ 브랜치만 · 커밋·배포 0) — change(원천 변경) · cut-auth(인증 끊김) · cut-transient(일시 오류 1회) · flip(해석 뒤집기)"
         required: false
         default: ""
       deploy:
@@ -33,6 +43,7 @@ permissions:
   contents: write
   issues: write
   actions: write
+  pull-requests: write
 
 concurrency:
   group: refresh-${{ github.ref }}
@@ -105,8 +116,16 @@ jobs:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
           KOSIS_KEY: ${{ secrets.KOSIS_KEY }}   # 없으면 KOSIS 단계는 건너뛴다(유통 축 · 키 발급 = 선장님)
           KAKAO_REST_KEY: ${{ secrets.KAKAO_REST_KEY }}   # 등시선 내비 대조(월 1회 · 60회 상한 · 쌍별 값 저장 0)
+          MOCK: ${{ inputs.mock }}
         run: |
-          if [ -n "${{ inputs.only }}" ]; then python tools-build/refresh.py --only "${{ inputs.only }},derive"; else python tools-build/refresh.py; fi
+          if [ -n "$MOCK" ] && [ "${GITHUB_REF_NAME}" = "main" ]; then echo "::error::모의는 claude/ 브랜치에서만"; exit 1; fi
+          case "$MOCK" in
+            change|flip)   REFRESH_MOCK="$MOCK" python tools-build/refresh.py --skip-fetch ;;
+            cut-auth)      REFRESH_MOCK="fail:kcci:auth" python tools-build/refresh.py --only kcci,derive ;;
+            cut-transient) REFRESH_MOCK="fail:kcci:transient-once" REFRESH_RETRY_WAIT="5,5" python tools-build/refresh.py --only kcci,derive ;;
+            "") if [ -n "${{ inputs.only }}" ]; then python tools-build/refresh.py --only "${{ inputs.only }},derive"; else python tools-build/refresh.py; fi ;;
+            *) echo "::error::모르는 모의 $MOCK"; exit 1 ;;
+          esac
       - name: 키 흔적 검사(산출물에 키가 있으면 커밋하지 않는다)
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}   # collect.py --guard 가 이 이름으로 읽는다(10-21 첫 실행: 다른 이름으로 넘겨 「키 없음」 실패)
@@ -121,13 +140,28 @@ jobs:
       - name: 바뀐 것
         id: diff
         run: |
-          git add -A data/collected data/derived analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
+          git add -A data/collected data/derived content-queue/live analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
           # 시각 키(fetched·checked·made …)만 바뀐 파일은 빼고 센다 — 원천이 새로 낸 것이 없는 날 커밋·배포하지 않게
-          CH=$(python tools-build/refresh.py --changed | grep -v '^data/derived/freshness.json$' || true)
+          CH=$(python tools-build/refresh.py --changed | grep -vE '^data/derived/(freshness|health)\.json$' || true)
+          # 갱신 지연 원천이 바뀌었으면(새로 끊김·풀림) 그것만으로도 배포한다 — 지면의 「갱신 지연」 표시가 상태를 따라가야 한다
+          DL=$(python - <<'PY'
+          import json, subprocess
+          def late(t):
+              try: return sorted(k for k, r in json.loads(t)["sources"].items() if r.get("delayed"))
+              except Exception: return None
+          old = subprocess.run(["git", "show", "HEAD:data/derived/freshness.json"], capture_output=True, text=True).stdout
+          print("yes" if late(old) != late(open("data/derived/freshness.json", encoding="utf-8").read()) else "")
+          PY
+          )
+          [ -n "$DL" ] && CH="${CH}"$'\n'"data/derived/freshness.json(갱신 지연 원천 바뀜)"
+          # ③ 해석 문장 뒤집힘 — 배포 대신 문장 확인 PR
+          python tools-build/facts.py --check && FL=0 || FL=$?
+          if [ "$FL" = "3" ]; then echo "claims=yes" >> "$GITHUB_OUTPUT"; echo "**해석 문장 뒤집힘** — main 에 쓰지 않고 문장 확인 PR" >> "$GITHUB_STEP_SUMMARY"; python tools-build/facts.py --approve; python tools-build/drafts.py; git add -A data/claims.json data/derived content-queue/live; fi
           echo "$CH" | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
           # 확인일만 바뀐 날 — 마지막 freshness 커밋이 7일 넘었으면 그것만이라도 싣는다(지면의 「마지막 확인」이 낡지 않게)
           AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))
-          if [ -n "$CH" ]; then echo "go=data" >> "$GITHUB_OUTPUT";
+          if [ -n "${{ inputs.mock }}" ]; then echo "go=data" >> "$GITHUB_OUTPUT"; echo "모의 — 시험까지만(커밋·배포 0)" >> "$GITHUB_STEP_SUMMARY";
+          elif [ -n "$CH" ]; then echo "go=data" >> "$GITHUB_OUTPUT";
           elif [ "$AGE" -ge 7 ] && ! git diff --cached --quiet; then echo "go=heartbeat" >> "$GITHUB_OUTPUT";
           elif [ "${{ inputs.deploy }}" = "true" ]; then echo "go=force" >> "$GITHUB_OUTPUT"; echo "새 공표 없음 — 수동 실행 deploy 로 시험·배포만" >> "$GITHUB_STEP_SUMMARY";
           else echo "go=no" >> "$GITHUB_OUTPUT"; echo "원천이 새로 낸 것 없음 — 커밋·배포 없음" >> "$GITHUB_STEP_SUMMARY"; fi
@@ -175,7 +209,7 @@ jobs:
 
       # ── 커밋 · 배포 ──
       - name: 커밋(시험 통과) · 배포 부르기
-        if: steps.diff.outputs.go != 'no' && steps.qa.outcome == 'success'
+        if: steps.diff.outputs.go != 'no' && steps.qa.outcome == 'success' && inputs.mock == '' && steps.diff.outputs.claims != 'yes'
         env:
           GH_TOKEN: ${{ github.token }}
           EVENT: ${{ github.event_name }}
@@ -195,8 +229,55 @@ jobs:
           else
             echo "브랜치 실행 — 그 브랜치에 커밋만(배포 없음)" >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: 모의 — 이번 회차가 했을 일(커밋·배포 0)
+        if: inputs.mock != ''
+        run: |
+          {
+            echo "## 모의 ${{ inputs.mock }} — 판정"
+            echo "- 시험: ${{ steps.qa.outcome }} · 해석 문장 뒤집힘: ${{ steps.diff.outputs.claims || 'no' }}"
+            if [ "${{ steps.qa.outcome }}" = "success" ] && [ "${{ steps.diff.outputs.claims }}" != "yes" ]; then echo "- **자동 반영** — main 이었다면 커밋 → 배포(pages) 했을 회차"; fi
+            echo "- 핵심 숫자(facts) 외항선: $(python -c "import json;f=json.load(open('data/derived/facts.json'))['facts'];print(f['vessel.incheon']['v'], f['vessel.yoy']['v'])")"
+            echo "- 홍보 초안 live/launch.md 외항선 줄: $(grep -o '외항선 입항 [0-9,]*척[^·]*' content-queue/live/launch.md | head -1)"
+            echo "- 지면(빌드) 외항선: $(grep -o '[0-9,]*척 · 인천' astro/dist/map/vessels.html | head -1)"
+            echo "- 갱신 지연: $(python -c "import json;h=json.load(open('data/derived/health.json'));print([d['id'] for d in h['delayed']], '· 사람 손', [d['id'] for d in h['human']])")"
+            echo "- 수입원가 지면 「갱신 지연」 줄: $(grep -o '갱신 지연 — [^<]*' astro/dist/tools/import-cost.html | head -1)"
+            echo "- 해석 문장 상태: $(python -c "import json;print({k:(v['approved'],v['now']) for k,v in json.load(open('data/derived/claims_state.json'))['claims'].items()})")"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: 해석 문장 확인 PR(뒤집힘 · 배포 대신)
+        if: steps.diff.outputs.claims == 'yes' && steps.qa.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          P=""; [ -n "${{ inputs.mock }}" ] && P="[모의] "
+          gh label create 문장확인 --color D93F0B --description "해석 문장 뒤집힘 — 선장님 결재(머지)" 2>/dev/null || true
+          n=$(gh pr list --state open --label 문장확인 --search "in:title \"${P}해석 문장\"" --json number --jq '.[0].number' || true)
+          L=$(python -c "import json;print('\n'.join(f'- **{k}**: 승인 「{v[\"approved\"]}」 → 데이터 「{v[\"now\"]}」' for k,v in json.load(open('data/derived/claims_state.json'))['claims'].items() if v['approved']!=v['now']) or '- (이 판에서 승인 갈래를 옮김)')")
+          L2=$(git diff --cached data/claims.json | grep '^[-+] *"approved"' || true)
+          if [ -n "$n" ]; then gh pr comment "$n" --body "$(printf '다시 확인한 날 %s — 아직 뒤집힌 상태(실행 %s). 이 PR 이 머지될 때까지 자동 배포는 멈춰 있다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_' "$(date -u +%F)" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")"; exit 0; fi
+          b="bot/문장확인-$(date -u +%Y%m%d-%H%M)"
+          git switch -c "$b"; git commit -q -m "${P}해석 문장 확인 — 숫자가 바뀌어 뜻이 뒤집힘(승인 갈래 전환 · refresh)"; git push -q -u origin "$b"
+          B=$(printf '## 선장님 결재 한 건 — 해석 문장 뒤집힘\n\n원천 갱신으로 숫자가 바뀌어 아래 해석 문장의 뜻이 뒤집혔다. **자동 배포를 멈췄다**(공개판은 지난 숫자·지난 문장 그대로 · 서로 맞다).\n\n%s\n\n이 PR = 새 데이터 + 승인 갈래 전환(문장은 `data/claims.json` 에 미리 써 둔 갈래 · 지면 문장은 같은 조건으로 고른다) + 다시 만든 홍보 초안.\n**머지 = 새 문장 승인 → 배포.** 문장이 마음에 안 들면 `data/claims.json` 의 그 갈래 문장을 고쳐 이 브랜치에 올린 뒤 머지.\n\n```\n%s\n```\n\n- 시험: 통과(이 실행 %s) · 이 PR 은 봇이 만들어 PR 시험이 따로 돌지 않는다 — 위 실행이 같은 시험이다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n' "$L" "$L2" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          gh pr create --title "${P}해석 문장 확인 — $(date -u +%F)" --body "$B" --base "${GITHUB_REF_NAME}" --head "$b" --label 문장확인
+      - name: 경보 이슈(사람 손 필요할 때만 · 풀리면 닫는다)
+        if: always() && steps.diff.outputs.go != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          P=""; [ -n "${{ inputs.mock }}" ] && P="[모의] "
+          T="${P}측심 자동 경보 — 사람 손 필요"
+          gh label create 자동경보 --color B60205 --description "측심 자동 갱신 — 사람 손 필요(jota 비서실 브리핑이 읽는다)" 2>/dev/null || true
+          H=$(python -c "import json;h=json.load(open('data/derived/health.json'));print('\n'.join(f'- **{x[\"label\"]}** — {x[\"reason\"]}' for x in h['human']))")
+          n=$(gh issue list --state open --label 자동경보 --search "in:title \"$T\"" --json number,title --jq "map(select(.title == \"$T\")) | .[0].number" || true)
+          if [ -n "$H" ]; then
+            B=$(printf '자동 갱신이 스스로 풀 수 없는 실패다(키·인증 · 원천 형식 · 사흘 넘는 실패 · 지면 뒤처짐). 그 원천을 쓰는 지면에는 「갱신 지연」이 붙어 있고, 다른 원천 갱신은 그대로 나간다.\n\n%s\n\n- 실행: %s\n- 키 재발급·시크릿 교체는 선장님 손(저장소 Settings → Secrets). 다시 성공하면 이 이슈는 다음 회차가 스스로 닫는다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n' "$H" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+            if [ -n "$n" ]; then gh issue comment "$n" --body "$B"; else gh issue create --title "$T" --body "$B" --label 자동경보; fi
+          elif [ -n "$n" ]; then
+            gh issue close "$n" --comment "$(printf '다시 받기에 성공해 사람 손이 필요 없어졌다(실행 %s) — 스스로 닫는다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")"
+          fi
       - name: 시험 실패 — main 에 안 쓰고 배포 안 함 · 이슈
-        if: steps.diff.outputs.go != 'no' && steps.qa.outcome != 'success'
+        if: steps.diff.outputs.go != 'no' && steps.qa.outcome != 'success' && inputs.mock == ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -207,5 +288,6 @@ jobs:
           T="자동 갱신 시험 실패 — 공개판은 지난 숫자 그대로"
           B=$(printf '원천 갱신분이 시험을 통과하지 못해 **배포하지 않았다**(공개판은 지난 숫자 그대로).\n\n- 실행: %s\n- 받은 결과: 브랜치 `%s`\n- 시험 끝 줄:\n\n```\n%s\n```\n' "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" "$b" "$(tail -25 /tmp/qa.txt 2>/dev/null)")
           n=$(gh issue list --state open --search "in:title \"$T\"" --json number --jq '.[0].number' || true)
-          if [ -n "$n" ]; then gh issue comment "$n" --body "$B"; else gh issue create --title "$T" --body "$B"; fi
+          gh label create 자동경보 --color B60205 --description "측심 자동 갱신 — 사람 손 필요(jota 비서실 브리핑이 읽는다)" 2>/dev/null || true
+          if [ -n "$n" ]; then gh issue comment "$n" --body "$B"; else gh issue create --title "$T" --body "$B" --label 자동경보; fi
           exit 1

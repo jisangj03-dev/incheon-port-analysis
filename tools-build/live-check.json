@@ -1,5 +1,5 @@
 {
- "_설명": "공개 사이트 실물 점검(A-7 · 2026-10-12). 이 파일이 바뀐 커밋이 claude/ 브랜치에 오면 .github/workflows/live-check.yml 이 실물(jisangj03-dev.github.io)을 재고 docs/실물점검.md 를 그 브랜치에 커밋한다. 이 클라우드 세션은 실물 호스트가 막혀 있다. [2026-10-20 공개] ⑤ open = 실제 브라우저로 열어 지면 상태 · 화면 오류 · 외부 요청(자기 호스트 밖 · Cloudflare 비컨 예외)을 잰다. [2026-10-21 품질 재정비 뒤] open = 지금 남은 13 지면 · pages 에 내린 지면 셋(돌려보내기 200)을 같이 둔다.",
+ "_설명": "공개 사이트 실물 점검(A-7 · 2026-10-12). 이 파일이 바뀐 커밋이 claude/ 브랜치에 오면 .github/workflows/live-check.yml 이 실물(jisangj03-dev.github.io)을 재고 docs/실물점검.md 를 그 브랜치에 커밋한다. 이 클라우드 세션은 실물 호스트가 막혀 있다. [2026-10-20 공개] ⑤ open = 실제 브라우저로 열어 지면 상태 · 화면 오류 · 외부 요청(자기 호스트 밖 · Cloudflare 비컨 예외)을 잰다. [2026-10-21 품질 재정비 뒤] open = 지금 남은 13 지면 · pages 에 내린 지면 셋(돌려보내기 200)을 같이 둔다. [2026-10-22 갱신 무인화 ⑤] 주 1회 예약 실행(월 05:47 KST · main · 커밋 없음) — min = Lighthouse 문턱 · ⑥ 링크 전수 · 어긋나면 자동경보 이슈.",
  "base": "https://jisangj03-dev.github.io/incheon-port-analysis",
  "pages": [
   "/",
@@ -44,5 +44,11 @@
   "/notes/port-yoy.html",
   "/about.html",
   "/data.html"
- ]
+ ],
+ "min": {
+  "performance": 90,
+  "accessibility": 95,
+  "best-practices": 95,
+  "seo": 95
+ }
 }

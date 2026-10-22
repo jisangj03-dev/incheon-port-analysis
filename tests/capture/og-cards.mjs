@@ -17,6 +17,16 @@ const pages = readdirSync(dir).filter((f) => f.endsWith(".html") && f !== "tool.
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined });
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 let bad = 0;
+// [2026-10-22 갱신 무인화 ②] 공유 카드 틀(og/*.html)의 숫자도 데이터 파일에 있어야 찍는다 — 그림이 되면 글자 검사가 못 닿는다
+{
+  const { check } = await import("../../tools-build/check-data-numbers.mjs");
+  const walk = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? walk(join(d, e.name)) : [join(d, e.name)]);
+  const DATA = walk("data").filter((f) => /\.(json|csv)$/.test(f) && statSync(f).size < 8e6).map((f) => readFileSync(f, "utf-8"));
+  for (const f of readdirSync(dir).filter((f) => f.endsWith(".html"))) {
+    const r = check(readFileSync(join(dir, f), "utf-8"), DATA);
+    if (r.bad.length) { bad++; console.error(`공유 카드 og/${f} — 데이터에 없는 숫자 ${r.bad.slice(0, 8).join(" ")}(찍지 않는다)`); }
+  }
+}
 for (const f of pages) {
   const id = f.replace(/\.html$/, "");
   try {
@@ -76,6 +86,18 @@ img{display:block;width:100%;height:auto;aspect-ratio:1200/630;border:1px solid 
 // 지면 이름표가 읽힌다(24차 화면 판정: 1200 폭에서 찍어 줄였더니 이름표가 8px). 그림 = 주 그림 상자 너비 × 2:1(상자가 더 길면 위에서부터 · whole 은 통째로).
 // 배포 때마다 다시 찍으므로 그림 = 그 배포의 실제 지면이다. 못 찍으면 홈은 그림 없이 글(도구 이름·한 줄)만 보인다 — 실패로 센다.
 const SHOW = existsSync("data/home_showcase.json") ? JSON.parse(readFileSync("data/home_showcase.json", "utf-8")).shots : [];
+// guard — 찍을 장면이 데이터 파일과 같은가(10/22 선장님 대조: 띠 그림 서울시청 52분(화물차) ↔ 지면·초안 51분(승용차)). 다르면 이유 문자열, 같으면 "".
+//   띠 그림은 배포마다 다시 찍히므로 「낡음」은 없다 — 남는 위험은 「찍은 장면의 기준이 지면·초안과 다름」이고, 그것을 여기서 막는다.
+const GUARD = {
+  reach: async (p) => {
+    const S = JSON.parse(readFileSync("data/derived/reach_slots.json", "utf-8")), I = JSON.parse(readFileSync("data/derived/isochrones.json", "utf-8"));
+    const oi = Math.max(0, I.origins.findIndex((o) => o.kind === "물류단지")), want = S.table[oi][S.default].car["서울시청"];
+    const got = await p.evaluate(() => { const r = window.__reach; if (!r) return null; const o = r.iso.origins[r.o], C = (r.truck && o.cities_truck) || o.cities; return { o: r.o, truck: !!r.truck, prep: r.prep, seoul: Math.round(C["서울시청"] * r.k + r.prep) }; });
+    if (!got) return "지도 인스턴스 없음";
+    const why = [got.o !== oi && `출발지 ${got.o}≠${oi}`, got.truck && "화물차 장면", got.prep && `상하차 ${got.prep}분`, got.seoul !== want && `서울시청 ${got.seoul}분 ≠ 데이터 ${want}분(${S.default}·승용)`].filter(Boolean);
+    return why.join(" · ");
+  },
+};
 if (SHOW.length) {
   mkdirSync(join(dist, "assets", "toolshots"), { recursive: true });
   for (const [suf, ratio, opt] of [["", 1 / 2, { viewport: { width: 560, height: 900 }, deviceScaleFactor: 2 }], ["-m", 1 / 2, { viewport: { width: 390, height: 900 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }]]) {
@@ -88,7 +110,8 @@ if (SHOW.length) {
         await sp.goto(`${base}/incheon-port-analysis${t.href}`, { waitUntil: "load" });
         await sp.evaluate(() => document.fonts.ready);
         await sp.waitForTimeout(3500); // 첫 장면이 그려지고 움직임이 한 번 돌 시간
-        if (t.click) { await sp.click(t.click); await sp.waitForTimeout(2500); } // 지면의 단추를 눌러 둔 장면(등시선 = 화물차 · 26차 화면 판정 「배송인데 승용차」)
+        if (t.click) { await sp.click(t.click); await sp.waitForTimeout(2500); } // 지면의 단추를 눌러 둔 장면(10/22 — 등시선은 더 누르지 않는다: 지면 기본값 = 초안·답 문장과 같은 기준)
+        if (t.guard) { const g = await GUARD[t.guard](sp); if (g) throw new Error(`찍을 장면이 데이터와 다르다 — ${g}`); } // 다르면 그림을 안 만들고 실패로 센다(배포 막힘)
         const el = t.sel ? sp.locator(t.sel).first() : null;
         if (el && (await el.count())) {
           await el.evaluate((e) => e.scrollIntoView({ block: "center" })); await sp.waitForTimeout(800);

@@ -78,6 +78,8 @@ DERIVE = [
 ]
 
 PERIODIC = {"iso", "tariff"}  # periodic.py 층
+RECOVERED = []  # 재시도로 풀린 단계 — 요약에만 적고 사람에게 올리지 않는다
+MOCK_SKIP = set()
 
 LONG = "analysis/terminal_monthly_long.csv"
 LONG_KEY = ("기준연월", "계층", "터미널")
@@ -124,7 +126,40 @@ def run(cmd, cwd, limit):
         out = (r.stdout + r.stderr)[-1500:]
         return r.returncode, out, time.time() - t0
     except subprocess.TimeoutExpired:
-        return 124, f"{limit}초 넘음", time.time() - t0
+        return 124, f"{limit}초 넘음(timed out)", time.time() - t0
+
+
+# [2026-10-22 갱신 무인화 ④] 실패 갈래 — 일시(다시 시도하면 풀린다) · 인증(키 만료·미등록 — 사람 손) · 형식(원천이 꼴을 바꿨다 — 사람 손) · 그 밖
+AUTH = ("SERVICE_KEY", "SERVICE KEY", "SERVICEKEY", "UNAUTHORIZED", "HTTP Error 401", "HTTP Error 403", "401 Client Error", "403 Client Error", "인증", "등록되지 않은", "키 없음", "LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS")
+FORMAT = ("KeyError", "JSONDecodeError", "ParseError", "열이 다르다", "형식", "schema", "UnicodeDecodeError", "XMLSyntaxError", "IndexError")
+TRANSIENT = ("timed out", "Timeout", "초 넘음", "HTTP Error 5", "Connection", "Temporary failure", "Remote end closed", "reset by peer", "EOF occurred", "IncompleteRead", "Name or service not known", "502", "503", "504")
+
+
+def classify(rc, out):
+    if rc == 0: return None
+    o = out or ""
+    if any(k in o for k in AUTH): return "auth"
+    if rc == 124 or any(k in o for k in TRANSIENT): return "transient"
+    if any(k in o for k in FORMAT): return "format"
+    return "other"
+
+
+MOCK = os.environ.get("REFRESH_MOCK", "")  # 모의 시험(refresh.yml 입력 mock) — 「fail:<단계>:auth」 · 「fail:<단계>:transient-once」 · 「change」 · 「flip」
+_mock_used = set()
+
+
+def fetch(sid, cmd, cwd, limit):
+    """받기 한 단계 — 일시 오류면 같은 회차에 두 번 더 시도한다(대기 30초 · 90초). 반환 (rc, out, 시도 수)."""
+    waits = [int(x) for x in os.environ.get("REFRESH_RETRY_WAIT", "30,90").split(",")]
+    for i in range(len(waits) + 1):
+        m = MOCK.split(":")
+        if len(m) == 3 and m[0] == "fail" and m[1] == sid and not (m[2] == "transient-once" and sid in _mock_used):
+            _mock_used.add(sid)
+            rc, out = (1, "HTTP Error 401: Unauthorized — SERVICE_KEY_IS_NOT_REGISTERED_ERROR(모의)") if m[2] == "auth" else (1, "urlopen error timed out(모의 · 한 번만)")
+        else:
+            rc, out, _ = run(cmd, cwd, limit)
+        if rc == 0 or classify(rc, out) != "transient" or i == len(waits): return rc, out, i + 1
+        say(f"  · {sid} 일시 오류 — {waits[i]}초 뒤 다시({i + 2}번째)"); time.sleep(waits[i])
 
 
 # ③ 신선도 — 원천 표. ours = 지면이 쓰는 기준기 · latest = 원천이 낸 마지막 기준기(받기 결과에서 읽는다).
@@ -206,6 +241,21 @@ def max_age_days(cad):
     return cad[1] + 10 if cad[0] == "recompute" else 10
 
 
+def judge(r, today):
+    """지연 = 지면에 「갱신 지연」을 단다(배포는 막지 않는다) · 사람 손 = 경보 이슈(자동경보). 일시 오류 하루치는 둘 다 아니다(다음 회차가 풀 수 있다)."""
+    days = lambda a: (datetime.date.fromisoformat(today) - datetime.date.fromisoformat(a[:10])).days
+    age = days(r["checked"]) if r.get("checked") else 10 ** 4
+    run_days = days(r["fail_since"]) + 1 if r.get("fail_since") else 0
+    kind = r.get("fail_kind")
+    why = []
+    if r.get("behind"): why.append(f"원천은 {r['source_latest']} 까지 냈는데 지면은 {r['ours']}")
+    if kind in ("auth", "format"): why.append({"auth": "원천 인증 오류(키 만료·미등록 추정)", "format": "원천 형식이 바뀐 것으로 보임"}[kind])
+    elif kind and run_days >= 2: why.append(f"받기 실패 {run_days}일째")
+    if age > r["max_age"]: why.append(f"마지막 확인 {r.get('checked') or '없음'}(주기 한도 {r['max_age']}일 넘음)")
+    human = bool(r.get("behind") or kind in ("auth", "format") or (kind and run_days >= 3) or age > r["max_age"])
+    return {"fail_days": run_days, "delayed": bool(why), "delay_reason": " · ".join(why) or None, "human": human}
+
+
 def freshness(results, teu_latest, today):
     old = (J("data/derived/freshness.json") or {}).get("sources") or {}
     out = {}
@@ -226,6 +276,11 @@ def freshness(results, teu_latest, today):
         rec["next_expected"] = next_expected(s["cadence"], rec["checked"] if s["cadence"][0] == "recompute" else rec["source_latest"])
         rec["max_age"] = max_age_days(s["cadence"])
         rec["behind"] = bool(rec["ours"] and rec["source_latest"] and str(rec["ours"]) < str(rec["source_latest"]))
+        # [2026-10-22 갱신 무인화 ④] 실패가 이어진 날 · 갈래 → 지연(지면 표시) · 사람 손(경보)
+        if ok: rec.update(fail_kind=None, fail_since=None)
+        elif ran is None: rec.update(fail_kind=prev.get("fail_kind"), fail_since=prev.get("fail_since"))
+        else: rec.update(fail_kind=classify(ran[0], ran[1]), fail_since=prev.get("fail_since") or today)
+        rec.update(judge(rec, today))
         out[s["id"]] = rec
     data = {"_설명": "원천별 신선도 — tools-build/refresh.py 가 쓴다. ours = 지면 기준기 · source_latest = 원천이 낸 마지막 기준기(마지막 확인 때) · next_expected = 다음 공표 예정(관측 주기 규칙 · 추정). 시험 tests/freshness.spec.mjs.",
             "made": today, "sources": out}
@@ -233,9 +288,38 @@ def freshness(results, teu_latest, today):
     return data
 
 
+def write_health(data, today):
+    S = data["sources"]
+    health = {"_설명": "갱신 무인화 ④ — refresh 가 쓴다. delayed = 지면에 「갱신 지연」 · human = 사람 손 필요(자동경보 이슈). 일시 오류가 재시도로 풀린 것은 여기 없다.",
+              "made": today,
+              "delayed": [{"id": k, "label": r["label"], "pages": r["pages"], "reason": r["delay_reason"]} for k, r in S.items() if r["delayed"]],
+              "human": [{"id": k, "label": r["label"], "reason": r["delay_reason"], "fail_kind": r.get("fail_kind")} for k, r in S.items() if r["human"]]}
+    json.dump(health, open(os.path.join(ROOT, "data/derived/health.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    return health
+
+
+def mock_mutate(kind):
+    """모의 M1·M3 — 받은 원천 파일을 새 공표처럼 바꾼다(main·배포 0 · refresh.yml 이 모의면 커밋하지 않는다)."""
+    if kind == "change":  # M1 외항선 — 최신 달 인천 외국선 입항 +7척
+        p = os.path.join(ROOT, "data/collected/vessel-monthly.csv"); rows = list(csv.DictReader(open(p, encoding="utf-8")))
+        last = max(r["ym"] for r in rows)
+        for r in rows:
+            if r["ym"] == last and r["port"] == "인천" and r["kind"] == "외국선": r["etr_cnt"] = str(int(r["etr_cnt"]) + 7)
+        with open(p, "w", encoding="utf-8", newline="") as f: w = csv.DictWriter(f, list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+        return f"vessel-monthly.csv {last} 인천 외국선 입항 +7척"
+    if kind == "flip":  # M3 반대 지표 — 최신 달 인천항 수입액 ×3(부산 몫보다 커지게)
+        p = os.path.join(ROOT, "data/collected/porttrade.csv"); rows = list(csv.DictReader(open(p, encoding="utf-8")))
+        last = max(r["reqYm"] for r in rows)
+        for r in rows:
+            if r["reqYm"] == last and r["statKor"] == "인천항": r["impDlr"] = str(int(float(r["impDlr"])) * 3)
+        with open(p, "w", encoding="utf-8", newline="") as f: w = csv.DictWriter(f, list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+        return f"porttrade.csv {last} 인천항 수입액 ×3"
+    return "없음"
+
+
 def main():
     if "--freshness-only" in sys.argv:  # 받기·파생 없이 지금 파일로 신선도만 다시 쓴다(확인일은 그대로 — 원천에 닿지 않았다)
-        freshness({}, None, datetime.date.today().isoformat()); return 0
+        t = datetime.date.today().isoformat(); write_health(freshness({}, None, t), t); return 0
     only = set(sys.argv[sys.argv.index("--only") + 1].split(",")) if "--only" in sys.argv else None
     skip_fetch = "--skip-fetch" in sys.argv
     today = datetime.date.today().isoformat()
@@ -257,6 +341,7 @@ def main():
                 merge_sources(tmp.replace(".csv", "_sources.csv"))
             results[sid] = (rc, out)
         elif sid == "derive":
+            if MOCK in ("change", "flip"): say(f"- 모의 원천 바꾸기: {mock_mutate(MOCK)}")
             bad = []
             for c, d in DERIVE:
                 rc, out, sec = run(c, d, limit)
@@ -264,12 +349,21 @@ def main():
             results[sid] = (1 if bad else 0, "; ".join(bad) or "파생 통과")
             rc, out = results[sid]
         else:
-            rc, out, sec = run(cmd + (["--force"] if only and sid in PERIODIC else []), cwd, limit)
+            if sid in MOCK_SKIP: continue
+            rc, out, tries = fetch(sid, cmd + (["--force"] if only and sid in PERIODIC else []), cwd, limit)
+            if tries > 1 and rc == 0: RECOVERED.append(f"{sid}({tries}번째 성공)")
             if rc == 75 and sid in PERIODIC:  # 때가 아님 — 「안 돌림」으로 센다(확인일·오류를 바꾸지 않는다)
                 say(f"- · {sid} — {what}: {out.strip().splitlines()[-1][:200] if out.strip() else '건너뜀'}"); continue
             results[sid] = (rc, out)
         say(f"- {'✓' if results[sid][0] == 0 else '✗'} {sid} — {what}: {results[sid][1].strip().splitlines()[-1][:200] if results[sid][1].strip() else ''}")
     data = freshness(results, teu_latest, today)
+    health = write_health(data, today)
+    if RECOVERED: say(f"- 재시도로 풀린 받기: {', '.join(RECOVERED)} — 사람에게 올리지 않음")
+    say(f"- 갱신 지연 {len(health['delayed'])} · 사람 손 {len(health['human'])}" + "".join(f"\n  - {h['label']}: {h['reason']}" for h in health["human"]))
+    # ① 숫자가 든 산출물 다시 만들기 — 핵심 숫자 · 해석 문장 상태 · 홍보 초안(틀) · 도구 초안(live)
+    for c in ([sys.executable, "tools-build/facts.py"], [sys.executable, "tools-build/drafts.py"], [sys.executable, "tools-build/content_queue.py", "--live"]):
+        rc, out, _ = run(c, ".", 300)
+        say(f"- {'✓' if rc == 0 else '✗'} {' '.join(c[1:])}: {out.strip().splitlines()[-1][:200] if out.strip() else ''}")
     say("", "| 원천 | 지면 기준기 | 원천 마지막 | 확인일 | 다음 공표 예정 | 뒤처짐 |", "|---|---|---|---|---|---|")
     for k, r in data["sources"].items():
         say(f"| {r['label']} | {r['ours']} | {r['source_latest']} | {r['checked']} | {r['next_expected']} | {'**뒤처짐**' if r['behind'] else '—'} |")
@@ -318,7 +412,16 @@ def selftest():
     assert not substantive('{"fetched": "2026-10-20", "a": [1, {"checked": "x"}]}', '{"fetched": "2026-10-21", "a": [1, {"checked": "y"}]}', "x.json")
     assert substantive('{"fetched": "2026-10-20", "to": "2026-10-09"}', '{"fetched": "2026-10-21", "to": "2026-10-16"}', "x.json")
     assert next_expected(["recompute", 28], "2026-10-21") == "2026-11-18" and max_age_days(["recompute", 28]) == 38 and max_age_days(["monthly", 15]) == 10
-    print("selftest 9/9 ok"); return 0
+    assert classify(1, "HTTP Error 401: Unauthorized") == "auth" and classify(124, "") == "transient" and classify(1, "urlopen error timed out") == "transient"
+    assert classify(1, "KeyError: 'items'") == "format" and classify(1, "뭔가") == "other" and classify(0, "") is None
+    base = {"checked": "2026-10-22", "max_age": 10, "behind": False, "source_latest": "2026-09", "ours": "2026-09"}
+    assert judge({**base, "fail_kind": "transient", "fail_since": "2026-10-22"}, "2026-10-22") == {"fail_days": 1, "delayed": False, "delay_reason": None, "human": False}
+    j = judge({**base, "fail_kind": "transient", "fail_since": "2026-10-21"}, "2026-10-22"); assert j["delayed"] and not j["human"], j
+    assert judge({**base, "fail_kind": "transient", "fail_since": "2026-10-20"}, "2026-10-22")["human"]
+    j = judge({**base, "fail_kind": "auth", "fail_since": "2026-10-22"}, "2026-10-22"); assert j["delayed"] and j["human"] and "인증" in j["delay_reason"], j
+    assert judge({**base, "checked": "2026-10-01", "fail_kind": None, "fail_since": None}, "2026-10-22")["human"]
+    assert judge({**base, "behind": True, "ours": "2026-08", "fail_kind": None, "fail_since": None}, "2026-10-22")["delayed"]
+    print("selftest 17/17 ok"); return 0
 
 
 if __name__ == "__main__":
