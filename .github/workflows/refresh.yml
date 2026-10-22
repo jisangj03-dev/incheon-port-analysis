@@ -140,7 +140,8 @@ jobs:
       - name: 바뀐 것
         id: diff
         run: |
-          git add -A data/collected data/derived content-queue/live analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
+          # data/forecast = 수요예측 원장(forecast_teu --issue 가 덧붙인다) — 10/22 까지 add 목록에 없어 원장이 커밋되지 않고 남아 커밋 단계 rebase 가 막혔다(브랜치 실행 39738523910)
+          git add -A data/collected data/derived data/forecast content-queue/live analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
           # 시각 키(fetched·checked·made …)만 바뀐 파일은 빼고 센다 — 원천이 새로 낸 것이 없는 날 커밋·배포하지 않게
           CH=$(python tools-build/refresh.py --changed | grep -vE '^data/derived/(freshness|health)\.json$' || true)
           # 갱신 지연 원천이 바뀌었으면(새로 끊김·풀림) 그것만으로도 배포한다 — 지면의 「갱신 지연」 표시가 상태를 따라가야 한다
@@ -156,7 +157,7 @@ jobs:
           [ -n "$DL" ] && CH="${CH}"$'\n'"data/derived/freshness.json(갱신 지연 원천 바뀜)"
           # ③ 해석 문장 뒤집힘 — 배포 대신 문장 확인 PR
           python tools-build/facts.py --check && FL=0 || FL=$?
-          if [ "$FL" = "3" ]; then echo "claims=yes" >> "$GITHUB_OUTPUT"; echo "**해석 문장 뒤집힘** — main 에 쓰지 않고 문장 확인 PR" >> "$GITHUB_STEP_SUMMARY"; python tools-build/facts.py --approve; python tools-build/drafts.py; git add -A data/claims.json data/derived content-queue/live; fi
+          if [ "$FL" = "3" ]; then echo "claims=yes" >> "$GITHUB_OUTPUT"; echo "**해석 문장 뒤집힘** — main 에 쓰지 않고 문장 확인 PR" >> "$GITHUB_STEP_SUMMARY"; python tools-build/facts.py --approve; python tools-build/drafts.py; git add -A data/claims.json data/derived data/forecast content-queue/live; fi
           echo "$CH" | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
           # 확인일만 바뀐 날 — 마지막 freshness 커밋이 7일 넘었으면 그것만이라도 싣는다(지면의 「마지막 확인」이 낡지 않게)
           AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))
@@ -220,7 +221,7 @@ jobs:
           [ "${{ steps.diff.outputs.go }}" = "heartbeat" ] && M="자동 갱신 $(date -u +%F) — 확인일만(원천 새 공표 없음 · 7일 주기)"
           if ! git diff --cached --quiet; then
             git commit -q -m "$M" -m "실행: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-            git pull -q --rebase origin "${GITHUB_REF_NAME}"
+            git pull -q --rebase --autostash origin "${GITHUB_REF_NAME}"   # 시험이 남긴 추적 밖 변경은 따로 둔다
             git push origin "HEAD:${GITHUB_REF_NAME}"
           fi
           if [ "${GITHUB_REF_NAME}" = "main" ]; then
