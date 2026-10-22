@@ -11,13 +11,15 @@ export function getStaticPaths() {
 }
 const { to, label, live } = Astro.props;
 const { id } = Astro.params;
+// 조사 — 이름의 마지막 한글 음절에 받침이 있으면(ㄹ 받침 빼고) 「으로」, 아니면 「로」(10/22 B8 화면 판정 경미: 「(으)로」 틀이 그대로 보였다)
+const ro = (() => { const ch = [...label].reverse().find((c) => c >= "가" && c <= "힣"); if (!ch) return "(으)로"; const jong = (ch.charCodeAt(0) - 0xac00) % 28; return jong === 0 || jong === 8 ? "로" : "으로"; })();
 ---
 {live ? (
-<Base title={`${label}로 이동`} description={`측심에서 ${label}(으)로 이동합니다.`} path={`/go/${id}.html`} noindex studio>
+<Base title={`${label}로 이동`} description={`측심에서 ${label}${ro} 이동합니다.`} path={`/go/${id}.html`} noindex studio>
   <Fragment slot="head"><meta http-equiv="refresh" content={`1;url=${to}`} /></Fragment>
   <div class="s-wrap" style="padding-top:64px;padding-bottom:64px">
     <p class="s-cap">바깥 링크</p>
-    <h1 class="s-prose">{label}(으)로 이동합니다</h1>
+    <h1 class="s-prose">{label}{ro} 이동합니다</h1>
     <p class="s-lead s-prose">바로 넘어가지 않으면 <a href={to} rel="noopener" target="_top">여기를 누르세요</a>. 측심 밖의 지면입니다.</p>
   </div>
 </Base>
