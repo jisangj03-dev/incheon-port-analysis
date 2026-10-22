@@ -15,4 +15,4 @@
 | 2026-10-22 | li-12 | LinkedIn · 운영자 실명 계정 · 전체공개 | `live/li-12.md`(게시 시점 main `66a3f48`~`40c8856` 의 live 판 · 숫자 대조 통과본) | 채팅(선장님 승인) |
 | 2026-10-22 | th-01 | Threads · 「물류로그」 @sksks_k9157 | `live/th-01.md`(같은 판) | 채팅(선장님 승인) |
 
-게시물 고유 주소는 아직 기록하지 않았다 — 받으면 `python analysis/channel_queue.py --set <id> --url <주소>`. live 판은 매일 다시 만들어지므로, 게시한 그 글은 위 커밋의 파일로 본다.
+게시물 주소: th-01 = https://www.threads.com/@sksks_k9157/post/DezBfFVo-rU(10/22 채팅). li-12 는 아직 기록하지 않았다(다음 채팅이 넘긴다) — 받으면 `python analysis/channel_queue.py --set <id> --url <주소>`. live 판은 매일 다시 만들어지므로, 게시한 그 글은 위 커밋의 파일로 본다.
