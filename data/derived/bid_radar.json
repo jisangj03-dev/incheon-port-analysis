@@ -1,17 +1,17 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-20 22:09",
+ "snapshot": "2026-10-22 16:34",
  "window_days": 21,
- "scanned": 8861,
- "n": 31,
+ "scanned": 8965,
+ "n": 33,
  "group_counts": {
   "연구·계획": 7,
   "행사·전시": 3,
-  "운송·배송": 12,
+  "운송·배송": 14,
   "보관·창고": 2,
-  "통관·무역": 3,
-  "항만·해운·항공": 4
+  "통관·무역": 5,
+  "항만·해운·항공": 2
  },
  "groups": [
   "연구·계획",
@@ -81,42 +81,6 @@
  ],
  "items": [
   {
-   "bidNtceNo": "R26BK01768734",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2026년 부산항만공사 사설항로표지 유지관리용역",
-   "ntceInsttNm": "부산항만공사",
-   "dminsttNm": "부산항만공사",
-   "bidNtceDt": "2026-10-13 17:44:54",
-   "bidClseDt": "2026-10-21 10:00:00",
-   "presmptPrce": 16510000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01768734&bidPbancOrd=000",
-   "group": "항만·해운·항공"
-  },
-  {
-   "bidNtceNo": "R26BK01758745",
-   "bidNtceOrd": "001",
-   "bidNtceNm": "항만자동화 테스트베드(광양항) 구축사업 기반시설공사 안전점검 수행기관 지정 공고",
-   "ntceInsttNm": "여수광양항만공사",
-   "dminsttNm": "여수광양항만공사",
-   "bidNtceDt": "2026-10-13 16:11:23",
-   "bidClseDt": "2026-10-21 10:00:00",
-   "presmptPrce": 8000000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01758745&bidPbancOrd=001",
-   "group": "항만·해운·항공"
-  },
-  {
-   "bidNtceNo": "R26BK01774666",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "밀양남기일반물류단지 개발사업 매장유산 시굴조사 용역 입찰공고(긴급)",
-   "ntceInsttNm": "경상남도 밀양시",
-   "dminsttNm": "경상남도 밀양시",
-   "bidNtceDt": "2026-10-16 13:33:25",
-   "bidClseDt": "2026-10-22 12:00:00",
-   "presmptPrce": 398390000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01774666&bidPbancOrd=000",
-   "group": "운송·배송"
-  },
-  {
    "bidNtceNo": "R26BK01778553",
    "bidNtceOrd": "000",
    "bidNtceNm": "2026년 제2·3차 세계한상 수출상담회 참여 해외바이어 지원 용역",
@@ -166,27 +130,15 @@
   },
   {
    "bidNtceNo": "R26BK01776785",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "인천119특수대응단 소방헬기(AW139,2호기) 화물인양기(CARGO HOOK) 외주정비(5년) 용역",
+   "bidNtceOrd": "001",
+   "bidNtceNm": "입찰취소공고 - 인천119특수대응단 소방헬기(AW139,2호기) 화물인양기(CARGO HOOK) 외주정비(5년) 용역",
    "ntceInsttNm": "인천광역시 소방본부",
    "dminsttNm": "인천광역시 소방본부",
-   "bidNtceDt": "2026-10-19 07:55:12",
+   "bidNtceDt": "2026-10-21 10:59:35",
    "bidClseDt": "2026-10-26 10:00:00",
    "presmptPrce": 139054000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01776785&bidPbancOrd=000",
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01776785&bidPbancOrd=001",
    "group": "운송·배송"
-  },
-  {
-   "bidNtceNo": "R26BK01770374",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2026년 CO-SHOW 부스 제작, 설치, 운송 용역 연구용역",
-   "ntceInsttNm": "고려대학교 산학협력단",
-   "dminsttNm": "고려대학교 산학협력단",
-   "bidNtceDt": "2026-10-14 13:28:17",
-   "bidClseDt": "2026-10-26 14:00:00",
-   "presmptPrce": 118181818,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01770374&bidPbancOrd=000",
-   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01767707",
@@ -199,6 +151,18 @@
    "presmptPrce": 73636364,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01767707&bidPbancOrd=000",
    "group": "행사·전시"
+  },
+  {
+   "bidNtceNo": "R26BK01770374",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2026년 CO-SHOW 부스 제작, 설치, 운송 용역 연구용역",
+   "ntceInsttNm": "고려대학교 산학협력단",
+   "dminsttNm": "고려대학교 산학협력단",
+   "bidNtceDt": "2026-10-14 13:28:17",
+   "bidClseDt": "2026-10-26 14:00:00",
+   "presmptPrce": 118181818,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01770374&bidPbancOrd=000",
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01770450",
@@ -225,18 +189,6 @@
    "group": "연구·계획"
   },
   {
-   "bidNtceNo": "R26BK01773881",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "국립민속박물관 세계민속관 개관(상설전시관 1 개편) 국외유물 반입 운송",
-   "ntceInsttNm": "문화체육관광부 국립민속박물관",
-   "dminsttNm": "문화체육관광부 국립민속박물관",
-   "bidNtceDt": "2026-10-15 16:30:48",
-   "bidClseDt": "2026-10-27 10:00:00",
-   "presmptPrce": 43636367,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773881&bidPbancOrd=000",
-   "group": "행사·전시"
-  },
-  {
    "bidNtceNo": "R26BK01777939",
    "bidNtceOrd": "000",
    "bidNtceNm": "항만안전 관리관제 고도화실증 인증 및 사업화조사",
@@ -249,6 +201,18 @@
    "group": "항만·해운·항공"
   },
   {
+   "bidNtceNo": "R26BK01773881",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "국립민속박물관 세계민속관 개관(상설전시관 1 개편) 국외유물 반입 운송",
+   "ntceInsttNm": "문화체육관광부 국립민속박물관",
+   "dminsttNm": "문화체육관광부 국립민속박물관",
+   "bidNtceDt": "2026-10-15 16:30:48",
+   "bidClseDt": "2026-10-27 10:00:00",
+   "presmptPrce": 43636367,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773881&bidPbancOrd=000",
+   "group": "행사·전시"
+  },
+  {
    "bidNtceNo": "R26BK01777186",
    "bidNtceOrd": "000",
    "bidNtceNm": "우체국현금 위탁운송 용역계약(경인지방우정청)",
@@ -258,6 +222,18 @@
    "bidClseDt": "2026-10-28 10:00:00",
    "presmptPrce": 2670227385,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01777186&bidPbancOrd=000",
+   "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01786711",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "지역서점 공동수배송 사업 활성화 홍보 용역",
+   "ntceInsttNm": "사단법인 한국서점연합회",
+   "dminsttNm": "사단법인 한국서점연합회",
+   "bidNtceDt": "2026-10-22 16:11:45",
+   "bidClseDt": "2026-10-28 10:00:00",
+   "presmptPrce": 36363636,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01786711&bidPbancOrd=000",
    "group": "운송·배송"
   },
   {
@@ -298,15 +274,27 @@
   },
   {
    "bidNtceNo": "R26BK01778798",
-   "bidNtceOrd": "000",
+   "bidNtceOrd": "001",
    "bidNtceNm": "2026년 K-푸드+ 수출탑 시상식 대행용역",
    "ntceInsttNm": "한국농수산식품유통공사",
    "dminsttNm": "한국농수산식품유통공사",
-   "bidNtceDt": "2026-10-19 17:38:40",
+   "bidNtceDt": "2026-10-22 09:52:00",
    "bidClseDt": "2026-10-30 10:00:00",
    "presmptPrce": 90909091,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01778798&bidPbancOrd=000",
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01778798&bidPbancOrd=001",
    "group": "통관·무역"
+  },
+  {
+   "bidNtceNo": "R26BK01782514",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "비축농산물 컨테이너화물 육상운송 용역",
+   "ntceInsttNm": "한국농수산식품유통공사 인천지역본부",
+   "dminsttNm": "한국농수산식품유통공사 인천지역본부",
+   "bidNtceDt": "2026-10-21 07:54:45",
+   "bidClseDt": "2026-10-30 12:00:00",
+   "presmptPrce": 259051000,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01782514&bidPbancOrd=000",
+   "group": "운송·배송"
   },
   {
    "bidNtceNo": "R26BK01782177",
@@ -345,6 +333,30 @@
    "group": "연구·계획"
   },
   {
+   "bidNtceNo": "R26BK01786121",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027년 식품 이물신고 분석 및 택배 지원사업",
+   "ntceInsttNm": "식품의약품안전처",
+   "dminsttNm": "식품의약품안전처",
+   "bidNtceDt": "2026-10-22 14:13:19",
+   "bidClseDt": "2026-11-03 10:00:00",
+   "presmptPrce": 50000000,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01786121&bidPbancOrd=000",
+   "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01785672",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "과테말라 섬유TASTK센터 교육장비 국제운송 및 수출·입 통관대행 용역",
+   "ntceInsttNm": "재단법인 경북테크노파크",
+   "dminsttNm": "재단법인 경북테크노파크",
+   "bidNtceDt": "2026-10-22 11:20:29",
+   "bidClseDt": "2026-11-03 12:00:00",
+   "presmptPrce": 78759009,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01785672&bidPbancOrd=000",
+   "group": "통관·무역"
+  },
+  {
    "bidNtceNo": "R26BK01778857",
    "bidNtceOrd": "000",
    "bidNtceNm": "[일반용역,175번][조달,협상,신종]2026년 감염병 병원체 확인 검사를 위한 시험의뢰 검체 특수 운송(2차)",
@@ -355,6 +367,18 @@
    "presmptPrce": 228181818,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01778857&bidPbancOrd=000",
    "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01783518",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027년 무역항 해양정보 서비스 유지관리",
+   "ntceInsttNm": "조달청 부산지방조달청",
+   "dminsttNm": "해양수산부 국립해양조사원",
+   "bidNtceDt": "2026-10-21 15:13:20",
+   "bidClseDt": "2026-11-05 10:00:00",
+   "presmptPrce": 363636364,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01783518&bidPbancOrd=000",
+   "group": "통관·무역"
   },
   {
    "bidNtceNo": "R26BK01781002",
@@ -381,18 +405,6 @@
    "group": "운송·배송"
   },
   {
-   "bidNtceNo": "R26BK01761785",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "항만출입관리시스템 위탁운영(2027~2028)",
-   "ntceInsttNm": "조달청 부산지방조달청",
-   "dminsttNm": "해양수산부 부산지방해양수산청",
-   "bidNtceDt": "2026-10-14 13:15:02",
-   "bidClseDt": "2026-11-17 10:00:00",
-   "presmptPrce": 1525454545,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01761785&bidPbancOrd=000",
-   "group": "항만·해운·항공"
-  },
-  {
    "bidNtceNo": "R26BK01780399",
    "bidNtceOrd": "000",
    "bidNtceNm": "2027-2028년 특송물류센터 특수경비(보안)용역",
@@ -403,6 +415,18 @@
    "presmptPrce": 1239894175,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01780399&bidPbancOrd=000",
    "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01761785",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "항만출입관리시스템 위탁운영(2027~2028)",
+   "ntceInsttNm": "조달청 부산지방조달청",
+   "dminsttNm": "해양수산부 부산지방해양수산청",
+   "bidNtceDt": "2026-10-14 13:15:02",
+   "bidClseDt": "2026-11-17 10:00:00",
+   "presmptPrce": 1525454545,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01761785&bidPbancOrd=000",
+   "group": "항만·해운·항공"
   },
   {
    "bidNtceNo": "R26BK01750936",
