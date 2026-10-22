@@ -30,6 +30,8 @@ export const OUT: Record<string, { live: boolean; url: string; label: string }> 
   blog: { live: true, url: "https://logisticsforeveryone.tistory.com/", label: "블로그" },
   // 뉴스레터(물류로그 · beehiiv) — 2026-10-12 선장님 지정. 클릭은 /go/newsletter.html 방문 수로 센다(기준 24·29).
   newsletter: { live: true, url: "https://logisticslog.beehiiv.com/subscribe?utm_source=sounding&utm_medium=site&utm_campaign=footer", label: "뉴스레터(물류로그)" },
+  // [2026-10-22 B8 · docs/측심_B8B10_뉴스레터·블로그_판정기준_선커밋_20261022.md] 지면 끝 꼬리의 구독 줄 — 바닥글과 클릭을 따로 센다(이동 지면 방문 수 · Beehiiv 쪽은 utm_campaign=tail).
+  "newsletter-tail": { live: true, url: "https://logisticslog.beehiiv.com/subscribe?utm_source=sounding&utm_medium=site&utm_campaign=tail", label: "뉴스레터(물류로그)" },
 };
 export const go = (id: string) => u(`/go/${id}.html`);
 export const newsletterHref = () => (OUT.newsletter.live ? go("newsletter") : go("blog"));

@@ -2,7 +2,7 @@
 // 모든 지면 끝 — 「이 분석을 우리 회사 숫자로」(2026-10-14 선장님 판정 「사이트 목적이 와닿지 않는다」 · 채팅 위임 B).
 // 커리어 작업실의 출구: 실무자가 연락하게 만드는 한 줄 + LinkedIn·메일. 판매 문구·가격은 두지 않는다. 숫자를 적지 않는다(지면 숫자 검사 범위 안이다).
 import Contact from "./Contact.astro";
-import { u } from "../../lib/site";
+import { u, go } from "../../lib/site";
 // [2026-10-22 선장님 최종 결정] 지면 꼬리에 실명·소속·채용 줄을 두지 않는다 — 사이트(측심)로 보이게 · 사람 정보는 소개 지면
 ---
 <aside class="s-wrap ask" data-ask aria-labelledby="ask-h">
@@ -11,10 +11,13 @@ import { u } from "../../lib/site";
   <h2 id="ask-h" class="s-prose ask__h">방금 본 계산을 귀사의 <span class="nb">물동량·원가로</span> 다시 돌려 보고 싶다면, 연락 주세요.</h2>
   <p class="s-prose ask__p">우리 회사 물동량·원가로 다시 계산하기, 기사 숫자 확인 — 어느 쪽이든 메일로 답합니다. 만든 사람은 <a href={u("/about.html")}>소개</a>에 있습니다.</p>
   <Contact mailFirst noLinkedin />
+  {/* [2026-10-22 B8 · 선커밋 docs/측심_B8B10_뉴스레터·블로그_판정기준_선커밋_20261022.md] 연락까지는 아니어도 갱신은 받아 보고 싶은 사람에게 — 필명 뉴스레터 한 줄 · 새 창 · 외부 요청 0(링크뿐) */}
+  <p class="s-prose ask__nl"><a href={go("newsletter-tail")} data-newsletter-tail target="_blank" rel="noopener" aria-label="숫자가 갱신되면 메일로 받아 보기 — 물류로그 뉴스레터(Beehiiv) (새 창)">숫자가 갱신되면 메일로 받아 보기 — 물류로그 뉴스레터(Beehiiv) ↗</a></p>
 </aside>
 <style>
   .ask { padding-top: var(--s-6); padding-bottom: var(--s-5); }
   .ask .s-rule { margin-bottom: var(--s-6); }
   .ask__h { font-size: clamp(22px, 2.4vw, 30px); line-height: 1.35; margin: var(--s-2) 0 var(--s-3); max-width: 34em; }
   .ask__p { color: var(--s-ink-2); max-width: 40em; }
+  .ask__nl { margin-top: var(--s-3); color: var(--s-ink-2); font-size: 15px; }
 </style>

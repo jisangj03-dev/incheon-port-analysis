@@ -118,6 +118,29 @@ test("기준 9 — sitemap.xml · robots.txt 200 · 옛 블로그 이동 주소 
   await expect(a).toHaveAttribute("rel", /noopener/);
 });
 
+// [2026-10-22 B8 · docs/측심_B8B10_뉴스레터·블로그_판정기준_선커밋_20261022.md §3] 지면 끝 꼬리의 뉴스레터 줄 — 꼬리가 있는 지면마다 하나 · 이동 지면 → Beehiiv(UTM tail) · 꼬리 없는 지면(PortWatch)에는 0
+test("B8 — 꼬리 뉴스레터 줄 · 이동 지면 · 허락 필요 지면 0", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop-1440", "한 번이면 된다");
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
+  for (const p of ["/tools/import-cost.html", "/tools/delivery-reach.html", "/tools/trade-race.html", "/sim/beer-game.html", "/notes.html", "/about.html"]) {
+    await page.goto(`${BASE}${p}`, { waitUntil: "domcontentloaded" });
+    const ask = await page.locator("aside[data-ask]").count(); // 꼬리(aside) — [data-ask] 는 문의 단추에도 붙는다
+    await expect(page.locator("a[data-newsletter-tail]"), `${p} 꼬리 줄`).toHaveCount(ask ? 1 : 0);
+    if (ask) {
+      const a = page.locator("aside[data-ask] a[data-newsletter-tail]");
+      await expect(a).toHaveAttribute("href", "/incheon-port-analysis/go/newsletter-tail.html");
+      await expect(a).toHaveAttribute("target", "_blank");
+    }
+  }
+  for (const p of ["/tools/chokepoint.html", "/tools/port-pulse.html"]) {
+    await page.goto(`${BASE}${p}`, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("a[data-newsletter-tail]"), `${p} 허락 필요 지면`).toHaveCount(0);
+  }
+  const r = await page.request.get(`${BASE}/go/newsletter-tail.html`);
+  expect(r.status()).toBe(200);
+  expect(await r.text()).toMatch(/href="https:\/\/logisticslog\.beehiiv\.com\/subscribe\?utm_source=sounding&(amp;)?utm_medium=site&(amp;)?utm_campaign=tail"[^>]*target="_top"/);
+});
+
 test("출처 대장 — 행마다 이용 조건 칸이 다 차 있다(기준 16 · 보고서는 2026-10-20 내림)", async () => {
   const reg = JSON.parse(readFileSync("data/sources.json", "utf-8"));
   for (const s of reg.sources) for (const k of ["license", "kogl", "commercial", "modify", "checked"]) expect(s[k], `${s.id}.${k}`).toBeTruthy();
