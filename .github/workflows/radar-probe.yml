@@ -1,0 +1,56 @@
+# 채용·지원사업 레이더 탐침(2026-10-22 밤 · 선커밋 docs/측심_채용·지원사업레이더_판정기준_선커밋_20261022.md) — 공공데이터포털 원천이 우리 키로 열리는가 · 고르는 칸이 있는가. 행 값은 남기지 않는다(칸 이름·건수만). 키 = DATA_GO_KR_KEY(로그에 안 찍는다).
+name: radar-probe
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: ["tools-build/v3/radar_probe.py", ".github/workflows/radar-probe.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: radar-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  gate:
+    # 사고 131 — 경로 거르개는 「이 push 가 들여온 커밋」을 보므로 main 병합 push·새 브랜치 첫 push 에도 깨어난다.
+    # push 로 깨어났으면 이 브랜치의 스크립트가 main 과 실제로 다를 때만 돈다(워크플로 파일 자체는 안 센다). 예약·수동 실행은 늘 돈다.
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.g.outputs.run }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: g
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
+          git fetch -q --depth=1 origin main
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/v3/radar_probe.py'; then
+            echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=yes" >> "$GITHUB_OUTPUT"
+          fi
+  probe:
+    needs: gate
+    if: needs.gate.outputs.run == 'yes' && startsWith(github.ref_name, 'claude/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: 탐색
+        working-directory: tools-build/v3
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python radar_probe.py
+      - name: 결과 커밋(그 브랜치에)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          [ -f data/collected/v3/radar_probe.json ] && git add data/collected/v3/radar_probe.json
+          git diff --cached --quiet && exit 0
+          git commit -m "채용·지원사업 레이더 탐침 — radar-probe 워크플로"
+          git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
