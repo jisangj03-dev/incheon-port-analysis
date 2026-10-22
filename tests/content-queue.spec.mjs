@@ -22,7 +22,12 @@ test("B10 콘텐츠 큐 — 초안 숫자 = 데이터 · 게시 0 · 채널 셋 
     expect(md, f).toContain("게시 = 선장님");
     // 채널 하나짜리 게시 파일(drafts.py posts — 머리에 channel:)은 절이 없다 · 대기열 검사가 그 꼴을 요구한다
     if (/^channel:/m.test(md.split("\n---\n")[0])) expect(md, `${f} 채널 머리`).toMatch(/^target: https:\/\/\S+/m);
-    else for (const ch of ["## LinkedIn", "## 블로그", "## Threads"]) expect(md, `${f} ${ch}`).toContain(ch);
+    else {
+      // 틀 전체 판 — 머리 `posts:` 가 적은 절이 다 있어야 한다(2026-10-22 · 채널 하나짜리 틀 kosis-retail). posts 가 없는 옛 틀은 세 절.
+      const ps = (md.split("\n---\n")[0].match(/^posts:\s*(.+)$/m) || [])[1];
+      const secs = ps ? ps.split("|").map((x) => `## ${x.trim().split(/\s+/).slice(2).join(" ")}`) : ["## LinkedIn", "## 블로그", "## Threads"];
+      for (const ch of secs) expect(md, `${f} ${ch}`).toContain(ch);
+    }
     if (profile.name) expect(md.includes(profile.name), `${f} 실명`).toBe(false);
     expect(md).not.toMatch(/serviceKey|DATA_GO_KR_KEY=/);
   }
