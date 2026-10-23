@@ -25,6 +25,8 @@ KNOWN = {  # 데이터 번호 기준 — 같은 검색에 걸린 다른 데이�
                  "https://apis.data.go.kr/B552735/kisedKstartupService01/getBusinessInformation01"],
 }
 
+KNOWN_BY_SOURCE = {"alio-recruit": "15125273", "bizinfo": "15157820", "kstartup": "15125364"}
+
 
 def fetch(url, params, timeout=40):
     """common.get 은 HTTP 오류의 본문을 버린다 — 403 이 「등록되지 않은 키」인지 「없는 주소」인지 갈라 보려고 오류 본문 머리를 받는다."""
@@ -68,11 +70,14 @@ def main():
     for sid, (q, want) in FIND.items():
         st, cands = portal_find(q)
         pick = [c for c in cands if all(w in c[1] for w in want)][:2]
+        known = KNOWN_BY_SOURCE.get(sid)
+        if known and known not in [d for d, _ in pick]: pick.append((known, None))  # 포털 검색이 끊겨도(4회차 시간 초과) 아는 주소는 부른다
         rec = {"search": q, "search_status": st, "candidates": cands[:6], "sets": {}}
         for did, title in pick:
-            sp = spec(did)
+            # 아는 주소면 비동기 조각은 안 읽는다 · 포털이 안 열리면 명세도 안 읽는다(한 번에 3분씩 걸려 잡 한도 15분을 넘긴다)
+            sp = spec(did) if st == 200 else {"endpoints": [], "ops": [], "license_text": None, "request_vars": None}
             calls = []
-            pk, deps, tried = detail_endpoints(did, get)
+            pk, deps, tried = (None, [], []) if did in KNOWN else detail_endpoints(did, get)
             if did in KNOWN:
                 urls = KNOWN[did]
             else:
