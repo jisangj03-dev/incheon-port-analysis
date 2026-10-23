@@ -56,10 +56,48 @@ def detail_endpoints(did, get):
     return pk, sorted(eps), tried
 
 
+def json_rows(body):
+    """공공데이터포털 JSON 은 원천마다 꼴이 다르다(response.body.items.item · data · result …) — 가장 긴 「사전의 목록」을 행으로 본다."""
+    import json
+    try: d = json.loads(body)
+    except ValueError: return []
+    best = []
+    def walk(x):
+        nonlocal best
+        if isinstance(x, list):
+            if len(x) > len(best) and x and all(isinstance(i, dict) for i in x): best = x
+            for i in x: walk(i)
+        elif isinstance(x, dict):
+            for v in x.values(): walk(v)
+    walk(d)
+    return [{k: ("" if v is None else str(v)) for k, v in r.items()} for r in best]
+
+
 def shape(body, rows):
-    """행 값 없이 모양만 — 전체 건수 · 첫 행의 칸 이름."""
+    """행 값 없이 모양만 — 전체 건수 · 칸 이름(전 행 합집합) · 칸마다 채워진 행 수와 가장 긴 글자 수."""
     m = re.search(r'"?totalCount"?\s*[:>]\s*"?(\d+)', body or "")
-    return {"total": int(m.group(1)) if m else None, "rows": len(rows), "keys": sorted(rows[0].keys()) if rows else []}
+    keys = sorted({k for r in rows for k in r})
+    fill = {k: [sum(1 for r in rows if (r.get(k) or "").strip()), max((len(r.get(k) or "") for r in rows), default=0)] for k in keys}
+    return {"total": int(m.group(1)) if m else None, "rows": len(rows), "keys": keys, "fill": fill, "classes": classes(rows, keys)}
+
+
+# 고르는 칸 후보(분류·기관·지역 꼴 이름)만 값 분포를 남긴다 — 사람을 가리킬 수 있는 칸은 이름으로 먼저 뺀다(담당자·대표자·연락처·주소)
+CLASS_KEY = re.compile(r"(Nm|Cd|Se|Rgn|Area|Realm|Clss|Ty|Type|Yn|Gb|Div)$|(rgn|area|region|realm|sido|instt|inst|ncs|type|kind)", re.I)
+PERSON_KEY = re.compile(r"chrg|charger|rprs|ceo|psn|pic|mngr|manager|tel|phone|fax|mail|addr|homepage|url|link", re.I)
+
+
+def classes(rows, keys):
+    """칸마다 서로 다른 값이 40 이하이고 값이 짧을 때만(분류 칸의 꼴) 상위 15 값과 행 수 — 공고명·본문 같은 긴 글은 남지 않는다."""
+    out = {}
+    for k in keys:
+        if PERSON_KEY.search(k) or not CLASS_KEY.search(k): continue
+        vals = [(r.get(k) or "").strip() for r in rows]
+        vals = [v for v in vals if v]
+        if not vals or len(set(vals)) > 40 or max(len(v) for v in vals) > 40: continue
+        cnt = {}
+        for v in vals: cnt[v] = cnt.get(v, 0) + 1
+        out[k] = sorted(cnt.items(), key=lambda kv: -kv[1])[:15]
+    return out
 
 
 def main():
@@ -88,10 +126,11 @@ def main():
                     for op in [o for o in sp["ops"] if not o.startswith(("getCategory", "getElement", "getMypage", "getOrCreate", "getSso", "getTemplate"))][:4]:
                         if not ep.rstrip("/").endswith(op): urls.append(ep.rstrip("/") + "/" + op)
             for u in list(dict.fromkeys(urls))[:8]:
-                p = {"serviceKey": KEY, "numOfRows": "5", "pageNo": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
+                p = {"serviceKey": KEY, "numOfRows": "100", "pageNo": "1", "perPage": "100", "page": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
                 s2, b, eb = fetch(u, p)
                 b = scrub(b)
                 rc, msg, rows = parse(b)
+                if (b or "").lstrip().startswith(("{", "[")) and not any(rows): rows = json_rows(b)  # parse 가 꼴을 못 알아 빈 행 하나를 낸 경우(5회차 채용·K-Startup)
                 c = {"url": u, "status": s2, "resultCode": rc, "resultMsg": (msg or "")[:120], **shape(b, rows)}
                 if not rows: c["body_head"] = (b or eb or "")[:240]  # 오류 응답만(행이 없으면 개인정보도 없다)
                 calls.append(c)
@@ -104,11 +143,14 @@ def main():
 
 
 def selftest():
-    s = shape('{"response":{"body":{"totalCount":37,"items":[]}}}', [{"b": 1, "a": "개인"}])
-    assert s == {"total": 37, "rows": 1, "keys": ["a", "b"]}, s
+    s = shape('{"response":{"body":{"totalCount":37,"items":[]}}}', [{"b": "1", "a": "개인"}, {"c": ""}])
+    assert s == {"total": 37, "rows": 2, "keys": ["a", "b", "c"], "fill": {"a": [1, 2], "b": [1, 1], "c": [0, 0]}, "classes": {}}, s
+    c = classes([{"instNm": "인천항만공사", "chrgerNm": "홍길동", "telNo": "032"}, {"instNm": "인천항만공사"}], ["chrgerNm", "instNm", "telNo"])
+    assert c == {"instNm": [("인천항만공사", 2)]}, c  # 담당자·전화는 이름으로 빠진다
+    assert json_rows('{"currentCount":2,"data":[{"x":1},{"x":null,"y":"z"}],"meta":[{"q":1}]}') == [{"x": "1"}, {"x": "", "y": "z"}]
     assert "개인" not in str(s)  # 값은 안 남는다
     assert all(u.startswith("https://apis.data.go.kr/") for v in KNOWN.values() for u in v)
-    print("radar_probe selftest OK (3)"); return 0
+    print("radar_probe selftest OK (4)"); return 0
 
 
 if __name__ == "__main__":
