@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: ["claude/**"]
-    paths: ["tools-build/radar_probe.py", ".github/workflows/radar-probe.yml"]
+    paths: ["tools-build/radar_probe.py", "tools-build/radar.py", ".github/workflows/radar-probe.yml"]
 permissions:
   contents: write
 concurrency:
@@ -25,7 +25,7 @@ jobs:
         run: |
           if [ "$EVENT" != "push" ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; exit 0; fi
           git fetch -q --depth=1 origin main
-          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/radar_probe.py'; then
+          if git diff --quiet FETCH_HEAD HEAD -- 'tools-build/radar_probe.py' 'tools-build/radar.py'; then
             echo "run=no" >> "$GITHUB_OUTPUT"; echo "스크립트가 main 과 같다 — 건너뜀(사고 131)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=yes" >> "$GITHUB_OUTPUT"
@@ -44,12 +44,17 @@ jobs:
         env:
           DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
         run: python tools-build/radar_probe.py
+      - name: 첫 스냅샷(레이더 수집 · 2026-10-23 — refresh 단계와 같은 스크립트 · 브랜치에서 지면을 만들 재료)
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python tools-build/radar.py --selftest && python tools-build/radar.py
       - name: 결과 커밋(그 브랜치에)
         if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           [ -f data/collected/v3/radar_probe.json ] && git add data/collected/v3/radar_probe.json
+          [ -f data/collected/v3/radar.json ] && git add data/collected/v3/radar.json
           git diff --cached --quiet && exit 0
-          git commit -m "채용·지원사업 레이더 탐침 — radar-probe 워크플로"
+          git commit -m "채용·지원사업 레이더 탐침·스냅샷 — radar-probe 워크플로"
           git pull -q --rebase origin "${GITHUB_REF_NAME}" && git push
