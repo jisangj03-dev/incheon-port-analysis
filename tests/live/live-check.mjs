@@ -72,6 +72,9 @@ if (cfg.open?.length) {
     for (const m of ["HEAD", "GET"]) {
       try { const r = await fetch(u, { method: m, redirect: "follow", signal: AbortSignal.timeout(20000), headers: { "user-agent": "Mozilla/5.0 (compatible; cheuksim-linkcheck/1.0; weekly)" } }); st = r.status; if (r.status < 400 || m === "GET") break; } catch (e) { st = "연결 실패"; }
     }
+    // [2026-10-23] 연결 실패는 한 번 더 — 레이더의 기업마당 원문 링크가 회차마다 다른 공고에서 끊겼다(1회차 2건 · 2회차 다른 1건 · 같은 호스트 70건은 200).
+    //   해외 러너에서 연달아 부를 때의 끊김이라 링크 깨짐이 아니다. 다시 불러도 끊기면 그대로 깨짐으로 센다(분류는 바꾸지 않는다).
+    if (st === "연결 실패") { await new Promise((r) => setTimeout(r, 5000)); try { st = (await fetch(u, { method: "GET", redirect: "follow", signal: AbortSignal.timeout(30000), headers: { "user-agent": "Mozilla/5.0 (compatible; cheuksim-linkcheck/1.0; weekly)" } })).status; } catch { st = "연결 실패"; } }
     seen.set(u, st); return st;
   };
   const broken = [], unknown = [];
