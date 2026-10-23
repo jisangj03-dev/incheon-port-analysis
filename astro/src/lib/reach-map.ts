@@ -97,13 +97,15 @@ export class ReachMap {
     const oBox = og.bx; // 도시 이름표가 출발지 이름을 덮지 않게(3차 화면 판정 · 390)
     ctx.beginPath(); ctx.arc(ox, oy, 7 + ((performance.now() / 40) % 11), 0, Math.PI * 2); ctx.strokeStyle = "rgba(25,23,20,0.35)"; ctx.lineWidth = 1.5; ctx.stroke();
     // 도시 점·이름(도착했으면 진하게 · 이름은 겹치면 건너뛴다)
-    const boxes: number[][] = [oBox, [ox - 9, oy - 9, ox + 9, oy + 9]];
+    const boxes: number[][] = [oBox, [ox - 20, oy - 20, ox + 20, oy + 20]]; // 출발점 고리 최대 반지름 18 + 선 — ±9 였을 때 김포 이름표가 고리에 맞닿아 보였다(35차 화면 판정 경미 · 2026-10-23)
     ctx.font = `500 12px system-ui, sans-serif`; ctx.textBaseline = "middle"; // 좁은 화면도 12px — 10.5px 은 홈 띠 그림에서 10px 로 읽혔다(10/22 화면 판정 경미)
     for (const [nm, [x, y]] of Object.entries(this.iso.cities)) {
       const [cx, cy] = this.px(x, y), m0 = ((this.truck && (O as any).cities_truck) || O.cities)[nm], m = m0 == null ? null : Math.round(m0 * this.k + this.prep), on = m != null && m <= this.t;
       const label = on ? `${nm} ${m}분` : nm, tw = ctx.measureText(label).width;
       // 이름표 자리 넷(오른쪽·왼쪽·위·아래)을 차례로 — 모두 막히면 그때만 점도 뺀다(이름 없는 점 0 · 3차 화면 판정: 「용인 기흥」이 빠져 18곳인데 점 17)
-      const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13], [cx + 5, cy - 11], [cx - 5 - tw, cy - 11], [cx + 5, cy + 11], [cx - 5 - tw, cy + 11]];
+      const cand = [[cx + 6, cy], [cx - 6 - tw, cy], [cx - tw / 2, cy - 13], [cx - tw / 2, cy + 13], [cx + 5, cy - 11], [cx - 5 - tw, cy - 11], [cx + 5, cy + 11], [cx - 5 - tw, cy + 11],
+        // 틀 끝 점 — 위·아래 자리를 틀 안으로 당긴 변형(점은 이름표 폭 안에 남는다) · 좁은 화면 오른쪽 끝 이천이 자리를 못 찾아 빠졌다(35차 화면 판정 경미 · 2026-10-23)
+        [Math.max(2, Math.min(this.W - 2 - tw, cx - tw / 2)), cy - 13], [Math.max(2, Math.min(this.W - 2 - tw, cx - tw / 2)), cy + 13]];
       const others = dots.filter((d) => !(d[0] === cx - 4 && d[1] === cy - 4));
       let lx = 0, ly = 0, hit = true;
       for (const [ax, ay] of cand) { const bx = [ax, ay - 7, ax + tw, ay + 7]; if (bx[0] < 2 || bx[2] > this.W - 2 || bx[1] < 2 || bx[3] > this.H - 2 || !fits(bx)) continue; if (clash(bx, boxes) || clash(bx, others)) continue; lx = ax; ly = ay; hit = false; boxes.push(bx); break; }

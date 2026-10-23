@@ -30,7 +30,8 @@ export function sourceLine(id: string): string {
   if (!s) return `출처 대장에 없음(${id})`;
   // 기관·이용조건 안의 「 · 」는 붙여 쓴다 — 출처 줄(Trust)이 「 · 」로 출처를 가르므로 「Protomaps」·「비상업 이용」 조각이 출처 이름으로 세어졌다(17차 사실 대조)
   const tidy = (x: string) => x.replace(/ · /g, "·");
-  const kogl = /^해당 없음/.test(s.kogl) ? tidy(s.license) : `공공누리 ${s.kogl === "미확인" ? "유형 미확인" : s.kogl} · ${tidy(s.license)}`;
+  // 이용 조건 문장이 이미 「공공누리 …유형」으로 시작하면 유형을 앞에 또 붙이지 않는다(레이더 기업마당 — 접기 안에 같은 유형이 두 번 · 2026-10-23)
+  const kogl = /^해당 없음/.test(s.kogl) || tidy(s.license).startsWith(`공공누리 ${s.kogl}`) ? tidy(s.license) : `공공누리 ${s.kogl === "미확인" ? "유형 미확인" : s.kogl} · ${tidy(s.license)}`;
   // 자료 이름이 기관 이름으로 시작하면 기관을 앞에 또 붙이지 않는다(「관세청 「관세청 …」」 — 16차 판정 경미)
   const head = s.owner.split(" · ")[0];
   return pub(`${s.name.startsWith(head) ? "" : `${tidy(s.owner)} `}「${tidy(s.name)}」 · ${kogl}`);

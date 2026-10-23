@@ -122,8 +122,10 @@ def extras(d):
                 k = [w for w in kc if sh["peak"][0] <= w["date"] <= sh["peak"][1] and w.get(r)]
                 if b and k:
                     top = max(k, key=lambda w: w[r]); bv = sum(b) / len(b)
-                    out.append({"route": r, "ko": ROUTE_KO.get(r, r), "base": round(bv), "peak": round(top[r]), "peak_week": top["date"], "pct": round(100 * (top[r] / bv - 1), 1)})
-            p["shock"] = {"event": sh["event"], "base_window": list(sh["base"]), "routes": out} if out else None
+                    # % 는 지면에 보이는 두 정수(평소 · 정점)로 잰다 — 반올림 전 값으로 재면 독자가 화면 숫자로 다시 잰 값과 0.1 갈렸다(39차 사실 대조 경미 · 2026-10-23)
+                    out.append({"route": r, "ko": ROUTE_KO.get(r, r), "base": round(bv), "peak": round(top[r]), "peak_week": top["date"], "pct": round(100 * (round(top[r]) / round(bv) - 1), 1)})
+            # 운임 원천(KCCI)의 마지막 공표 주 — 통항 원천 기준일(asof)보다 늦을 수 있어 지면이 따로 적는다(39차 사실 대조 경미 · 2026-10-23)
+            p["shock"] = {"event": sh["event"], "base_window": list(sh["base"]), "routes": out, "kcci_last": max(w["date"] for w in kc)} if out else None
             p["shock_reason"] = None if out else "no_overlap"
         else:
             p["shock"] = None

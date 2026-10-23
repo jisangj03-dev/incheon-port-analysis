@@ -42,6 +42,9 @@ https://jisangj03-dev.github.io/incheon-port-analysis/
 
 실무 도구 {{site.n_tools}}개(수입원가 · 초크포인트 · 외항선 입항 추이 · 품목 트리맵 · 도달 등시선 · 채용·지원사업 레이더)와 시뮬레이션 {{site.n_sims}}개(맥주 게임 · 수요예측 실험실)가 있습니다. 예를 들어 수도권 도달 등시선에서는 {{reach.origin}}에서 서울시청까지 승용차로 {{reach.seoul_car}}분({{reach.slot}} 시간대 · 평일 {{reach.slot_at}} 출발)이 나옵니다.
 
+수출 지원사업 공고와 항만·공항·무역 공공기관 채용 공고는 「채용·지원사업 레이더」에 매일 아침 원문 글자 그대로 모읍니다. 요약하거나 골라 추천하지 않고, 마감일과 원문 링크를 같이 둡니다.
+https://jisangj03-dev.github.io/incheon-port-analysis/tools/radar.html?utm_source=tistory&utm_medium=blog&utm_campaign=tb-01
+
 ### 어떻게 만들었나
 
 관세청·해양수산부·인천국제공항공사·국가통계포털·OpenStreetMap 같은 공공 통계와 공개 지도를 씁니다(도달 시간 보정에는 카카오 길찾기를 대조용으로 썼습니다). 지면 숫자는 데이터 파일에 있는 값만 쓰고, 원천이 새 달을 내면 매일 아침 도는 자동 갱신이 시험을 통과한 숫자로 지면을 바꿉니다. 지면의 틀이나 문장을 바꿀 때는 판정 기준을 먼저 적고, 만든 맥락을 모르는 AI 심사관 둘(화면 · 원자료 대조)의 판정을 거칩니다. 법률·세무·관세 자문은 아닙니다. 이 글은 AI가 초안을 쓰고 숫자는 측심 데이터 파일에서 자동으로 채웠습니다.
@@ -62,6 +65,9 @@ https://jisangj03-dev.github.io/incheon-port-analysis/?utm_source=tistory&utm_me
 ① 관문 — {{gate.ym}} 한국 수입의 {{gate.imp_share}}%가 인천 관문(인천공항 + 인천항)으로 들어왔습니다. {{claim:gate.air_most.li}}(관세청 항구·공항별 · 입항지 기준).
 ② 화주 — 같은 달 수입의 {{sudo.imp_share}}%는 수도권에 소재지를 둔 화주가 들여왔습니다(관세청 시도별 · 신고 업체 소재지 기준).
 ③ 소매 — {{retail.ym}} 수도권 백화점·대형마트 판매액 {{retail.large_jo}}조 원(작년 같은 달 {{retail.large_yoy}}%), 전국 온라인쇼핑 거래액 {{retail.online_jo}}조 원({{retail.online_yoy}}%)(국가통계포털 · 범위가 달라 서로 나누지 않습니다).
+
+덧붙여 — 수출 지원사업 공고와 항만·공항·무역 공공기관 채용 공고를 매일 아침 원문 그대로 모아 두는 「채용·지원사업 레이더」도 열었습니다.
+https://jisangj03-dev.github.io/incheon-port-analysis/tools/radar.html?utm_source=beehiiv&utm_medium=email&utm_campaign=nl-01
 
 숫자마다 출처·정의·기준일은 측심 지면 아래에 적어 두었습니다. 틀린 곳이 보이면 이 메일에 답장 주세요. (이 메일은 AI가 초안을 쓰고 숫자는 측심 데이터 파일에서 자동으로 채웠습니다.)
 https://jisangj03-dev.github.io/incheon-port-analysis/?utm_source=beehiiv&utm_medium=email&utm_campaign=nl-01
