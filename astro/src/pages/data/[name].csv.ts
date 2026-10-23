@@ -71,8 +71,8 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
   radar: () => {
     const D = J("data/collected/v3/radar.json");
     const rows = [
-      ...(D.support.n >= 3 ? D.support.items : []).map((x: any) => ({ 갈래: "수출 지원사업", 공고명: x.pblancNm, 기관: x.jrsdInsttNm, 수행: x.excInsttNm, 분야: x.pldirSportRealmLclasCodeNm, 대상: x.trgetNm, 기간: x.reqstBeginEndDe, 지역낱말: x.regions.join(" "), 원문: x.pblancUrl, 출처: "중소벤처기업부 · 공공데이터포털 15157820 · 공공누리 제3유형(출처표시·변경금지)" })),
-      ...(D.recruit.n >= 3 ? D.recruit.items : []).map((x: any) => ({ 갈래: "공공기관 채용", 공고명: x.recrutPbancTtl, 기관: x.instNm, 수행: "", 분야: x.ncsCdNmLst, 대상: `${x.recrutSeNm} · ${x.hireTypeNmLst}`, 기간: `${x.pbancBgngYmd} ~ ${x.pbancEndYmd}`, 지역낱말: x.workRgnNmLst, 원문: x.srcUrl, 출처: "재정경제부 · 공공데이터포털 15125273 · 이용허락범위 제한 없음" })),
+      ...(D.support.n >= 3 ? D.support.items : []).map((x: any) => ({ 갈래: "수출 지원사업", 공고명: x.pblancNm, 기관: x.jrsdInsttNm, 수행: x.excInsttNm, 분야_직무: x.pldirSportRealmLclasCodeNm, 대상_채용구분: x.trgetNm, 기간: x.reqstBeginEndDe, 지역낱말_근무지: x.regions.join(" "), 원문: x.pblancUrl, 출처: "중소벤처기업부 · 공공데이터포털 15157820 · 공공누리 제3유형(출처표시·변경금지)" })),
+      ...(D.recruit.n >= 3 ? D.recruit.items : []).map((x: any) => ({ 갈래: "공공기관 채용", 공고명: x.recrutPbancTtl, 기관: x.instNm, 수행: "", 분야_직무: x.ncsCdNmLst, 대상_채용구분: `${x.recrutSeNm} · ${x.hireTypeNmLst}`, 기간: `${x.pbancBgngYmd} ~ ${x.pbancEndYmd}`, 지역낱말_근무지: x.workRgnNmLst, 원문: x.srcUrl, 출처: "재정경제부 · 공공데이터포털 15125273 · 이용허락범위 제한 없음" })),
     ];
     return { rows, note: `${D.fetched} 스냅샷 · 고르는 규칙 = 지면 「방법」 · 3건 미만 칸은 지면처럼 뺀다 · 수집 tools-build/radar.py` };
   },
