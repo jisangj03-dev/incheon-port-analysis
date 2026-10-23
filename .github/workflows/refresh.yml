@@ -107,6 +107,7 @@ jobs:
           python tools-build/flows_derive.py --selftest
           python tools-build/sudo_trade.py --selftest && python tools-build/kosis.py --selftest && python tools-build/axes_derive.py --selftest
           python tools-build/periodic.py --selftest && python tools-build/navi_check.py --selftest && python tools-build/reach_slots.py --selftest
+          python tools-build/radar.py --selftest
       - name: 월 1회 층 의존(때가 됐을 때만 · 등시선 = 지리 도구 고정판 · 관세율표 = openpyxl)
         run: |
           if python tools-build/periodic.py --due iso || echo "${{ inputs.only }}" | grep -qw iso; then pip install -q -r tools-build/requirements-geo.txt && echo "등시선 의존 설치" >> "$GITHUB_STEP_SUMMARY"; fi
