@@ -77,6 +77,9 @@ if (cfg.open?.length) {
     if (st === "연결 실패") { await new Promise((r) => setTimeout(r, 5000)); try { st = (await fetch(u, { method: "GET", redirect: "follow", signal: AbortSignal.timeout(30000), headers: { "user-agent": "Mozilla/5.0 (compatible; cheuksim-linkcheck/1.0; weekly)" } })).status; } catch { st = "연결 실패"; } }
     seen.set(u, st); return st;
   };
+  // 해외 러너에서만 끊기는 호스트 — 사람이 한국에서 열어 정상을 확인한 것만 적는다(호스트 · 확인일 · 누가). 「연결 실패」일 때만 「확인 불가」로 옮기고, 4xx·5xx 는 그대로 깨짐이다.
+  //   ygpa.incruit.com = 여수광양항만공사 채용(레이더) — Actions 에서 4회 연속 연결 실패 · 2026-10-23 채팅(선장님 브라우저)이 한국에서 채용 홈페이지 정상 로드를 확인.
+  const GEO = { "ygpa.incruit.com": "2026-10-23 한국 접속 정상(채팅 확인)" };
   const broken = [], unknown = [];
   for (const p of cfg.open) {
     const html = await (await fetch(encodeURI(cfg.base + p))).text();
@@ -87,10 +90,11 @@ if (cfg.open?.length) {
       const inside = u.startsWith(cfg.base) || new URL(u).host === new URL(cfg.base).host;
       if (st === 200 || (typeof st === "number" && st < 400)) continue;
       if (!inside && BLOCK.includes(st)) unknown.push(`${u} (${st})`);
+      else if (!inside && st === "연결 실패" && GEO[new URL(u).host]) unknown.push(`${u} (해외 러너 연결 실패 · ${GEO[new URL(u).host]})`);
       else broken.push(`${p} → ${u} (${st})`);
     }
   }
-  L.push("", "## ⑥ 링크 전수", "", `- 검사한 주소 ${seen.size}개 · 깨짐 **${broken.length}** · 확인 불가(봇 차단) ${unknown.length}`);
+  L.push("", "## ⑥ 링크 전수", "", `- 검사한 주소 ${seen.size}개 · 깨짐 **${broken.length}** · 확인 불가(봇 차단·해외 접속) ${unknown.length}`);
   for (const b of broken) { L.push(`  - 깨짐: ${b}`); FAIL.push(`링크 깨짐 ${b}`); }
   for (const u of [...new Set(unknown)]) L.push(`  - 확인 불가: ${u}`);
 }
