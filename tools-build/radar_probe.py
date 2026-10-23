@@ -126,8 +126,9 @@ def main():
                     for op in [o for o in sp["ops"] if not o.startswith(("getCategory", "getElement", "getMypage", "getOrCreate", "getSso", "getTemplate"))][:4]:
                         if not ep.rstrip("/").endswith(op): urls.append(ep.rstrip("/") + "/" + op)
             for u in list(dict.fromkeys(urls))[:8]:
-                p = {"serviceKey": KEY, "numOfRows": "100", "pageNo": "1", "perPage": "100", "page": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
-                s2, b, eb = fetch(u, p)
+                p = {"serviceKey": KEY, "numOfRows": "30", "pageNo": "1", "perPage": "30", "page": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
+                s2, b, eb = fetch(u, p, timeout=90)
+                if not isinstance(s2, int): s2, b, eb = fetch(u, p, timeout=90)  # 6회차: 100행 · 40초에 넷 다 시간 초과 → 30행 · 90초 · 한 번 더
                 b = scrub(b)
                 rc, msg, rows = parse(b)
                 if (b or "").lstrip().startswith(("{", "[")) and not any(rows): rows = json_rows(b)  # parse 가 꼴을 못 알아 빈 행 하나를 낸 경우(5회차 채용·K-Startup)
