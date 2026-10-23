@@ -5,30 +5,508 @@
  "sources": {
   "alio-recruit": {
    "search": "공공기관 채용정보 조회서비스",
-   "search_status": "<urlopen error timed out>",
-   "candidates": [],
+   "search_status": 200,
+   "candidates": [
+    [
+     "15125273",
+     "재정경제부_ 공공기관 채용정보 조회서비스"
+    ],
+    [
+     "15043125",
+     "한국관광공사_ 채용정보 _현황"
+    ],
+    [
+     "15084515",
+     "한국중부발전(주)_중부발전 채용정보"
+    ],
+    [
+     "15074635",
+     "과학기술 정보 통신부_모집 채용"
+    ],
+    [
+     "15159757",
+     "행정안전부 한국지역정보개발원_ 채용정보 조회 서비스"
+    ]
+   ],
    "sets": {
     "15125273": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": null,
-     "license_text": null,
+     "title": "재정경제부_ 공공기관 채용정보 조회서비스",
+     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
      "endpoints": [],
-     "ops": [],
+     "ops": [
+      "getCategoryClass",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getTemplate"
+     ],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/1051000/recruitment/list",
-       "status": "<urlopen error timed out>",
+       "status": 200,
        "resultCode": "?",
        "resultMsg": "",
-       "total": null,
-       "rows": 0,
-       "keys": [],
-       "fill": {},
-       "classes": {},
-       "body_head": ""
+       "total": 114931,
+       "rows": 30,
+       "keys": [
+        "acbgCondLst",
+        "acbgCondNmLst",
+        "aplyQlfcCn",
+        "decimalDay",
+        "disqlfcRsn",
+        "files",
+        "hireTypeLst",
+        "hireTypeNmLst",
+        "instNm",
+        "ncsCdLst",
+        "ncsCdNmLst",
+        "nonatchRsn",
+        "ongoingYn",
+        "pbadmsStdInstCd",
+        "pbancBgngYmd",
+        "pbancEndYmd",
+        "pblntInstCd",
+        "prefCn",
+        "prefCondCn",
+        "recrutNope",
+        "recrutPbancTtl",
+        "recrutPblntSn",
+        "recrutSe",
+        "recrutSeNm",
+        "replmprYn",
+        "scrnprcdrMthdExpln",
+        "srcUrl",
+        "steps",
+        "workRgnLst",
+        "workRgnNmLst"
+       ],
+       "fill": {
+        "acbgCondLst": [
+         30,
+         29
+        ],
+        "acbgCondNmLst": [
+         30,
+         26
+        ],
+        "aplyQlfcCn": [
+         30,
+         1884
+        ],
+        "decimalDay": [
+         30,
+         2
+        ],
+        "disqlfcRsn": [
+         30,
+         1467
+        ],
+        "files": [
+         30,
+         2
+        ],
+        "hireTypeLst": [
+         30,
+         23
+        ],
+        "hireTypeNmLst": [
+         30,
+         24
+        ],
+        "instNm": [
+         30,
+         9
+        ],
+        "ncsCdLst": [
+         30,
+         55
+        ],
+        "ncsCdNmLst": [
+         30,
+         45
+        ],
+        "nonatchRsn": [
+         6,
+         51
+        ],
+        "ongoingYn": [
+         30,
+         1
+        ],
+        "pbadmsStdInstCd": [
+         30,
+         7
+        ],
+        "pbancBgngYmd": [
+         30,
+         8
+        ],
+        "pbancEndYmd": [
+         30,
+         8
+        ],
+        "pblntInstCd": [
+         30,
+         5
+        ],
+        "prefCn": [
+         30,
+         918
+        ],
+        "prefCondCn": [
+         30,
+         157
+        ],
+        "recrutNope": [
+         30,
+         3
+        ],
+        "recrutPbancTtl": [
+         30,
+         80
+        ],
+        "recrutPblntSn": [
+         30,
+         6
+        ],
+        "recrutSe": [
+         30,
+         5
+        ],
+        "recrutSeNm": [
+         30,
+         5
+        ],
+        "replmprYn": [
+         30,
+         1
+        ],
+        "scrnprcdrMthdExpln": [
+         30,
+         1965
+        ],
+        "srcUrl": [
+         30,
+         160
+        ],
+        "steps": [
+         30,
+         2
+        ],
+        "workRgnLst": [
+         30,
+         95
+        ],
+        "workRgnNmLst": [
+         30,
+         49
+        ]
+       },
+       "classes": {
+        "hireTypeLst": [
+         [
+          "R1040",
+          21
+         ],
+         [
+          "R1010",
+          2
+         ],
+         [
+          "R1060",
+          2
+         ],
+         [
+          "R1010,R1030,R1040,R1060",
+          1
+         ],
+         [
+          "R1010,R1070",
+          1
+         ],
+         [
+          "R1030",
+          1
+         ],
+         [
+          "R1010,R1030",
+          1
+         ],
+         [
+          "R1010,R1040",
+          1
+         ]
+        ],
+        "hireTypeNmLst": [
+         [
+          "비정규직",
+          21
+         ],
+         [
+          "정규직",
+          2
+         ],
+         [
+          "청년인턴(체험형)",
+          2
+         ],
+         [
+          "정규직,무기계약직,비정규직,청년인턴(체험형)",
+          1
+         ],
+         [
+          "정규직,청년인턴(채용형)",
+          1
+         ],
+         [
+          "무기계약직",
+          1
+         ],
+         [
+          "정규직,무기계약직",
+          1
+         ],
+         [
+          "정규직,비정규직",
+          1
+         ]
+        ],
+        "instNm": [
+         [
+          "대한적십자사",
+          7
+         ],
+         [
+          "국립공원공단",
+          5
+         ],
+         [
+          "한국개발연구원",
+          2
+         ],
+         [
+          "한국관광공사",
+          2
+         ],
+         [
+          "울산항만공사",
+          2
+         ],
+         [
+          "국방기술품질원",
+          2
+         ],
+         [
+          "한국수산자원공단",
+          1
+         ],
+         [
+          "경북대학교병원",
+          1
+         ],
+         [
+          "경상국립대학교병원",
+          1
+         ],
+         [
+          "제주대학교병원",
+          1
+         ],
+         [
+          "태권도진흥재단",
+          1
+         ],
+         [
+          "근로복지공단",
+          1
+         ],
+         [
+          "부산대학교병원",
+          1
+         ],
+         [
+          "한국전력공사",
+          1
+         ],
+         [
+          "한국산업기술진흥원",
+          1
+         ]
+        ],
+        "ongoingYn": [
+         [
+          "Y",
+          30
+         ]
+        ],
+        "pbadmsStdInstCd": [
+         [
+          "B460004",
+          7
+         ],
+         [
+          "B553991",
+          5
+         ],
+         [
+          "B552415",
+          2
+         ],
+         [
+          "B551011",
+          2
+         ],
+         [
+          "B551938",
+          2
+         ],
+         [
+          "B551544",
+          2
+         ],
+         [
+          "B554038",
+          1
+         ],
+         [
+          "B550484",
+          1
+         ],
+         [
+          "B554581",
+          1
+         ],
+         [
+          "B551190",
+          1
+         ],
+         [
+          "B552570",
+          1
+         ],
+         [
+          "B490001",
+          1
+         ],
+         [
+          "B550554",
+          1
+         ],
+         [
+          "B410002",
+          1
+         ],
+         [
+          "B552536",
+          1
+         ]
+        ],
+        "pblntInstCd": [
+         [
+          "C0059",
+          7
+         ],
+         [
+          "C0021",
+          5
+         ],
+         [
+          "C0151",
+          2
+         ],
+         [
+          "C0165",
+          2
+         ],
+         [
+          "C0365",
+          2
+         ],
+         [
+          "C0347",
+          2
+         ],
+         [
+          "C0455",
+          1
+         ],
+         [
+          "C0008",
+          1
+         ],
+         [
+          "C0009",
+          1
+         ],
+         [
+          "C0122",
+          1
+         ],
+         [
+          "C0409",
+          1
+         ],
+         [
+          "C0035",
+          1
+         ],
+         [
+          "C0071",
+          1
+         ],
+         [
+          "C0247",
+          1
+         ],
+         [
+          "C0393",
+          1
+         ]
+        ],
+        "recrutSe": [
+         [
+          "R2010",
+          16
+         ],
+         [
+          "R2030",
+          13
+         ],
+         [
+          "R2020",
+          1
+         ]
+        ],
+        "recrutSeNm": [
+         [
+          "신입",
+          16
+         ],
+         [
+          "신입+경력",
+          13
+         ],
+         [
+          "경력",
+          1
+         ]
+        ],
+        "replmprYn": [
+         [
+          "N",
+          18
+         ],
+         [
+          "Y",
+          12
+         ]
+        ]
+       }
       }
      ]
     }
@@ -36,22 +514,50 @@
   },
   "bizinfo": {
    "search": "중소기업 지원사업 공고 조회",
-   "search_status": "<urlopen error timed out>",
-   "candidates": [],
+   "search_status": 200,
+   "candidates": [
+    [
+     "15157820",
+     "중소벤처기업부_ 중소기업 지원사업 공고 조회 서비스"
+    ],
+    [
+     "15113297",
+     "중소 벤처 기업 부_ 사업 공고"
+    ],
+    [
+     "15058107",
+     "제주특별자치도_제주 기업 지원 시책-판로 지원 목록 조회"
+    ],
+    [
+     "15058913",
+     "제주특별자치도_제주 기업 지원 시책-기술 지원 목록 조회"
+    ],
+    [
+     "15056784",
+     "제주특별자치도_제주 기업 지원 시책-경영 지원 목록 조회"
+    ]
+   ],
    "sets": {
     "15157820": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": null,
-     "license_text": null,
+     "title": "중소벤처기업부_ 중소기업 지원사업 공고 조회 서비스",
+     "license_text": "공공저작물 : 출처표시, 변경금지 (제 3유형) 심의유형 개발단계 : 자",
      "endpoints": [],
-     "ops": [],
+     "ops": [
+      "getCategoryClass",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getTemplate"
+     ],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService",
-       "status": "<urlopen error timed out>",
+       "status": 200,
        "resultCode": "?",
        "resultMsg": "",
        "total": null,
@@ -59,7 +565,7 @@
        "keys": [],
        "fill": {},
        "classes": {},
-       "body_head": ""
+       "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"HTTP_ERROR\",\n      \"returnAuthMsg\": \"HTTP 에러\",\n      \"returnReasonCode\": \"04\"\n    }\n  }\n}\n"
       }
      ]
     }
@@ -67,42 +573,493 @@
   },
   "kstartup": {
    "search": "창업진흥원 사업공고",
-   "search_status": "<urlopen error timed out>",
-   "candidates": [],
+   "search_status": 200,
+   "candidates": [
+    [
+     "15125364",
+     "창업진흥원 _K-Startup(사업소개, 사업공고 ,콘텐츠 등)_조회서비스"
+    ]
+   ],
    "sets": {
     "15125364": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": null,
-     "license_text": null,
+     "title": "창업진흥원 _K-Startup(사업소개, 사업공고 ,콘텐츠 등)_조회서비스",
+     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
      "endpoints": [],
-     "ops": [],
+     "ops": [
+      "getAnnouncementInformation01",
+      "getAnnouncementInformation01_response",
+      "getBusinessInformation",
+      "getBusinessInformation01",
+      "getBusinessInformation01_response",
+      "getCategoryClass",
+      "getContentInformation01",
+      "getContentInformation01_response",
+      "getElementById",
+      "getMypageUrl",
+      "getOrCreateQuickSummary",
+      "getSsoApiUrl",
+      "getStatisticalInformation01",
+      "getStatisticalInformation01_response",
+      "getTemplate"
+     ],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getAnnouncementInformation01",
-       "status": "<urlopen error timed out>",
+       "status": 200,
        "resultCode": "?",
        "resultMsg": "",
-       "total": null,
-       "rows": 0,
-       "keys": [],
-       "fill": {},
-       "classes": {},
-       "body_head": ""
+       "total": 30417,
+       "rows": 30,
+       "keys": [
+        "aply_excl_trgt_ctnt",
+        "aply_mthd_eml_rcpt_istc",
+        "aply_mthd_etc_istc",
+        "aply_mthd_fax_rcpt_istc",
+        "aply_mthd_onli_rcpt_istc",
+        "aply_mthd_pssr_rcpt_istc",
+        "aply_mthd_vst_rcpt_istc",
+        "aply_trgt",
+        "aply_trgt_ctnt",
+        "biz_aply_url",
+        "biz_enyy",
+        "biz_gdnc_url",
+        "biz_pbanc_nm",
+        "biz_prch_dprt_nm",
+        "biz_trgt_age",
+        "detl_pg_url",
+        "id",
+        "intg_pbanc_biz_nm",
+        "intg_pbanc_yn",
+        "pbanc_ctnt",
+        "pbanc_ntrp_nm",
+        "pbanc_rcpt_bgng_dt",
+        "pbanc_rcpt_end_dt",
+        "pbanc_sn",
+        "prch_cnpl_no",
+        "prfn_matr",
+        "rcrt_prgs_yn",
+        "sprv_inst",
+        "supt_biz_clsfc",
+        "supt_regin"
+       ],
+       "fill": {
+        "aply_excl_trgt_ctnt": [
+         14,
+         311
+        ],
+        "aply_mthd_eml_rcpt_istc": [
+         7,
+         28
+        ],
+        "aply_mthd_etc_istc": [
+         0,
+         0
+        ],
+        "aply_mthd_fax_rcpt_istc": [
+         0,
+         0
+        ],
+        "aply_mthd_onli_rcpt_istc": [
+         22,
+         118
+        ],
+        "aply_mthd_pssr_rcpt_istc": [
+         0,
+         0
+        ],
+        "aply_mthd_vst_rcpt_istc": [
+         1,
+         68
+        ],
+        "aply_trgt": [
+         30,
+         32
+        ],
+        "aply_trgt_ctnt": [
+         30,
+         363
+        ],
+        "biz_aply_url": [
+         0,
+         0
+        ],
+        "biz_enyy": [
+         30,
+         36
+        ],
+        "biz_gdnc_url": [
+         25,
+         196
+        ],
+        "biz_pbanc_nm": [
+         30,
+         63
+        ],
+        "biz_prch_dprt_nm": [
+         30,
+         21
+        ],
+        "biz_trgt_age": [
+         30,
+         37
+        ],
+        "detl_pg_url": [
+         30,
+         85
+        ],
+        "id": [
+         30,
+         2
+        ],
+        "intg_pbanc_biz_nm": [
+         30,
+         71
+        ],
+        "intg_pbanc_yn": [
+         30,
+         1
+        ],
+        "pbanc_ctnt": [
+         30,
+         342
+        ],
+        "pbanc_ntrp_nm": [
+         30,
+         20
+        ],
+        "pbanc_rcpt_bgng_dt": [
+         30,
+         8
+        ],
+        "pbanc_rcpt_end_dt": [
+         30,
+         8
+        ],
+        "pbanc_sn": [
+         30,
+         6
+        ],
+        "prch_cnpl_no": [
+         30,
+         11
+        ],
+        "prfn_matr": [
+         0,
+         0
+        ],
+        "rcrt_prgs_yn": [
+         30,
+         1
+        ],
+        "sprv_inst": [
+         30,
+         4
+        ],
+        "supt_biz_clsfc": [
+         30,
+         10
+        ],
+        "supt_regin": [
+         30,
+         4
+        ]
+       },
+       "classes": {
+        "biz_prch_dprt_nm": [
+         [
+          "경영지원팀",
+          2
+         ],
+         [
+          "벨류업 본부",
+          1
+         ],
+         [
+          "AC3",
+          1
+         ],
+         [
+          "창업보육센터",
+          1
+         ],
+         [
+          "전략투자본부",
+          1
+         ],
+         [
+          "강원ICT융합연구원",
+          1
+         ],
+         [
+          "논산시 사회적경제통합지원센터",
+          1
+         ],
+         [
+          "구로구 청년창업지원센터",
+          1
+         ],
+         [
+          "서초창업스테이션",
+          1
+         ],
+         [
+          "기업성장지원팀",
+          1
+         ],
+         [
+          "기후테크육성실",
+          1
+         ],
+         [
+          "L-CAMP & 미래식단 운영사무국",
+          1
+         ],
+         [
+          "기업성장본부",
+          1
+         ],
+         [
+          "임대공급운영1팀",
+          1
+         ],
+         [
+          "관광기업협력팀",
+          1
+         ]
+        ],
+        "intg_pbanc_yn": [
+         [
+          "N",
+          21
+         ],
+         [
+          "Y",
+          9
+         ]
+        ],
+        "pbanc_ntrp_nm": [
+         [
+          "포항공과대학교 기술지주 주식회사",
+          1
+         ],
+         [
+          "씨엔티테크",
+          1
+         ],
+         [
+          "충북대학교 충북Pro메이커센터",
+          1
+         ],
+         [
+          "동국대학교 창업보육센터",
+          1
+         ],
+         [
+          "재단법인 강원창조경제혁신센터",
+          1
+         ],
+         [
+          "충북Pro메이커센터",
+          1
+         ],
+         [
+          "강원ICT융합연구원",
+          1
+         ],
+         [
+          "논산시 사회적경제통합지원센터",
+          1
+         ],
+         [
+          "구로구 청년창업지원센터",
+          1
+         ],
+         [
+          "서초창업스테이션",
+          1
+         ],
+         [
+          "재단법인 관악중소벤처진흥원",
+          1
+         ],
+         [
+          "한국에너지기술평가원",
+          1
+         ],
+         [
+          "롯데벤처스",
+          1
+         ],
+         [
+          "주식회사 킹고스프링",
+          1
+         ],
+         [
+          "한국토지주택공사",
+          1
+         ]
+        ],
+        "rcrt_prgs_yn": [
+         [
+          "Y",
+          30
+         ]
+        ],
+        "sprv_inst": [
+         [
+          "민간",
+          10
+         ],
+         [
+          "공공기관",
+          10
+         ],
+         [
+          "교육기관",
+          7
+         ],
+         [
+          "지자체",
+          3
+         ]
+        ]
+       }
       },
       {
        "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getBusinessInformation01",
-       "status": "<urlopen error timed out>",
+       "status": 200,
        "resultCode": "?",
        "resultMsg": "",
-       "total": null,
-       "rows": 0,
-       "keys": [],
-       "fill": {},
-       "classes": {},
-       "body_head": ""
+       "total": 511,
+       "rows": 30,
+       "keys": [
+        "biz_category_cd",
+        "biz_supt_bdgt_info",
+        "biz_supt_ctnt",
+        "biz_supt_trgt_info",
+        "biz_yr",
+        "detl_pg_url",
+        "id",
+        "supt_biz_chrct",
+        "supt_biz_intrd_info",
+        "supt_biz_titl_nm"
+       ],
+       "fill": {
+        "biz_category_cd": [
+         30,
+         11
+        ],
+        "biz_supt_bdgt_info": [
+         30,
+         103
+        ],
+        "biz_supt_ctnt": [
+         30,
+         258
+        ],
+        "biz_supt_trgt_info": [
+         30,
+         92
+        ],
+        "biz_yr": [
+         30,
+         4
+        ],
+        "detl_pg_url": [
+         30,
+         74
+        ],
+        "id": [
+         30,
+         2
+        ],
+        "supt_biz_chrct": [
+         30,
+         131
+        ],
+        "supt_biz_intrd_info": [
+         30,
+         111
+        ],
+        "supt_biz_titl_nm": [
+         30,
+         29
+        ]
+       },
+       "classes": {
+        "biz_category_cd": [
+         [
+          "cmrczn_Tab3",
+          30
+         ]
+        ],
+        "supt_biz_titl_nm": [
+         [
+          "충남창업마루나비",
+          1
+         ],
+         [
+          "그린스타트업타운 지원",
+          1
+         ],
+         [
+          "충남창조경제혁신센터 지원",
+          1
+         ],
+         [
+          "창업중심대학지원사업",
+          1
+         ],
+         [
+          "담양군 창업보육센터 지원사업",
+          1
+         ],
+         [
+          "창업 청년 임대료 지원사업",
+          1
+         ],
+         [
+          "경북 청년농산업  창업지원센터 운영",
+          1
+         ],
+         [
+          "경북창조경제혁신센터 기업 운영",
+          1
+         ],
+         [
+          "포항창조경제혁신센터  사업운영",
+          1
+         ],
+         [
+          "안동시 청년전용 지식산업센터 운영",
+          1
+         ],
+         [
+          "청년창업지원센터 운영 지원",
+          1
+         ],
+         [
+          "김천시 청년 창업 공간 지원사업",
+          1
+         ],
+         [
+          "청년 창업아카데미(G-Space@East) 운영",
+          1
+         ],
+         [
+          "경남 창업 수도권 거점(G-Space@TIPS) 운영",
+          1
+         ],
+         [
+          "창원시 창업지원센터",
+          1
+         ]
+        ]
+       }
       }
      ]
     }
