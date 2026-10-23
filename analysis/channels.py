@@ -297,6 +297,28 @@ def utm_problems(channel, body, rid=None):
     return out
 
 
+def withdrawn_problems(body, dist=None):
+    """측심 링크가 내린 지면(옮긴 주소 · Redirect)이나 빌드에 없는 지면을 가리키나 — [(레벨, 메시지)].
+    내린 지면도 200 을 돌려주므로 `--net` 링크 검사로는 안 잡힌다(사고 139 · li-08·09·10 이 10/20 내림 뒤에도 내린 보고서를 가리킨 채 「준비」였다).
+    빌드(astro/dist)가 없으면 아무 말도 안 한다 — 판정 못 한 것을 통과로 세지 않도록 호출자가 INFO 를 낸다."""
+    import os
+    from urllib.parse import urlsplit, unquote
+    dist = dist or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "astro", "dist")
+    if not os.path.isdir(dist):
+        return None
+    out = []
+    for u in urls(body):
+        if not SITE.match(u):
+            continue
+        path = unquote(urlsplit(u).path).split("/incheon-port-analysis", 1)[-1].lstrip("/")
+        f = os.path.join(dist, path, "index.html") if (not path or path.endswith("/")) else os.path.join(dist, path)
+        if not os.path.isfile(f):
+            out.append((FAIL, "측심 링크가 빌드에 없는 지면을 가리킨다: %s" % u))
+        elif "data-redirect=" in open(f, encoding="utf-8", errors="ignore").read():
+            out.append((FAIL, "측심 링크가 내린 지면(옮긴 주소 안내)을 가리킨다 — 독자는 「옮겼습니다」 쪽에 떨어진다: %s" % u))
+    return out
+
+
 SHORTENER = re.compile(r"https?://(bit\.ly|tinyurl\.com|t\.co|lnkd\.in|han\.gl|buly\.kr|url\.kr)/", re.I)
 URL = re.compile(r"https?://[^\s<>\"')\]]+")
 
@@ -386,6 +408,12 @@ def check_format(channel, body, title=None, rid=None):
 
     # ── 우리 규율 ──
     out += utm_problems(channel, body, rid)
+    wd = withdrawn_problems(body)
+    if wd is None:
+        if any(SITE.match(u) for u in urls(body)):
+            out.append((INFO, "내린 지면 링크는 안 봤다 — 빌드(astro/dist)가 없다(`npm run site:build` 뒤 다시)"))
+    else:
+        out += wd
     if c.get("필명"):
         nm = real_name()
         if nm and (nm in body or nm in (title or "")):
@@ -468,6 +496,18 @@ def selftest():
     chk("campaign 이 대기열 id 와 다르면 FAIL", any("utm_campaign=li-13" in m for l, m in f if l == FAIL), True)
     f = check_format("linkedin", "글\nhttps://example.org/")
     chk("측심 밖 링크는 UTM 을 안 본다", any("UTM" in m for _, m in f), False)
+    print("── 인수시험: 내린 지면 링크 (2026-10-23 · 사고 139) ──")
+    import tempfile, os as _os
+    with tempfile.TemporaryDirectory() as D:
+        _os.makedirs(_os.path.join(D, "reports")); _os.makedirs(_os.path.join(D, "tools"))
+        open(_os.path.join(D, "reports", "물동량.html"), "w", encoding="utf-8").write('<div data-redirect="/notes.html">옮겼습니다</div>')
+        open(_os.path.join(D, "tools", "radar.html"), "w", encoding="utf-8").write("<h1>레이더</h1>")
+        open(_os.path.join(D, "index.html"), "w", encoding="utf-8").write("<h1>홈</h1>")
+        q = "?utm_source=linkedin&utm_medium=social&utm_campaign=li-10"
+        chk("내린 지면 링크는 FAIL", levels(withdrawn_problems(S + "reports/%EB%AC%BC%EB%8F%99%EB%9F%89.html" + q, D)), [FAIL])
+        chk("빌드에 없는 지면은 FAIL", levels(withdrawn_problems(S + "tools/nope.html" + q, D)), [FAIL])
+        chk("살아 있는 지면·홈은 통과", withdrawn_problems(S + "tools/radar.html" + q + "\n" + S + q, D), [])
+        chk("빌드가 없으면 판정 안 함(None)", withdrawn_problems(S, _os.path.join(D, "없음")), None)
     f = check_format("tistory", "본문\n" + S + "?utm_source=tistory&utm_medium=blog&utm_campaign=tb-01", title="제목", rid="tb-01")
     chk("티스토리 정상 문안은 FAIL 없다", FAIL in levels(f), False)
     nm = real_name()

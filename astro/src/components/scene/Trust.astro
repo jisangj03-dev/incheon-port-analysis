@@ -29,12 +29,18 @@ const ord = [...names.filter(hit), ...names.filter((x) => !hit(x))], keep = lost
 const cut = ord.length > keep;
 const short = (cut ? `${ord.slice(0, keep).join(" · ")} 외 ${ord.length - keep}` : ord.join(" · ")) || source;
 const terms = [...(cut ? ord.slice(keep) : []), ...segs.filter((x) => TERMS.test(x))];
+// 이용 조건은 출처별로 묶어 한 줄씩 — 한 줄로 이으면 앞 출처 조건 뒤에 다음 출처 조건이 붙어 어느 자료의 조건인지 안 갈렸다(37·39차 판정 경미 · 2026-10-23)
+//   출처 대장 문자열은 「이름 · 조건 · 조건 · 이름 · 조건 …」 순서다 — 조건 조각은 바로 앞 이름에 붙는다
+const groups: { name: string; terms: string[] }[] = [];
+for (const x of segs) { if (!TERMS.test(x)) groups.push({ name: x, terms: [] }); else if (groups.length) { if (!groups[groups.length - 1].terms.includes(x)) groups[groups.length - 1].terms.push(x); } else groups.push({ name: "", terms: [x] }); }
+const shown = new Set(cut ? ord.slice(0, keep) : ord);
+const rows = groups.filter((g) => g.terms.length > 0 || (g.name && !shown.has(g.name)));
 ---
 {DL.map((g) => <p class={`s-delay${g.head === "갱신 지연" ? "" : " s-delay--soft"}`} data-delay role="status"><b>{g.head}</b>{g.items.map((t) => <span class="s-delay__i">{t.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span>)}</p>)}
 <p class="s-trust" data-fresh-ids={DI.join(",") || undefined}><Updated date={updated} source={short} />{note && <> · {note}</>}{FL && !fold && <> · <span data-fresh>{FL.split(/(\d{4}-\d{2}-\d{2})/).map((x, i) => i % 2 ? <span class="nb">{x}</span> : x)}</span></>}{csv && (csv === "client"
   ? <> · <a href="#" data-csv-client download={csvName}>CSV</a></>
   : <> · <a href={csv} download>CSV</a></>)}</p>
-{(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, cut ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{terms.length > 0 && <p>{[...new Set(terms)].join(" · ")}</p>}</details>}
+{(terms.length > 0 || (fold && (FL || more))) && <details class="s-terms"><summary>{[fold && (more || FL) ? "기준·공표 일정" : null, cut ? "출처 전부" : null, terms.length > 0 ? "이용 조건" : null].filter(Boolean).join(" · ")}</summary>{fold && more && <p>{more}</p>}{fold && FL && <p data-fresh>{FL}</p>}{rows.map((g) => <p class="s-terms__row">{g.name && <span class="s-terms__src">{g.name}</span>}{g.name && g.terms.length > 0 && " — "}{g.terms.join(" · ")}</p>)}</details>}
 <style>
   .s-delay__i { display: block; }
   .s-delay--soft { border-left-color: var(--s-ink-3); background: color-mix(in srgb, var(--s-ink-3) 8%, transparent); } /* 자동 받기 실패 = 지금 숫자는 최신 — 「갱신 지연」보다 약하게(10/22 화면 3차 판정) */
@@ -43,4 +49,5 @@ const terms = [...(cut ? ord.slice(keep) : []), ...segs.filter((x) => TERMS.test
   .s-terms { font-size: 12.5px; color: var(--s-ink-3); margin: 2px 0 0; }
   .s-terms summary { cursor: pointer; display: inline-flex; align-items: center; min-height: 32px; }
   .s-terms p { margin: 2px 0 0; max-width: 60em; }
+  .s-terms__src { color: var(--s-ink-2); }
 </style>
