@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-22",
+ "checked": "2026-10-23",
  "key_present": true,
  "note": "행 값은 저장하지 않는다(개인정보) — 칸 이름·건수만",
  "sources": {
@@ -53,7 +53,7 @@
        "found": 0
       }
      ],
-     "guessed": true,
+     "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
      "title": "재정경제부_ 공공기관 채용정보 조회서비스",
      "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
      "endpoints": [],
@@ -75,7 +75,7 @@
        "total": null,
        "rows": 0,
        "keys": [],
-       "body_head": ""
+       "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n"
       }
      ]
     }
@@ -131,7 +131,7 @@
        "found": 0
       }
      ],
-     "guessed": true,
+     "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
      "title": "중소벤처기업부_ 중소기업 지원사업 공고 조회 서비스",
      "license_text": "공공저작물 : 출처표시, 변경금지 (제 3유형) 심의유형 개발단계 : 자",
      "endpoints": [],
@@ -146,14 +146,14 @@
      "request_vars": "",
      "calls": [
       {
-       "url": "https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2",
+       "url": "https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService",
        "status": 403,
        "resultCode": "?",
        "resultMsg": "",
        "total": null,
        "rows": 0,
        "keys": [],
-       "body_head": ""
+       "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n"
       }
      ]
     }
@@ -193,7 +193,7 @@
        "found": 0
       }
      ],
-     "guessed": true,
+     "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
      "title": "창업진흥원 _K-Startup(사업소개, 사업공고 ,콘텐츠 등)_조회서비스",
      "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
      "endpoints": [],
@@ -215,7 +215,28 @@
       "getTemplate"
      ],
      "request_vars": "",
-     "calls": []
+     "calls": [
+      {
+       "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getAnnouncementInformation01",
+       "status": 403,
+       "resultCode": "?",
+       "resultMsg": "",
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n"
+      },
+      {
+       "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getBusinessInformation01",
+       "status": 403,
+       "resultCode": "?",
+       "resultMsg": "",
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "body_head": "{\n  \"OpenAPI_ServiceResponse\": {\n    \"cmmMsgHeader\": {\n      \"errMsg\": \"SERVICE_KEY_IS_NOT_REGISTERED_ERROR\",\n      \"returnAuthMsg\": \"등록되지 않은 서비스키\",\n      \"returnReasonCode\": \"30\"\n    }\n  }\n}\n"
+      }
+     ]
     }
    }
   }
