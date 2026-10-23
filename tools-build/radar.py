@@ -160,15 +160,16 @@ def main():
     si, sd = pick_support(sr, today)
     data = {
         "_설명": "채용·지원사업 레이더 스냅샷 — tools-build/radar.py(refresh 매일). 규칙 = 선커밋 §6. 항목 글자는 원천 응답 그대로(§3-가). 담당자·연락처·본문 칸은 받지 않는다.",
-        "snapshot": now.strftime("%Y-%m-%d %H:%M"), "date": now.strftime("%Y-%m-%d"),
-        "recruit": {"source": "15125273", "scanned": rt, "fetched": len(rr), "n": len(ri), "dropped": rd, "orgs": ORGS,
+        # 받은 시각은 시각 키(fetched)다 — 목록이 그대로인 날은 refresh 가 커밋·배포하지 않는다(refresh.STAMP_KEYS). 목록이 바뀐 날만 지면이 새로 뜬다
+        "fetched": now.strftime("%Y-%m-%d %H:%M"),
+        "recruit": {"source": "15125273", "scanned": rt, "got": len(rr), "n": len(ri), "dropped": rd, "orgs": ORGS,
                     "by_org": {o: sum(1 for x in ri if x["instNm"] == o) for o in ORGS}, "items": ri},
-        "support": {"source": "15157820", "scanned": stt, "fetched": len(sr), "n": len(si), "dropped": sd, "regions": REGIONS,
+        "support": {"source": "15157820", "scanned": stt, "got": len(sr), "n": len(si), "dropped": sd, "regions": REGIONS,
                     "region_dist": region_dist([r for r in sr if r.get("pldirSportRealmLclasCodeNm") == "수출"]), "items": si},
         "kstartup": {"source": "15125364", "verdict": "미달 — 분야 칸(supt_biz_clsfc)에 물류·무역·수출 갈래가 없다(선커밋 §6)"},
     }
     write(OUT, data)
-    say("레이더", data["snapshot"], "· 채용", f"{len(ri)}/{rt}", "· 지원사업", f"{len(si)}/{stt}", "· 지역 분포", data["support"]["region_dist"])
+    say("레이더", data["fetched"], "· 채용", f"{len(ri)}/{rt}", "· 지원사업", f"{len(si)}/{stt}", "· 지역 분포", data["support"]["region_dist"])
     return 0
 
 

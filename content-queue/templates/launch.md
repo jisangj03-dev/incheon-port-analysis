@@ -13,7 +13,7 @@ posts: li-12 linkedin LinkedIn | th-01 threads Threads | tb-01 tistory 블로그
 
 {{gate.ym}} 금액 기준(관세청 항구·공항별 · 입·출항지 기준)으로 한국 수입의 {{gate.imp_share}}%가 인천 관문(인천공항 + 인천항)으로 들어오고, 수출은 {{gate.exp_share}}%가 인천에서 나갑니다. {{claim:gate.air_most.li}} — 인천 관문 수입 가운데 인천공항이 {{gate.air_imp}}억 달러, 인천항이 {{gate.port_imp}}억 달러입니다. 홈의 「최신 공표분으로 잰 숫자」 절 지도는 인천공항을 오간 나라별 항공화물 무게({{air.window}} 월평균 · 반기 공표분)를 흐름으로 그립니다. 공표 통계를 움직여 보인 것이라 실시간 위치는 아닙니다. 같은 달 한국 수입의 {{sudo.imp_share}}%는 수도권(서울·인천·경기)에 소재지를 둔 화주가 들여왔습니다(물건이 내린 곳이 아니라 화주 소재지 기준).
 
-일하면서 다시 찾을 만한 도구 {{site.n_tools}}개도 같이 올렸습니다.
+일하면서 다시 찾을 만한 도구도 같이 올렸습니다.
 · 수입원가 계산기 — 관세청 주간 과세환율로 같은 물건의 원가를 다시 계산합니다({{cost.goods}} 달러 물건, {{cost.ago_weeks}}주 전보다 {{cost.pct}}%)
 · 초크포인트 충격 — 호르무즈 해협 경유 나라와의 교역이 한국 수입의 {{choke.hormuz_imp}}%입니다
 · 외항선 입항 추이 — {{vessel.ym}} 인천 외항선 입항 {{vessel.incheon}}척, 작년 같은 달보다 {{vessel.yoy}}%
@@ -40,7 +40,7 @@ https://jisangj03-dev.github.io/incheon-port-analysis/
 
 ### 열어 둔 것
 
-실무 도구 {{site.n_tools}}개(수입원가 · 초크포인트 · 외항선 입항 추이 · 품목 트리맵 · 도달 등시선)와 시뮬레이션 {{site.n_sims}}개(맥주 게임 · 수요예측 실험실)가 있습니다. 예를 들어 수도권 도달 등시선에서는 {{reach.origin}}에서 서울시청까지 승용차로 {{reach.seoul_car}}분({{reach.slot}} 시간대 · 평일 {{reach.slot_at}} 출발)이 나옵니다.
+실무 도구 {{site.n_tools}}개(수입원가 · 초크포인트 · 외항선 입항 추이 · 품목 트리맵 · 도달 등시선 · 채용·지원사업 레이더)와 시뮬레이션 {{site.n_sims}}개(맥주 게임 · 수요예측 실험실)가 있습니다. 예를 들어 수도권 도달 등시선에서는 {{reach.origin}}에서 서울시청까지 승용차로 {{reach.seoul_car}}분({{reach.slot}} 시간대 · 평일 {{reach.slot_at}} 출발)이 나옵니다.
 
 ### 어떻게 만들었나
 

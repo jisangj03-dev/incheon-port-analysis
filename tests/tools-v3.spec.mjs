@@ -17,6 +17,9 @@ const TOOLS = {
     act: async (p) => { await p.waitForTimeout(3500); const a = await p.locator("#cs-body tr.sum td").last().innerText(); await p.fill("input[name=duty_pct]", "0"); await expect(p.locator("#cs-body tr.sum td").last()).not.toHaveText(a); } },
   chokepoint: { data: ["data/derived/chokepoints.json", "data/derived/choke_detour.json"], answer: "#ck-fig", num: "#ck-pct", asof: true,
     act: async (p) => { const a = await p.locator("#ck-imp").innerText(); await p.locator(".seg button[data-id=taiwan]").click(); await expect(p.locator("#ck-name")).toHaveText(/대만/); await expect(p.locator("#ck-imp")).not.toHaveText(a); const h = await p.locator("#ck-hit").innerText(); await p.locator("#ck-x").fill("10"); await expect(p.locator("#ck-hit")).not.toHaveText(h); } },
+  // [2026-10-23] 채용·지원사업 레이더 — 스냅샷 목록(원천 글자 그대로) · 조작 = 지원사업 지역 고르기
+  radar: { data: ["data/collected/v3/radar.json"], answer: ".rd", num: "#rd-n", asof: true,
+    act: async (p) => { const a = await p.locator("#rd-shown").innerText(); const b = p.locator(".rd__ctl .seg button[data-r]:not([data-r=''])").last(); await b.click(); await expect(b).toHaveAttribute("aria-pressed", "true"); await expect(p.locator("#rd-shown")).not.toHaveText(a); } },
 };
 
 for (const [id, T] of Object.entries(TOOLS)) {
@@ -102,6 +105,35 @@ test("운임 파도(KCCI): 마지막 반영 주 = 원천 마지막 주 · 「달
   await expect(page.locator("#wave-note")).toContainText("달러 운임이 아니고");
   await expect(page.locator("#wave-h")).toContainText("수입 운임이 아니다");
   await expect(page.locator("#wave-apply")).toHaveCount(0);
+});
+
+test("채용·지원사업 레이더: 항목 = 원천 글자 그대로 · 고르는 규칙 · 3건 문 · 개인정보 칸 0 · CSV(선커밋 §3·§3-가·§6)", async ({ request }) => {
+  const D = JSON.parse(J("data/collected/v3/radar.json")), html = J("astro/dist/tools/radar.html");
+  const unesc = (t) => t.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const text = unesc(html);
+  // 고르는 규칙 — 지원사업 = 분야 「수출」 + hashtags 낱값(서울·인천·경기·전국) · 채용 = 고정 기관 목록 글자 일치
+  for (const x of D.support.items) {
+    expect(x.pldirSportRealmLclasCodeNm).toBe("수출");
+    expect(x.hashtags.split(",").map((t) => t.trim()).some((t) => D.support.regions.includes(t))).toBe(true);
+    for (const k of ["pblancNm", "jrsdInsttNm", "reqstBeginEndDe", "trgetNm"]) expect(text, `지원사업 ${k} 글자 그대로`).toContain(x[k]);
+    expect(text).toContain(`href="${x.pblancUrl}"`);
+  }
+  for (const x of D.recruit.items) {
+    expect(D.recruit.orgs).toContain(x.instNm);
+    for (const k of ["recrutPbancTtl", "instNm", "pbancEndYmd"]) expect(text, `채용 ${k} 글자 그대로`).toContain(x[k]);
+  }
+  // 3건 문 — 미달 칸은 목록을 싣지 않는다
+  expect((html.match(/id="rd-s"/g) || []).length).toBe(D.support.n >= 3 ? 1 : 0);
+  expect((html.match(/id="rd-r"/g) || []).length).toBe(D.recruit.n >= 3 ? 1 : 0);
+  // 개인정보·본문 칸 — 받은 파일에도 지면에도 없다
+  const keys = new Set([...D.support.items, ...D.recruit.items].flatMap((x) => Object.keys(x)));
+  for (const k of keys) expect(k, `싣지 않는 칸 ${k}`).not.toMatch(/chrg|charger|tel|phone|mail|fax|bsnsSumry|aplyQlfc|prefCn|disqlfc|scrnprcdr|cnpl/i);
+  // 판단 말 0(§3) — 우리가 쓴 글만 본다(원천 공고명 「유망수출품목발굴 지원사업」처럼 원문 글자에 든 낱말은 바꾸지 않는다 · §3-가)
+  const ours = html.replace(/<ol id="rd-[sr]"[^>]*>[\s\S]*?<\/ol>/g, "");
+  expect(ours).not.toMatch(/추천|유망|적합도|마감까지 \d+일/);
+  // CSV = 지면 목록
+  const rows = (await (await request.get(`${B}/data/radar.csv`)).text()).trim().split(/\r?\n/);
+  expect(rows.length - 2, "설명 줄 · 머리줄 뺀 행 = 지면 목록").toBe((D.support.n >= 3 ? D.support.n : 0) + (D.recruit.n >= 3 ? D.recruit.n : 0));
 });
 
 test("입찰 레이더: 내림 — 도구 목록으로 넘김 · 색인 제외", async ({ page }) => {

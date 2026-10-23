@@ -62,6 +62,8 @@ STEPS = [
     # [2026-10-21 숫자 전수 ③→①] 달마다 다시 계산하는 바탕 층 — 때가 된 날만 돈다(periodic.py · 종료 75 = 건너뜀). --only 로 부르면 때와 상관없이 돈다
     ("iso", "도달 등시선 — OSM 도로망 · 카카오 내비 대조 · 시간대 배율(월 1회)", [sys.executable, "tools-build/periodic.py", "iso"], ".", 3000),
     ("tariff", "관세율표 — 공공데이터포털 파일 15051179(월 1회 확인)", [sys.executable, "tools-build/periodic.py", "tariff"], ".", 900),
+    # [2026-10-23] 채용·지원사업 레이더 — 진행 중 공고 스냅샷(선커밋 docs/측심_채용·지원사업레이더_판정기준_선커밋_20261022.md §6 · 덜 오면 지난 파일)
+    ("radar", "공공기관 채용정보 · 기업마당 수출 지원사업(레이더 스냅샷)", [sys.executable, "tools-build/radar.py"], ".", 900),
     ("derive", "파생 일곱 + 예측 원장", None, ".", 900),
 ]
 DERIVE = [
@@ -197,6 +199,11 @@ SOURCES = [
      "when": lambda: os.path.exists(os.path.join(ROOT, "data/collected/v3/kosis_retail.json")),  # 키가 들어와 한 번이라도 받은 뒤부터 잰다
      "ours": lambda: ym(((J("data/derived/home_axes.json") or {}).get("retail") or {}).get("kosis", {}).get("ym")),
      "latest": lambda: ym(max((r["ym"] for t in ((J("data/collected/v3/kosis_retail.json") or {}).get("tables") or {}).values() for r in (t.get("rows") or [])), default=None))},
+    # 레이더 — 원천은 매일 바뀌는 공고 목록이라 「기준기」가 없다. 우리가 받은 날로 잰다(recompute · 하루 주기 → 11일 넘게 못 받으면 지연)
+    {"id": "radar", "label": "공공기관 채용정보 · 기업마당 수출 지원사업(레이더 스냅샷)", "pages": ["채용·지원사업 레이더"], "step": "radar", "cadence": ["recompute", 1],
+     "when": lambda: os.path.exists(os.path.join(ROOT, "data/collected/v3/radar.json")),
+     "ours": lambda: ((J("data/collected/v3/radar.json") or {}).get("fetched") or "")[:10] or None,
+     "latest": lambda: ((J("data/collected/v3/radar.json") or {}).get("fetched") or "")[:10] or None},
     # 우리가 다시 계산하는 층 — 원천(OSM 은 매일 · 관세율표는 개정 때) 대신 우리 재계산 주기로 잰다(recompute · 다음 = 마지막 확인 + 주기)
     {"id": "osm-reach", "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)", "pages": ["도달 등시선", "도구 목록"], "step": "iso", "cadence": ["recompute", 28],
      "ours": lambda: (J("data/derived/isochrones.json") or {}).get("made"),
