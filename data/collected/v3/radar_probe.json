@@ -5,55 +5,30 @@
  "sources": {
   "alio-recruit": {
    "search": "공공기관 채용정보 조회서비스",
-   "search_status": 200,
-   "candidates": [
-    [
-     "15125273",
-     "재정경제부_ 공공기관 채용정보 조회서비스"
-    ],
-    [
-     "15043125",
-     "한국관광공사_ 채용정보 _현황"
-    ],
-    [
-     "15084515",
-     "한국중부발전(주)_중부발전 채용정보"
-    ],
-    [
-     "15074635",
-     "과학기술 정보 통신부_모집 채용"
-    ],
-    [
-     "15159757",
-     "행정안전부 한국지역정보개발원_ 채용정보 조회 서비스"
-    ]
-   ],
+   "search_status": "<urlopen error timed out>",
+   "candidates": [],
    "sets": {
     "15125273": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": "재정경제부_ 공공기관 채용정보 조회서비스",
-     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 심",
+     "title": null,
+     "license_text": null,
      "endpoints": [],
-     "ops": [
-      "getCategoryClass",
-      "getElementById",
-      "getMypageUrl",
-      "getOrCreateQuickSummary",
-      "getSsoApiUrl",
-      "getTemplate"
-     ],
+     "ops": [],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/1051000/recruitment/list",
-       "status": 200,
+       "status": "<urlopen error timed out>",
        "resultCode": "?",
        "resultMsg": "",
-       "total": 114931,
-       "rows": 1,
-       "keys": []
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "fill": {},
+       "classes": {},
+       "body_head": ""
       }
      ]
     }
@@ -61,67 +36,30 @@
   },
   "bizinfo": {
    "search": "중소기업 지원사업 공고 조회",
-   "search_status": 200,
-   "candidates": [
-    [
-     "15157820",
-     "중소벤처기업부_ 중소기업 지원사업 공고 조회 서비스"
-    ],
-    [
-     "15113297",
-     "중소 벤처 기업 부_ 사업 공고"
-    ],
-    [
-     "15058107",
-     "제주특별자치도_제주 기업 지원 시책-판로 지원 목록 조회"
-    ],
-    [
-     "15058913",
-     "제주특별자치도_제주 기업 지원 시책-기술 지원 목록 조회"
-    ],
-    [
-     "15056784",
-     "제주특별자치도_제주 기업 지원 시책-경영 지원 목록 조회"
-    ]
-   ],
+   "search_status": "<urlopen error timed out>",
+   "candidates": [],
    "sets": {
     "15157820": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": "중소벤처기업부_ 중소기업 지원사업 공고 조회 서비스",
-     "license_text": "공공저작물 : 출처표시, 변경금지 (제 3유형) 심의유형 개발단계 : 자",
+     "title": null,
+     "license_text": null,
      "endpoints": [],
-     "ops": [
-      "getCategoryClass",
-      "getElementById",
-      "getMypageUrl",
-      "getOrCreateQuickSummary",
-      "getSsoApiUrl",
-      "getTemplate"
-     ],
+     "ops": [],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService",
-       "status": 200,
-       "resultCode": "00",
-       "resultMsg": "NORMAL_SERVICE",
-       "total": 1457,
-       "rows": 5,
-       "keys": [
-        "creatPnttm",
-        "excInsttNm",
-        "inqireCo",
-        "jrsdInsttNm",
-        "p",
-        "pblancId",
-        "pblancUrl",
-        "pldirSportRealmLclasCodeNm",
-        "reqstBeginEndDe",
-        "trgetNm",
-        "updtPnttm"
-       ]
+       "status": "<urlopen error timed out>",
+       "resultCode": "?",
+       "resultMsg": "",
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "fill": {},
+       "classes": {},
+       "body_head": ""
       }
      ]
     }
@@ -129,57 +67,42 @@
   },
   "kstartup": {
    "search": "창업진흥원 사업공고",
-   "search_status": 200,
-   "candidates": [
-    [
-     "15125364",
-     "창업진흥원 _K-Startup(사업소개, 사업공고 ,콘텐츠 등)_조회서비스"
-    ]
-   ],
+   "search_status": "<urlopen error timed out>",
+   "candidates": [],
    "sets": {
     "15125364": {
      "pk": null,
      "detail_tried": [],
      "endpoint_source": "명세 화면(사람 · 10/23 채팅)",
-     "title": "창업진흥원 _K-Startup(사업소개, 사업공고 ,콘텐츠 등)_조회서비스",
-     "license_text": "이용허락범위 제한 없음 심의유형 개발단계 : 자동승인 / 운영단계 : 자",
+     "title": null,
+     "license_text": null,
      "endpoints": [],
-     "ops": [
-      "getAnnouncementInformation01",
-      "getAnnouncementInformation01_response",
-      "getBusinessInformation",
-      "getBusinessInformation01",
-      "getBusinessInformation01_response",
-      "getCategoryClass",
-      "getContentInformation01",
-      "getContentInformation01_response",
-      "getElementById",
-      "getMypageUrl",
-      "getOrCreateQuickSummary",
-      "getSsoApiUrl",
-      "getStatisticalInformation01",
-      "getStatisticalInformation01_response",
-      "getTemplate"
-     ],
+     "ops": [],
      "request_vars": "",
      "calls": [
       {
        "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getAnnouncementInformation01",
-       "status": 200,
+       "status": "<urlopen error timed out>",
        "resultCode": "?",
        "resultMsg": "",
-       "total": 30417,
-       "rows": 1,
-       "keys": []
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "fill": {},
+       "classes": {},
+       "body_head": ""
       },
       {
        "url": "https://apis.data.go.kr/B552735/kisedKstartupService01/getBusinessInformation01",
-       "status": 200,
+       "status": "<urlopen error timed out>",
        "resultCode": "?",
        "resultMsg": "",
-       "total": 511,
-       "rows": 1,
-       "keys": []
+       "total": null,
+       "rows": 0,
+       "keys": [],
+       "fill": {},
+       "classes": {},
+       "body_head": ""
       }
      ]
     }
