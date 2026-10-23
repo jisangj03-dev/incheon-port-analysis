@@ -26,6 +26,14 @@ KNOWN = {  # 데이터 번호 기준 — 같은 검색에 걸린 다른 데이�
 }
 
 KNOWN_BY_SOURCE = {"alio-recruit": "15125273", "bizinfo": "15157820", "kstartup": "15125364"}
+# 8회차 — 원천마다 요청 변수가 다르다(7회차: 지원사업은 perPage·page·30행을 붙이자 「HTTP_ERROR(04)」 · 5회차 5행은 정상).
+#   변형마다 한 번씩 불러 전체 건수가 줄어드는지 본다 — 서버 쪽 거르기(진행 중 · 분야)가 되면 하루 호출 한도 안에서 다 받을 수 있다.
+BASE_P = {"alio-recruit": {"numOfRows": "30", "pageNo": "1", "resultType": "json"},
+          "bizinfo": {"numOfRows": "10", "pageNo": "1"},
+          "kstartup": {"perPage": "30", "page": "1", "returnType": "json"}}
+VARIANTS = {"alio-recruit": [{}, {"ongoingYn": "Y"}],
+            "bizinfo": [{}, {"searchLclasId": "04"}],
+            "kstartup": [{}, {"cond[rcrt_prgs_yn::EQ]": "Y"}]}
 
 
 def fetch(url, params, timeout=40):
@@ -73,6 +81,14 @@ def json_rows(body):
     return [{k: ("" if v is None else str(v)) for k, v in r.items()} for r in best]
 
 
+def xml_rows(body):
+    """XML 응답을 ElementTree 로 — <item> 의 자식 칸 이름과 글(CDATA 포함 · 안쪽 태그는 글만)."""
+    import xml.etree.ElementTree as ET
+    try: root = ET.fromstring(body.strip().encode("utf-8"))
+    except ET.ParseError: return []
+    return [{ch.tag: "".join(ch.itertext()).strip() for ch in it} for it in root.iter("item")]
+
+
 def shape(body, rows):
     """행 값 없이 모양만 — 전체 건수 · 칸 이름(전 행 합집합) · 칸마다 채워진 행 수와 가장 긴 글자 수."""
     m = re.search(r'"?totalCount"?\s*[:>]\s*"?(\d+)', body or "")
@@ -82,7 +98,8 @@ def shape(body, rows):
 
 
 # 고르는 칸 후보(분류·기관·지역 꼴 이름)만 값 분포를 남긴다 — 사람을 가리킬 수 있는 칸은 이름으로 먼저 뺀다(담당자·대표자·연락처·주소)
-CLASS_KEY = re.compile(r"(Nm|Cd|Se|Rgn|Area|Realm|Clss|Ty|Type|Yn|Gb|Div)$|(rgn|area|region|realm|sido|instt|inst|ncs|type|kind)", re.I)
+CLASS_KEY = re.compile(r"(Nm|Cd|Se|Rgn|Area|Realm|Clss|Ty|Type|Yn|Gb|Div)$|(rgn|regin|area|region|realm|lclas|clsfc|trgt|sido|instt|inst|ncs|type|kind|hashtag)", re.I)
+TAG_KEY = re.compile(r"hashtag|Lst$", re.I)  # 쉼표로 여러 값을 담는 칸 — 낱값으로 쪼개 센다
 PERSON_KEY = re.compile(r"chrg|charger|rprs|ceo|psn|pic|mngr|manager|tel|phone|fax|mail|addr|homepage|url|link", re.I)
 
 
@@ -92,6 +109,7 @@ def classes(rows, keys):
     for k in keys:
         if PERSON_KEY.search(k) or not CLASS_KEY.search(k): continue
         vals = [(r.get(k) or "").strip() for r in rows]
+        if TAG_KEY.search(k): vals = [t.strip() for v in vals for t in v.split(",")]
         vals = [v for v in vals if v]
         if not vals or len(set(vals)) > 40 or max(len(v) for v in vals) > 40: continue
         cnt = {}
@@ -106,7 +124,8 @@ def main():
     from kr_apis import portal_find, spec
     out = {"checked": datetime.date.today().isoformat(), "key_present": bool(KEY), "note": "행 값은 저장하지 않는다(개인정보) — 칸 이름·건수만", "sources": {}}
     for sid, (q, want) in FIND.items():
-        st, cands = portal_find(q)
+        # 아는 주소면 포털 검색을 건너뛴다 — 검색 화면이 자주 끊겨(4·6회차) 한 원천에 3분씩 먹는다 · 이용허락은 kogl_check 가 따로 잰다
+        st, cands = ("생략 — 아는 주소", []) if sid in KNOWN_BY_SOURCE else portal_find(q)
         pick = [c for c in cands if all(w in c[1] for w in want)][:2]
         known = KNOWN_BY_SOURCE.get(sid)
         if known and known not in [d for d, _ in pick]: pick.append((known, None))  # 포털 검색이 끊겨도(4회차 시간 초과) 아는 주소는 부른다
@@ -126,16 +145,18 @@ def main():
                     for op in [o for o in sp["ops"] if not o.startswith(("getCategory", "getElement", "getMypage", "getOrCreate", "getSso", "getTemplate"))][:4]:
                         if not ep.rstrip("/").endswith(op): urls.append(ep.rstrip("/") + "/" + op)
             for u in list(dict.fromkeys(urls))[:8]:
-                p = {"serviceKey": KEY, "numOfRows": "30", "pageNo": "1", "perPage": "30", "page": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
+              for var in (VARIANTS.get(sid) or [{}]):
+                p = {"serviceKey": KEY, **(BASE_P.get(sid) or {"numOfRows": "10", "pageNo": "1", "type": "json"}), **var}
                 s2, b, eb = fetch(u, p, timeout=90)
                 if not isinstance(s2, int): s2, b, eb = fetch(u, p, timeout=90)  # 6회차: 100행 · 40초에 넷 다 시간 초과 → 30행 · 90초 · 한 번 더
                 b = scrub(b)
                 rc, msg, rows = parse(b)
                 if (b or "").lstrip().startswith(("{", "[")) and not any(rows): rows = json_rows(b)  # parse 가 꼴을 못 알아 빈 행 하나를 낸 경우(5회차 채용·K-Startup)
-                c = {"url": u, "status": s2, "resultCode": rc, "resultMsg": (msg or "")[:120], **shape(b, rows)}
+                elif (b or "").lstrip().startswith("<"): rows = xml_rows(b) or rows  # 태그 정규식은 CDATA·본문 안 HTML 칸을 놓친다(5회차 지원사업 「p」 칸)
+                c = {"url": u, "params": {k: v for k, v in p.items() if k != "serviceKey"}, "status": s2, "resultCode": rc, "resultMsg": (msg or "")[:120], **shape(b, rows)}
                 if not rows: c["body_head"] = (b or eb or "")[:240]  # 오류 응답만(행이 없으면 개인정보도 없다)
                 calls.append(c)
-                say(sid, did, u.rsplit("/", 2)[-2:], s2, rc, c["rows"], c["total"])
+                say(sid, did, u.rsplit("/", 1)[-1], var, s2, rc, c["rows"], c["total"])
             rec["sets"][did] = {"pk": pk, "detail_tried": tried, "endpoint_source": "명세 화면(사람 · 10/23 채팅)" if did in KNOWN else "명세 화면(자동)",
                                 "title": title, "license_text": sp.get("license_text"), "endpoints": sp["endpoints"], "ops": sp["ops"], "request_vars": (sp.get("request_vars") or "")[:800], "calls": calls}
         out["sources"][sid] = rec
@@ -148,10 +169,13 @@ def selftest():
     assert s == {"total": 37, "rows": 2, "keys": ["a", "b", "c"], "fill": {"a": [1, 2], "b": [1, 1], "c": [0, 0]}, "classes": {}}, s
     c = classes([{"instNm": "인천항만공사", "chrgerNm": "홍길동", "telNo": "032"}, {"instNm": "인천항만공사"}], ["chrgerNm", "instNm", "telNo"])
     assert c == {"instNm": [("인천항만공사", 2)]}, c  # 담당자·전화는 이름으로 빠진다
+    x = xml_rows("<response><body><items><item><pblancNm><![CDATA[수출 <b>바우처</b>]]></pblancNm><hashtags>서울,수출</hashtags></item></items></body></response>")
+    assert x == [{"pblancNm": "수출 <b>바우처</b>", "hashtags": "서울,수출"}], x
+    assert classes(x + [{"hashtags": "인천,수출"}], ["hashtags"]) == {"hashtags": [("수출", 2), ("서울", 1), ("인천", 1)]}
     assert json_rows('{"currentCount":2,"data":[{"x":1},{"x":null,"y":"z"}],"meta":[{"q":1}]}') == [{"x": "1"}, {"x": "", "y": "z"}]
     assert "개인" not in str(s)  # 값은 안 남는다
     assert all(u.startswith("https://apis.data.go.kr/") for v in KNOWN.values() for u in v)
-    print("radar_probe selftest OK (4)"); return 0
+    print("radar_probe selftest OK (6)"); return 0
 
 
 if __name__ == "__main__":
