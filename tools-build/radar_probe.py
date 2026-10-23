@@ -16,12 +16,28 @@ FIND = {
     "bizinfo": ("중소기업 지원사업 공고 조회", ["지원사업 공고"]),
     "kstartup": ("창업진흥원 사업공고", ["사업공고"]),
 }
-# 1회차(10/22) — 명세 화면에 요청 주소가 없었다(비동기로 싣는다). 2회차: 화면의 상세 기능 조각(selectApiDetailFunction)을 따로 읽고,
-#   그래도 없으면 알려진 주소 후보를 부른다(후보는 세션 지식 · [미확인] — 응답 코드가 판정한다).
-GUESS = {
-    "alio-recruit": ["https://apis.data.go.kr/1051000/recruitment/list"],
-    "bizinfo": ["https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2"],
+# 1회차(10/22) — 명세 화면에 요청 주소가 없었다(비동기로 싣는다). 2회차: 비동기 조각(selectApiDetailFunction)이 500 이라 후보 주소를 불렀고 403.
+# 3회차(10/23) — 요청 주소는 사람이 명세 화면(로그인 없이)에서 읽어 채팅으로 넘겼다. 이 주소는 추측이 아니다 — 그대로 부르고 덧붙이지 않는다.
+KNOWN = {  # 데이터 번호 기준 — 같은 검색에 걸린 다른 데이터에는 안 부른다
+    "15125273": ["https://apis.data.go.kr/1051000/recruitment/list"],  # /detail 은 공고 번호가 있어야 한다 — 목록이 열린 뒤에
+    "15157820": ["https://apis.data.go.kr/1421000/bizinfo/pblancBsnsService"],
+    "15125364": ["https://apis.data.go.kr/B552735/kisedKstartupService01/getAnnouncementInformation01",
+                 "https://apis.data.go.kr/B552735/kisedKstartupService01/getBusinessInformation01"],
 }
+
+
+def fetch(url, params, timeout=40):
+    """common.get 은 HTTP 오류의 본문을 버린다 — 403 이 「등록되지 않은 키」인지 「없는 주소」인지 갈라 보려고 오류 본문 머리를 받는다."""
+    import urllib.error, urllib.parse, urllib.request
+    from common import UA, scrub
+    req = urllib.request.Request(url + "?" + urllib.parse.urlencode(params), headers={"User-Agent": UA})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return r.status, r.read().decode("utf-8", "replace"), ""
+    except urllib.error.HTTPError as e:
+        return e.code, "", scrub(e.read().decode("utf-8", "replace"))[:240]
+    except Exception as e:
+        return scrub(str(e))[:160], "", ""
 
 
 def detail_endpoints(did, get):
@@ -57,22 +73,25 @@ def main():
             sp = spec(did)
             calls = []
             pk, deps, tried = detail_endpoints(did, get)
-            eps = (sp["endpoints"] + deps)[:6] or GUESS.get(sid, [])
-            urls = []
-            for ep in eps:
-                urls.append(ep)
-                for op in [o for o in sp["ops"] if not o.startswith(("getCategory", "getElement", "getMypage", "getOrCreate", "getSso", "getTemplate"))][:4]:
-                    if not ep.rstrip("/").endswith(op): urls.append(ep.rstrip("/") + "/" + op)
+            if did in KNOWN:
+                urls = KNOWN[did]
+            else:
+                eps = (sp["endpoints"] + deps)[:6]
+                urls = []
+                for ep in eps:
+                    urls.append(ep)
+                    for op in [o for o in sp["ops"] if not o.startswith(("getCategory", "getElement", "getMypage", "getOrCreate", "getSso", "getTemplate"))][:4]:
+                        if not ep.rstrip("/").endswith(op): urls.append(ep.rstrip("/") + "/" + op)
             for u in list(dict.fromkeys(urls))[:8]:
                 p = {"serviceKey": KEY, "numOfRows": "5", "pageNo": "1", "type": "json", "_type": "json", "resultType": "json", "returnType": "json"}
-                s2, b = get(u, p, timeout=40, tries=2)
+                s2, b, eb = fetch(u, p)
                 b = scrub(b)
                 rc, msg, rows = parse(b)
                 c = {"url": u, "status": s2, "resultCode": rc, "resultMsg": (msg or "")[:120], **shape(b, rows)}
-                if not rows: c["body_head"] = (b or "")[:240]  # 오류 응답만(행이 없으면 개인정보도 없다)
+                if not rows: c["body_head"] = (b or eb or "")[:240]  # 오류 응답만(행이 없으면 개인정보도 없다)
                 calls.append(c)
                 say(sid, did, u.rsplit("/", 2)[-2:], s2, rc, c["rows"], c["total"])
-            rec["sets"][did] = {"pk": pk, "detail_tried": tried, "guessed": not (sp["endpoints"] + deps),
+            rec["sets"][did] = {"pk": pk, "detail_tried": tried, "endpoint_source": "명세 화면(사람 · 10/23 채팅)" if did in KNOWN else "명세 화면(자동)",
                                 "title": title, "license_text": sp.get("license_text"), "endpoints": sp["endpoints"], "ops": sp["ops"], "request_vars": (sp.get("request_vars") or "")[:800], "calls": calls}
         out["sources"][sid] = rec
     write("data/collected/v3/radar_probe.json", out)
@@ -83,7 +102,8 @@ def selftest():
     s = shape('{"response":{"body":{"totalCount":37,"items":[]}}}', [{"b": 1, "a": "개인"}])
     assert s == {"total": 37, "rows": 1, "keys": ["a", "b"]}, s
     assert "개인" not in str(s)  # 값은 안 남는다
-    print("radar_probe selftest OK (2)"); return 0
+    assert all(u.startswith("https://apis.data.go.kr/") for v in KNOWN.values() for u in v)
+    print("radar_probe selftest OK (3)"); return 0
 
 
 if __name__ == "__main__":
