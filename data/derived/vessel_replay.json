@@ -878,5 +878,5 @@
  "computed": "2026-10-24",
  "command": "python tools-build/vessel_derive.py",
  "granularity": "월 · 항만 · 선종 합계 — 개별 선박 아님",
- "fetched": "2026-10-23"
+ "fetched": "2026-10-24"
 }
