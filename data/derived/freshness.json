@@ -236,6 +236,29 @@
    "delay_reason": null,
    "human": false
   },
+  "radar": {
+   "label": "공공기관 채용정보 · 기업마당 수출 지원사업(레이더 스냅샷)",
+   "pages": [
+    "채용·지원사업 레이더"
+   ],
+   "cadence": [
+    "recompute",
+    1
+   ],
+   "ours": "2026-10-24",
+   "source_latest": "2026-10-24",
+   "checked": "2026-10-23",
+   "last_error": null,
+   "next_expected": "2026-10-24",
+   "max_age": 11,
+   "behind": false,
+   "fail_kind": null,
+   "fail_since": null,
+   "fail_days": 0,
+   "delayed": false,
+   "delay_reason": null,
+   "human": false
+  },
   "osm-reach": {
    "label": "OpenStreetMap 도로망 등시선 · 카카오 내비 대조(우리 재계산)",
    "pages": [

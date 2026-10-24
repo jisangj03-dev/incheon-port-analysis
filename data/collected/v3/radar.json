@@ -1,13 +1,13 @@
 {
  "_설명": "채용·지원사업 레이더 스냅샷 — tools-build/radar.py(refresh 매일). 규칙 = 선커밋 §6. 항목 글자는 원천 응답 그대로(§3-가). 담당자·연락처·본문 칸은 받지 않는다.",
- "fetched": "2026-10-23 12:43",
+ "fetched": "2026-10-24 09:08",
  "recruit": {
   "source": "15125273",
-  "scanned": 473,
-  "got": 473,
+  "scanned": 469,
+  "got": 469,
   "n": 5,
   "dropped": {
-   "기관 목록 밖": 468,
+   "기관 목록 밖": 464,
    "마감 지남": 0,
    "진행 아님": 0
   },
@@ -102,9 +102,9 @@
  },
  "support": {
   "source": "15157820",
-  "scanned": 187,
-  "got": 187,
-  "n": 72,
+  "scanned": 184,
+  "got": 184,
+  "n": 69,
   "dropped": {
    "분야 수출 아님": 0,
    "지역 낱값 없음(서울·인천·경기·전국)": 115,
@@ -119,20 +119,20 @@
   "region_dist": {
    "by_sido": {
     "경북": 66,
-    "경기": 64,
-    "경남": 63,
-    "부산": 63,
-    "강원": 62,
-    "충북": 60,
+    "부산": 64,
+    "경남": 62,
+    "경기": 61,
+    "강원": 60,
+    "충북": 59,
     "충남": 57,
-    "전북": 56,
     "울산": 55,
+    "대전": 55,
+    "전북": 55,
     "서울": 54,
-    "대전": 54,
+    "대구": 53,
     "제주": 53,
     "인천": 52,
-    "세종": 50,
-    "대구": 50,
+    "세종": 51,
     "전남광주": 47,
     "전남": 20,
     "광주": 18
@@ -140,68 +140,6 @@
    "no_sido_tag": 0
   },
   "items": [
-   {
-    "pblancId": "PBLN_000000000127103",
-    "pblancNm": "2026년 제약바이오 투자대전(해외 투자유치ㆍ수출 상담회) 참가기업 모집 공고",
-    "jrsdInsttNm": "산업통상부",
-    "excInsttNm": "대한무역투자진흥공사",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-08 ~ 2026-10-23",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127103",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,산업통상부,2026,제약,의료,대한무역투자진흥공사,헬스케어,투자유치,바이오,인천관광공사,한국제약바이오협회,인천테크노파크",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261023"
-   },
-   {
-    "pblancId": "PBLN_000000000126468",
-    "pblancNm": "[경기] 성남시 2026년 해외 전시회 개별 참가 지원 모집 공고",
-    "jrsdInsttNm": "경기도",
-    "excInsttNm": "성남산업진흥원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-09-11 ~ 2026-10-23",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126468",
-    "hashtags": "수출,경기,AI인공지능,2026,loT,설치비,부스임차,참가비,항공료,통역,AR,VR,솔루션,모바일,SW,식품,IT,성남시,기초자치단체,헬스케어,정보통신,전시회,경기도,뷰티,해외시장,성남산업진흥원",
-    "regions": [
-     "경기"
-    ],
-    "_end": "20261023"
-   },
-   {
-    "pblancId": "PBLN_000000000126915",
-    "pblancNm": "[경기] 화성시 2026년 2차 스마트 물류비 지원사업 참가기업 모집 공고",
-    "jrsdInsttNm": "경기도",
-    "excInsttNm": "기초자치단체",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-01 ~ 2026-10-23",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126915",
-    "hashtags": "수출,경기,2026,기초자치단체,경기도,화성시,수출물류비,물류비,스마트물류비,중소기업,제조업체",
-    "regions": [
-     "경기"
-    ],
-    "_end": "20261023"
-   },
-   {
-    "pblancId": "PBLN_000000000127217",
-    "pblancNm": "[경기] 화성시 2027년 창업기업 CES 탐방단(The International Consumer Electronics Show) 모집 연장 공고",
-    "jrsdInsttNm": "경기도",
-    "excInsttNm": "기초자치단체",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "창업벤처",
-    "reqstBeginEndDe": "2026-09-18 ~ 2026-10-23",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127217",
-    "hashtags": "수출,경기,2026,지식창업기업,지식창업,기술창업기업,CES,숙박료,항공료,간담회,기술창업,화성시,기초자치단체,창업7년이내,창업기업,전시회,경기도,세미나",
-    "regions": [
-     "경기"
-    ],
-    "_end": "20261023"
-   },
    {
     "pblancId": "PBLN_000000000127339",
     "pblancNm": "2026년 베트남 최대 방산전시회(VIDEX 2026) 방산홍보사업 참가사 모집 공고",
@@ -710,6 +648,23 @@
     "reqstBeginEndDe": "2026-10-15 ~ 2026-11-03",
     "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127269",
     "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,SMTS,슈퍼마켓트레이드쇼,2026,샘플발송비,쌀가공식품,통역비,참가비,수출컨소시엄,동경,장치비,임차비,운송비,한국쌀가공식품협회,농림축산식품부,일본,해외시장,바이어,마케팅",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261103"
+   },
+   {
+    "pblancId": "PBLN_000000000127423",
+    "pblancNm": "2027년 콘텐츠 아메리카 한국공동관 및 쇼케이스 참가기업 추가모집 공고",
+    "jrsdInsttNm": "문화체육관광부",
+    "excInsttNm": "한국콘텐츠진흥원",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-22 ~ 2026-11-03",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127423",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,마이애미,2026,아메리카,방송영상콘텐츠,방송프로그램,디렉토리북,콘텐츠산업,OTT,쇼케이스,미국,비즈매칭,공동관,한국콘텐츠진흥원,문화체육관광부,홍보,바이어",
     "regions": [
      "서울",
      "인천",
