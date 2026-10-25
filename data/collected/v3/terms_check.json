@@ -1,5 +1,5 @@
 {
- "checked": "2026-10-22",
+ "checked": "2026-10-25",
  "pages": {
   "imf-portwatch": [
    {
@@ -61,7 +61,7 @@
    {
     "url": "https://registry.opendata.aws/sentinel-2-l2a-cogs/",
     "status": 200,
-    "chars": 5050,
+    "chars": 5125,
     "excerpts": [
      " globally since December 2018. Update Frequency New Sentinel data are added regularly, usually within few hours after they are available on Copernicus OpenHub. License Access to Sentinel data is free, full and open for the broad Regional, National, European and International user community. View Terms and Conditions . Documentation https://github.com/Element84/earth-search Managed By ",
      "on Copernicus OpenHub. License Access to Sentinel data is free, full and open for the broad Regional, National, European and International user community. View Terms and Conditions . Documentation https://github.com/Element84/earth-search Managed By See all datasets managed by Element 84 . Contact opendata@element84.com How to Cite Sentinel-2 Cloud-Optimized GeoTIFFs was accessed on"

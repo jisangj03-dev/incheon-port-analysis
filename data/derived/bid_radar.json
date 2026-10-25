@@ -1,16 +1,16 @@
 {
  "_설명": "나라장터 입찰공고(용역) 중 물류·무역 공고 — 빌드 때 스냅샷. 고르는 규칙 = 선커밋 ③-가. 담당자 개인정보 칸은 받지 않는다. 목록은 사람이 검수하지 않는다.",
  "source": "조달청 나라장터 입찰공고정보서비스(공공데이터포털 · 용역)",
- "snapshot": "2026-10-22 16:59",
+ "snapshot": "2026-10-26 06:15",
  "window_days": 21,
- "scanned": 8984,
- "n": 34,
+ "scanned": 9109,
+ "n": 37,
  "group_counts": {
-  "연구·계획": 7,
-  "행사·전시": 3,
+  "연구·계획": 9,
+  "행사·전시": 2,
   "운송·배송": 15,
-  "보관·창고": 2,
-  "통관·무역": 5,
+  "보관·창고": 3,
+  "통관·무역": 6,
   "항만·해운·항공": 2
  },
  "groups": [
@@ -80,54 +80,6 @@
   "선거물품"
  ],
  "items": [
-  {
-   "bidNtceNo": "R26BK01778553",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2026년 제2·3차 세계한상 수출상담회 참여 해외바이어 지원 용역",
-   "ntceInsttNm": "재외동포청",
-   "dminsttNm": "재외동포청",
-   "bidNtceDt": "2026-10-19 15:04:26",
-   "bidClseDt": "2026-10-23 10:00:00",
-   "presmptPrce": 68181818,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01778553&bidPbancOrd=000",
-   "group": "행사·전시"
-  },
-  {
-   "bidNtceNo": "R26BK01779425",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2026년 하반기 무안군 방치(보관) 슬레이트 처리용역",
-   "ntceInsttNm": "전남광주통합특별시 무안군",
-   "dminsttNm": "전남광주통합특별시 무안군",
-   "bidNtceDt": "2026-10-19 17:56:19",
-   "bidClseDt": "2026-10-23 10:00:00",
-   "presmptPrce": 27120000,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01779425&bidPbancOrd=000",
-   "group": "보관·창고"
-  },
-  {
-   "bidNtceNo": "R26BK01764168",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "2026 국내 할랄인증 표준·가이드 제작 및 수출 확대 로드맵 수립 연구",
-   "ntceInsttNm": "한국식품연구원",
-   "dminsttNm": "한국식품연구원",
-   "bidNtceDt": "2026-10-12 10:00:08",
-   "bidClseDt": "2026-10-23 10:00:00",
-   "presmptPrce": 36363636,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01764168&bidPbancOrd=000",
-   "group": "연구·계획"
-  },
-  {
-   "bidNtceNo": "R26BK01764865",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "지역배송업체 소포우편물 위탁배달 용역 2차 공고(화성동탄)",
-   "ntceInsttNm": "과학기술정보통신부 우정사업본부 경인지방우정청",
-   "dminsttNm": "과학기술정보통신부 우정사업본부 경인지방우정청",
-   "bidNtceDt": "2026-10-12 17:07:04",
-   "bidClseDt": "2026-10-23 10:00:00",
-   "presmptPrce": 518216364,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01764865&bidPbancOrd=000",
-   "group": "운송·배송"
-  },
   {
    "bidNtceNo": "R26BK01776785",
    "bidNtceOrd": "001",
@@ -211,6 +163,18 @@
    "presmptPrce": 43636367,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01773881&bidPbancOrd=000",
    "group": "행사·전시"
+  },
+  {
+   "bidNtceNo": "R26BK01787745",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "공장·창고 화재안전 실태조사(총괄 운영 및 현장 관리)",
+   "ntceInsttNm": "국토교통부",
+   "dminsttNm": "국토교통부",
+   "bidNtceDt": "2026-10-23 10:01:42",
+   "bidClseDt": "2026-10-27 11:00:00",
+   "presmptPrce": 2809090909,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01787745&bidPbancOrd=000",
+   "group": "연구·계획"
   },
   {
    "bidNtceNo": "R26BK01777186",
@@ -345,6 +309,54 @@
    "group": "운송·배송"
   },
   {
+   "bidNtceNo": "R26BK01782740",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027년 스마트 수출전문단지 구축사업 현장평가 용역",
+   "ntceInsttNm": "한국농수산식품유통공사",
+   "dminsttNm": "한국농수산식품유통공사",
+   "bidNtceDt": "2026-10-22 18:07:50",
+   "bidClseDt": "2026-11-03 10:00:00",
+   "presmptPrce": 72727273,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01782740&bidPbancOrd=000",
+   "group": "통관·무역"
+  },
+  {
+   "bidNtceNo": "R26BK01781035",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "국제물류진흥지역 기본계획 수립 연구",
+   "ntceInsttNm": "국토교통부",
+   "dminsttNm": "국토교통부",
+   "bidNtceDt": "2026-10-23 07:46:38",
+   "bidClseDt": "2026-11-03 10:00:00",
+   "presmptPrce": 45454545,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01781035&bidPbancOrd=000",
+   "group": "연구·계획"
+  },
+  {
+   "bidNtceNo": "R26BK01782890",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2026년도 기업물류관리 활용 실태조사",
+   "ntceInsttNm": "국토교통부",
+   "dminsttNm": "국토교통부",
+   "bidNtceDt": "2026-10-23 07:47:08",
+   "bidClseDt": "2026-11-03 10:00:00",
+   "presmptPrce": 15454545,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01782890&bidPbancOrd=000",
+   "group": "연구·계획"
+  },
+  {
+   "bidNtceNo": "R26BK01789299",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "1호선 지하역사 공조덕트 교체공사(5차) 감리용역",
+   "ntceInsttNm": "인천교통공사",
+   "dminsttNm": "인천교통공사",
+   "bidNtceDt": "2026-10-23 17:36:42",
+   "bidClseDt": "2026-11-03 10:00:00",
+   "presmptPrce": 149720000,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01789299&bidPbancOrd=000",
+   "group": "보관·창고"
+  },
+  {
    "bidNtceNo": "R26BK01785672",
    "bidNtceOrd": "000",
    "bidNtceNm": "과테말라 섬유TASTK센터 교육장비 국제운송 및 수출·입 통관대행 용역",
@@ -355,6 +367,18 @@
    "presmptPrce": 78759009,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01785672&bidPbancOrd=000",
    "group": "통관·무역"
+  },
+  {
+   "bidNtceNo": "R26BK01787920",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027년 인천세관 압수물품 및 압수창고 관리용역 사업",
+   "ntceInsttNm": "관세청 인천세관",
+   "dminsttNm": "관세청 인천세관",
+   "bidNtceDt": "2026-10-23 11:06:31",
+   "bidClseDt": "2026-11-03 16:00:00",
+   "presmptPrce": 87873727,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01787920&bidPbancOrd=000",
+   "group": "보관·창고"
   },
   {
    "bidNtceNo": "R26BK01778857",
@@ -429,18 +453,6 @@
    "group": "항만·해운·항공"
   },
   {
-   "bidNtceNo": "R26BK01750936",
-   "bidNtceOrd": "000",
-   "bidNtceNm": "에티오피아 무역활성화를 위한 통합 관세행정시스템 구축 사업 PMC 용역",
-   "ntceInsttNm": "한국국제협력단",
-   "dminsttNm": "한국국제협력단",
-   "bidNtceDt": "2026-10-02 10:17:52",
-   "bidClseDt": "2026-11-18 10:00:00",
-   "presmptPrce": 1528556507,
-   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01750936&bidPbancOrd=000",
-   "group": "통관·무역"
-  },
-  {
    "bidNtceNo": "R26BK01768650",
    "bidNtceOrd": "000",
    "bidNtceNm": "강원대학교병원 의료물품 구매·물류대행 사업자 선정",
@@ -451,6 +463,18 @@
    "presmptPrce": 1030909091,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01768650&bidPbancOrd=000",
    "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01750936",
+   "bidNtceOrd": "001",
+   "bidNtceNm": "에티오피아 무역활성화를 위한 통합 관세행정시스템 구축 사업 PMC 용역",
+   "ntceInsttNm": "한국국제협력단",
+   "dminsttNm": "한국국제협력단",
+   "bidNtceDt": "2026-10-13 16:10:41",
+   "bidClseDt": "2026-11-24 10:00:00",
+   "presmptPrce": 1528556507,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01750936&bidPbancOrd=001",
+   "group": "통관·무역"
   },
   {
    "bidNtceNo": "R26BK01771607",
@@ -486,6 +510,18 @@
    "bidClseDt": "2026-12-02 10:00:00",
    "presmptPrce": 1534545455,
    "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01786726&bidPbancOrd=000",
+   "group": "운송·배송"
+  },
+  {
+   "bidNtceNo": "R26BK01787751",
+   "bidNtceOrd": "000",
+   "bidNtceNm": "2027년 위험물질운송안전관리센터 관제 모니터링 운영 용역",
+   "ntceInsttNm": "한국교통안전공단",
+   "dminsttNm": "한국교통안전공단",
+   "bidNtceDt": "2026-10-23 10:02:44",
+   "bidClseDt": "2026-12-03 12:00:00",
+   "presmptPrce": 341463622,
+   "bidNtceDtlUrl": "https://www.g2b.go.kr/link/PNPE027_01/single/?bidPbancNo=R26BK01787751&bidPbancOrd=000",
    "group": "운송·배송"
   }
  ]
