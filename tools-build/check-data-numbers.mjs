@@ -20,8 +20,13 @@ export function visibleText(html) {
 
 const norm = (s) => { const v = Number(String(s).replace(/,/g, "")); return Number.isFinite(v) ? String(v) : s; };
 
+// 날짜 = YYYY-MM-DD. 가운데 줄은 붙임표(U+2010)·줄 안 갈림 붙임표(U+2011)도 같은 「-」다 — 지면이 날짜가 줄에서 갈리지 않게 U+2011 로
+// 적으면(레이더 리드 「2026‑10‑26 08:35 스냅샷」) 예외가 빠져 「26」이 데이터 밖 숫자로 잡혔다(2026-10-25·26 refresh #38·#39 · 사고 141).
+// 날짜 예외를 넓힌 것이 아니라 같은 날짜를 같은 날짜로 읽는 것이다 — 연도 없는 「10‑26」·점·빗금 꼴은 여전히 숫자로 센다.
+export const DATE = /\b\d{4}[-\u2010\u2011]\d{2}[-\u2010\u2011]\d{2}\b/g;
+
 export function numbersIn(text) {
-  const t = text.replace(/\b\d{4}-\d{2}-\d{2}\b/g, " ");
+  const t = text.replace(DATE, " ");
   // 천 단위 쉼표는 세 자리 묶음일 때만 — 「M1,302.6」 같은 CSV 칸 구분을 한 숫자로 붙이지 않는다
   return [...t.matchAll(/\d{1,3}(?:,\d{3})+(?:\.\d+)?(?!\d)|\d+(?:\.\d+)?/g)].map((m) => m[0]).filter((n) => !/^(19|20)\d{2}$/.test(n));
 }
@@ -53,8 +58,10 @@ if (process.argv[1] && process.argv[1].endsWith("check-data-numbers.mjs")) {
     const csv = check('<div data-sim="x"><td>302.6</td><td>1,302</td></div>', ["a,M1,302.6\nb,\"1,302\""]);
     // 본문 한가운데 스크립트 뒤의 표도 본다(2026-10-14)
     const mid = check('<div data-sim="x"><p>36주</p><script type="application/json">{"a":1}</script><td>88</td></div><footer>2,000</footer>', data);
-    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77" || csv.bad.length || mid.bad.join() !== "88") { console.error("FAIL selftest", ok, ng, fu, csv, mid); process.exit(1); }
-    console.log("check-data-numbers selftest OK (5)");
+    // 줄 안 갈림 붙임표 날짜 = 날짜(스냅샷 날이 데이터 다른 곳에 없어도) · 연도 없는 「10‑31」은 여전히 숫자(2026-10-26 사고 141)
+    const nb = check('<div data-content="x"><p>2026\u201110\u201131 08:35 스냅샷 · 10\u201131</p></div>', ['{"fetched":"2026-10-31 08:35"}']);
+    if (ok.bad.length || ok.checked !== 4 || ng.bad.join() !== "12" || fu.bad.join() !== "77" || csv.bad.length || mid.bad.join() !== "88" || nb.bad.join() !== "10,31" || nb.checked !== 4) { console.error("FAIL selftest", ok, ng, fu, csv, mid, nb); process.exit(1); }
+    console.log("check-data-numbers selftest OK (6)");
     process.exit(0);
   }
   const [html, ...files] = process.argv.slice(2);

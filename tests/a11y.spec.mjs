@@ -19,3 +19,15 @@ for (const p of PAGES) {
     expect(v, v.join("\n")).toEqual([]);
   });
 }
+
+// 레이더 「마감 지남」 — 스냅샷보다 늦은 날에만 생기는 상태라 그날의 날짜에 기대지 않고 시계를 60일 뒤로 돌려 늘 본다(사고 141)
+test("axe 심각·치명 0 — 레이더 마감 지남 상태(시계 +60일)", async ({ page }) => {
+  await page.route(/^https?:\/\/(?!127\.0\.0\.1|localhost)/, (r) => r.abort());
+  await page.clock.install({ time: Date.now() + 60 * 864e5 });
+  await page.goto("/incheon-port-analysis/tools/radar.html", { waitUntil: "load" });
+  expect(await page.locator("#rd-s > li.gone, #rd-r > li.gone").count(), "마감 지남 공고가 그려졌다").toBeGreaterThan(0);
+  await page.addScriptTag({ content: AXE });
+  const v = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] }, resultTypes: ["violations"] }))
+    .violations.filter((x) => x.impact === "serious" || x.impact === "critical").map((x) => `${x.id}(${x.impact}) ${x.nodes.slice(0, 3).map((n) => n.target.join(" ")).join(", ")}`));
+  expect(v, v.join("\n")).toEqual([]);
+});

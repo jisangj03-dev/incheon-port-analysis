@@ -145,6 +145,12 @@ def region_dist(rows):
     return {"by_sido": dict(sorted(c.items(), key=lambda kv: -kv[1])), "no_sido_tag": none}
 
 
+def region_n(items):
+    """지역 단추 숫자 — 남긴 공고 가운데 그 지역 낱값을 단 공고 수. 지면이 빌드 때 세면 그 수가 데이터 파일에 없어
+    「지면 숫자 = 데이터 파일」 검사가 다른 숫자와 우연히 겹칠 때만 통과한다(사고 141) — 그래서 여기서 세어 파일에 둔다."""
+    return {r: sum(1 for x in items if r in x["regions"]) for r in REGIONS}
+
+
 def main():
     from common import write, say
     now = datetime.datetime.now(KST)
@@ -164,7 +170,7 @@ def main():
         "fetched": now.strftime("%Y-%m-%d %H:%M"),
         "recruit": {"source": "15125273", "scanned": rt, "got": len(rr), "n": len(ri), "dropped": rd, "orgs": ORGS,
                     "by_org": {o: sum(1 for x in ri if x["instNm"] == o) for o in ORGS}, "items": ri},
-        "support": {"source": "15157820", "scanned": stt, "got": len(sr), "n": len(si), "dropped": sd, "regions": REGIONS,
+        "support": {"source": "15157820", "scanned": stt, "got": len(sr), "n": len(si), "dropped": sd, "regions": REGIONS, "region_n": region_n(si),
                     "region_dist": region_dist([r for r in sr if r.get("pldirSportRealmLclasCodeNm") == "수출"]), "items": si},
         "kstartup": {"source": "15125364", "verdict": "미달 — 분야 칸(supt_biz_clsfc)에 물류·무역·수출 갈래가 없다(선커밋 §6)"},
     }
@@ -193,12 +199,13 @@ def selftest():
     assert [x["pblancNm"] for x in si] == ["B", "E"], si
     assert sd == {"분야 수출 아님": 1, "지역 낱값 없음(서울·인천·경기·전국)": 3, "마감 지남": 1}, sd
     assert si[0]["regions"] == ["인천"] and si[0]["reqstBeginEndDe"] == "20261001 ~ 20261130"  # 글자 그대로
+    assert region_n(si) == {r: (1 if r in ("인천", "전국") else 0) for r in REGIONS}, region_n(si)
     assert region_dist(srows[:3]) == {"by_sido": {"인천": 1, "부산": 1}, "no_sido_tag": 1}
     j, t = json_rows('{"resultCode":200,"totalCount":2,"result":[{"a":1},{"a":null}]}')
     assert j == [{"a": "1"}, {"a": ""}] and t == 2
     x, t = xml_rows("<response><header><resultCode>00</resultCode></header><body><items><item><pblancNm><![CDATA[수출 <b>바우처</b>]]></pblancNm></item></items><totalCount>1</totalCount></body></response>")
     assert x == [{"pblancNm": "수출 <b>바우처</b>"}] and t == 1
-    print("radar selftest OK (9)"); return 0
+    print("radar selftest OK (10)"); return 0
 
 
 if __name__ == "__main__":
