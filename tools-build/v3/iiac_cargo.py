@@ -36,9 +36,11 @@ def derive(text, updated=None):
     R = list(csv.DictReader(io.StringIO(text)))
     if not R or "국가" not in R[0]: return None
     by, months = {}, set()
+    kind = {k: 0.0 for k in KG}  # 직화물·환적화물·우편물 합(kg) — 판정 기준 Q1(환적 몫)
     for r in R:
         if r.get("국제_국내", "국제") != "국제": continue
         ym = f"{re.sub(r'[^0-9]', '', r['년도'])}-{re.sub(r'[^0-9]', '', r['월']).zfill(2)}"; months.add(ym)
+        for k in KG: kind[k] += num(r.get(k))
         t = sum(num(r.get(k)) for k in KG) / 1000  # 톤
         c = by.setdefault(r["국가"].strip(), {"in_t": 0.0, "out_t": 0.0, "freighter_t": 0.0})
         c["in_t" if r["도착_출발"].strip() == "도착" else "out_t"] += t
@@ -50,6 +52,8 @@ def derive(text, updated=None):
     return {"_설명": "인천공항 국제선 항공화물(직화물+환적화물+우편물 · 여객기+화물기) 나라별 도착·출발 톤 — 인천국제공항공사 항공사별 노선별 운송실적. 반기 갱신.",
             "source": "인천국제공항공사_항공사별 노선별 운송실적(공공데이터포털 15062056 · 이용허락범위 제한 없음)", "portal_updated": updated,
             "fetched": datetime.date.today().isoformat(), "months": M, "through": M[-1], "total_in_t": round(ti), "total_out_t": round(to),
+            "kind_t": {k.split("(")[0]: round(v / 1000) for k, v in kind.items()},
+            "transfer_pct_of_direct_plus_transfer": round(100 * kind["환적화물(kg)"] / max(1.0, kind["직화물(kg)"] + kind["환적화물(kg)"]), 1),
             "countries": dict(sorted(countries.items(), key=lambda kv: -(kv[1]["in_t"] + kv[1]["out_t"])))}
 
 
@@ -77,6 +81,8 @@ def main():
 def selftest():
     t = "년도,월,국제_국내,국가,도착_출발,여객_화물,직화물(kg),환적화물(kg),우편물(kg)\n2026년,01월,국제,중국,도착,화물,1000,500,500\n2026년,02월,국제,미국,출발,여객,2000 ,0,0\n2026년,02월,국내,한국,도착,여객,9,9,9\n"
     d = derive(t)
+    k = derive(t.replace("1000,500,500", "6000000,4000000,0"))
+    assert k["kind_t"]["환적화물"] == 4000 and k["transfer_pct_of_direct_plus_transfer"] == 40.0, k
     assert d["through"] == "2026-02" and d["countries"]["중국"]["in_t"] == 2 and d["countries"]["미국"]["out_pct"] == 100.0 and "한국" not in d["countries"], d
     print("selftest 1/1 ok"); return 0
 
