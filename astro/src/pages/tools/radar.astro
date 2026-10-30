@@ -15,8 +15,10 @@ const S = D.support, R = D.recruit;
 const day = String(D.fetched).slice(0, 10);
 const MIN = 3; // 선커밋 §3 — 칸마다 3건 미만이면 그 칸을 싣지 않는다
 const showS = S.n >= MIN, showR = R.n >= MIN;
-const REG = (S.regions as string[]).filter((r) => r !== "전국" || S.items.some((x: any) => x.regions.includes(r)));
-const regN = (r: string) => S.items.filter((x: any) => x.regions.includes(r)).length;
+// 지역 단추 숫자 = 스냅샷 파일의 region_n(radar.py 가 센다) — 지면이 빌드 때 세면 그 수가 데이터 파일에 없다(사고 141). 없으면 빌드를 멈춘다(우연 통과 금지).
+if (!S.region_n) throw new Error("radar.json support.region_n 없음 — tools-build/radar.py 로 스냅샷을 다시 만든다(사고 141)");
+const REG = (S.regions as string[]).filter((r) => r !== "전국" || S.region_n[r] > 0);
+const regN = (r: string) => S.region_n[r] as number;
 const nf = (v: number) => v.toLocaleString("ko-KR");
 const j = (t: string) => t.replace(/·/g, "\u2060·\u2060"); // 「서울·인천」이 가운뎃점에서 갈려 줄머리에 「·」가 오지 않게(39차 화면 판정 경미 · ToolShell 제목과 같은 낱말 잇개)
 ---
@@ -102,7 +104,7 @@ const j = (t: string) => t.replace(/·/g, "\u2060·\u2060"); // 「서울·인�
   .rd__auto { font-size: var(--s-t-cap); font-weight: 500; color: var(--s-ink-2); border: 1px solid var(--s-rule); padding: 2px 8px; }
   .rd__list ol { list-style: none; margin: var(--s-3) 0 0; padding: 0; display: grid; }
   .rd__list li { border-top: 1px solid var(--s-rule); padding: var(--s-3) 0; }
-  .rd__list li.gone { opacity: 0.55; }
+  .rd__list li.gone :is(h3 a, .rd__meta, .rd__org, .rd__g) { color: var(--s-ink-3); } /* 투명도(0.55)로 흐리면 대비 미달 — 스냅샷보다 늦은 날 axe 가 빨개졌다(사고 141) · ink-3 = 5.2:1 */
   .rd__list h3 { font-size: 17px; line-height: 1.4; margin: 2px 0; overflow-wrap: anywhere; }
   .rd__list h3 a { color: var(--s-ink); }
   .rd__meta, .rd__org { margin: 0; font-size: var(--s-t-cap); color: var(--s-ink-2); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }

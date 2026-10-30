@@ -3,7 +3,7 @@
 // ⑥ 계산 도구는 지면 안에 「참고용 · 자문 아님」 ⑦ 「○일 기준」 ⑨ 외부 요청 0(CF 비콘 예외) · 지면 숫자 = 데이터 파일 · 오류 0 · 가로 넘침 0.
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync } from "node:fs";
-import { check } from "../tools-build/check-data-numbers.mjs";
+import { check, numbersIn, visibleText } from "../tools-build/check-data-numbers.mjs";
 const B = "/incheon-port-analysis";
 const J = (f) => readFileSync(f, "utf-8");
 const COMMON = ["data/rooms.json", "data/sources.json", "data/profile.json", "data/questions.json"];
@@ -134,6 +134,28 @@ test("채용·지원사업 레이더: 항목 = 원천 글자 그대로 · 고르
   // CSV = 지면 목록
   const rows = (await (await request.get(`${B}/data/radar.csv`)).text()).trim().split(/\r?\n/);
   expect(rows.length - 2, "설명 줄 · 머리줄 뺀 행 = 지면 목록").toBe((D.support.n >= 3 ? D.support.n : 0) + (D.recruit.n >= 3 ? D.recruit.n : 0));
+});
+
+test("레이더: 스냅샷 날짜·건수는 날마다 데이터 파일에서 온다 — 날짜 꼴은 검사기가 날짜로 읽고 · 단추 숫자 = region_n(사고 141)", () => {
+  const D = JSON.parse(J("data/collected/v3/radar.json")), S = D.support, html = J("astro/dist/tools/radar.html"), text = visibleText(html);
+  // ① 지면이 스냅샷 시각을 어떤 붙임표로 적든 날짜 부분은 숫자로 안 센다 — 남는 것은 시·분뿐(데이터 fetched 에 글자 그대로 있다)
+  const [day, hm] = String(D.fetched).split(" "), [y, m, d] = day.split("-");
+  const shown = [...text.matchAll(new RegExp(`${y}(?<s>.)${m}\\k<s>${d} ${hm}`, "g"))];
+  expect(shown.length, "지면에 스냅샷 시각이 보인다").toBeGreaterThan(0);
+  for (const [s0, sep] of shown) {
+    expect(numbersIn(s0), `「${s0}」 날짜 부분이 숫자로 셈`).toEqual(hm.split(":"));
+    // 그날만이 아니라 1년 모든 날에 — 스냅샷 날이 데이터 다른 곳에 우연히 있느냐에 기대지 않는다(#38 「25」 · #39 「26」)
+    for (let t = Date.UTC(2026, 0, 1); t < Date.UTC(2027, 0, 1); t += 864e5) {
+      const z = new Date(t).toISOString().slice(0, 10).split("-").join(sep);
+      expect(numbersIn(`${z} ${hm}`), z).toEqual(hm.split(":"));
+    }
+  }
+  // ② 지역 단추 숫자 = 파일의 region_n · region_n = 항목에서 다시 센 값(빌드 때 세는 숫자는 파일에 없어 우연히만 통과한다)
+  expect(Object.keys(S.region_n)).toEqual(S.regions);
+  for (const r of S.regions) {
+    expect(S.region_n[r], `region_n ${r}`).toBe(S.items.filter((x) => x.regions.includes(r)).length);
+    if (r !== "전국" || S.region_n[r] > 0) expect(html).toMatch(new RegExp(`data-r="${r}"[^>]*>${r} ${S.region_n[r]}</button>`));
+  }
 });
 
 test("입찰 레이더: 내림 — 도구 목록으로 넘김 · 색인 제외", async ({ page }) => {
