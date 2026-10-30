@@ -47,7 +47,12 @@
     "@loaders.gl/schema-utils": "4.4.5",
     "@loaders.gl/worker-utils": "4.4.5",
     "@loaders.gl/images": "4.4.5",
-    "@modelcontextprotocol/sdk": "1.32.1"
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "zod": "4.6.6",
+    "undici": "8.12.2",
+    "body-parser": "2.4.0",
+    "fast-uri": "3.1.9",
+    "qs": "6.16.1"
   },
   "dependencies": {
     "@fontsource/noto-serif-kr": "5.3.1"
