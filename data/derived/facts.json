@@ -51,7 +51,7 @@
    "src": "home_axes.json trade.imp_pct"
   },
   "retail.ym": {
-   "v": "2026-08",
+   "v": "2026-09",
    "pages": [
     "/"
    ],
@@ -59,7 +59,7 @@
    "ctx": "대형소매점 판매액 {v}"
   },
   "retail.large_jo": {
-   "v": "3.9",
+   "v": "4.4",
    "pages": [
     "/"
    ],
@@ -67,7 +67,7 @@
    "ctx": "대형소매점 {v} 조 원"
   },
   "retail.large_yoy": {
-   "v": "+3.0",
+   "v": "+4.9",
    "pages": [
     "/"
    ],
