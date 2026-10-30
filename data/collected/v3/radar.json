@@ -1,13 +1,13 @@
 {
  "_설명": "채용·지원사업 레이더 스냅샷 — tools-build/radar.py(refresh 매일). 규칙 = 선커밋 §6. 항목 글자는 원천 응답 그대로(§3-가). 담당자·연락처·본문 칸은 받지 않는다.",
- "fetched": "2026-10-27 10:02",
+ "fetched": "2026-10-30 16:37",
  "recruit": {
   "source": "15125273",
-  "scanned": 464,
-  "got": 464,
+  "scanned": 514,
+  "got": 514,
   "n": 6,
   "dropped": {
-   "기관 목록 밖": 458,
+   "기관 목록 밖": 508,
    "마감 지남": 0,
    "진행 아님": 0
   },
@@ -114,12 +114,12 @@
  },
  "support": {
   "source": "15157820",
-  "scanned": 182,
-  "got": 182,
-  "n": 68,
+  "scanned": 188,
+  "got": 188,
+  "n": 72,
   "dropped": {
    "분야 수출 아님": 0,
-   "지역 낱값 없음(서울·인천·경기·전국)": 114,
+   "지역 낱값 없음(서울·인천·경기·전국)": 116,
    "마감 지남": 0
   },
   "regions": [
@@ -129,133 +129,35 @@
    "전국"
   ],
   "region_n": {
-   "서울": 54,
-   "인천": 52,
-   "경기": 60,
+   "서울": 56,
+   "인천": 55,
+   "경기": 63,
    "전국": 0
   },
   "region_dist": {
    "by_sido": {
-    "경북": 65,
-    "부산": 64,
-    "경남": 62,
-    "경기": 60,
-    "강원": 60,
-    "충북": 60,
-    "충남": 56,
-    "울산": 55,
-    "대전": 55,
-    "전북": 55,
-    "서울": 54,
-    "제주": 53,
-    "대구": 53,
-    "인천": 52,
-    "세종": 51,
-    "전남광주": 47,
+    "경북": 67,
+    "부산": 66,
+    "경남": 65,
+    "경기": 63,
+    "강원": 62,
+    "충북": 62,
+    "전북": 60,
+    "충남": 58,
+    "서울": 56,
+    "제주": 56,
+    "대전": 56,
+    "울산": 56,
+    "인천": 55,
+    "대구": 55,
+    "세종": 53,
+    "전남광주": 48,
     "전남": 20,
     "광주": 18
    },
    "no_sido_tag": 0
   },
   "items": [
-   {
-    "pblancId": "PBLN_000000000127351",
-    "pblancNm": "2026년 7차 해외 상표 무단선점 심층조사 지원사업 모집 공고",
-    "jrsdInsttNm": "지식재산처",
-    "excInsttNm": "한국지식재산보호원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-05 ~ 2026-10-28",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127351",
-    "hashtags": "수출,경영,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,무단선점,지식재산처,국내상표,2026,심층조사,온라인상담,상표,한국지식재산보호원,중견기업,상담,중소기업",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261028"
-   },
-   {
-    "pblancId": "PBLN_000000000127336",
-    "pblancNm": "2026년 대전 우즈베키스탄 초기시장 개척 프로그램 참여기업 모집 공고(지역 스타트업 글로벌 진출 지원사업)",
-    "jrsdInsttNm": "대전광역시",
-    "excInsttNm": "대전창조경제혁신센터",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "창업벤처",
-    "reqstBeginEndDe": "2026-10-19 ~ 2026-10-28",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127336",
-    "hashtags": "수출,창업,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,2026,초기시장,이동차량,판로,글로벌진출,우즈베키스탄,숙박,항공료,대전창조경제혁신센터,통역,창업기업,대전광역시,스타트업",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261028"
-   },
-   {
-    "pblancId": "PBLN_000000000127257",
-    "pblancNm": "2026년 수출기업 지원 우수사례 발표 대회 개최 공고",
-    "jrsdInsttNm": "관세청",
-    "excInsttNm": "직접수행",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-14 ~ 2026-10-28",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127257",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,수충종합지원,세관,2026,교육지원,관세사,관세청,우수사례,수출입,수출기업,직접수행,FTA",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261028"
-   },
-   {
-    "pblancId": "PBLN_000000000127079",
-    "pblancNm": "[경기] 2026년 지커넥션 비즈니스 데이 국내기업 추가모집 공고",
-    "jrsdInsttNm": "경기도",
-    "excInsttNm": "경기콘텐츠진흥원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-07 ~ 2026-10-28",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127079",
-    "hashtags": "수출,경기,2026,해외진출지원,비즈니스상담,통역,콘텐츠기업,해외바이어,경기콘텐츠진흥원,경기도,바이어,비즈니스데이",
-    "regions": [
-     "경기"
-    ],
-    "_end": "20261028"
-   },
-   {
-    "pblancId": "PBLN_000000000126981",
-    "pblancNm": "2026년 2차 한국무역보험공사 연계 수출지원프로그램 시행계획 공고",
-    "jrsdInsttNm": "중소벤처기업부",
-    "excInsttNm": "중소기업기술정보진흥원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-01 ~ 2026-10-29",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000126981",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,2026,한국무역보험공사,수출신용보증,수출컨설팅,중소벤처기업부,R&amp;D,중소기업기술정보진흥원",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261029"
-   },
-   {
-    "pblancId": "PBLN_000000000127132",
-    "pblancNm": "[서울] MWC2027-4YFN 서울기업관 서울소재 참가기업 모집 공고",
-    "jrsdInsttNm": "서울특별시",
-    "excInsttNm": "서울경제진흥원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-12 ~ 2026-10-29",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127132",
-    "hashtags": "수출,서울,2026,4YFN,모바일디바이스,서울경제진흥원,이동통신,딥테크,사이버보안,IoT,핀테크,클라우드,5G,ICT,블록체인,빅데이터,서울특별시,헬스케어,바이오,AI,스타트업,중소기업",
-    "regions": [
-     "서울"
-    ],
-    "_end": "20261029"
-   },
    {
     "pblancId": "PBLN_000000000127395",
     "pblancNm": "2026년 2차 유망수출품목발굴 지원사업 참여기업 모집 연장 공고",
@@ -625,6 +527,40 @@
     "_end": "20261103"
    },
    {
+    "pblancId": "PBLN_000000000127488",
+    "pblancNm": "2026년 농식품수출성장패키지 (K-Fresh) 모집 공고",
+    "jrsdInsttNm": "농림축산식품부",
+    "excInsttNm": "한국농수산식품유통공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-26 ~ 2026-11-04",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127488",
+    "hashtags": "수출,경영,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,수출전문인력양성,2026,해외인증등록,글로벌홍보,포장디자인개발,해외바이어초청,신선농산물,수출보험,통번역,식품박람회,수출상담회,한국농수산식품유통공사,제품개발,농림축산식품부,컨설팅",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261104"
+   },
+   {
+    "pblancId": "PBLN_000000000127482",
+    "pblancNm": "2027년 이탈리아 밀라노 공작기계 및 자동화기기 전시회 (EMO Milano 2027) 한국관 참가기업 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-22 ~ 2026-11-04",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127482",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,금속절삭,Milano,EMO,디지털 제조,산업통상부,2026,절삭공구,자동화시스템,액세서리,적층제조,밀라노,이탈리아,부품,해외전시회,공작기계,대한무역투자진흥공사,로봇,전시회,기계,인공지능,AI",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261104"
+   },
+   {
     "pblancId": "PBLN_000000000127353",
     "pblancNm": "2027년 미국 라스베가스 방송장비 전시회 (NAB 2027) 한국관 참가기업 모집 공고",
     "jrsdInsttNm": "산업통상부",
@@ -640,6 +576,23 @@
      "경기"
     ],
     "_end": "20261105"
+   },
+   {
+    "pblancId": "PBLN_000000000127552",
+    "pblancNm": "2026년 무신사 도쿄 팝업 스토어 참여기업 모집 공고(Musinsa Year-End Pop-ip Store 2026 in Tokyo)",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-29 ~ 2026-11-06",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127552",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,글로벌스토어,샘플DP팝업,산업통상부,2026,무신사,QR,패션기업,판촉,도쿄,팝업스토어,온라인판매,일본시장,대한무역투자진흥공사",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261106"
    },
    {
     "pblancId": "PBLN_000000000127447",
@@ -676,6 +629,23 @@
     "_end": "20261106"
    },
    {
+    "pblancId": "PBLN_000000000127504",
+    "pblancNm": "2026년 5차 K-브랜드 정부인증제도 참여기업 모집 공고",
+    "jrsdInsttNm": "지식재산처",
+    "excInsttNm": "한국지식재산보호원",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-27 ~ 2026-11-09",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127504",
+    "hashtags": "기술,수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,국가인증상표,지식재산처,정부인증제도,정품인증기술,한국조폐공사,2026,도입비용,K-브랜드,모니터링,출원,한국지식재산보호원,인증,중견기업,중소기업",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261109"
+   },
+   {
     "pblancId": "PBLN_000000000126687",
     "pblancNm": "2026년 하반기 소방산업체 국제 전시회 개별참가 지원사업 참가업체 모집 공고",
     "jrsdInsttNm": "소방청",
@@ -691,6 +661,68 @@
      "경기"
     ],
     "_end": "20261109"
+   },
+   {
+    "pblancId": "PBLN_000000000127572",
+    "pblancNm": "[서울] 2026년 중동 상황 대응 규격 컨설팅 지원사업 참여기업(수혜기업) 모집 공고",
+    "jrsdInsttNm": "서울특별시",
+    "excInsttNm": "서울경제진흥원",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-28 ~ 2026-11-09",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127572",
+    "hashtags": "수출,경영,서울,대응규격,2026,서울경제진흥원,공산품,브랜드,중동,식품,가전,서울특별시,바이오,뷰티,화장품,제조,컨설팅,중소기업",
+    "regions": [
+     "서울"
+    ],
+    "_end": "20261109"
+   },
+   {
+    "pblancId": "PBLN_000000000127471",
+    "pblancNm": "2026년 중국 로컬유통망 연계 소비재 입점 사업 참가업체 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-19 ~ 2026-11-10",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127471",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,샘플무료,Happy Farm,산업통상부,2026,유통망,입점,품평회,대한무역투자진흥공사,식품기업,중국,소비재",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261110"
+   },
+   {
+    "pblancId": "PBLN_000000000127561",
+    "pblancNm": "[인천] 2026년 해외전시회 개별참가 지원사업 참가업체 추가모집 공고",
+    "jrsdInsttNm": "인천광역시",
+    "excInsttNm": "인천테크노파크",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-28 ~ 2026-11-10",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127561",
+    "hashtags": "수출,인천,해외전시회개별참가,2026,전시통역비,부스장치비,샘플운송비,부스임차료,통역,해외전시회,인천테크노파크,중소제조기업,제조기업,인천광역시,제조업,중소기업,제물포구,영종구,강화군,옹진군",
+    "regions": [
+     "인천"
+    ],
+    "_end": "20261110"
+   },
+   {
+    "pblancId": "PBLN_000000000127584",
+    "pblancNm": "[경기] 고양시 2026년 DXㆍICT 일본 투자유치 특화사업 참가기업 모집 공고",
+    "jrsdInsttNm": "경기도",
+    "excInsttNm": "고양산업진흥원",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-29 ~ 2026-11-12",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127584",
+    "hashtags": "수출,경기,2026,일본진출,고양산업진흥원,고양시,비즈니스,투자기관,기업,네트워킹,DX,ICT,경기도,일본",
+    "regions": [
+     "경기"
+    ],
+    "_end": "20261112"
    },
    {
     "pblancId": "PBLN_000000000127188",
@@ -719,6 +751,23 @@
     "reqstBeginEndDe": "2026-10-21 ~ 2026-11-13",
     "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127403",
     "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,딸기산업,논산세계딸기산업엑스포,식품가공품,2026,신선농산물,딸기,푸드테크,농기자재,비즈니스상담,농업,수출상담회,농식품,글로벌,해외바이어,충청남도,직접수행",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261113"
+   },
+   {
+    "pblancId": "PBLN_000000000127490",
+    "pblancNm": "2027년 미국 샌프란시스코 정보보안 전시회 (RSA Conference) 한국관 참가기업 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-10-27 ~ 2026-11-13",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127490",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,무선,DB보안,미국전시,RSAC,산업통상부,2026,RSA,물리보안,해외전시,정보보안,바이러스,백신,정보보호,미국,보안,시스템,모바일,대한무역투자진흥공사,네트워크",
     "regions": [
      "서울",
      "인천",
@@ -1074,6 +1123,21 @@
     "reqstBeginEndDe": "예산 소진시까지",
     "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000125720",
     "hashtags": "수출,경영,경기,2026,물류통관,사전검토,K-Food,서류작성,라벨링,농식품,농업인,경기테크노파크,수출기업,지식재산권,경기도,컨설팅,중소기업",
+    "regions": [
+     "경기"
+    ],
+    "_end": ""
+   },
+   {
+    "pblancId": "PBLN_000000000127494",
+    "pblancNm": "[경기] 수원시 2026년 중소기업 수출용 자재 조달비 지원 참가기업 모집 공고(수출활성화 시범 추진 시책)",
+    "jrsdInsttNm": "경기도",
+    "excInsttNm": "기초자치단체",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "예산 소진시까지",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127494",
+    "hashtags": "수출,경기,2026,경기도,기초자치단체,수원시,중소기업,중소제조기업,제조기업,원부자재,원자재,부자재,조달비,자재,운송비,창고보관료",
     "regions": [
      "경기"
     ],
