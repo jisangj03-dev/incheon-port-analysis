@@ -12,6 +12,6 @@
  ],
  "failed_months": [],
  "rows": 12957,
- "fetched": "2026-10-30",
+ "fetched": "2026-10-31",
  "command": "python tools-build/vessel.py --recent 3"
 }

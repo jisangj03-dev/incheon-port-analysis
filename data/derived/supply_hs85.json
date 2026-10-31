@@ -151,7 +151,7 @@
   "busan_pct": 19.2,
   "ym": "202609"
  },
- "computed": "2026-10-30",
+ "computed": "2026-10-31",
  "command": "python tools-build/supply_derive.py",
  "inputs": [
   "data/collected/nitemtrade.csv",
