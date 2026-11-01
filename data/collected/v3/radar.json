@@ -1,6 +1,6 @@
 {
  "_설명": "채용·지원사업 레이더 스냅샷 — tools-build/radar.py(refresh 매일). 규칙 = 선커밋 §6. 항목 글자는 원천 응답 그대로(§3-가). 담당자·연락처·본문 칸은 받지 않는다.",
- "fetched": "2026-10-31 10:41",
+ "fetched": "2026-11-01 09:26",
  "recruit": {
   "source": "15125273",
   "scanned": 482,
@@ -114,12 +114,12 @@
  },
  "support": {
   "source": "15157820",
-  "scanned": 165,
-  "got": 165,
-  "n": 58,
+  "scanned": 156,
+  "got": 156,
+  "n": 53,
   "dropped": {
    "분야 수출 아님": 0,
-   "지역 낱값 없음(서울·인천·경기·전국)": 107,
+   "지역 낱값 없음(서울·인천·경기·전국)": 103,
    "마감 지남": 0
   },
   "regions": [
@@ -129,120 +129,35 @@
    "전국"
   ],
   "region_n": {
-   "서울": 45,
-   "인천": 44,
-   "경기": 49,
+   "서울": 40,
+   "인천": 39,
+   "경기": 44,
    "전국": 0
   },
   "region_dist": {
    "by_sido": {
-    "경북": 56,
-    "부산": 53,
-    "경남": 52,
-    "강원": 51,
-    "충북": 51,
-    "경기": 49,
-    "전북": 48,
-    "충남": 47,
-    "서울": 45,
-    "제주": 45,
-    "울산": 45,
-    "인천": 44,
-    "대전": 44,
-    "대구": 43,
-    "세종": 42,
-    "전남광주": 36,
-    "전남": 19,
-    "광주": 17
+    "경북": 50,
+    "부산": 48,
+    "경남": 47,
+    "강원": 46,
+    "충북": 45,
+    "경기": 44,
+    "전북": 43,
+    "충남": 41,
+    "서울": 40,
+    "울산": 40,
+    "제주": 40,
+    "인천": 39,
+    "대전": 38,
+    "대구": 38,
+    "세종": 37,
+    "전남광주": 32,
+    "전남": 18,
+    "광주": 16
    },
    "no_sido_tag": 0
   },
   "items": [
-   {
-    "pblancId": "PBLN_000000000120145",
-    "pblancNm": "2026년 2차 국제의료기기전시회 참가기업 모집 통합 공고(인도네시아 Hospital Expoㆍ홍콩 Cosmoprof Asia)",
-    "jrsdInsttNm": "강원특별자치도",
-    "excInsttNm": "원주의료기기산업진흥원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-03-17 ~ 2026-10-31",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000120145",
-    "hashtags": "수출,서울,부산,대구,인천,광주,대전,울산,세종,경기,강원,충북,충남,전북,전남,경북,경남,제주,비품신청,원주의료기기산업진흥원,2026,부스지원,강원특별자치도,행정지원,국제의료기기전시회,홍콩,임차비,인도네시아,헬스케어,제조기업,의료기기,해외마케팅",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261031"
-   },
-   {
-    "pblancId": "PBLN_000000000127109",
-    "pblancNm": "2026년 소방산업 해외 마케팅 홍보물 제작경비 지원사업 연장모집 공고",
-    "jrsdInsttNm": "소방청",
-    "excInsttNm": "한국소방산업기술원",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-08 ~ 2026-10-31",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127109",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,2026,소방산업체,외국어카탈로그,소방산업,한국소방산업기술원,소방청,홍보물,홍보물제작,해외마케팅",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261031"
-   },
-   {
-    "pblancId": "PBLN_000000000127149",
-    "pblancNm": "2026년 오만 무스카트 뷰티 엘리먼트 (Beauty Elements Exhibition 2026) 전시회 연계 수출상담회 참가기업 모집 공고",
-    "jrsdInsttNm": "산업통상부",
-    "excInsttNm": "대한무역투자진흥공사",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-12 ~ 2026-10-31",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127149",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,카탈로그부스,뷰티앨리먼트,산업통상부,2026,대리상담,오만,무스카트,수출상담회,대한무역투자진흥공사,제품홍보,전시회,화장품,샘플,바이어",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261031"
-   },
-   {
-    "pblancId": "PBLN_000000000127376",
-    "pblancNm": "2027년 WATER KOREA 물산업 수출상담회 참여기업 모집 공고",
-    "jrsdInsttNm": "기후에너지환경부",
-    "excInsttNm": "한국상하수도협회",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-17 ~ 2026-10-31",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127376",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,기후에너지환경부,2026,국제물산업박람회,대한민국,한국상하수도협회,수출상담회",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261031"
-   },
-   {
-    "pblancId": "PBLN_000000000127277",
-    "pblancNm": "일본진출 K-스타트업 AI 역직구 온라인 한국관 특별전 모집 공고",
-    "jrsdInsttNm": "산업통상부",
-    "excInsttNm": "대한무역투자진흥공사",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-16 ~ 2026-10-31",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127277",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,SAZO,산업통상부,2026,소비재기업,판로구축,역직구,K-스타트업,솔루션,대한무역투자진흥공사,AI,일본",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261031"
-   },
    {
     "pblancId": "PBLN_000000000127297",
     "pblancNm": "2026년 4분기 국내 활ㆍ신선 수조 보관 지원업체 모집 공고",
