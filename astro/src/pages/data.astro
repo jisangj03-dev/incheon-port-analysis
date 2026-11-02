@@ -59,7 +59,7 @@ import AiMark from "../components/scene/AiMark.astro";
     </section>
     <section class="src__repo s-prose" data-revisions>
       <h2>정정 이력</h2>
-      <p><b>{RVL.head}</b>. {RVL.how} <a href={REVISIONS_URL}>정정 이력 대장</a></p>
+      <p><b>{RVL.head}</b>. {RVL.how}{RVL.latest && <> {RVL.latest}.</>} <a href={REVISIONS_URL}>정정 이력 대장</a></p>
     </section>
     <AiMark /> {/* 3차 사실 대조 E1 — 소개가 「AI 산출물마다 AI 정리」라 적었다 */}
   </article>

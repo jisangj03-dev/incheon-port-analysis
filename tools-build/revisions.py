@@ -281,8 +281,12 @@ def write_summary(today, since=None):
     led = list(csv.DictReader(open(os.path.join(ROOT, LEDGER), encoding="utf-8-sig")))
     by = {}
     for r in led: by[r["원천"]] = by.get(r["원천"], 0) + 1
-    out = {"_설명": f"원천 정정 이력 요약 — tools-build/revisions.py 가 {LEDGER} 에서 만든다. since = 자동 갱신이 정정을 처음 견준 날(KST).",
-           "since": since or old.get("since") or today, "n": len(led), "last": max((r["감지일"] for r in led), default=None), "by_source": by}
+    out = {"_설명": f"원천 정정 이력 요약 — tools-build/revisions.py 가 {LEDGER} 에서 만든다. since = 견준 기간의 시작(자동 갱신 첫 회차 · KST) · backfilled = 그중 견주기 단계를 넣기 전 회차를 git 이력에서 되짚은 소급 줄 수.",
+           "since": since or old.get("since") or today, "n": len(led), "last": max((r["감지일"] for r in led), default=None), "by_source": by,
+           "backfilled": sum(1 for r in led if (r.get("비고") or "").startswith("소급")),  # 자동 견주기를 넣기 전 회차를 git 이력에서 되짚은 줄
+           # 지면 예시 한 줄 — 가장 최근 감지일 중 고친 폭(비율)이 가장 큰 줄(「최근: 지표 기준월 옛 값 → 새 값 단위」)
+           "latest": max(({k: r[k] for k in ("원천", "지표", "기준기", "옛 값", "새 값", "단위")} for r in led if r["감지일"] == max(x["감지일"] for x in led)),
+                         key=lambda r: abs(num(r["새 값"]) - num(r["옛 값"])) / (abs(num(r["옛 값"])) or 1), default=None)}
     json.dump(out, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return out
 
