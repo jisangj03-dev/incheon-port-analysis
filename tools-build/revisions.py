@@ -15,14 +15,15 @@
 
   python tools-build/revisions.py                 감지 · 대장에 덧붙이기(refresh.py 가 파생 뒤에 부른다)
   python tools-build/revisions.py --check         감지 + 지면 숫자 대조(쓰지 않음) · 지면 숫자 방향이 정정으로 뒤집혔으면 종료 3 · 출력 = 마크다운 줄
-  python tools-build/revisions.py --base <rev>    견줄 옛판(기본 HEAD) — 지난 갱신 커밋끼리 되짚어 볼 때
+  python tools-build/revisions.py --base <rev>    견줄 옛판(기본 HEAD)
+  python tools-build/revisions.py --backfill <rev>  소급 — <rev> 뒤 main 커밋끼리 되짚어 이력에 「소급 기록」으로 덧붙인다(2026-11-02 한 번 · 자동 갱신 첫날부터)
   python tools-build/revisions.py --selftest
 """
 import csv, datetime, io, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LEDGER = "data/revisions.csv"
-COLS = ["감지일", "원천", "지표", "기준기", "옛 값", "새 값", "단위"]
+COLS = ["감지일", "원천", "지표", "기준기", "옛 값", "새 값", "단위", "비고"]  # 비고 = 「소급 기록(git …)」 — 견주기를 넣기 전 갱신분을 git 이력에서 되짚은 줄
 SUMMARY = os.environ.get("GITHUB_STEP_SUMMARY")
 
 
@@ -242,17 +243,19 @@ def flips(old, new, revised):
     return out
 
 
-def detect(base="HEAD"):
-    """원천마다 정정된 칸과 그 때문에 뒤집힌 증감. [{id, label, unit, revised, flips}] — 정정 0 인 원천은 뺀다."""
+def detect(base="HEAD", head=None, rels=None):
+    """원천마다 정정된 칸과 그 때문에 뒤집힌 증감. [{id, label, unit, revised, flips}] — 정정 0 인 원천은 뺀다.
+    head = None 이면 작업 폴더판과 견준다 · rels = 이 파일들만(소급 때 그 커밋이 바꾼 파일만 읽는다)."""
     out = []
     for sid, label, rel, fn, unit in SERIES:
-        old, new = parse(fn, read(rel, base)), parse(fn, read(rel, None))
+        if rels is not None and rel not in rels: continue
+        old, new = parse(fn, read(rel, base)), parse(fn, read(rel, head))
         rv = changes(old, new)
         if rv: out.append({"id": sid, "label": label, "unit": unit, "revised": rv, "flips": flips(old, new, rv)})
     return out
 
 
-def append_ledger(found, today):
+def append_ledger(found, today, note=""):
     p = os.path.join(ROOT, LEDGER)
     have = list(csv.DictReader(open(p, encoding="utf-8-sig"))) if os.path.exists(p) else []
     seen = {tuple(r[c] for c in COLS[1:6]) for r in have}
@@ -261,7 +264,7 @@ def append_ledger(found, today):
         for ind, per, o, n in s["revised"]:
             key = (s["label"], ind, per, fmt(o), fmt(n))
             if key in seen: continue
-            seen.add(key); add.append(dict(zip(COLS, (today, *key, s["unit"]))))
+            seen.add(key); add.append(dict(zip(COLS, (today, *key, s["unit"], note))))
     if add or not os.path.exists(p):
         with open(p, "w", encoding="utf-8-sig", newline="") as f:
             w = csv.DictWriter(f, COLS); w.writeheader(); w.writerows(have + add)
@@ -271,7 +274,7 @@ def append_ledger(found, today):
 SUMMARY_JSON = "data/derived/revisions.json"
 
 
-def write_summary(today):
+def write_summary(today, since=None):
     """지면 「방법·출처」의 정정 이력 한 줄이 읽는 요약 — 건수 · 마지막 감지일 · 감시 시작일(처음 돈 날 · 그 뒤 그대로)."""
     p = os.path.join(ROOT, SUMMARY_JSON)
     old = json.load(open(p, encoding="utf-8")) if os.path.exists(p) else {}
@@ -279,9 +282,30 @@ def write_summary(today):
     by = {}
     for r in led: by[r["원천"]] = by.get(r["원천"], 0) + 1
     out = {"_설명": f"원천 정정 이력 요약 — tools-build/revisions.py 가 {LEDGER} 에서 만든다. since = 자동 갱신이 정정을 처음 견준 날(KST).",
-           "since": old.get("since") or today, "n": len(led), "last": max((r["감지일"] for r in led), default=None), "by_source": by}
+           "since": since or old.get("since") or today, "n": len(led), "last": max((r["감지일"] for r in led), default=None), "by_source": by}
     json.dump(out, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return out
+
+
+def git(*a):
+    return subprocess.run(["git", *a], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+
+
+def backfill(start):
+    """소급 — start 커밋 뒤 main 첫 부모 줄을 따라 원천 파일이 바뀐 커밋마다 바로 앞 커밋과 견준다(자동 갱신이 날마다 한 일을 그대로 되짚기).
+    감지일 = 그 커밋 날(KST) · 비고 = 소급 기록 · since = start 뒤 첫 커밋 날(이때부터 견준 셈이 된다)."""
+    paths = sorted({s[2] for s in SERIES})
+    revs = [start] + git("rev-list", "--first-parent", "--reverse", f"{start}..HEAD", "--", *paths).split()
+    kst = lambda r: datetime.datetime.fromtimestamp(int(git("show", "-s", "--format=%ct", r)), datetime.timezone(datetime.timedelta(hours=9))).date().isoformat()
+    since, total = None, 0
+    for a, b in zip(revs, revs[1:]):
+        day = kst(b); since = since or day
+        found = detect(a, b, set(git("diff", "--name-only", a, b, "--", *paths).split()))
+        n = append_ledger(found, day, f"소급 기록(git {b[:7]})"); total += n
+        say(f"- {day} {b[:7]}: " + (" · ".join(f"{s['label']} {len(s['revised'])}칸(증감 뒤집힘 {len(s['flips'])})" for s in found) or "정정 0") + f" → 이력 +{n}")
+    write_summary(kst_today(), since)
+    say(f"- 소급 끝: 커밋 {len(revs) - 1}개 · 이력 +{total}줄 · since {since}")
+    return 0
 
 
 # ── 지면 숫자(facts.json) — 같은 기준기에서 값이 바뀌었는가 ── 이름 앞머리 → 그 숫자의 기준기(같으면 새 달이 아니라 정정이다)
@@ -340,6 +364,7 @@ def report(found, flipped, moved):
 
 def main():
     if "--selftest" in sys.argv: return selftest()
+    if "--backfill" in sys.argv: return backfill(sys.argv[sys.argv.index("--backfill") + 1])
     base = sys.argv[sys.argv.index("--base") + 1] if "--base" in sys.argv else "HEAD"
     found = detect(base)
     if "--check" in sys.argv:
@@ -381,7 +406,7 @@ def selftest():
         assert {(f["비교"], f["앞"], f["뒤"], f["옛"], f["새"]) for f in found[0]["flips"]} == {("전년 같은 달 대비", "202508", "202608", "−", "+")}, found[0]["flips"]
         assert append_ledger(found, "2026-11-03") == 1 and append_ledger(found, "2026-11-04") == 0, "같은 정정은 한 줄만"
         led = list(csv.DictReader(open(os.path.join(tmp, LEDGER), encoding="utf-8-sig")))
-        assert led == [{"감지일": "2026-11-03", "원천": "해양수산부 항만별 선박입출항실적", "지표": "인천 외국선 입항", "기준기": "202508", "옛 값": "596", "새 값": "520", "단위": "척"}], led
+        assert led == [{"감지일": "2026-11-03", "원천": "해양수산부 항만별 선박입출항실적", "지표": "인천 외국선 입항", "기준기": "202508", "옛 값": "596", "새 값": "520", "단위": "척", "비고": ""}], led
         sm = write_summary("2026-11-04")
         assert (sm["since"], sm["n"], sm["last"]) == ("2026-11-04", 1, "2026-11-03") and write_summary("2026-11-09")["since"] == "2026-11-04", sm
         fl, mv = page_check()
@@ -393,12 +418,18 @@ def selftest():
         # 정정 없이 다시 받은 날 — 감지 0
         git("add", "-A"); git("commit", "-qm", "새판")
         assert detect() == []
+        # 소급 — 이력을 지우고 git 이력(옛판 → 새판)만으로 다시 만들면 같은 정정 한 줄 · 비고 = 소급 기록 · since = 새판 커밋 날
+        os.remove(os.path.join(tmp, LEDGER)); os.remove(os.path.join(tmp, SUMMARY_JSON))
+        backfill(git("rev-list", "--max-parents=0", "HEAD").stdout.decode().strip())
+        led = list(csv.DictReader(open(os.path.join(tmp, LEDGER), encoding="utf-8-sig")))
+        assert len(led) == 1 and led[0]["새 값"] == "520" and led[0]["비고"].startswith("소급 기록"), led
+        assert json.load(open(os.path.join(tmp, SUMMARY_JSON), encoding="utf-8"))["since"] == led[0]["감지일"]
     finally:
         ROOT = keep
         shutil.rmtree(tmp, ignore_errors=True)
     assert shift("202601", -12) == "202501" and shift("2026-01", -1) == "2025-12" and shift("20261026", 1) is None
     assert sgn(-0.1) == "−" and fmt(596.0) == "596" and fmt(0.25) == "0.25"
-    print("revisions selftest OK (10)"); return 0
+    print("revisions selftest OK (11)"); return 0
 
 
 if __name__ == "__main__":
