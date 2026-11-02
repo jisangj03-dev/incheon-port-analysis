@@ -27,7 +27,7 @@ on:
         required: false
         default: ""
       mock:
-        description: "모의 시험(claude/ 브랜치만 · 커밋·배포 0) — change(원천 변경) · cut-auth(인증 끊김) · cut-transient(일시 오류 1회) · flip(해석 뒤집기)"
+        description: "모의 시험(claude/ 브랜치만 · 커밋·배포 0) — change(원천 변경) · cut-auth(인증 끊김) · cut-transient(일시 오류 1회) · flip(해석 뒤집기) · revise(지난 달 원천 정정 → 지면 증감 방향 뒤집힘)"
         required: false
         default: ""
       deploy:
@@ -108,6 +108,7 @@ jobs:
           python tools-build/sudo_trade.py --selftest && python tools-build/kosis.py --selftest && python tools-build/axes_derive.py --selftest
           python tools-build/periodic.py --selftest && python tools-build/navi_check.py --selftest && python tools-build/reach_slots.py --selftest
           python tools-build/radar.py --selftest
+          python tools-build/revisions.py --selftest
       - name: 월 1회 층 의존(때가 됐을 때만 · 등시선 = 지리 도구 고정판 · 관세율표 = openpyxl)
         run: |
           if python tools-build/periodic.py --due iso || echo "${{ inputs.only }}" | grep -qw iso; then pip install -q -r tools-build/requirements-geo.txt && echo "등시선 의존 설치" >> "$GITHUB_STEP_SUMMARY"; fi
@@ -121,7 +122,7 @@ jobs:
         run: |
           if [ -n "$MOCK" ] && [ "${GITHUB_REF_NAME}" = "main" ]; then echo "::error::모의는 claude/ 브랜치에서만"; exit 1; fi
           case "$MOCK" in
-            change|flip)   REFRESH_MOCK="$MOCK" python tools-build/refresh.py --skip-fetch ;;
+            change|flip|revise) REFRESH_MOCK="$MOCK" python tools-build/refresh.py --skip-fetch ;;
             cut-auth)      REFRESH_MOCK="fail:kcci:auth" python tools-build/refresh.py --only kcci,derive ;;
             cut-transient) REFRESH_MOCK="fail:kcci:transient-once" REFRESH_RETRY_WAIT="5,5" python tools-build/refresh.py --only kcci,derive ;;
             "") if [ -n "${{ inputs.only }}" ]; then python tools-build/refresh.py --only "${{ inputs.only }},derive"; else python tools-build/refresh.py; fi ;;
@@ -142,7 +143,7 @@ jobs:
         id: diff
         run: |
           # data/forecast = 수요예측 원장(forecast_teu --issue 가 덧붙인다) — 10/22 까지 add 목록에 없어 원장이 커밋되지 않고 남아 커밋 단계 rebase 가 막혔다(브랜치 실행 39738523910)
-          git add -A data/collected data/derived data/forecast content-queue/live analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
+          git add -A data/collected data/derived data/forecast data/revisions.csv content-queue/live analysis/terminal_monthly_long.csv analysis/terminal_monthly_long_sources.csv
           # 시각 키(fetched·checked·made …)만 바뀐 파일은 빼고 센다 — 원천이 새로 낸 것이 없는 날 커밋·배포하지 않게
           CH=$(python tools-build/refresh.py --changed | grep -vE '^data/derived/(freshness|health)\.json$' || true)
           # 갱신 지연 원천이 바뀌었으면(새로 끊김·풀림) 그것만으로도 배포한다 — 지면의 「갱신 지연」 표시가 상태를 따라가야 한다
@@ -159,6 +160,11 @@ jobs:
           # ③ 해석 문장 뒤집힘 — 배포 대신 문장 확인 PR
           python tools-build/facts.py --check && FL=0 || FL=$?
           if [ "$FL" = "3" ]; then echo "claims=yes" >> "$GITHUB_OUTPUT"; echo "**해석 문장 뒤집힘** — main 에 쓰지 않고 문장 확인 PR" >> "$GITHUB_STEP_SUMMARY"; python tools-build/facts.py --approve; python tools-build/drafts.py; git add -A data/claims.json data/derived data/forecast content-queue/live; fi
+          # [2026-11-02 원천 정정] 원천이 이미 낸 달을 고쳐 지면 숫자의 증감 부호가 같은 기준월에서 뒤집혔으면(종료 3) — 숫자만 바뀌고 옆 문구(늘었다·줄었다)는 남는다 → 같은 길(문장 확인 PR)
+          python tools-build/revisions.py --check > /tmp/revisions.md && RV=0 || RV=$?
+          if [ -s /tmp/revisions.md ]; then { echo "**원천 정정**"; cat /tmp/revisions.md; } >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ "$RV" = "3" ]; then echo "claims=yes" >> "$GITHUB_OUTPUT"; echo "**정정으로 지면 숫자 증감 방향 뒤집힘** — main 에 쓰지 않고 문장 확인 PR" >> "$GITHUB_STEP_SUMMARY"
+          elif [ "$RV" != "0" ]; then echo "::warning::revisions.py --check 종료 $RV — 정정 대조를 못 했다"; fi
           echo "$CH" | sed 's/^/- /' >> "$GITHUB_STEP_SUMMARY"
           # 확인일만 바뀐 날 — 마지막 freshness 커밋이 7일 넘었으면 그것만이라도 싣는다(지면의 「마지막 확인」이 낡지 않게)
           AGE=$(( ( $(date +%s) - $(git log -1 --format=%ct -- data/derived/freshness.json 2>/dev/null || echo 0) ) / 86400 ))
@@ -263,6 +269,8 @@ jobs:
             echo "- 띠 그림: $(ls astro/dist/assets/toolshots/ 2>/dev/null | tr '\n' ' ')"
             echo "- 갱신 지연·사람 손: $(python -c "import json;h=json.load(open('data/derived/health.json'));print([d['id'] for d in h['delayed']], '· 사람 손', [d['id'] for d in h['human']])")"
             for f in index tools/import-cost tools/chokepoint; do echo "- $f 지연 상자: $(grep -o 'data-delay[^>]*>.\{0,400\}' astro/dist/$f.html | sed 's/<[^>]*>/ /g; s/data-delay[^>]*>//' | tr -s ' ' | head -2 | tr '\n' ' ')"; done
+            echo "- 원천 정정(revisions.py --check): $(tr '\n' ' ' < /tmp/revisions.md 2>/dev/null | cut -c1-800)"
+            echo "- 정정 이력 새 줄: $(git diff --cached -U0 data/revisions.csv | grep -c '^+[0-9]' || true)"
             echo "- 해석 문장 상태: $(python -c "import json;print({k:(v['approved'],v['now']) for k,v in json.load(open('data/derived/claims_state.json'))['claims'].items()})")"
           } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: 해석 문장 확인 PR(뒤집힘 · 배포 대신)
@@ -288,10 +296,12 @@ jobs:
           PY
           )
           L2=$(git diff --cached data/claims.json | grep '^[-+] *"approved"' || true)
+          # 원천 정정(revisions.py --check — 「바뀐 것」 단계가 남긴 줄) — 지면 숫자 부호가 정정으로 뒤집혔으면 그 숫자 옆 문구를 보고 머지한다
+          RVL=""; [ -s /tmp/revisions.md ] && RVL=$(printf '### 원천 정정 — 이미 낸 달을 원천이 고쳤다(이력 `data/revisions.csv`)\n\n%s\n\n「지면 숫자 방향 뒤집힘」 줄이 있으면 그 숫자 옆 문구(「늘었다」·「줄었다」·「작년보다」)와 홍보 초안을 본 뒤 머지한다.' "$(cat /tmp/revisions.md)")
           if [ -n "$n" ]; then gh pr comment "$n" --body "$(printf '다시 확인한 날 %s — 아직 뒤집힌 상태(실행 %s). 이 PR 이 머지될 때까지 자동 배포는 멈춰 있다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_' "$(date -u +%F)" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")"; exit 0; fi
           b="bot/문장확인-$(date -u +%Y%m%d-%H%M)"
           git switch -c "$b"; git commit -q -m "${P}해석 문장 확인 — 숫자가 바뀌어 뜻이 뒤집힘(승인 갈래 전환 · refresh)"; git push -q -u origin "$b"
-          B=$(printf '## 선장님 결재 한 건 — 해석 문장 뒤집힘\n\n원천 갱신으로 숫자가 바뀌어 아래 해석 문장의 뜻이 뒤집혔다. **자동 배포를 멈췄다**(공개판은 지난 숫자·지난 문장 그대로 · 서로 맞다).\n\n%s\n\n이 PR = 새 데이터 + 승인 갈래 전환(문장은 `data/claims.json` 에 미리 써 둔 갈래 · 지면 문장은 같은 조건으로 고른다) + 다시 만든 홍보 초안.\n**머지 = 새 문장 승인 → 배포.** 문장이 마음에 안 들면 `data/claims.json` 의 그 갈래 문장을 고쳐 이 브랜치에 올린 뒤 머지.\n\n```\n%s\n```\n\n- 시험: 통과(이 실행 %s) · 이 PR 은 봇이 만들어 PR 시험이 따로 돌지 않는다 — 위 실행이 같은 시험이다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n' "$L" "$L2" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          B=$(printf '## 선장님 결재 한 건 — 해석 문장 뒤집힘\n\n원천 갱신으로 숫자가 바뀌어 아래 해석 문장의 뜻이(또는 원천 정정으로 지면 숫자의 증감 방향이) 뒤집혔다. **자동 배포를 멈췄다**(공개판은 지난 숫자·지난 문장 그대로 · 서로 맞다).\n\n%s\n\n%s\n\n이 PR = 새 데이터 + 승인 갈래 전환(문장은 `data/claims.json` 에 미리 써 둔 갈래 · 지면 문장은 같은 조건으로 고른다) + 다시 만든 홍보 초안.\n**머지 = 새 문장 승인 → 배포.** 문장이 마음에 안 들면 `data/claims.json` 의 그 갈래 문장을 고쳐 이 브랜치에 올린 뒤 머지.\n\n```\n%s\n```\n\n- 시험: 통과(이 실행 %s) · 이 PR 은 봇이 만들어 PR 시험이 따로 돌지 않는다 — 위 실행이 같은 시험이다.\n\n---\n_Generated by [Claude Code](https://claude.ai/code)_\n' "$L" "$RVL" "$L2" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
           gh pr create --title "${P}해석 문장 확인 — $(date -u +%F)" --body "$B" --base "${GITHUB_REF_NAME}" --head "$b" --label 문장확인
       - name: 경보 이슈(사람 손 필요할 때만 · 풀리면 닫는다)
         if: always() && steps.diff.outputs.go != ''
