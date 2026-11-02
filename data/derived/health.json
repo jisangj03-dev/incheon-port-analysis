@@ -1,6 +1,6 @@
 {
  "_설명": "갱신 무인화 ④ — refresh 가 쓴다. delayed = 지면에 「갱신 지연」 · human = 사람 손 필요(자동경보 이슈). 일시 오류가 재시도로 풀린 것은 여기 없다.",
- "made": "2026-11-01",
+ "made": "2026-11-02",
  "delayed": [
   {
    "id": "imf-portwatch",
@@ -8,15 +8,15 @@
    "pages": [
     "초크포인트"
    ],
-   "reason": "원천 형식이 바뀐 것으로 보임"
+   "reason": "받기 실패 4일째"
   }
  ],
  "human": [
   {
    "id": "imf-portwatch",
    "label": "IMF PortWatch 길목 통항",
-   "reason": "원천 형식이 바뀐 것으로 보임",
-   "fail_kind": "format"
+   "reason": "받기 실패 4일째",
+   "fail_kind": "other"
   }
  ]
 }
