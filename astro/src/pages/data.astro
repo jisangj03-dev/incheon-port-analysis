@@ -13,7 +13,8 @@ import { revisionLine, REVISIONS_URL } from "../lib/revisions";
 const RVL = revisionLine(); // 원천 정정 이력(2026-11-02) — 0건이어도 「없음」
 const reg = JSON.parse(readFileSync(join(repoRoot(), "data/sources.json"), "utf-8"));
 const S = reg.sources.filter((s: any) => !s.retired);
-const updated = lastUpdated("data/sources.json");
+// 마지막 갱신 = 출처 대장 · 정정 이력 대장 중 늦은 날(2026-11-03 화면 판정 경미 — 머리 「마지막 갱신」이 출처 대장만 봐 끝의 「최근 감지」보다 옛 날짜로 보였다)
+const updated = [lastUpdated("data/sources.json"), lastUpdated("data/revisions.csv")].filter(Boolean).sort().at(-1) ?? "";
 const jsonld = S.filter((s: any) => s.kogl !== "해당 없음" || s.id === "osm-protomaps").map((s: any) => ({ "@context": "https://schema.org", "@type": "Dataset", name: s.name, creator: { "@type": "Organization", name: s.owner }, license: pub(s.license), description: `${s.name} — ${pub(s.where)}` }));
 // 칸 한 낱말 — 「허용(…)」의 괄호 풀이는 접기 안으로
 const word = (t: string) => pub(t).replace(/\s*\(.*$/, "").replace(/\s*—.*$/, "").trim() || "—";
@@ -28,7 +29,7 @@ import AiMark from "../components/scene/AiMark.astro";
       <p class="s-cap">데이터</p>
       <h1 class="s-prose">어디서 온 숫자인가</h1>
       <p class="s-lead s-prose">자료 {n.all}가지. 상업 이용 금지(공공누리 2·4유형) 자료는 쓰지 않고, 변경 금지(3·4유형) 자료는 가공하지 않습니다. 공공데이터포털의 「이용허락범위 제한 없음」은 공공누리 유형 번호가 아니라서, 유형은 확인하기 전까지 <b class="unk">미확인</b>으로 둡니다(지금 {n.unk}가지).</p>
-      <p class="s-trust"><Updated date={updated} source="측심 출처 대장" /></p>
+      <p class="s-trust"><Updated date={updated} source="측심 출처 대장 · 정정 이력 대장" /></p>
     </header>
     <div class="src__cols s-cap" aria-hidden="true"><span>자료 · 기관</span><span>공공누리</span><span>상업 이용</span><span>가공</span><span>확인일</span></div>
     <ol class="src__list">

@@ -274,6 +274,21 @@ def append_ledger(found, today, note=""):
 SUMMARY_JSON = "data/derived/revisions.json"
 
 
+# 지면 예시 줄 단위 — 원천 단위(백만 원·천 달러)는 지면의 억·조 표기와 안 이어진다(2026-11-03 화면 판정 경미). 바꾼 값은 요약 파일에 같이 적는다(지면 숫자 ⊂ 데이터 파일)
+SHOW_UNIT = {"백만 원": (100, "억 원"), "천 달러": (1e5, "억 달러"), "달러": (1e8, "억 달러")}
+
+
+def show(r):
+    """{지표 표시, 옛·새 값 표시, 단위 표시} — 「상품군별 온라인쇼핑 거래액 · 문화 및 레저서비스 계 · 거래액」 → 「온라인쇼핑 거래액(문화 및 레저서비스)」."""
+    div, unit = SHOW_UNIT.get(r["단위"], (1, r["단위"]))
+    v = lambda x: f"{num(x) / div:,.1f}" if div != 1 else f"{num(x):,.0f}"
+    parts = [x.strip() for x in r["지표"].split("·")]
+    if len(parts) == 3 and parts[2] in parts[0]: parts = parts[:2]  # 끝 칸이 표 이름의 되풀이(「거래액」)
+    parts = [re.sub(r"\s*계$", "", re.sub(r"^(상품군별|시도별)\s*", "", x)) for x in parts]
+    ind = parts[0] + (f"({' · '.join(parts[1:])})" if len(parts) > 1 else "")  # 「거래액 · 문화…」가 지표 둘로 읽혔다(11/3 화면 판정) → 괄호로 묶는다
+    return {"지표 표시": ind, "옛 값 표시": v(r["옛 값"]), "새 값 표시": v(r["새 값"]), "단위 표시": unit}
+
+
 def write_summary(today, since=None):
     """지면 「방법·출처」의 정정 이력 한 줄이 읽는 요약 — 건수 · 마지막 감지일 · 감시 시작일(처음 돈 날 · 그 뒤 그대로)."""
     p = os.path.join(ROOT, SUMMARY_JSON)
@@ -287,6 +302,7 @@ def write_summary(today, since=None):
            # 지면 예시 한 줄 — 가장 최근 감지일 중 고친 폭(비율)이 가장 큰 줄(「최근: 지표 기준월 옛 값 → 새 값 단위」)
            "latest": max(({k: r[k] for k in ("원천", "지표", "기준기", "옛 값", "새 값", "단위")} for r in led if r["감지일"] == max(x["감지일"] for x in led)),
                          key=lambda r: abs(num(r["새 값"]) - num(r["옛 값"])) / (abs(num(r["옛 값"])) or 1), default=None)}
+    if out["latest"]: out["latest"].update(show(out["latest"]))
     json.dump(out, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return out
 
@@ -433,7 +449,8 @@ def selftest():
         shutil.rmtree(tmp, ignore_errors=True)
     assert shift("202601", -12) == "202501" and shift("2026-01", -1) == "2025-12" and shift("20261026", 1) is None
     assert sgn(-0.1) == "−" and fmt(596.0) == "596" and fmt(0.25) == "0.25"
-    print("revisions selftest OK (11)"); return 0
+    assert show({"지표": "상품군별 온라인쇼핑 거래액 · 문화 및 레저서비스 계 · 거래액", "옛 값": "398428", "새 값": "447358", "단위": "백만 원"}) == {"지표 표시": "온라인쇼핑 거래액(문화 및 레저서비스)", "옛 값 표시": "3,984.3", "새 값 표시": "4,473.6", "단위 표시": "억 원"}
+    print("revisions selftest OK (12)"); return 0
 
 
 if __name__ == "__main__":
