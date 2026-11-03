@@ -29,7 +29,7 @@ import AiMark from "../components/scene/AiMark.astro";
       <p class="s-cap">데이터</p>
       <h1 class="s-prose">어디서 온 숫자인가</h1>
       <p class="s-lead s-prose">자료 {n.all}가지. 상업 이용 금지(공공누리 2·4유형) 자료는 쓰지 않고, 변경 금지(3·4유형) 자료는 가공하지 않습니다. 공공데이터포털의 「이용허락범위 제한 없음」은 공공누리 유형 번호가 아니라서, 유형은 확인하기 전까지 <b class="unk">미확인</b>으로 둡니다(지금 {n.unk}가지).</p>
-      <p class="s-trust"><Updated date={updated} /> · <a href={`${REPO}/blob/main/data/sources.json`}>측심 출처 대장</a> · <a href={REVISIONS_URL}>정정 이력 대장</a></p>
+      <p class="s-trust"><Updated date={updated} /> · <a href={`${REPO}/blob/main/data/sources.json`}>출처 대장 원본(JSON)</a> · <a href={REVISIONS_URL}>정정 이력 원본(CSV)</a></p>
     </header>
     <div class="src__cols s-cap" aria-hidden="true"><span>자료 · 기관</span><span>공공누리</span><span>상업 이용</span><span>가공</span><span>확인일</span></div>
     <ol class="src__list">
