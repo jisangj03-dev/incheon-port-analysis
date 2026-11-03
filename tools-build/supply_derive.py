@@ -59,13 +59,13 @@ def derive():
     # [2026-10-21 자동 갱신] 비교 문장은 숫자에서 고른다 — 숫자가 바뀌면 문장도 따라 바뀐다(고정 문장은 거짓이 될 수 있다)
     cmp_ = "부산이 인천항보다 크다" if bus > inc else ("인천항이 부산보다 크다" if inc > bus else "부산과 인천항이 같다")
     counter = {"text": f"바다로 들어오는 수입은 {cmp_}", "incheon_port_pct": inc, "busan_pct": bus, "ym": pym}
-    # ④ 인천 소재 기업의 전기기기 수입 — 관세청 시도별 품목별(소재지 기준 · 입·출항 관문 기준이 아니다)
+    # ④ 관세청 시도별 집계로 인천에 잡힌 전기기기 수입 — 지역 기준은 명세에 없음(입·출항 관문 기준은 아니다)
     si = rows("data/collected/sido-item-incheon.csv")
     sym = max(r["reqYm"] for r in si)
     hs = next(r for r in si if r["reqYm"] == sym and r["hsSgn"] == HS)
     allr = next(r for r in si if r["reqYm"] == sym and r["priodTitle"] == "총계")
     firms = {"ym": sym, "imp_kusd": num(hs["impUsdAmt"]), "share_of_incheon_imports_pct": pct(num(hs["impUsdAmt"]), num(allr["impUsdAmt"])),
-             "item": hs["korePrlstNm"], "scope": "인천광역시에 사업장이 있는 수입자 기준 — 어느 항구로 들어왔는지는 이 표가 말하지 않는다"}
+             "item": hs["korePrlstNm"], "scope": "관세청 시도별 집계로 인천(시도)에 잡힌 수입 — 지역 기준은 이 자료 명세에 없다(같은 관세청 시군구별은 수입 = 납세의무자 주소지) · 어느 항구로 들어왔는지는 이 표가 말하지 않는다"}
     # ⑤ 보세·물류창고 — 국토교통부 물류창고업 등록현황(인천 · 구별)
     wh = rows("analysis/warehouse_by_gu.csv")
     n_all, n_bond = sum(num(r["개소"]) for r in wh), sum(num(r["개소·관세법"]) for r in wh)
@@ -77,7 +77,7 @@ def derive():
         {"id": "sea", "title": "바다 — 인천항 컨테이너", "data": sea, "source": "mof-incheon-port-stats"},
         {"id": "air", "title": "하늘 — 인천공항 화물", "data": None, "why": "공항 화물을 품목·월로 잰 공개 원천을 아직 출처 대장에 올리지 못했다"},
         {"id": "customs", "title": "통관 — 어느 관문으로 들어오나", "data": customs, "source": "kcs-porttrade"},
-        {"id": "firms", "title": "인천 소재 수입자", "data": firms, "source": "kcs-sido-item"},
+        {"id": "firms", "title": "인천 집계 수입(관세청 시도별)", "data": firms, "source": "kcs-sido-item"},
         {"id": "warehouse", "title": "보세·물류창고", "data": warehouse, "source": "molit-warehouse"},
         {"id": "last", "title": "수도권 소비자까지", "data": None, "why": "창고에서 수도권 매장·집까지의 배송량을 품목별로 잰 공개 원천이 없다"},
     ]
