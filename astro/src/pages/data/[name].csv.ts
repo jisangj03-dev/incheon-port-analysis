@@ -54,7 +54,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       r("인천항 컨테이너 전년 대비(공표값)", PL.yoy, "%", PL.ym, "인천지방해양수산청 항만운영통계"),
       r("인천항 외항선 입항", V.incheon, "척", V.ym, "해양수산부 항만별 선박입출항실적"),
       ...(T ? [r("수도권 화주 수입 몫(전국 대비)", T.imp_pct, "%", T.ym, "관세청 시도별 품목별 수출입실적 ÷ 관세청 국가별 수출입실적"),
-        r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 화주 수출", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
+        r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 수출(관세청 시도별 집계)", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
         r(`수도권 수입 1위 HS ${T.top_imp[0].hs} 몫`, T.top_imp[0].pct, "%", T.ym, "관세청 시도별 품목별 수출입실적")] : []),
       ...(R && !(R.kosis?.large && R.kosis?.online && source("kostat-kosis")) ? [r("수도권 화주 생활소비재 수입", R.cons_imp, "억 달러", R.ym, "관세청 시도별 품목별 수출입실적 · 묶음 = tools-build/axes_derive.py CONSUMER"),
         r("생활소비재 수입 전년 같은 달 대비", R.cons_yoy, "%", R.ym, "같은 원천")] : []),
