@@ -2398,7 +2398,7 @@
   "iiac-route-cargo"
  ],
  "inputs": [
-  "analysis\\porttrade_202412_202607.csv",
+  "analysis/porttrade_202412_202607.csv",
   "data/collected/nitemtrade.csv",
   "analysis/terminal_monthly_long.csv",
   "analysis/warehouse_by_gu.csv",

@@ -8,7 +8,7 @@
   126.62,
   37.45
  ],
- "made": "2026-10-25",
+ "made": "2026-11-03",
  "count_box": [
   126.3,
   37.27,
@@ -17,18 +17,6 @@
  ],
  "method": "세는 상자(먼바다 · 인천대교·항내·갯벌 양식장 제외) 안에서 큰 땅 400m · 자료 가장자리 100m · 구름을 빼고, B08 > 1500 이고 주변 중앙값보다 600 넘게 밝은 덩어리 중 3~300 화소(10m) · 450m 넘게 긴 것과 식생·맨땅이 대부분인 것은 뺀다",
  "frames": [
-  {
-   "date": "2025-11-12",
-   "scene": "S2B_52SBG_20251112_0_L2A",
-   "tile_cloud_pct": 1.1,
-   "aoi_cloud_pct": 0.5,
-   "aoi_valid_pct": 100.0,
-   "ships_seen": 22,
-   "low_confidence": false,
-   "img": "/media/s2/20251112.jpg",
-   "w": 1400,
-   "h": 1371
-  },
   {
    "date": "2025-12-17",
    "scene": "S2C_52SBG_20251217_0_L2A",
@@ -158,6 +146,18 @@
    "ships_seen": 26,
    "low_confidence": false,
    "img": "/media/s2/20261008.jpg",
+   "w": 1400,
+   "h": 1371
+  },
+  {
+   "date": "2026-11-02",
+   "scene": "S2C_52SBG_20261102_0_L2A",
+   "tile_cloud_pct": 0.1,
+   "aoi_cloud_pct": 0.1,
+   "aoi_valid_pct": 100.0,
+   "ships_seen": 26,
+   "low_confidence": false,
+   "img": "/media/s2/20261102.jpg",
    "w": 1400,
    "h": 1371
   }
