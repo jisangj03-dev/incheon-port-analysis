@@ -158,7 +158,7 @@ def derive():
         if pv and r["전년대비_당월_%"]: tg.append(abs(num(r["전년대비_당월_%"]) - (tv[r["기준연월"]] / pv - 1) * 100))
     checks = {"nat_gap_eok": round(max(gaps), 1) if gaps else None, "teu_yoy_gap_pp": round(max(tg), 1) if tg else None}
     # [2026-11-03 화면 판정 경미] 「전국 수출 659.0억 → 1,210.5억」이 한 해에 거의 두 배인데 까닭 설명이 없어 오류로 읽힌다 →
-    #   늘어난 몫이 어느 관문(인천공항·인천항)으로 나갔는지 · 같은 달 수도권 신고업체 HS85(전기기기) 수출이 얼마였는지를 데이터로 적는다(까닭을 짐작해 쓰지 않는다)
+    #   늘어난 몫이 어느 관문(인천공항·인천항)으로 나갔는지 · 같은 달 관세청 시도별 집계 수도권 HS85(전기기기) 수출이 얼마였는지를 데이터로 적는다(까닭을 짐작해 쓰지 않는다)
     b, e = M[max(0, len(M) - 13)], M[-1]
     sp = os.path.join(ROOT, "data/collected/v3/sudo_trade.json")
     SM = json.load(open(sp, encoding="utf-8"))["months"] if os.path.exists(sp) else {}
