@@ -76,6 +76,7 @@ jobs:
           git fetch -q origin main
           python tools-build/check_ledger.py
           python analysis/forecast_teu.py --selftest
+          python tools-build/revisions.py --selftest   # 원천 정정 감지 — 가짜 정정으로 이력 1줄·증감 방향 뒤집힘
 
       - name: Lighthouse 13.5.0 (공개 지면 17 · 모바일 · CI 는 1회 — 3회 중앙값은 세션 출고 검사가 잰다)
         env:

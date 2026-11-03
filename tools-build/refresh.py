@@ -325,6 +325,16 @@ def mock_mutate(kind):
             if r["reqYm"] == last and r["statKor"] == "인천항": r["impDlr"] = str(int(float(r["impDlr"])) * 3)
         with open(p, "w", encoding="utf-8", newline="") as f: w = csv.DictWriter(f, list(rows[0].keys())); w.writeheader(); w.writerows(rows)
         return f"porttrade.csv {last} 인천항 수입액 ×3"
+    if kind == "revise":  # 원천 정정 — 지면 기준월은 그대로 두고 작년 같은 달 인천 외국선 입항을 낮춰 정정한다(외항선 전년비 부호가 뒤집힌다 · revisions.py)
+        p = os.path.join(ROOT, "data/collected/vessel-monthly.csv"); rows = list(csv.DictReader(open(p, encoding="utf-8")))
+        inc = lambda m, k=("국적선", "외국선"): sum(int(r["etr_cnt"]) for r in rows if r["ym"] == m and r["port"] == "인천" and r["kind"] in k)
+        last = max(m for m in {r["ym"] for r in rows} if sum(int(r["etr_cnt"]) for r in rows if r["ym"] == m and r["kind"] in ("국적선", "외국선")))
+        prev = f"{int(last[:4]) - 1}{last[4:]}"
+        to = max(0, int(inc(last) * 0.9) - inc(prev, ("국적선",)))
+        for r in rows:
+            if r["ym"] == prev and r["port"] == "인천" and r["kind"] == "외국선": was, r["etr_cnt"] = r["etr_cnt"], str(to)
+        with open(p, "w", encoding="utf-8", newline="") as f: w = csv.DictWriter(f, list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+        return f"vessel-monthly.csv {prev} 인천 외국선 입항 {was} → {to}(정정)"
     return "없음"
 
 
@@ -352,7 +362,7 @@ def main():
                 merge_sources(tmp.replace(".csv", "_sources.csv"))
             results[sid] = (rc, out)
         elif sid == "derive":
-            if MOCK in ("change", "flip"): say(f"- 모의 원천 바꾸기: {mock_mutate(MOCK)}")
+            if MOCK in ("change", "flip", "revise"): say(f"- 모의 원천 바꾸기: {mock_mutate(MOCK)}")
             bad = []
             for c, d in DERIVE:
                 rc, out, sec = run(c, d, limit)
@@ -371,8 +381,9 @@ def main():
     health = write_health(data, today)
     if RECOVERED: say(f"- 재시도로 풀린 받기: {', '.join(RECOVERED)} — 사람에게 올리지 않음")
     say(f"- 갱신 지연 {len(health['delayed'])} · 사람 손 {len(health['human'])}" + "".join(f"\n  - {h['label']}: {h['reason']}" for h in health["human"]))
+    # 원천 정정 — 이미 있던 기준기의 값이 바뀌었으면 data/revisions.csv 에 한 줄씩(지면 숫자 방향 대조는 refresh.yml 이 revisions.py --check 로)
     # ① 숫자가 든 산출물 다시 만들기 — 핵심 숫자 · 해석 문장 상태 · 홍보 초안(틀) · 도구 초안(live)
-    for c in ([sys.executable, "tools-build/facts.py"], [sys.executable, "tools-build/drafts.py"], [sys.executable, "tools-build/content_queue.py", "--live"]):
+    for c in ([sys.executable, "tools-build/revisions.py"], [sys.executable, "tools-build/facts.py"], [sys.executable, "tools-build/drafts.py"], [sys.executable, "tools-build/content_queue.py", "--live"]):
         rc, out, _ = run(c, ".", 300)
         say(f"- {'✓' if rc == 0 else '✗'} {' '.join(c[1:])}: {out.strip().splitlines()[-1][:200] if out.strip() else ''}")
     say("", "| 원천 | 지면 기준기 | 원천 마지막 | 확인일 | 다음 공표 예정 | 뒤처짐 |", "|---|---|---|---|---|---|")

@@ -12,6 +12,7 @@ import { sourceLine, source } from "../../lib/sources";
 import { BRAND } from "../../lib/site";
 import { portMonthly } from "../../lib/data";
 import { room, rooms } from "../../lib/rooms";
+import { revisionLine, REVISIONS_URL } from "../../lib/revisions";
 import Trust from "../scene/Trust.astro";
 import AiMark from "../scene/AiMark.astro";
 
@@ -60,6 +61,7 @@ const airPct = Math.round((L.air_imp / L.imp_total) * 100);
 // KOSIS(유통) — 데이터와 출처 대장 줄이 둘 다 있을 때만 싣는다(활용약관 확인 = 대장 줄 · 2026-10-22 kogl-check 원문).
 //   [2026-10-22 유통 축 = KOSIS 실측] 있으면 유통 줄 = 수도권 대형소매점 판매액 + 전국 온라인쇼핑 · 없으면 종전 줄(수도권 화주 생활소비재 수입)로 남는다.
 const KO = RT?.kosis?.large && RT?.kosis?.online && source("kostat-kosis") ? RT.kosis : null;
+const RVL = revisionLine(); // 원천 정정 이력(2026-11-02) — 「방법·출처」 끝 줄 · 0건이어도 「없음」
 ---
 <section class="live" data-content="home-live" aria-labelledby="live-h">
   {/* [2026-10-20 품질 재정비 · docs/품질기준.md Q1·Q6] 글 기둥(질문·답·숫자·행동 둘)과 지도 칸을 나눈다 — 지도를 글 밑에 깔면 인천이 글에 가려졌다(1520×730 실측) */}
@@ -175,6 +177,7 @@ const KO = RT?.kosis?.large && RT?.kosis?.online && source("kostat-kosis") ? RT.
     <p class="s-cap">첫 문장의 비중 = 관세청 항구·공항별 수출입실적(수입 = 입항지 · 수출 = 출항지 기준)에서 인천공항 + 인천항 ÷ 전국 총계. 분모(전국 총계)는 같은 원천의 「전국」 줄이다(관세청 국가별 수출입실적의 전 국가 합과는 달에 따라 다르다{F.checks?.nat_gap_eok != null ? ` — 최대 ${F.checks.nat_gap_eok}억 달러` : ""}). {(() => { const M = F.months, b = M[Math.max(0, M.length - 13)], e = M[M.length - 1]; return `전국 수출은 ${b.ym} ${fmt(b.nat_exp)}억 달러에서 ${e.ym} ${fmt(e.nat_exp)}억 달러로 바뀌었고, 같은 기간 인천공항 수출은 ${fmt(b.air_exp)}억 → ${fmt(e.air_exp)}억 달러다.`; })()}</p>
     <p class="s-cap">점 = 인천국제공항공사 「항공사별 노선별 운송실적」의 나라별 도착·출발 화물 톤({F.air_cargo?.from}~{F.air_cargo?.through} 월평균 · 직화물·환적화물·우편물 포함 · 반기마다 공표). 금액(수출입액)이 아니라 무게다 — 첫 문장의 금액과 단위·기간이 다르다. 표시한 10개국이 인천공항 국제 항공화물의 {F.air_cargo?.shown_pct != null ? `${F.air_cargo.shown_pct}%` : "대부분"}다. 하늘길은 대권(최단 거리)으로 계산한 길이지 그 달 실제 항적이 아니다. 바다(인천항)는 나라별로 가른 공개 통계가 없어 점도 길도 그리지 않았다 — 배가 실제로 다닌 바닷길은 회녹 결(세계은행 선박 통행 밀도)로 보인다.</p>
     <p class="s-cap">원 = 국토교통부 물류창고업 등록 개소({F.warehouse_asof ? `${F.warehouse_asof} 내려받은 등록현황 · 날짜를 박은 기록 · ` : ""}인천 구·군 · 서울{SC?.dests?.some((d: any) => String(d.basis).includes("시·군")) ? " · 경기 시·군" : ""}) · 회색 줄 = OpenStreetMap 고속도로. 네모 = 거점(북항·아암·공항 자유무역지역·평택·당진항·의왕 ICD) 개략 위치. 회녹 결은 세계은행 Global Shipping Traffic Density(2015-01~2021-02 AIS 누적 · CC BY 4.0) — 지금 떠 있는 배가 아니다. 땅 Natural Earth(퍼블릭 도메인) · 인천 땅·고속도로 © OpenStreetMap 기여자(ODbL) · 등심선 NOAA ETOPO 2022(항해용 아님).</p>
+    <p class="s-cap" data-revisions><b>정정 이력</b> — {RVL.head}. {RVL.how}{RVL.latest && <> {RVL.latest}.</>} <a href={REVISIONS_URL}>정정 이력 대장</a></p>
     </details>
     <AiMark k="index" />
   </div>

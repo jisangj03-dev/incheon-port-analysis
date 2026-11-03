@@ -7,7 +7,7 @@ const B = "/incheon-port-analysis";
 const PATH = { index: "/index.html", about: "/about.html", beer: "/sim/beer-game.html", map: "/map.html", note: "/notes/port-yoy.html", follow: "/map/follow.html", "ai-ops": "/notes/ai-ops.html", vessels: "/map/vessels.html" };
 const at = (f) => `${B}${PATH[f]}`;
 // 노트 목록은 보고서 제목을 그대로 가져온다 — 보고서 원문도 원천이다
-const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/derived/home_axes.json", "data/hs2_short.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
+const DATA = ["analysis/terminal_monthly_long.csv", "data/derived/places.json", "data/derived/home_flows.json", "data/questions.json", "data/sim/beer-game.json", "data/rooms.json", "tools-build/pmtiles.json", "data/sources.json", "data/derived/supply_hs85.json", "data/derived/ops_stats.json", "data/derived/vessel_replay.json", "data/derived/home_axes.json", "data/derived/revisions.json", "data/hs2_short.json", "data/profile.json", ...readdirSync("reports").filter((f) => f.endsWith(".md")).map((f) => `reports/${f}`)].map((f) => readFileSync(f, "utf-8"));
 
 for (const f of ["index", "beer", "note", "vessels"]) {
   test(`§2-1 ${f}: 지면 숫자는 데이터 파일에만 있다`, () => {
