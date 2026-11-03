@@ -5,7 +5,7 @@
       data/collected/v3/nation_months.json(관세청 국가별 · 달러 — 분모 대조만)
       data/collected/v3/kosis_retail.json(있으면 · 통계청 KOSIS)
 출력  data/derived/home_axes.json
-  무역 = 수도권(서울·인천·경기) 신고 화주의 수출입이 전국에서 차지하는 몫 · 수도권 수입 상위 품목(HS 2단위).
+  무역 = 관세청 시도별 집계로 수도권(서울·인천·경기)의 수출입이 전국에서 차지하는 몫 · 수도권 수입 상위 품목(HS 2단위).
   유통 = 수도권 화주가 들여온 소비재(아래 CONSUMER 묶음 · 이 사이트가 고른 HS 2단위 목록 — 관세청 분류가 아니다) 금액 · 전년 같은 달 대비.
          [2026-10-22] KOSIS(retail.kosis)가 있으면 지면 유통 줄은 그것 — 수도권 대형소매점 판매액 · 전국 온라인쇼핑 거래액(kosis_view).
 분모(전국) = 관세청 국가별 수출입실적의 전 국가 합(같은 달) — 없으면 시도 합. 시도 합과의 차이를 checks 에 남긴다(행정 개편으로 빠진 시도 코드를 드러낸다).
@@ -87,7 +87,7 @@ def derive(st, nation=None, kosis=None):
     # 분모 대조 — 시도 합 ÷ 전국(국가별) − 1 · 모든 시도가 답한 달이면 0 근처, 개편으로 빠진 시도가 있으면 음수
     nat_check = round((L["sido_imp"] / L["nat_imp"] - 1) * 100, 2) if L["denom"] == "nation" and L["nat_imp"] else None
     out = {
-        "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 신고 화주 소재지(관세청 시도별 품목별). 전국 = 관세청 국가별 수출입실적 전 국가 합(없는 달은 시도 합) · denom 에 적는다.",
+        "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 관세청 시도별 품목별의 지역(구분 기준은 명세에 없음 · 시군구별은 수입 납세의무자 주소지 · 수출 제조장소). 전국 = 관세청 국가별 수출입실적 전 국가 합(없는 달은 시도 합) · denom 에 적는다.",
         "made": datetime.date.today().isoformat(),
         "trade": {
             "ym": ym_dash(last),

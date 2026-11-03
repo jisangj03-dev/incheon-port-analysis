@@ -99,7 +99,7 @@ def run(n):
     keep = {ym: M[ym] for ym in sorted(M) if ym >= want[0]}
     if not keep or not all(ym in keep for ym in want[-1:]):
         say("마지막 달", want[-1], "을 못 받았다 — 덮어쓰지 않는다"); return 1
-    write(OUT, {"source": "관세청 시도별 품목별 수출입실적(공공데이터포털 15101641 · 1220000/sidoitemtrade) · 시도 = 신고인(화주) 소재지 · 금액 = 천 달러",
+    write(OUT, {"source": "관세청 시도별 품목별 수출입실적(공공데이터포털 15101641 · 1220000/sidoitemtrade) · 시도 구분 기준은 이 자료 명세에 없음(같은 관세청 시군구별 15134343 = 수입 납세의무자 주소지 · 수출 제조장소) · 금액 = 천 달러",
                 "fetched": datetime.date.today().isoformat(), "sudo": SUDO, "codes_seen": seen, "extra_codes": sorted(set(extra)), "months": keep})
     say("수도권 시도별", len(keep), "달 · 새로 받음", got)
     return 0

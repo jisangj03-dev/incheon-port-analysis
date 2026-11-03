@@ -49,11 +49,11 @@ def race():
     T = J("trade_race.json"); y = [x for x in T["years"] if not x.get("partial")][-1]
     e = max(y["items"], key=lambda i: i["exp"]); m = max(y["items"], key=lambda i: i["imp"])
     return {"id": "trade-race", "asof": str(y["through"]), "q": "인천은 무엇을 사고파나 — 해마다 어떻게 바뀌었나?",
-            "hook": f"{y['y']}년 인천 소재 기업 수출 {won(y['exp_total'])}백만 달러, 1위는 {e['name']}({e['exp_pct']}%)입니다.",
+            "hook": f"{y['y']}년 관세청 시도별 집계 인천 수출 {won(y['exp_total'])}백만 달러, 1위는 {e['name']}({e['exp_pct']}%)입니다.",
             "body": [f"수입은 {won(y['imp_total'])}백만 달러, 1위는 {m['name']}({m['imp_pct']}%).",
                      "해마다 품목 칸 넓이가 다시 배치되는 트리맵으로 구성이 어떻게 바뀌었는지 봅니다."],
-            "how": "관세청 시도별·품목별(HS 2단위) 수출입에서 사업장 소재지가 인천인 기업 실적만 씁니다.",
-            "limit": "사업장 소재지 기준이라 인천항·인천공항을 거친 물량과는 다릅니다.", "src": "관세청"}
+            "how": "관세청 시도별·품목별(HS 2단위) 수출입에서 인천으로 집계된 실적만 씁니다. 시도를 나눈 기준은 이 자료 명세에 없습니다(같은 관세청 시군구별 통계는 수입 = 납세의무자 주소지 · 수출 = 제조장소).",
+            "limit": "물건이 드나든 항구·공항 기준이 아니어서 인천항·인천공항을 거친 물량과는 다릅니다.", "src": "관세청"}
 
 
 def cost():

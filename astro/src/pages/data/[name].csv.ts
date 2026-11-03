@@ -23,7 +23,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       if (s.id === "origin") for (const c of d.countries) rows.push({ 구간: s.title, 항목: `${c.name} 수입`, 값: c.musd, 단위: "백만 달러", 기준월: ym, 범위: d.scope }), rows.push({ 구간: s.title, 항목: `${c.name} 비중`, 값: c.share_pct, 단위: "%", 기준월: ym, 범위: d.scope });
       if (s.id === "sea") rows.push({ 구간: s.title, 항목: "컨테이너", 값: d.kteu, 단위: "천TEU", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "전년 같은 달 대비", 값: d.yoy_pct, 단위: "%", 기준월: ym, 범위: d.scope });
       if (s.id === "customs") for (const g of d.gates) rows.push({ 구간: s.title, 항목: g.name, 값: g.share_pct, 단위: "% (전국 수입액 중)", 기준월: ym, 범위: d.scope });
-      if (s.id === "firms") rows.push({ 구간: s.title, 항목: "인천 소재 수입자 전기기기 수입", 값: d.imp_kusd, 단위: "천 달러", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "인천 수입 중 비중", 값: d.share_of_incheon_imports_pct, 단위: "%", 기준월: ym, 범위: d.scope });
+      if (s.id === "firms") rows.push({ 구간: s.title, 항목: "인천 집계 전기기기 수입(관세청 시도별)", 값: d.imp_kusd, 단위: "천 달러", 기준월: ym, 범위: d.scope }, { 구간: s.title, 항목: "인천 수입 중 비중", 값: d.share_of_incheon_imports_pct, 단위: "%", 기준월: ym, 범위: d.scope });
       if (s.id === "warehouse") rows.push({ 구간: s.title, 항목: "물류창고", 값: d.sites, 단위: "곳", 기준월: "", 범위: d.scope }, { 구간: s.title, 항목: "보세창고(관세법 제174조 특허)", 값: d.bonded_sites, 단위: "곳", 기준월: "", 범위: d.scope });
     }
     return { rows, note: `전기기기(HS 85) 구간별 원천 숫자 · 계산 ${D.command} · ${D.computed}` };
@@ -54,7 +54,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
       r("인천항 컨테이너 전년 대비(공표값)", PL.yoy, "%", PL.ym, "인천지방해양수산청 항만운영통계"),
       r("인천항 외항선 입항", V.incheon, "척", V.ym, "해양수산부 항만별 선박입출항실적"),
       ...(T ? [r("수도권 화주 수입 몫(전국 대비)", T.imp_pct, "%", T.ym, "관세청 시도별 품목별 수출입실적 ÷ 관세청 국가별 수출입실적"),
-        r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 화주 수출", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
+        r("수도권 화주 수입", T.sudo_imp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"), r("수도권 수출(관세청 시도별 집계)", T.sudo_exp, "억 달러", T.ym, "관세청 시도별 품목별 수출입실적"),
         r(`수도권 수입 1위 HS ${T.top_imp[0].hs} 몫`, T.top_imp[0].pct, "%", T.ym, "관세청 시도별 품목별 수출입실적")] : []),
       ...(R && !(R.kosis?.large && R.kosis?.online && source("kostat-kosis")) ? [r("수도권 화주 생활소비재 수입", R.cons_imp, "억 달러", R.ym, "관세청 시도별 품목별 수출입실적 · 묶음 = tools-build/axes_derive.py CONSUMER"),
         r("생활소비재 수입 전년 같은 달 대비", R.cons_yoy, "%", R.ym, "같은 원천")] : []),
@@ -101,7 +101,7 @@ const DATA: Record<string, () => { rows: Record<string, unknown>[]; note: string
     for (const p of D.points) { for (const [w, v] of p.weeks) rows.push({ 길목: p.ko, 구분: "통항(주 평균 · 척/일)", 주_또는_나라: w, 값: v }); for (const t of p.top) rows.push({ 길목: p.ko, 구분: "교역(전국 · 12달 · 백만 달러)", 주_또는_나라: t.name, 값: t.musd }); }
     return { rows, note: `IMF PortWatch 초크포인트 일별 · 관세청 국가별 수출입(전국 ${D.months[0]}~${D.months[1]}) · 나라 → 길목 경유 = 대표 항로 가정(지면 「이 길목을 거치는 것으로 셈한 나라」) · 계산 tools-build/v3/choke_derive.py` };
   },
-  // 품목 트리맵 레이스 — 해 × HS 2단위(인천 소재 기업 · 백만 달러)
+  // 품목 트리맵 레이스 — 해 × HS 2단위(관세청 시도별 집계 인천 · 백만 달러)
   "trade-race": () => {
     const D = J("data/derived/trade_race.json");
     return { rows: D.years.flatMap((y: any) => y.items.map((i: any) => ({ 연도: y.y, 마지막달: y.through, HS2: i.hs, 품목: i.name, 수출_백만달러: i.exp, 수입_백만달러: i.imp, 수출비중_pct: i.exp_pct, 수입비중_pct: i.imp_pct }))),
