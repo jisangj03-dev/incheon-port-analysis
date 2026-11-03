@@ -29,6 +29,6 @@ export function revisionLine(): { head: string; how: string; latest: string | nu
   const how = `기관이 이미 공표한 달의 값을 나중에 고치면(잠정치 → 확정치 등) 지면 숫자도 새 값으로 바뀌고, 대장에 원천·지표·기준월·옛 값·새 값·감지일을 한 줄씩 남긴다. 지면 숫자의 증감 부호(늘었다·줄었다)를 뒤집는 수정은 자동 반영을 멈추고 사람이 문구를 확인한 뒤 반영한다.${S.backfilled ? ` 이 가운데 ${S.backfilled}건은 비교 장치를 넣기 전 회차분이라 지난 기록을 뒤져 나중에 적었다(소급 기록).` : ""}`;
   const L = S.latest;
   // 표시 칸(revisions.py show — 억 원·억 달러로 바꾼 값)이 있으면 그것을, 없으면 원천 단위 그대로
-  const latest = L ? `최근: ${L["지표 표시"] ?? L.지표} ${per(L.기준기)} ${L["옛 값 표시"] ?? num(L["옛 값"])} → ${L["새 값 표시"] ?? num(L["새 값"])} ${L["단위 표시"] ?? L.단위}` : null;
+  const latest = L ? `최근: ${L["지표 표시"] ?? L.지표} ${per(L.기준기)} ${L["옛 값 표시"] ?? num(L["옛 값"])} → ${L["새 값 표시"] ?? num(L["새 값"])}${L["단위 표시"] ? "" : " "}${L["단위 표시"] ?? L.단위}` : null; // 표시 단위(억 원)는 숫자에 붙인다
   return { head, how, latest };
 }
