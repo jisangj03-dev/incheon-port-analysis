@@ -157,6 +157,16 @@ def derive():
         y, mo = int(r["기준연월"][:4]), int(r["기준연월"][5:7]); pv = tv.get(f"{y - 1}-{mo:02d}")
         if pv and r["전년대비_당월_%"]: tg.append(abs(num(r["전년대비_당월_%"]) - (tv[r["기준연월"]] / pv - 1) * 100))
     checks = {"nat_gap_eok": round(max(gaps), 1) if gaps else None, "teu_yoy_gap_pp": round(max(tg), 1) if tg else None}
+    # [2026-11-03 화면 판정 경미] 「전국 수출 659.0억 → 1,210.5억」이 한 해에 거의 두 배인데 까닭 설명이 없어 오류로 읽힌다 →
+    #   늘어난 몫이 어느 관문(인천공항·인천항)으로 나갔는지 · 같은 달 수도권 신고업체 HS85(전기기기) 수출이 얼마였는지를 데이터로 적는다(까닭을 짐작해 쓰지 않는다)
+    b, e = M[max(0, len(M) - 13)], M[-1]
+    sp = os.path.join(ROOT, "data/collected/v3/sudo_trade.json")
+    SM = json.load(open(sp, encoding="utf-8"))["months"] if os.path.exists(sp) else {}
+    hs85 = lambda ym: SM.get(ym.replace("-", "")) and eok(1000 * sum((SM[ym.replace("-", "")].get(c) or {}).get("hs", {}).get("85", {}).get("exp", 0) for c in ("11", "28", "41")))
+    d_nat, d_air = round(e["nat_exp"] - b["nat_exp"], 1), round(e["air_exp"] - b["air_exp"], 1)
+    exp_change = {"from": b["ym"], "to": e["ym"], "nat_diff": d_nat, "air_diff": d_air,
+                  "air_share_pct": round(100 * d_air / d_nat) if d_nat > 0 else None,
+                  "sudo_hs85_from": hs85(b["ym"]) or None, "sudo_hs85_to": hs85(e["ym"]) or None}
     return {
         "_설명": "홈 살아 있는 지도 — tools-build/flows_derive.py 가 원천에서 계산한다. 흐름은 월 통계를 그린 것이지 실시간 위치가 아니다.",
         "made": datetime.date.today().isoformat(),
@@ -169,7 +179,7 @@ def derive():
         "air_cargo": {"through": air["through"], "from": air["months"][0], "source": air["source"], "total_t": air["total_in_t"] + air["total_out_t"],
                       "shown_pct": round(100 * sum((p.get("air_in_t") or 0) + (p.get("air_out_t") or 0) for p in partners) / (air["total_in_t"] + air["total_out_t"]), 1)} if air else None,
         "dests": dests, "warehouse_asof": wh_asof,
-        "checks": checks,
+        "checks": checks, "exp_change": exp_change,
         "assume": [
             "바다 관문은 나라를 가른 공개 통계가 없어 전국 나라 비중(10개국 · 석 달 합)을 썼다. 하늘 관문은 인천공항 실측 항공화물(나라별 도착·출발 톤)로 나눴다.",
             "관문을 지난 화물이 수도권 어디로 가는지는 통계가 없어, 물류창고 등록 개소 비례로 흩었다(인천 구·군 · 서울 · 경기).",
