@@ -1,13 +1,13 @@
 {
  "_설명": "채용·지원사업 레이더 스냅샷 — tools-build/radar.py(refresh 매일). 규칙 = 선커밋 §6. 항목 글자는 원천 응답 그대로(§3-가). 담당자·연락처·본문 칸은 받지 않는다.",
- "fetched": "2026-11-05 11:00",
+ "fetched": "2026-11-06 11:10",
  "recruit": {
   "source": "15125273",
-  "scanned": 517,
-  "got": 517,
-  "n": 6,
+  "scanned": 520,
+  "got": 520,
+  "n": 4,
   "dropped": {
-   "기관 목록 밖": 511,
+   "기관 목록 밖": 516,
    "마감 지남": 0,
    "진행 아님": 0
   },
@@ -28,7 +28,7 @@
    "인천항만공사": 0,
    "부산항만공사": 0,
    "여수광양항만공사": 0,
-   "울산항만공사": 2,
+   "울산항만공사": 0,
    "인천국제공항공사": 0,
    "한국공항공사": 0,
    "한국해양진흥공사": 1,
@@ -38,30 +38,6 @@
    "한국해양교통안전공단": 1
   },
   "items": [
-   {
-    "recrutPblntSn": "306273",
-    "recrutPbancTtl": "2027년 상반기 체험형 청년인턴 채용 공고",
-    "instNm": "울산항만공사",
-    "recrutSeNm": "신입",
-    "hireTypeNmLst": "청년인턴(체험형)",
-    "ncsCdNmLst": "경영.회계.사무,전기.전자,정보통신,환경.에너지.안전",
-    "workRgnNmLst": "울산",
-    "pbancBgngYmd": "20261022",
-    "pbancEndYmd": "20261105",
-    "srcUrl": "https://www.upa.or.kr/portal/board/post/view.do?bcIdx=668&mid=0405000000&&idx=16711"
-   },
-   {
-    "recrutPblntSn": "306272",
-    "recrutPbancTtl": "NCS 및 블라인드 기반 직무능력중심 2026년 하반기 신입직원(채용형 인턴) 채용 공고",
-    "instNm": "울산항만공사",
-    "recrutSeNm": "신입",
-    "hireTypeNmLst": "정규직,청년인턴(채용형)",
-    "ncsCdNmLst": "경영.회계.사무,정보통신",
-    "workRgnNmLst": "울산",
-    "pbancBgngYmd": "20261022",
-    "pbancEndYmd": "20261105",
-    "srcUrl": "https://www.upa.or.kr/portal/board/post/view.do?bcIdx=668&mid=0405000000&&idx=16710"
-   },
    {
     "recrutPblntSn": "306304",
     "recrutPbancTtl": "2026년도 제5차 신규직원(정규직) 채용",
@@ -114,12 +90,12 @@
  },
  "support": {
   "source": "15157820",
-  "scanned": 156,
-  "got": 156,
-  "n": 51,
+  "scanned": 163,
+  "got": 163,
+  "n": 54,
   "dropped": {
    "분야 수출 아님": 0,
-   "지역 낱값 없음(서울·인천·경기·전국)": 105,
+   "지역 낱값 없음(서울·인천·경기·전국)": 109,
    "마감 지남": 0
   },
   "regions": [
@@ -129,52 +105,35 @@
    "전국"
   ],
   "region_n": {
-   "서울": 37,
-   "인천": 36,
-   "경기": 42,
+   "서울": 40,
+   "인천": 39,
+   "경기": 45,
    "전국": 0
   },
   "region_dist": {
    "by_sido": {
-    "경북": 48,
-    "부산": 45,
-    "강원": 44,
-    "경남": 43,
-    "충북": 42,
-    "경기": 42,
-    "전북": 41,
-    "충남": 38,
-    "울산": 37,
-    "서울": 37,
-    "대구": 36,
-    "제주": 36,
-    "인천": 36,
-    "대전": 35,
-    "세종": 33,
-    "전남광주": 32,
+    "경북": 51,
+    "부산": 49,
+    "강원": 47,
+    "경남": 46,
+    "충북": 45,
+    "경기": 45,
+    "전북": 44,
+    "충남": 41,
+    "서울": 40,
+    "울산": 40,
+    "대전": 39,
+    "대구": 39,
+    "인천": 39,
+    "제주": 39,
+    "전남광주": 37,
+    "세종": 36,
     "전남": 15,
     "광주": 13
    },
    "no_sido_tag": 0
   },
   "items": [
-   {
-    "pblancId": "PBLN_000000000127353",
-    "pblancNm": "2027년 미국 라스베가스 방송장비 전시회 (NAB 2027) 한국관 참가기업 모집 공고",
-    "jrsdInsttNm": "산업통상부",
-    "excInsttNm": "대한무역투자진흥공사",
-    "pldirSportRealmLclasCodeNm": "수출",
-    "trgetNm": "중소기업",
-    "reqstBeginEndDe": "2026-10-20 ~ 2026-11-05",
-    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127353",
-    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,전송방비,방송제작장비,2026,디렉토리제작비,스트리밍,방송장비,방송기술,행정,라스베가스,부스임차료,미국,솔루션,장치비,운송비,대한무역투자진흥공사,홍보,전시회,IP,AI,산업통상자원부,마케팅",
-    "regions": [
-     "서울",
-     "인천",
-     "경기"
-    ],
-    "_end": "20261105"
-   },
    {
     "pblancId": "PBLN_000000000127552",
     "pblancNm": "2026년 무신사 도쿄 팝업 스토어 참여기업 모집 공고(Musinsa Year-End Pop-ip Store 2026 in Tokyo)",
@@ -421,6 +380,74 @@
      "경기"
     ],
     "_end": "20261116"
+   },
+   {
+    "pblancId": "PBLN_000000000127713",
+    "pblancNm": "2026년 K-BUSINESS DAY(글로벌 해외바이어 초청 수출상담회) 참여기업 모집 공고",
+    "jrsdInsttNm": "중소벤처기업부",
+    "excInsttNm": "중소기업중앙회",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-11-04 ~ 2026-11-17",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127713",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,K-BUSINESS DAY,2026,현장컨설팅,샘플발송비,인플루언서,상담부스,쇼케이스,인터뷰,수출상담회,중소기업중앙회,해외바이어,중소벤처기업부,바이어",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261117"
+   },
+   {
+    "pblancId": "PBLN_000000000127707",
+    "pblancNm": "2027년 독일 하노버 산업전시회 (Hannover Messe) 한국관(기계분야) 참가기업 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-11-04 ~ 2026-11-17",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127707",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,자동화핵심모듈,지능형자동화,AI 품질검사,AI Agent,독일하노버산업전시회,독일하노버산업,하노버메쎄,첨단제조장비,AI인프라,산업통상부,2026,산업AI,자율제조,산업데이터,제조AI,한국산업지능화협회,정밀기계,산업,핵심부품,하노버,스마트팩토리,독일,대한무역투자진흥공사,전시회,박람회,디지털트윈,기계",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261117"
+   },
+   {
+    "pblancId": "PBLN_000000000127709",
+    "pblancNm": "2027년 독일 하노버 산업전시회 (Hannover Messe) 한국관(로봇분야) 참가기업 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-11-04 ~ 2026-11-17",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127709",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,산업에너지,진공,공기압축,산업공학,독일하노버산업전시회,독일하노버산업,하노버메쎄,산업통상부,2026,한국베어링산업협회,디지털솔루션,구동,제조AI,동력,산업전,혁신,산업,하노버,연구,스마트제조,자동화,독일,대한무역투자진흥공사,전시회,박람회,디지털트윈,기계",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261117"
+   },
+   {
+    "pblancId": "PBLN_000000000127706",
+    "pblancNm": "2027년 일본 도쿄 뷰티월드 재팬 전시회 (beautyworld Japan Tokyo 2027) 한국관 참가기업 모집 공고",
+    "jrsdInsttNm": "산업통상부",
+    "excInsttNm": "대한무역투자진흥공사",
+    "pldirSportRealmLclasCodeNm": "수출",
+    "trgetNm": "중소기업",
+    "reqstBeginEndDe": "2026-11-05 ~ 2026-11-19",
+    "pblancUrl": "https://www.bizinfo.go.kr/sii/siia/selectSIIA200Detail.do?pblancId=PBLN_000000000127706",
+    "hashtags": "수출,서울,부산,대구,인천,전남광주,대전,울산,세종,경기,강원,충북,충남,전북,경북,경남,제주,바디용품,핸드크림,뷰티월드 재팬,도쿄 뷰티월드,산업통상부,2026,헤어케어,속눈썹,ODM,마스크팩,OEM,네일,향수,대한무역투자진흥공사,패키징,전시회,박람회,코스메틱,스킨케어,화장품,일본,국제뷰티산업교역협회",
+    "regions": [
+     "서울",
+     "인천",
+     "경기"
+    ],
+    "_end": "20261119"
    },
    {
     "pblancId": "PBLN_000000000127624",
