@@ -1,6 +1,6 @@
 {
  "source": "관세청 시도별 품목별 수출입실적(공공데이터포털 15101641) · 시도 = 인천(28) · 금액 = 천 달러",
- "fetched": "2026-11-10",
+ "fetched": "2026-11-11",
  "years": {
   "2016": {
    "through": "201612",
@@ -9843,16 +9843,16 @@
    ]
   },
   "2026": {
-   "through": "202609",
+   "through": "202610",
    "status": 200,
    "resultCode": "00",
    "rows": [
     {
-     "cmtrBlncAmt": "-1,196,214",
-     "expLnCnt": "1,857,318",
-     "expUsdAmt": "47,845,209",
-     "impLnCnt": "4,882,834",
-     "impUsdAmt": "49,041,424",
+     "cmtrBlncAmt": "-1,173,763",
+     "expLnCnt": "1,857,055",
+     "expUsdAmt": "47,848,218",
+     "impLnCnt": "4,882,639",
+     "impUsdAmt": "49,021,981",
      "priodTitle": "총계"
     },
     {
@@ -9876,9 +9876,9 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-174,328",
-     "expLnCnt": "11,018",
-     "expUsdAmt": "100,945",
+     "cmtrBlncAmt": "-174,334",
+     "expLnCnt": "11,019",
+     "expUsdAmt": "100,938",
      "hsSgn": "03",
      "impLnCnt": "19,837",
      "impUsdAmt": "275,272",
@@ -9916,12 +9916,12 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-42,020",
+     "cmtrBlncAmt": "-42,022",
      "expLnCnt": "542",
      "expUsdAmt": "540",
      "hsSgn": "07",
      "impLnCnt": "6,062",
-     "impUsdAmt": "42,560",
+     "impUsdAmt": "42,563",
      "korePrlstNm": "식용의 채소ㆍ뿌리ㆍ괴경(塊莖)",
      "priodTitle": "2026"
     },
@@ -9940,7 +9940,7 @@
      "expLnCnt": "513",
      "expUsdAmt": "3,608",
      "hsSgn": "09",
-     "impLnCnt": "17,587",
+     "impLnCnt": "17,585",
      "impUsdAmt": "228,727",
      "korePrlstNm": "커피ㆍ차ㆍ마테(maté)ㆍ향신료",
      "priodTitle": "2026"
@@ -9960,7 +9960,7 @@
      "expLnCnt": "303",
      "expUsdAmt": "2,049",
      "hsSgn": "11",
-     "impLnCnt": "3,254",
+     "impLnCnt": "3,253",
      "impUsdAmt": "3,574",
      "korePrlstNm": "제분공업의 생산품과 맥아, 전분, 이눌린(inulin), 밀의 글루텐(gluten)",
      "priodTitle": "2026"
@@ -10016,11 +10016,11 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-212,070",
-     "expLnCnt": "3,695",
-     "expUsdAmt": "62,785",
+     "cmtrBlncAmt": "-216,014",
+     "expLnCnt": "3,694",
+     "expUsdAmt": "58,841",
      "hsSgn": "17",
-     "impLnCnt": "92,513",
+     "impLnCnt": "92,507",
      "impUsdAmt": "274,855",
      "korePrlstNm": "당류(糖類)와 설탕과자",
      "priodTitle": "2026"
@@ -10036,31 +10036,31 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "30,756",
+     "cmtrBlncAmt": "30,757",
      "expLnCnt": "7,203",
      "expUsdAmt": "53,333",
      "hsSgn": "19",
-     "impLnCnt": "231,468",
+     "impLnCnt": "231,427",
      "impUsdAmt": "22,576",
      "korePrlstNm": "곡물ㆍ고운 가루ㆍ전분ㆍ밀크의 조제품과 베이커리 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-82,133",
+     "cmtrBlncAmt": "-82,135",
      "expLnCnt": "3,585",
-     "expUsdAmt": "12,182",
+     "expUsdAmt": "12,180",
      "hsSgn": "20",
-     "impLnCnt": "88,861",
+     "impLnCnt": "88,808",
      "impUsdAmt": "94,315",
      "korePrlstNm": "채소ㆍ과실ㆍ견과류나 식물의그 밖의 부분의 조제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "4,471",
-     "expLnCnt": "31,918",
-     "expUsdAmt": "79,985",
+     "cmtrBlncAmt": "4,593",
+     "expLnCnt": "31,897",
+     "expUsdAmt": "80,107",
      "hsSgn": "21",
-     "impLnCnt": "992,016",
+     "impLnCnt": "991,983",
      "impUsdAmt": "75,514",
      "korePrlstNm": "각종 조제 식료품",
      "priodTitle": "2026"
@@ -10070,7 +10070,7 @@
      "expLnCnt": "4,275",
      "expUsdAmt": "13,442",
      "hsSgn": "22",
-     "impLnCnt": "54,452",
+     "impLnCnt": "54,446",
      "impUsdAmt": "44,549",
      "korePrlstNm": "음료ㆍ주류ㆍ식초",
      "priodTitle": "2026"
@@ -10086,12 +10086,12 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-52,127",
+     "cmtrBlncAmt": "-52,288",
      "expLnCnt": "1,322",
      "expUsdAmt": "2,393",
      "hsSgn": "24",
      "impLnCnt": "795",
-     "impUsdAmt": "54,520",
+     "impUsdAmt": "54,681",
      "korePrlstNm": "담배와 제조한 담배 대용물, 연소시키지 않고흡입하도록 만들어진 물품(니코틴을 함유하였는지에 상관없다), 니코틴을 함유한 그 밖의 물품으로 인체 내에 니코틴을 흡수시키도록 만들어진 것",
      "priodTitle": "2026"
     },
@@ -10116,19 +10116,19 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-11,306,866",
+     "cmtrBlncAmt": "-11,273,393",
      "expLnCnt": "1,117",
-     "expUsdAmt": "488,452",
+     "expUsdAmt": "504,969",
      "hsSgn": "27",
      "impLnCnt": "1,879",
-     "impUsdAmt": "11,795,319",
+     "impUsdAmt": "11,778,361",
      "korePrlstNm": "광물성 연료ㆍ광물유(鑛物油)와 이들의 증류물, 역청(瀝靑)물질, 광물성 왁스",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "136,675",
+     "cmtrBlncAmt": "136,686",
      "expLnCnt": "11,278",
-     "expUsdAmt": "229,037",
+     "expUsdAmt": "229,047",
      "hsSgn": "28",
      "impLnCnt": "15,592",
      "impUsdAmt": "92,361",
@@ -10136,38 +10136,38 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "1,009,976",
+     "cmtrBlncAmt": "1,013,254",
      "expLnCnt": "22,891",
-     "expUsdAmt": "1,289,759",
+     "expUsdAmt": "1,293,047",
      "hsSgn": "29",
      "impLnCnt": "35,180",
-     "impUsdAmt": "279,782",
+     "impUsdAmt": "279,793",
      "korePrlstNm": "유기화학품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "4,635,665",
-     "expLnCnt": "20,501",
-     "expUsdAmt": "5,785,062",
+     "cmtrBlncAmt": "4,632,095",
+     "expLnCnt": "20,492",
+     "expUsdAmt": "5,781,444",
      "hsSgn": "30",
      "impLnCnt": "48,057",
-     "impUsdAmt": "1,149,397",
+     "impUsdAmt": "1,149,348",
      "korePrlstNm": "의료용품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-21,616",
+     "cmtrBlncAmt": "-21,617",
      "expLnCnt": "371",
      "expUsdAmt": "4,891",
      "hsSgn": "31",
      "impLnCnt": "652",
-     "impUsdAmt": "26,507",
+     "impUsdAmt": "26,508",
      "korePrlstNm": "비료",
      "priodTitle": "2026"
     },
     {
      "cmtrBlncAmt": "66,166",
-     "expLnCnt": "11,305",
+     "expLnCnt": "11,304",
      "expUsdAmt": "187,663",
      "hsSgn": "32",
      "impLnCnt": "5,862",
@@ -10176,32 +10176,32 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "1,737,648",
-     "expLnCnt": "236,928",
-     "expUsdAmt": "1,765,162",
+     "cmtrBlncAmt": "1,732,781",
+     "expLnCnt": "236,886",
+     "expUsdAmt": "1,760,293",
      "hsSgn": "33",
-     "impLnCnt": "249,074",
-     "impUsdAmt": "27,514",
+     "impLnCnt": "249,062",
+     "impUsdAmt": "27,512",
      "korePrlstNm": "정유(essential oil)와 레지노이드(resinoid), 조제향료와 화장품ㆍ화장용품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "119,637",
-     "expLnCnt": "22,164",
-     "expUsdAmt": "160,557",
+     "cmtrBlncAmt": "119,623",
+     "expLnCnt": "22,163",
+     "expUsdAmt": "160,543",
      "hsSgn": "34",
-     "impLnCnt": "71,199",
+     "impLnCnt": "71,195",
      "impUsdAmt": "40,920",
      "korePrlstNm": "비누ㆍ유기계면활성제ㆍ조제 세제ㆍ조제 윤활제ㆍ인조 왁스ㆍ조제 왁스ㆍ광택용이나 연마용 조제품ㆍ양초와 이와 유사한 물품ㆍ조형용 페이스트(paste)ㆍ치과용 왁스와 플라스터(plaster)를 기본 재료로 한 치과용 조제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "136,742",
-     "expLnCnt": "7,422",
-     "expUsdAmt": "159,612",
+     "cmtrBlncAmt": "136,724",
+     "expLnCnt": "7,421",
+     "expUsdAmt": "159,606",
      "hsSgn": "35",
-     "impLnCnt": "4,859",
-     "impUsdAmt": "22,870",
+     "impLnCnt": "4,858",
+     "impUsdAmt": "22,882",
      "korePrlstNm": "단백질계 물질, 변성전분, 글루(glue), 효소",
      "priodTitle": "2026"
     },
@@ -10226,32 +10226,32 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-119,218",
-     "expLnCnt": "8,432",
-     "expUsdAmt": "168,890",
+     "cmtrBlncAmt": "-119,380",
+     "expLnCnt": "8,431",
+     "expUsdAmt": "168,728",
      "hsSgn": "38",
-     "impLnCnt": "14,115",
+     "impLnCnt": "14,116",
      "impUsdAmt": "288,108",
      "korePrlstNm": "각종 화학공업 생산품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "119,965",
-     "expLnCnt": "122,577",
-     "expUsdAmt": "787,777",
+     "cmtrBlncAmt": "119,921",
+     "expLnCnt": "122,570",
+     "expUsdAmt": "787,798",
      "hsSgn": "39",
-     "impLnCnt": "327,940",
-     "impUsdAmt": "667,813",
+     "impLnCnt": "327,927",
+     "impUsdAmt": "667,877",
      "korePrlstNm": "플라스틱과 그 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "48,190",
-     "expLnCnt": "19,319",
-     "expUsdAmt": "117,742",
+     "cmtrBlncAmt": "48,088",
+     "expLnCnt": "19,318",
+     "expUsdAmt": "117,747",
      "hsSgn": "40",
-     "impLnCnt": "25,330",
-     "impUsdAmt": "69,552",
+     "impLnCnt": "25,332",
+     "impUsdAmt": "69,659",
      "korePrlstNm": "고무와 그 제품",
      "priodTitle": "2026"
     },
@@ -10266,11 +10266,11 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "59,520",
+     "cmtrBlncAmt": "59,534",
      "expLnCnt": "30,657",
-     "expUsdAmt": "118,328",
+     "expUsdAmt": "118,342",
      "hsSgn": "42",
-     "impLnCnt": "166,636",
+     "impLnCnt": "166,629",
      "impUsdAmt": "58,808",
      "korePrlstNm": "가죽제품, 마구, 여행용구ㆍ핸드백과 이와 유사한 용기, 동물 거트(gut)[누에의 거트(gut)는 제외한다]의 제품",
      "priodTitle": "2026"
@@ -10287,7 +10287,7 @@
     },
     {
      "cmtrBlncAmt": "-479,934",
-     "expLnCnt": "2,120",
+     "expLnCnt": "2,119",
      "expUsdAmt": "8,114",
      "hsSgn": "44",
      "impLnCnt": "22,049",
@@ -10326,21 +10326,21 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-26,884",
-     "expLnCnt": "16,460",
-     "expUsdAmt": "41,313",
+     "cmtrBlncAmt": "-26,890",
+     "expLnCnt": "16,457",
+     "expUsdAmt": "41,308",
      "hsSgn": "48",
-     "impLnCnt": "39,993",
+     "impLnCnt": "39,990",
      "impUsdAmt": "68,197",
      "korePrlstNm": "종이와 판지, 제지용 펄프ㆍ종이ㆍ판지의 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "31,697",
-     "expLnCnt": "45,511",
-     "expUsdAmt": "37,962",
+     "cmtrBlncAmt": "32,044",
+     "expLnCnt": "45,510",
+     "expUsdAmt": "38,309",
      "hsSgn": "49",
-     "impLnCnt": "25,213",
+     "impLnCnt": "25,212",
      "impUsdAmt": "6,265",
      "korePrlstNm": "인쇄서적ㆍ신문ㆍ회화ㆍ그 밖의 인쇄물, 수제(手製)문서ㆍ타자문서ㆍ도면",
      "priodTitle": "2026"
@@ -10356,9 +10356,9 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "1,282",
+     "cmtrBlncAmt": "1,299",
      "expLnCnt": "329",
-     "expUsdAmt": "1,831",
+     "expUsdAmt": "1,847",
      "hsSgn": "51",
      "impLnCnt": "316",
      "impUsdAmt": "549",
@@ -10386,9 +10386,9 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "21,898",
+     "cmtrBlncAmt": "21,905",
      "expLnCnt": "3,599",
-     "expUsdAmt": "25,702",
+     "expUsdAmt": "25,709",
      "hsSgn": "54",
      "impLnCnt": "1,300",
      "impUsdAmt": "3,805",
@@ -10396,9 +10396,9 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "11,553",
-     "expLnCnt": "2,002",
-     "expUsdAmt": "15,053",
+     "cmtrBlncAmt": "11,550",
+     "expLnCnt": "2,001",
+     "expUsdAmt": "15,050",
      "hsSgn": "55",
      "impLnCnt": "1,093",
      "impUsdAmt": "3,500",
@@ -10420,7 +10420,7 @@
      "expLnCnt": "586",
      "expUsdAmt": "404",
      "hsSgn": "57",
-     "impLnCnt": "6,808",
+     "impLnCnt": "6,807",
      "impUsdAmt": "3,054",
      "korePrlstNm": "양탄자류와 그 밖의 방직용 섬유로 만든 바닥깔개",
      "priodTitle": "2026"
@@ -10436,8 +10436,8 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "35,589",
-     "expLnCnt": "3,706",
+     "cmtrBlncAmt": "35,588",
+     "expLnCnt": "3,708",
      "expUsdAmt": "45,501",
      "hsSgn": "59",
      "impLnCnt": "2,279",
@@ -10446,9 +10446,9 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "16,051",
+     "cmtrBlncAmt": "16,091",
      "expLnCnt": "3,784",
-     "expUsdAmt": "17,075",
+     "expUsdAmt": "17,115",
      "hsSgn": "60",
      "impLnCnt": "441",
      "impUsdAmt": "1,024",
@@ -10456,51 +10456,51 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "27,641",
-     "expLnCnt": "47,612",
-     "expUsdAmt": "93,953",
+     "cmtrBlncAmt": "27,481",
+     "expLnCnt": "47,610",
+     "expUsdAmt": "93,905",
      "hsSgn": "61",
-     "impLnCnt": "185,191",
-     "impUsdAmt": "66,312",
+     "impLnCnt": "185,211",
+     "impUsdAmt": "66,424",
      "korePrlstNm": "의류와 그 부속품(메리야스 편물이나 뜨개질 편물로 한정한다)",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-5,123",
-     "expLnCnt": "39,687",
-     "expUsdAmt": "140,898",
+     "cmtrBlncAmt": "-6,090",
+     "expLnCnt": "39,684",
+     "expUsdAmt": "139,804",
      "hsSgn": "62",
-     "impLnCnt": "294,402",
-     "impUsdAmt": "146,022",
+     "impLnCnt": "294,376",
+     "impUsdAmt": "145,894",
      "korePrlstNm": "의류와 그 부속품(메리야스 편물이나 뜨개질편물은 제외한다)",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-11,051",
-     "expLnCnt": "10,998",
+     "cmtrBlncAmt": "-11,039",
+     "expLnCnt": "11,000",
      "expUsdAmt": "39,057",
      "hsSgn": "63",
-     "impLnCnt": "83,353",
-     "impUsdAmt": "50,108",
+     "impLnCnt": "83,352",
+     "impUsdAmt": "50,096",
      "korePrlstNm": "제품으로 된 방직용 섬유의 그 밖의 물품, 세트, 사용하던 의류ㆍ방직용 섬유제품, 넝마",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "2,023",
-     "expLnCnt": "68,327",
-     "expUsdAmt": "51,764",
+     "cmtrBlncAmt": "2,015",
+     "expLnCnt": "68,329",
+     "expUsdAmt": "51,769",
      "hsSgn": "64",
-     "impLnCnt": "217,296",
-     "impUsdAmt": "49,741",
+     "impLnCnt": "217,292",
+     "impUsdAmt": "49,754",
      "korePrlstNm": "신발류ㆍ각반과 이와 유사한 것, 이들의 부분품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "5,766",
-     "expLnCnt": "12,828",
-     "expUsdAmt": "11,193",
+     "cmtrBlncAmt": "5,764",
+     "expLnCnt": "12,827",
+     "expUsdAmt": "11,191",
      "hsSgn": "65",
-     "impLnCnt": "26,515",
+     "impLnCnt": "26,514",
      "impUsdAmt": "5,427",
      "korePrlstNm": "모자류와 그 부분품",
      "priodTitle": "2026"
@@ -10526,7 +10526,7 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "8,468",
+     "cmtrBlncAmt": "8,469",
      "expLnCnt": "5,632",
      "expUsdAmt": "49,144",
      "hsSgn": "68",
@@ -10540,35 +10540,35 @@
      "expLnCnt": "2,580",
      "expUsdAmt": "9,522",
      "hsSgn": "69",
-     "impLnCnt": "21,222",
+     "impLnCnt": "21,221",
      "impUsdAmt": "80,997",
      "korePrlstNm": "도자제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-32,173",
-     "expLnCnt": "5,109",
+     "cmtrBlncAmt": "-32,175",
+     "expLnCnt": "5,107",
      "expUsdAmt": "29,855",
      "hsSgn": "70",
-     "impLnCnt": "25,848",
-     "impUsdAmt": "62,027",
+     "impLnCnt": "25,847",
+     "impUsdAmt": "62,029",
      "korePrlstNm": "유리와 유리제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "167,486",
+     "cmtrBlncAmt": "170,557",
      "expLnCnt": "10,468",
-     "expUsdAmt": "1,106,208",
+     "expUsdAmt": "1,106,281",
      "hsSgn": "71",
-     "impLnCnt": "59,885",
-     "impUsdAmt": "938,722",
+     "impLnCnt": "59,880",
+     "impUsdAmt": "935,724",
      "korePrlstNm": "천연진주ㆍ양식진주ㆍ귀석ㆍ반귀석ㆍ귀금속ㆍ귀금속을 입힌 금속과 이들의 제품, 모조 신변장식용품, 주화",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "1,897,234",
+     "cmtrBlncAmt": "1,897,224",
      "expLnCnt": "16,902",
-     "expUsdAmt": "2,610,742",
+     "expUsdAmt": "2,610,732",
      "hsSgn": "72",
      "impLnCnt": "4,498",
      "impUsdAmt": "713,508",
@@ -10576,19 +10576,19 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "81,838",
-     "expLnCnt": "41,988",
-     "expUsdAmt": "306,779",
+     "cmtrBlncAmt": "81,744",
+     "expLnCnt": "41,983",
+     "expUsdAmt": "306,749",
      "hsSgn": "73",
-     "impLnCnt": "108,917",
-     "impUsdAmt": "224,941",
+     "impLnCnt": "108,912",
+     "impUsdAmt": "225,004",
      "korePrlstNm": "철강의 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-19,571",
+     "cmtrBlncAmt": "-19,474",
      "expLnCnt": "7,300",
-     "expUsdAmt": "281,026",
+     "expUsdAmt": "281,123",
      "hsSgn": "74",
      "impLnCnt": "5,247",
      "impUsdAmt": "300,597",
@@ -10596,22 +10596,22 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-78,198",
+     "cmtrBlncAmt": "-78,196",
      "expLnCnt": "639",
      "expUsdAmt": "25,458",
      "hsSgn": "75",
-     "impLnCnt": "971",
-     "impUsdAmt": "103,656",
+     "impLnCnt": "970",
+     "impUsdAmt": "103,653",
      "korePrlstNm": "니켈과 그 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-69,838",
-     "expLnCnt": "6,246",
-     "expUsdAmt": "294,003",
+     "cmtrBlncAmt": "-69,615",
+     "expLnCnt": "6,251",
+     "expUsdAmt": "293,993",
      "hsSgn": "76",
-     "impLnCnt": "10,972",
-     "impUsdAmt": "363,841",
+     "impLnCnt": "10,973",
+     "impUsdAmt": "363,608",
      "korePrlstNm": "알루미늄과 그 제품",
      "priodTitle": "2026"
     },
@@ -10646,59 +10646,59 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-167,344",
+     "cmtrBlncAmt": "-167,184",
      "expLnCnt": "760",
      "expUsdAmt": "133,817",
      "hsSgn": "81",
      "impLnCnt": "2,688",
-     "impUsdAmt": "301,161",
+     "impUsdAmt": "301,001",
      "korePrlstNm": "그 밖의 비금속(卑金屬), 서멧(cermet), 이들의 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "232,352",
-     "expLnCnt": "32,701",
-     "expUsdAmt": "345,839",
+     "cmtrBlncAmt": "232,341",
+     "expLnCnt": "32,699",
+     "expUsdAmt": "345,831",
      "hsSgn": "82",
-     "impLnCnt": "54,743",
-     "impUsdAmt": "113,488",
+     "impLnCnt": "54,742",
+     "impUsdAmt": "113,490",
      "korePrlstNm": "비금속(卑金屬)으로 만든 공구ㆍ도구ㆍ칼붙이ㆍ스푼ㆍ포크, 이들의 부분품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-17,353",
-     "expLnCnt": "8,055",
+     "cmtrBlncAmt": "-17,354",
+     "expLnCnt": "8,052",
      "expUsdAmt": "78,335",
      "hsSgn": "83",
-     "impLnCnt": "29,828",
+     "impLnCnt": "29,829",
      "impUsdAmt": "95,688",
      "korePrlstNm": "비금속(卑金屬)으로 만든 각종 제품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "779,991",
-     "expLnCnt": "162,841",
-     "expUsdAmt": "3,553,094",
+     "cmtrBlncAmt": "778,918",
+     "expLnCnt": "162,831",
+     "expUsdAmt": "3,552,026",
      "hsSgn": "84",
-     "impLnCnt": "172,613",
-     "impUsdAmt": "2,773,102",
+     "impLnCnt": "172,622",
+     "impUsdAmt": "2,773,108",
      "korePrlstNm": "원자로ㆍ보일러ㆍ기계류와 이들의 부분품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-1,146,162",
-     "expLnCnt": "305,560",
-     "expUsdAmt": "18,624,448",
+     "cmtrBlncAmt": "-1,147,331",
+     "expLnCnt": "305,551",
+     "expUsdAmt": "18,623,760",
      "hsSgn": "85",
-     "impLnCnt": "434,023",
-     "impUsdAmt": "19,770,610",
+     "impLnCnt": "434,044",
+     "impUsdAmt": "19,771,091",
      "korePrlstNm": "전기기기와 그 부분품, 녹음기ㆍ음성 재생기ㆍ텔레비전의 영상과 음성의 기록기ㆍ재생기와 이들의 부분품ㆍ부속품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "60,397",
+     "cmtrBlncAmt": "60,398",
      "expLnCnt": "1,275",
-     "expUsdAmt": "81,612",
+     "expUsdAmt": "81,614",
      "hsSgn": "86",
      "impLnCnt": "471",
      "impUsdAmt": "21,215",
@@ -10706,22 +10706,22 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "5,337,000",
-     "expLnCnt": "254,358",
-     "expUsdAmt": "6,360,921",
+     "cmtrBlncAmt": "5,334,874",
+     "expLnCnt": "254,232",
+     "expUsdAmt": "6,358,874",
      "hsSgn": "87",
-     "impLnCnt": "45,984",
-     "impUsdAmt": "1,023,921",
+     "impLnCnt": "45,985",
+     "impUsdAmt": "1,024,000",
      "korePrlstNm": "철도용이나 궤도용 외의 차량과 그 부분품ㆍ부속품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-471,223",
-     "expLnCnt": "5,821",
-     "expUsdAmt": "157,248",
+     "cmtrBlncAmt": "-471,269",
+     "expLnCnt": "5,819",
+     "expUsdAmt": "157,201",
      "hsSgn": "88",
      "impLnCnt": "4,813",
-     "impUsdAmt": "628,471",
+     "impUsdAmt": "628,470",
      "korePrlstNm": "항공기와 우주선, 이들의 부분품",
      "priodTitle": "2026"
     },
@@ -10736,22 +10736,22 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-565,200",
-     "expLnCnt": "52,972",
-     "expUsdAmt": "902,810",
+     "cmtrBlncAmt": "-565,110",
+     "expLnCnt": "52,966",
+     "expUsdAmt": "902,862",
      "hsSgn": "90",
-     "impLnCnt": "95,680",
-     "impUsdAmt": "1,468,010",
+     "impLnCnt": "95,672",
+     "impUsdAmt": "1,467,972",
      "korePrlstNm": "광학기기ㆍ사진용 기기ㆍ영화용 기기ㆍ측정기기ㆍ검사기기ㆍ정밀기기ㆍ의료용 기기, 이들의 부분품과 부속품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-20,301",
+     "cmtrBlncAmt": "-20,300",
      "expLnCnt": "1,595",
      "expUsdAmt": "11,050",
      "hsSgn": "91",
      "impLnCnt": "17,316",
-     "impUsdAmt": "31,351",
+     "impUsdAmt": "31,349",
      "korePrlstNm": "시계와 그 부분품",
      "priodTitle": "2026"
     },
@@ -10776,31 +10776,31 @@
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-148,045",
-     "expLnCnt": "14,730",
-     "expUsdAmt": "71,779",
+     "cmtrBlncAmt": "-148,048",
+     "expLnCnt": "14,727",
+     "expUsdAmt": "71,775",
      "hsSgn": "94",
-     "impLnCnt": "66,270",
+     "impLnCnt": "66,269",
      "impUsdAmt": "219,823",
      "korePrlstNm": "가구, 침구ㆍ매트리스ㆍ매트리스 서포트(mattress support)ㆍ쿠션과 이와 유사한 물품, 다른 류로 분류되지 않은 조명기구, 조명용 사인ㆍ조명용 네임플레이트(name-plate)와 이와 유사한 물품, 조립식 건축물",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "5,833",
-     "expLnCnt": "38,108",
-     "expUsdAmt": "73,987",
+     "cmtrBlncAmt": "5,889",
+     "expLnCnt": "38,101",
+     "expUsdAmt": "74,065",
      "hsSgn": "95",
-     "impLnCnt": "120,469",
-     "impUsdAmt": "68,154",
+     "impLnCnt": "120,465",
+     "impUsdAmt": "68,176",
      "korePrlstNm": "완구ㆍ게임용구ㆍ운동용구와 이들의 부분품과 부속품",
      "priodTitle": "2026"
     },
     {
-     "cmtrBlncAmt": "-427",
-     "expLnCnt": "20,403",
-     "expUsdAmt": "24,806",
+     "cmtrBlncAmt": "-428",
+     "expLnCnt": "20,400",
+     "expUsdAmt": "24,805",
      "hsSgn": "96",
-     "impLnCnt": "81,290",
+     "impLnCnt": "81,282",
      "impUsdAmt": "25,233",
      "korePrlstNm": "잡품",
      "priodTitle": "2026"

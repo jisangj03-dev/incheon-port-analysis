@@ -2,35 +2,35 @@
  "_설명": "이름 붙은 핵심 숫자 — tools-build/facts.py 가 데이터 파일에서 만든다. 초안 틀·시험이 이 값을 쓴다(손으로 적은 숫자 0).",
  "facts": {
   "gate.ym": {
-   "v": "2026-09",
+   "v": "2026-10",
    "pages": [
     "/"
    ],
    "src": "home_flows.json months[-1].ym"
   },
   "gate.imp_share": {
-   "v": "50.5",
+   "v": "45.8",
    "pages": [
     "/"
    ],
    "src": "home_flows.json imp_share_pct"
   },
   "gate.exp_share": {
-   "v": "66.6",
+   "v": "65.6",
    "pages": [
     "/"
    ],
    "src": "home_flows.json exp_share_pct"
   },
   "gate.port_imp": {
-   "v": "82.0",
+   "v": "78.0",
    "pages": [
     "/"
    ],
    "src": "home_flows.json port_imp(억 달러)"
   },
   "gate.air_imp": {
-   "v": "277.0",
+   "v": "255.0",
    "pages": [
     "/"
    ],
@@ -44,7 +44,7 @@
    "src": "home_flows.json air_cargo from~through"
   },
   "sudo.imp_share": {
-   "v": "68.1",
+   "v": "68.2",
    "pages": [
     "/"
    ],
