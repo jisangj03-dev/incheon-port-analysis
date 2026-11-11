@@ -55,7 +55,7 @@
      "text": ""
     }
    },
-   "approved": "top",
+   "approved": "not",
    "page": "/"
   },
   {
@@ -102,7 +102,7 @@
      "title": "한국 수입이 지나는 관문"
     }
    },
-   "approved": "over"
+   "approved": "near"
   },
   {
    "id": "gate.air_most",

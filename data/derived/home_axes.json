@@ -1,14 +1,14 @@
 {
  "_설명": "홈 세 축 중 무역·유통 — tools-build/axes_derive.py. 금액 = 억 달러. 시도 = 관세청 시도별 품목별의 지역(구분 기준은 명세에 없음 · 시군구별은 수입 납세의무자 주소지 · 수출 제조장소). 전국 = 관세청 국가별 수출입실적 전 국가 합(없는 달은 시도 합) · denom 에 적는다.",
- "made": "2026-11-10",
+ "made": "2026-11-11",
  "trade": {
   "ym": "2026-09",
   "sudo_imp": 484.4,
   "sudo_exp": 584.2,
-  "nat_imp": 710.8,
-  "nat_exp": 1210.5,
-  "imp_pct": 68.1,
-  "exp_pct": 48.3,
+  "nat_imp": 710.7,
+  "nat_exp": 1212.5,
+  "imp_pct": 68.2,
+  "exp_pct": 48.2,
   "imp_yoy": 28.4,
   "by_sido": {
    "서울": {
@@ -158,7 +158,7 @@
   },
   {
    "ym": "2026-01",
-   "imp_pct": 66.4,
+   "imp_pct": 66.3,
    "cons_imp": 47.2
   },
   {
@@ -188,7 +188,7 @@
   },
   {
    "ym": "2026-07",
-   "imp_pct": 65.9,
+   "imp_pct": 65.8,
    "cons_imp": 42.5
   },
   {
@@ -198,12 +198,12 @@
   },
   {
    "ym": "2026-09",
-   "imp_pct": 68.1,
+   "imp_pct": 68.2,
    "cons_imp": 48.2
   }
  ],
  "checks": {
-  "sido_sum_vs_nation_pct": -0.02,
+  "sido_sum_vs_nation_pct": -0.01,
   "nat_vs_nosido_pct": null
  },
  "sources": [

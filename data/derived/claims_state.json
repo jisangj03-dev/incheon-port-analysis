@@ -12,8 +12,8 @@
    "flipped": false
   },
   "home.top_month": {
-   "now": "top",
-   "approved": "top",
+   "now": "not",
+   "approved": "not",
    "flipped": false
   },
   "vessels.counter": {
@@ -22,8 +22,8 @@
    "flipped": false
   },
   "gate.half": {
-   "now": "over",
-   "approved": "over",
+   "now": "near",
+   "approved": "near",
    "flipped": false
   },
   "gate.air_most": {
