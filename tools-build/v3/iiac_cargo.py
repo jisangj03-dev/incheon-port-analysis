@@ -3,7 +3,7 @@
 내려받기 주소는 데이터 상세 화면에서 읽는다(파일 번호가 갱신 때 바뀐다). 덜 오면 지난 파일을 지킨다.
   python tools-build/v3/iiac_cargo.py [--csv 경로] [--selftest]
 """
-import csv, datetime, io, json, os, re, sys
+import csv, datetime, hashlib, io, json, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import ROOT, get, say
 
@@ -28,6 +28,7 @@ def download(last=None):
     url = f"https://www.data.go.kr/cmm/cmm/fileDownload.do?atchFileId={ref['atchFileId']}&fileDetailSn={ref['fileDetailSn']}&insertDataPrcus=N"
     st, b = get(url, tries=4, timeout=120, binary=True)
     say("받음", st, len(b or b""), ref["atchFileId"])
+    if b: ref = dict(ref, sha256=hashlib.sha256(b).hexdigest())  # 판정 기준 P1 — 원본 SHA-256 을 파생에 남긴다(2026-11-15)
     upd = re.search(r"수정일\s*</?[^>]*>?\s*(\d{4}-\d{2}-\d{2})", h or "") or re.search(r"수정일[^0-9]{0,40}(\d{4}-\d{2}-\d{2})", re.sub(r"<[^>]+>", " ", h or ""))
     return (b.decode("utf-8-sig", "replace") if b else None), (upd.group(1) if upd else (last or {}).get("portal_updated")), ref
 
@@ -71,7 +72,7 @@ def main():
     if not d or len(d["countries"]) < 20:
         say("자료가 덜 왔다(형식이 바뀌었을 수 있다) — 지난 파일을 지킨다"); return 1
     if old.get("through", "") > d["through"]: say("새 파일이 지난 것보다 이르다 — 지킨다", d["through"], old["through"]); return 1
-    if ref: d["file"] = {k: ref[k] for k in ("atchFileId", "fileDetailSn")}
+    if ref: d["file"] = {k: ref[k] for k in ("atchFileId", "fileDetailSn", "sha256") if k in ref}
     json.dump(d, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     top = list(d["countries"].items())[:5]
     say(f"{d['months'][0]}~{d['through']} · 나라 {len(d['countries'])} · 도착 {d['total_in_t']:,}톤 · 출발 {d['total_out_t']:,}톤 · 위 다섯 {[(k, v['in_pct'], v['out_pct']) for k, v in top]}")
